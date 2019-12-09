@@ -3,11 +3,14 @@ import 'package:flutter/foundation.dart';
 
 import 'beat_metre.dart';
 
+/// State of current metronome activity
+
 class MetronomeState with ChangeNotifier
 {
  // BeatMetre _beat;
-
+  /// Active beat (note)
   int _activeBeat = 0;
+  /// Active subbeat
   int _activeSubbeat = 0;
 
   //List<Int32> _list;

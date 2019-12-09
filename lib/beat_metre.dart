@@ -1,6 +1,6 @@
 import 'dart:core';
 
-/// Metronome beat music configuration
+/// Metronome beat melody configuration
 
 class BeatMetre
 {
@@ -14,6 +14,11 @@ class BeatMetre
   /// Number of subbeats in each i-th beat
   /// _beatCount == subBeats.length
   List<int> subBeats;
+
+  /// Subdivision of beat melody to simple metres (rows)
+  /// notes.length - number of simple metres in metronome beat melody
+  /// notes[i] - notes (bips)
+  List<List<int>> notes;
 
   BeatMetre()
   {
@@ -104,4 +109,12 @@ class BeatSound
     accentFreq = 523250;
     accentDuration = 25;
   }
+}
+
+class BeatSoundScheme
+{
+  /// Scheme number
+  /// scheme = -1 - use notes (simple <sinusoid> notes)
+  int scheme;
+  List<BeatSound> notes;
 }
