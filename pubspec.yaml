@@ -24,6 +24,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
+  provider: ^3.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -41,9 +43,23 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #  - images/a_dot_burr.jpeg
-  #  - images/a_dot_ham.jpeg
+  assets:
+    - images/Backg-Up-1.jpg
+    - images/Backg-Dn-1.jpg
+    - images/Backg-Up-1.png
+    - images/Backg-Dn-1.png
+    - images/owl1-0.png
+    - images/owl1-1.png
+    - images/owl1-2.png
+    - images/owl1-3.png
+    - images/owl1-4.png
+    - images/owl2-0.png
+    - images/owl2-1.png
+    - images/owl2-2.png
+    - images/owl2-3.png
+    - images/owl2-4.png
+    - images/Metre.png
+    - images/TempoKnob.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
