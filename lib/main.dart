@@ -146,7 +146,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   // Timer for elapsed playing time
   Timer _timer;
-  Stopwatch _timer1;
   int _time = 0;  // Elapsed playing time in sec
   // String to display as a timer
   String _sTime = '';
@@ -166,18 +165,20 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
-    )..addListener(() {
+    );
+    /*
+    ..addListener(() {
       if (redraw)
-        setState((){
+        //setState((){
           redraw = false;
           //_time = _controller.value;
-        });
+        //});
     });
+*/
 
     _beat.beatCount = initBeatCount;
 
     _playing = false;
-    //_timer1 = new Stopwatch();
     _sTime = _time2string(_time);
   }
 
@@ -241,7 +242,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       _timeSec = (60 * _timeTick) ~/ (_tempoBpm * _subBeatCount);
       */
     });
-    //print('timer $_timeTick');
   }
 
   void _play()
@@ -334,6 +334,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               _beat.beatCount = beats;
               //_beatCurrent %= _beat.beatCount;
               _beatCurrent = _subBeatCurrent = 0;
+              Provider.of<MetronomeState>(context, listen: false).reset();
               if (_playing)
                 _setBeat();
             }
@@ -382,6 +383,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
           _beat.subBeatCount = nextSubbeat(_beat.subBeatCount);
           _beatCurrent = _subBeatCurrent = 0;
+          Provider.of<MetronomeState>(context, listen: false).reset();
           if (_playing)
             _setBeat();
         });
@@ -1054,15 +1056,13 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         _beatCurrent = pair[0];
       _subBeatCurrent = pair[1];
 
-      redraw = true;
-      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
-
       _timeTick++;
-      assert(cycle == _timeTick);
       if (!animate60fps)
         setState(() {});
 
-      Provider.of<MetronomeState>(context, listen: false).setActive(_beatCurrent, _subBeatCurrent);
+      Provider.of<MetronomeState>(context, listen: false).setActiveState(_beatCurrent, _subBeatCurrent);
+      redraw = true;
+      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
 
       /*
       int writtenFrames = call.arguments;
@@ -1194,6 +1194,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               //childSize: childSize,
               onChanged: (int id, int subCount) {
                 assert(id < _beat.subBeats.length);
+                //TODO
                 _beat.subBeats[id] = subCount;
                 if (_playing)
                   _setBeat();

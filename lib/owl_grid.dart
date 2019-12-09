@@ -220,8 +220,8 @@ class OwlGridState extends State<OwlGrid>
         ));
       }
 
-    return Consumer<MetronomeState>(
-      builder: (BuildContext context, MetronomeState metronome, Widget child) {
+    //return Consumer<MetronomeState>(
+      //builder: (BuildContext context, MetronomeState metronome, Widget child) {
         return CustomMultiChildLayout(
           children: wOwls,
           delegate: _OwlLayout(
@@ -229,7 +229,7 @@ class OwlGridState extends State<OwlGrid>
             aspect: 2 * 668 / 546,
           )
         );
-      }
-    );
+      //}
+    //);
   }
 }
