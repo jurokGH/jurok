@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _opacity = _cCtrlOpacity;  // Control's opacity
 
   Size _screenSize;
-  double _squareSize;
+  double _widthSquare;
 
 
   BeatMetre _beat = new BeatMetre();
@@ -233,7 +233,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     _screenSize = mediaQueryData.size;
-    _squareSize = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
+    _widthSquare = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
     print('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
 
     return Scaffold(
@@ -452,7 +452,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           beatCurrent: _beatCurrent,
           subBeatCurrent: _subBeatCurrent,
           noteValue: _noteValue,
-          //width: _squareSize,
+          //width: _widthSquare,
           //childSize: childSize,
           onChanged: (int id, int subCount) {
             assert(id < _beat.subBeats.length);
@@ -490,8 +490,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //<<<<<<<<
 
     return Container(
-      width: _squareSize,
-      height: _squareSize,
+      width: _widthSquare,
+      height: _widthSquare,
       ///widget Background
       decoration: BoxDecoration(
         image: DecorationImage(
@@ -549,62 +549,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         )
       );
 
-    /*
-          DropdownButton<int>(
-            value: _subBeatCount,
-            style: textStyle,
-            icon: Icon(
-              Icons.arrow_drop_down,
-              color: Colors.white,
-              size: 24.0,
-              semanticLabel: 'Choose beat subdivision',
-            ),
-            //isDense: true,
-            onChanged: (int value) {
-              setState(() {
-                if (value != null) {
-                  _subBeatCount = value;
-                  if (_playing)
-                    _setTempo(0.0);
-                }
-              });
-            },
-            items: <int>[1, 2, 3, 4, 5, 6]
-              .map<DropdownMenuItem<int>>((int value) {
-              return DropdownMenuItem<int>(
-                value: value,
-                child: Text(value.toString(),
-                style: TextStyle(color: Colors.black)));
-            }).toList()
-          ),
-           */
-
       List<Widget> otherChildren = <Widget>[
       ///widget Tempo widget
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         //mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          /*
-              IconButton(
-                iconSize: 36,
-                icon: Icon(
-                  Icons.exposure_neg_1,
-                  //color: Colors.deepPurple,
-                  //size: 36.0,
-                  semanticLabel: 'Reduce tempo by one',
-                ),
-                onPressed: () {
-                  setState(() {
-                    _tempoBpm -= 10;
-                  });
-                  _scaffoldKey.currentState.showSnackBar(SnackBar(
-                    content: Text('Minus one'),
-                    duration: Duration(milliseconds: 250)));
-                },
-                tooltip: 'Reduce tempo',
-              ),
-               */
           ///widget Tempo down (-1) button
           RaisedButton(
             // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
@@ -630,7 +580,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             value: _tempoBpm.toDouble(),
             min: minTempo.toDouble(),
             max: maxTempo.toDouble(),
-            size: 0.3 * _squareSize,
+            size: 0.3 * _widthSquare,
             color: Colors.purple.withOpacity(_opacity),
             onPressed: _play,
             onChanged: (double value) {
@@ -695,31 +645,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //]
         ),
       ];
-/*
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            //mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-*/
-/*
-      ButtonTheme(
-        minWidth: 150,
-        buttonColor: Colors.purple.withOpacity(_opacity),
-        colorScheme: ColorScheme.light(),
-        child: RaisedButton(
-          textColor: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-          child: Text(isTicking() ? 'Pause' : 'Start',
-            style: textStyle),
-          shape: RoundedRectangleBorder(
-            borderRadius: new BorderRadius.circular(16.0),
-            side: BorderSide(color: Colors.purpleAccent.withOpacity(_opacity), width: 2)
-          ),
-          onPressed: _play,
-        )
-      )
-*/
+
     children.addAll(otherChildren);
 
     ///widget Volume
@@ -1032,6 +958,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     content: Text('Minus one'),
     duration: Duration(milliseconds: 250)));
 
+  IconButton(
+    iconSize: 36,
+    icon: Icon(
+      Icons.exposure_neg_1,
+      //color: Colors.deepPurple,
+      //size: 36.0,
+      semanticLabel: 'Reduce tempo by one',
+    ),
+    onPressed: () {
+      setState(() {
+        _tempoBpm -= 10;
+      });
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Minus one'),
+        duration: Duration(milliseconds: 250)));
+    },
+    tooltip: 'Reduce tempo',
+  ),
+
   DropdownButton<int>(
     value: _subBeatCount,
     style: textStyle,
@@ -1059,4 +1004,49 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         style: TextStyle(color: Colors.black)));
     }).toList()
   ),
+
+  DropdownButton<int>(
+    value: _subBeatCount,
+    style: textStyle,
+    icon: Icon(
+      Icons.arrow_drop_down,
+      color: Colors.white,
+      size: 24.0,
+      semanticLabel: 'Choose beat subdivision',
+    ),
+    //isDense: true,
+    onChanged: (int value) {
+      setState(() {
+        if (value != null) {
+          _subBeatCount = value;
+          if (_playing)
+            _setTempo(0.0);
+        }
+      });
+    },
+    items: <int>[1, 2, 3, 4, 5, 6]
+      .map<DropdownMenuItem<int>>((int value) {
+      return DropdownMenuItem<int>(
+        value: value,
+        child: Text(value.toString(),
+        style: TextStyle(color: Colors.black)));
+    }).toList()
+  ),
+
+  ButtonTheme(
+    minWidth: 150,
+    buttonColor: Colors.purple.withOpacity(_opacity),
+    colorScheme: ColorScheme.light(),
+    child: RaisedButton(
+      textColor: Colors.white,
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+      child: Text(isTicking() ? 'Pause' : 'Start',
+        style: textStyle),
+      shape: RoundedRectangleBorder(
+        borderRadius: new BorderRadius.circular(16.0),
+        side: BorderSide(color: Colors.purpleAccent.withOpacity(_opacity), width: 2)
+      ),
+      onPressed: _play,
+    )
+  )
 */

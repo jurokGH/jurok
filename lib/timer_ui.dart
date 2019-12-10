@@ -33,7 +33,7 @@ class TimerState extends State<TimerWidget>
   // Elapsed playing time in seconds
   int _time = 0;
   // String to display as a timer
-  String _sTime = '';
+  String _sTime;
 
   TimerState()
   {
