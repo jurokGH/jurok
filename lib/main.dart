@@ -224,6 +224,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_knob.pressed = true;
   }
 
+  /// Loop through subdivision list: 1, 2, 4, 3
+  int nextSubbeat(int subBeat)
+  {
+    subBeat++;
+    if (subBeat == 3)
+      subBeat = 4;
+    else if (subBeat == 4)
+      subBeat = 1;
+    else if (subBeat >= 5)
+      subBeat = 3;
+    return subBeat;
+  }
+
   /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
   ///
@@ -303,18 +316,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         }),
       )
     );
-  }
-
-  int nextSubbeat(int subBeat)
-  {
-    subBeat++;
-    if (subBeat == 3)
-      subBeat = 4;
-    else if (subBeat == 4)
-      subBeat = 1;
-    else if (subBeat >= 5)
-      subBeat = 3;
-    return subBeat;
   }
 
   ///widget Subbeat
@@ -580,7 +581,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             value: _tempoBpm.toDouble(),
             min: minTempo.toDouble(),
             max: maxTempo.toDouble(),
-            size: 0.3 * _widthSquare,
+            size: (portrait ? 0.28 : 0.3) * _widthSquare,
             color: Colors.purple.withOpacity(_opacity),
             onPressed: _play,
             onChanged: (double value) {
@@ -628,7 +629,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               //margin: EdgeInsets.all(16),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                 child: TempoWidget(
                   tempo: _tempoBpm,
                   onChanged: (int tempo) {
