@@ -18,29 +18,27 @@ import 'BipPauseCycle.dart';
 
 /// UI controls opacity constant
 final double _cCtrlOpacity = 0.4;
+final String _cAppName = "Owlenome";
+final String _cAppTitle = "Owlenome";
 
-void main() => runApp(ChangeNotifierProvider(
-  create: (_) => new MetronomeState(),
-  child: MyApp()
-));
+void main()
+{
+  return runApp(
+    ChangeNotifierProvider(
+      create: (_) => new MetronomeState(),
+      child: App()
+    )
+  );
+}
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: _cAppName,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.purple,
+        accentColor: Colors.purpleAccent,
         iconTheme: IconThemeData(color: Colors.white),
         buttonTheme: ButtonThemeData(
           //minWidth: 150,
@@ -48,39 +46,27 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.light(),
           textTheme: ButtonTextTheme.primary,
         ),
-        //accentColor: Colors.greenAccent,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: HomePage(title: _cAppTitle),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+class HomePage extends StatefulWidget {
+  HomePage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-//enum MelodyMeter { Metr_2_2, Metr_2_3, Metr_3_4, Metr_4_4, Metr_6_8 }
-
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin<MyHomePage>
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin<HomePage>
 {
   // for showSnackBar to run
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Configuration constants
+  /// Configuration constants
   static const int initBeatCount = 4;
   static const int maxSubBeatCount = 8;
   static const int minNoteValue = 2;
@@ -88,10 +74,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   static const int minTempo = 6;
   static const int maxTempo = 500;
 
+  /// Flutter-Java connection channel
   static const MethodChannel _channel =
     MethodChannel('samples.flutter.io/owlenome');
 
-  // UI parameters
+  /// UI parameters
   double _borderRadius = 16;
   Size _padding = Size(24, 36);
   double _opacity = _cCtrlOpacity;  // Control's opacity
@@ -286,6 +273,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _togglePlay();
   }
 
+  /// /////////////////////////////////////////////////////////////////////////
+  /// >>>>>>>> Widget section
+  ///
+
   ///widget Main screen
   @override
   Widget build(BuildContext context) {
@@ -294,17 +285,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _squareSize = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
     print('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
 
-    // Vertical/portrait
-    List<Widget> innerUI = <Widget>[
-      _buildOwlenome(false),
-      _buildControls(false)
-    ];
-    // Horizontal/landscape
-    List<Widget> innerUIhorz = <Widget>[
-      _buildOwlenomeHorz(),
-      _buildControlsHorz()
-    ];
-
     return Scaffold(
       key: _scaffoldKey,  // for showSnackBar to run
       backgroundColor: Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
@@ -312,12 +292,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       body: Center(
         child: OrientationBuilder(
           builder: (context, orientation) {
+            /// Owl square and controls
+            List<Widget> innerUI = <Widget>[
+              _buildOwlenome(false),
+              _buildControls(orientation == Orientation.portrait, false)
+            ];
+
             return orientation == Orientation.portrait ?
-            // Vertical/portrait
+              // Vertical/portrait
               Column(children: innerUI,
                 mainAxisAlignment: MainAxisAlignment.start) :
-            // Horizontal/landscape
-              Row(children: innerUIhorz,
+              // Horizontal/landscape
+              Row(children: innerUI,
                 mainAxisAlignment: MainAxisAlignment.start);
           }
         )
@@ -401,7 +387,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     return subBeat;
   }
 
-  ///widget Subbeat widget
+  ///widget Subbeat
   Widget _buildSubbeat(TextStyle textStyle)
   {
     return Container(
@@ -451,8 +437,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 colorFuture: Colors.white,
               )
             )
-   //         child: Text('= $_subBeatCount/' + (_subBeatCount * _noteValue).toString(),
-  //            style: textStyle,
           ),
         ]
       )
@@ -530,11 +514,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   ///widget Square section with metronome itself
   Widget _buildOwlenome(bool showControls)
   {
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
-
     List<Widget> children = <Widget>[
       ///widget Owls
       Expanded(
@@ -547,6 +526,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           //childSize: childSize,
           onChanged: (int id, int subCount) {
             assert(id < _beat.subBeats.length);
+            //TODO
             _beat.subBeats[id] = subCount;
             if (_playing)
               _setBeat();
@@ -556,6 +536,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     ];
 
     //>>>>>>>>TODO: remove later if don't need
+    /// Row with Metre and Subbeat controls
+    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
+      color: Colors.white,
+      //backgroundColor: Colors.black45
+    );
     if (showControls)
       children.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -577,7 +562,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     return Container(
       width: _squareSize,
       height: _squareSize,
-      /// Background
+      ///widget Background
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage('images/Backg-Up-1.jpg'),
@@ -592,7 +577,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   // Remaining section with controls
-  Widget _buildControls(bool showVolume)
+  Widget _buildControls(bool portrait, bool showVolume)
   {
     TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
       color: Colors.white,
@@ -684,16 +669,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 tooltip: 'Reduce tempo',
               ),
                */
-          ///widget Tempo down button
+          ///widget Tempo down (-1) button
           RaisedButton(
-            /*
-                child: Icon(
-                  Icons.exposure_neg_1,
-                  size: 36.0,
-                  semanticLabel: 'Reduce tempo by one',
-                  color: Colors.white,
-                ),
-                */
+            // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
             child: Text('-1',
               textScaleFactor: 1.8,),
             padding: EdgeInsets.all(12),
@@ -711,7 +689,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               });
             },
           ),
-          ///widget Tempo control
+          ///widget Tempo knob control
           Knob(
             value: _tempoBpm.toDouble(),
             min: minTempo.toDouble(),
@@ -728,16 +706,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               });
             },
           ),
-          ///widget Tempo up button
+          ///widget Tempo up (+1) button
           RaisedButton(
-            /*
-                child: Icon(
-                  Icons.exposure_plus_1,
-                  size: 36.0,
-                  semanticLabel: 'Increase tempo by one',
-                  color: Colors.white,
-                ),
-                 */
+            // Can use instead: Icon(Icons.exposure_plus_1, semanticLabel: 'Increase tempo by one', size: 36.0, color: Colors.white)
             child: Text('+1',
               textScaleFactor: 1.8,),
             //style: textStyle),
@@ -842,6 +813,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     );
   }
 
+  /// <<<<<<<< Widget section
+  /// /////////////////////////////////////////////////////////////////////////
+  /// Flutter-Java inter operation
+  ///
   Future<void> _togglePlay() async
   {
     Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm.toInt() ~/ _beat.beatCount, denominator: _noteValue);
@@ -1112,6 +1087,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     setState(() {});  // Update UI
   }
 
+
+  // Settings boilerplate
   Route _createSettings()
   {
     return MaterialPageRoute(builder: (context) => SettingsWidget());
@@ -1130,287 +1107,42 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         );
       }
     );
-     */
-  }
-
-
-  ///widget Square section with metronome itself
-  Widget _buildOwlenomeHorz()
-  {
-    return Container(
-      width: _squareSize,
-      height: _squareSize,
-      /// Background
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('images/Backg-Up-1.jpg'),
-          fit: BoxFit.cover
-        )
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          ///widget Owls
-          Expanded(
-            child: OwlGrid(
-              beat: _beat,
-              beatCurrent: _beatCurrent,
-              subBeatCurrent: _subBeatCurrent,
-              noteValue: _noteValue,
-              //width: _squareSize,
-              //childSize: childSize,
-              onChanged: (int id, int subCount) {
-                assert(id < _beat.subBeats.length);
-                //TODO
-                _beat.subBeats[id] = subCount;
-                if (_playing)
-                  _setBeat();
-              },
-            )
-          ),
-        ]),
-    );
-  }
-
-  // Remaining section with controls
-  Widget _buildControlsHorz()
-  {
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
-    TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
-
-    // Fill up the remaining screen as the last widget in column/row
-    return Expanded(
-      child: Container(
-        /// Background
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/Backg-Dn-1.jpg'),
-            fit: BoxFit.cover,
-          )
-        ),
-        //Padding(
-        //  padding: const EdgeInsets.all(8.0),
-        //  child:
-        //child: IntrinsicHeight(
-
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            /*
-          DropdownButton<int>(
-            value: _subBeatCount,
-            style: textStyle,
-            icon: Icon(
-              Icons.arrow_drop_down,
-              color: Colors.white,
-              size: 24.0,
-              semanticLabel: 'Choose beat subdivision',
-            ),
-            //isDense: true,
-            onChanged: (int value) {
-              setState(() {
-                if (value != null) {
-                  _subBeatCount = value;
-                  if (_playing)
-                    _setTempo(0.0);
-                }
-              });
-            },
-            items: <int>[1, 2, 3, 4, 5, 6]
-              .map<DropdownMenuItem<int>>((int value) {
-              return DropdownMenuItem<int>(
-                value: value,
-                child: Text(value.toString(),
-                style: TextStyle(color: Colors.black)));
-            }).toList()
-          ),
-           */
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,//spaceAround
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ///widget Metre
-                  _buildMetre(),
-                  ///widget Timer
-                  _buildTimer(textStyleTimer),
-                  ///widget Subbeat widget
-                  _buildSubbeat(textStyle),
-                ]
-              ),
-            ),
-
-            ///widget Tempo widget
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                /*
-              IconButton(
-                iconSize: 36,
-                icon: Icon(
-                  Icons.exposure_neg_1,
-                  //color: Colors.deepPurple,
-                  //size: 36.0,
-                  semanticLabel: 'Reduce tempo by one',
-                ),
-                onPressed: () {
-                  setState(() {
-                    _tempoBpm -= 10;
-                  });
-                  _scaffoldKey.currentState.showSnackBar(SnackBar(
-                    content: Text('Minus one'),
-                    duration: Duration(milliseconds: 250)));
-                },
-                tooltip: 'Reduce tempo',
-              ),
-               */
-
-                /*
-                ///widget Tempo down button
-                RaisedButton(
-                child: Icon(
-                  Icons.exposure_neg_1,
-                  size: 36.0,
-                  semanticLabel: 'Reduce tempo by one',
-                  color: Colors.white,
-                ),
-                  child: Text('-1',
-                    textScaleFactor: 1.5,),
-                  //padding: EdgeInsets.all(6),
-                  shape: CircleBorder(
-                    //borderRadius: new BorderRadius.circular(18.0),
-                    side: BorderSide(color: Colors.purple, width: 2.0)
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _tempoBpm -= 1;
-                      if (_tempoBpm < minTempo)
-                        _tempoBpm = minTempo;
-                      if (_playing)
-                        _setTempo(0.0);
-                    });
-                  },
-                ),
-                */
-
-                ///widget Tempo control
-                Knob(
-                  value: _tempoBpm.toDouble(),
-                  min: minTempo.toDouble(),
-                  max: maxTempo.toDouble(),
-                  size: 0.3 * _squareSize,
-                  color: Colors.purple.withOpacity(_opacity),
-                  onPressed: _play,
-                  onChanged: (double value) {
-                    setState(() {
-                      _tempoBpm = value.round();
-                      //_tempoList.setTempo(_tempoBpm);
-                      if (_playing)
-                        _setTempo(0.0);
-                    });
-                  },
-                ),
-
-                ///widget Tempo up button
-                /*
-                RaisedButton(
-                  /*
-                child: Icon(
-                  Icons.exposure_plus_1,
-                  size: 36.0,
-                  semanticLabel: 'Increase tempo by one',
-                  color: Colors.white,
-                ),
-                 */
-                  child: Text('+1',
-                    textScaleFactor: 1.5,),
-                  //style: textStyle),
-//                  /padding: EdgeInsets.all(12),
-                  shape: CircleBorder(
-                    //borderRadius: new BorderRadius.circular(18.0),
-                    side: BorderSide(color: Colors.purple, width: 2.0)
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _tempoBpm += 1;
-                      if (_tempoBpm > maxTempo)
-                        _tempoBpm = maxTempo;
-                      if (_playing)
-                        _setTempo(0.0);
-                    });
-                  },
-                ),
-                 */
-              ]),
-
-            ///widget Tempo list
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(_opacity),
-                    //shape: BoxShape.circle,
-                    border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
-                    borderRadius: BorderRadius.circular(_borderRadius),
-                  ),
-                  //margin: EdgeInsets.all(16),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: TempoWidget(
-                      tempo: _tempoBpm,
-                      onChanged: (int tempo) {
-                        if (_tempoBpm != tempo)
-                          setState(() {
-                            _tempoBpm = tempo;
-                            if (_playing)
-                              _setTempo(0.0);
-                          });
-                      }
-                    ))
-                )
-              )
-              //]
-            ),
-
-/*
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            //mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-*/
-            ///widget Volume
-            // _builVolume(),
-
-/*
-      ButtonTheme(
-        minWidth: 150,
-        buttonColor: Colors.purple.withOpacity(_opacity),
-        colorScheme: ColorScheme.light(),
-        child: RaisedButton(
-          textColor: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-          child: Text(isTicking() ? 'Pause' : 'Start',
-            style: textStyle),
-          shape: RoundedRectangleBorder(
-            borderRadius: new BorderRadius.circular(16.0),
-            side: BorderSide(color: Colors.purpleAccent.withOpacity(_opacity), width: 2)
-          ),
-          onPressed: _play,
-        )
-      )
-*/
-          ]
-        )
-      ));
+   */
   }
 }
+
+
+///VG: Don't delete
+/*
+  _scaffoldKey.currentState.showSnackBar(SnackBar(
+    content: Text('Minus one'),
+    duration: Duration(milliseconds: 250)));
+
+  DropdownButton<int>(
+    value: _subBeatCount,
+    style: textStyle,
+    icon: Icon(
+      Icons.arrow_drop_down,
+      color: Colors.white,
+      size: 24.0,
+      semanticLabel: 'Choose beat subdivision',
+    ),
+    //isDense: true,
+    onChanged: (int value) {
+      setState(() {
+        if (value != null) {
+          _subBeatCount = value;
+          if (_playing)
+            _setTempo(0.0);
+        }
+      });
+    },
+    items: <int>[1, 2, 3, 4, 5, 6]
+      .map<DropdownMenuItem<int>>((int value) {
+      return DropdownMenuItem<int>(
+        value: value,
+        child: Text(value.toString(),
+        style: TextStyle(color: Colors.black)));
+    }).toList()
+  ),
+*/
