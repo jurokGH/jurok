@@ -534,6 +534,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             _buildMetre(),
             //),
             ///widget Timer
+            portrait ?
             TimerWidget(
               active: _playing,
               opacity: _opacity,
@@ -541,7 +542,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               borderWidth: 2,
               borderRadius: _borderRadius,
               textStyle: textStyleTimer,
-            ),
+            )
+            :
+            Container(width: 0, height: 0),
             ///widget Subbeat widget
             //Flexible(child:
             _buildSubbeat(textStyle),
@@ -554,8 +557,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ///widget Tempo widget
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //crossAxisAlignment: CrossAxisAlignment.end,
         //mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          portrait ?
           ///widget Tempo down (-1) button
           RaisedButton(
             // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
@@ -575,13 +580,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   _setTempo(0.0);
               });
             },
-          ),
+          )
+          :
+          Container(width: 0, height: 0),
           ///widget Tempo knob control
           Knob(
             value: _tempoBpm.toDouble(),
             min: minTempo.toDouble(),
             max: maxTempo.toDouble(),
-            size: (portrait ? 0.28 : 0.3) * _widthSquare,
+            size: 0.28 * _widthSquare,
             color: Colors.purple.withOpacity(_opacity),
             onPressed: _play,
             onChanged: (double value) {
@@ -593,6 +600,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               });
             },
           ),
+          portrait ?
           ///widget Tempo up (+1) button
           RaisedButton(
             // Can use instead: Icon(Icons.exposure_plus_1, semanticLabel: 'Increase tempo by one', size: 36.0, color: Colors.white)
@@ -613,7 +621,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   _setTempo(0.0);
               });
             },
-          ),
+          )
+          :
+          Container(width: 0, height: 0),
         ]),
 
         ///widget Tempo list
