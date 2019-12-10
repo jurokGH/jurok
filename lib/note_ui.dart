@@ -101,8 +101,13 @@ class NotePainter extends CustomPainter {
   final Color colorPast, colorNow, colorFuture;
   /// Note head gradient parameters
   //TODO
-  final Color colorInner = Colors.black12;
-  final double _coefGrad = 1.2;
+  /// Note head gradient parameters
+  /// Gradient inner color
+  final Color colorInner = Colors.grey[700];
+  /// Coefficient of gradient radius relating to note radius
+  final double _coefGrad = 1.4;
+  /// Gradient center shift along X-axis relating to note radius
+  final double _coefGradSkewX = 0.15;
 
   /// Остальными значениями играть тут
   ///
@@ -256,7 +261,8 @@ class NotePainter extends CustomPainter {
       width: 2 * radiusHead,
       height: 2 * radiusHead / radiusRatio);
 
-    final Rect rcGrad = Rect.fromCenter(center: Offset.zero,
+    final Rect rcGrad = Rect.fromCenter(
+      center: Offset.zero.translate(_coefGradSkewX * radiusHead, 0),
       width: _coefGrad * 2 * radiusHead,
       height: _coefGrad * 2 * radiusHead / radiusRatio);
 
