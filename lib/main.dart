@@ -286,6 +286,45 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _togglePlay();
   }
 
+  ///widget Main screen
+  @override
+  Widget build(BuildContext context) {
+    MediaQueryData mediaQueryData = MediaQuery.of(context);
+    _screenSize = mediaQueryData.size;
+    _squareSize = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
+    print('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
+
+    // Vertical/portrait
+    List<Widget> innerUI = <Widget>[
+      _buildOwlenome(false),
+      _buildControls(false)
+    ];
+    // Horizontal/landscape
+    List<Widget> innerUIhorz = <Widget>[
+      _buildOwlenomeHorz(),
+      _buildControlsHorz()
+    ];
+
+    return Scaffold(
+      key: _scaffoldKey,  // for showSnackBar to run
+      backgroundColor: Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
+      //appBar: AppBar(title: Text(widget.title),),
+      body: Center(
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            return orientation == Orientation.portrait ?
+            // Vertical/portrait
+              Column(children: innerUI,
+                mainAxisAlignment: MainAxisAlignment.start) :
+            // Horizontal/landscape
+              Row(children: innerUIhorz,
+                mainAxisAlignment: MainAxisAlignment.start);
+          }
+        )
+      ),
+    );
+  }
+
   ///widget Timer
   Widget _buildTimer(TextStyle textStyle)
   {
@@ -488,30 +527,15 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     );
   }
 
-  // Square section with metronome itself
+  ///widget Square section with metronome itself
   Widget _buildOwlenome(bool showControls)
   {
     TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
       color: Colors.white,
       //backgroundColor: Colors.black45
     );
-    TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
 
     List<Widget> children = <Widget>[
-      ///widget Timer
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 32),
-            child: _buildTimer(textStyleTimer)
-          ),
-        ]
-      ),
-
       ///widget Owls
       Expanded(
         child: OwlGrid(
@@ -531,27 +555,24 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       ),
     ];
 
+    //>>>>>>>>TODO: remove later if don't need
     if (showControls)
       children.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,//spaceAround
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ///widget Metre
           Flexible(
-            //  mainAxisAlignment: MainAxisAlignment.start,//spaceAround
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: _buildMetre(),
             ),
           ),
-
+          ///widget Subbeat widget
           Flexible(
-            child:
-            //Flexible(
-            ///widget Subbeat widget
-            //child:
-            _buildSubbeat(textStyle),
+            child: _buildSubbeat(textStyle),
           )
         ]));
+    //<<<<<<<<
 
     return Container(
       width: _squareSize,
@@ -573,36 +594,38 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   // Remaining section with controls
   Widget _buildControls(bool showVolume)
   {
-    //print('_buildControls');
-
     TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
+      color: Colors.white,
+      //backgroundColor: Colors.black45
+    );
+    TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
       color: Colors.white,
       //backgroundColor: Colors.black45
     );
 
     List<Widget> children = new List<Widget>();
 
-    if (!showVolume)
-      children.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,//spaceAround
-        children: [
-          ///widget Metre
-          Flexible(
-            //  mainAxisAlignment: MainAxisAlignment.start,//spaceAround
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    if (!showVolume)  //TODO: remove
+      children.add(Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,//spaceAround
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ///widget Metre
+            Flexible(
+              //  mainAxisAlignment: MainAxisAlignment.start,//spaceAround
               child: _buildMetre(),
             ),
-          ),
-
-          Flexible(
-            child:
-            //Flexible(
+            ///widget Timer
+            _buildTimer(textStyleTimer),
             ///widget Subbeat widget
-            //child:
-            _buildSubbeat(textStyle),
-          )
-        ]));
+            Flexible(
+              child: _buildSubbeat(textStyle),
+            )
+          ])
+        )
+      );
 
 
       /*
@@ -636,36 +659,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
            */
 
       List<Widget> otherChildren = <Widget>[
-      ///widget Tempo list
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(_opacity),
-              //shape: BoxShape.circle,
-              border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
-              borderRadius: BorderRadius.circular(_borderRadius),
-            ),
-            //margin: EdgeInsets.all(16),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: TempoWidget(
-                tempo: _tempoBpm,
-                onChanged: (int tempo) {
-                  if (_tempoBpm != tempo)
-                    setState(() {
-                      _tempoBpm = tempo;
-                      if (_playing)
-                        _setTempo(0.0);
-                    });
-                }
-              ))
-          )
-        )
-        //]
-      ),
-
       ///widget Tempo widget
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -723,7 +716,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             value: _tempoBpm.toDouble(),
             min: minTempo.toDouble(),
             max: maxTempo.toDouble(),
-            size: 0.2 * _squareSize,
+            size: 0.3 * _squareSize,
             color: Colors.purple.withOpacity(_opacity),
             onPressed: _play,
             onChanged: (double value) {
@@ -764,6 +757,36 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             },
           ),
         ]),
+
+        ///widget Tempo list
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.purple.withOpacity(_opacity),
+                //shape: BoxShape.circle,
+                border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
+                borderRadius: BorderRadius.circular(_borderRadius),
+              ),
+              //margin: EdgeInsets.all(16),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: TempoWidget(
+                  tempo: _tempoBpm,
+                  onChanged: (int tempo) {
+                    if (_tempoBpm != tempo)
+                      setState(() {
+                        _tempoBpm = tempo;
+                        if (_playing)
+                          _setTempo(0.0);
+                      });
+                  }
+                ))
+            )
+          )
+          //]
+        ),
       ];
 /*
         IntrinsicHeight(
@@ -818,42 +841,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       )
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    MediaQueryData mediaQueryData = MediaQuery.of(context);
-    _screenSize = mediaQueryData.size;
-    _squareSize = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
-    print('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
-
-    List<Widget> innerUI = <Widget>[
-      _buildOwlenome(false),
-      _buildControls(false)
-    ];
-    List<Widget> innerUIhorz = <Widget>[
-      _buildOwlenomeHorz(),
-      _buildControlsHorz()
-    ];
-
-    return Scaffold(
-      key: _scaffoldKey,  // for showSnackBar to run
-      backgroundColor: Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),
-      //appBar: AppBar(title: Text(widget.title),),
-      body: Center(
-        child: OrientationBuilder(
-          builder: (context, orientation) {
-            return orientation == Orientation.portrait ?
-              Column(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start) :
-              Row(children: innerUIhorz,
-                mainAxisAlignment: MainAxisAlignment.start);
-          }
-        )
-      ),
-    );
-  }
-
-
 
   Future<void> _togglePlay() async
   {
@@ -1147,18 +1134,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
 
-  // Square section with metronome itself
+  ///widget Square section with metronome itself
   Widget _buildOwlenomeHorz()
   {
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
-    TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
-
     return Container(
       width: _squareSize,
       height: _squareSize,
@@ -1172,17 +1150,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          ///widget Timer
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16, top: 32),
-                child: _buildTimer(textStyleTimer)
-              ),
-            ]
-          ),
-
           ///widget Owls
           Expanded(
             child: OwlGrid(
@@ -1208,9 +1175,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   // Remaining section with controls
   Widget _buildControlsHorz()
   {
-    //print('_buildControls');
-
     TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
+      color: Colors.white,
+      //backgroundColor: Colors.black45
+    );
+    TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
       color: Colors.white,
       //backgroundColor: Colors.black45
     );
@@ -1262,27 +1231,21 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             }).toList()
           ),
            */
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,//spaceAround
-              children: [
-                ///widget Metre
-                //Flexible(
-                  //  mainAxisAlignment: MainAxisAlignment.start,//spaceAround
-                  //child:
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-                    child: _buildMetre(),
-                  ),
-                //),
-
-                //Flexible(
-                  //child:
-                  //Flexible(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,//spaceAround
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ///widget Metre
+                  _buildMetre(),
+                  ///widget Timer
+                  _buildTimer(textStyleTimer),
                   ///widget Subbeat widget
-                  //child:
                   _buildSubbeat(textStyle),
-                //),
-              ]),
+                ]
+              ),
+            ),
 
             ///widget Tempo widget
             Row(
