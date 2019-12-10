@@ -10,6 +10,7 @@ import 'owl_grid.dart';
 import 'knob.dart';
 import 'metre.dart';
 import 'tempo.dart';
+import 'timer_ui.dart';
 import 'settings.dart';
 import 'Melody.dart';
 import 'BipPauseCycle.dart';
@@ -131,12 +132,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _period = 60000;
   bool _playing;
 
-  // Timer for elapsed playing time
-  Timer _timer;
-  int _time = 0;  // Elapsed playing time in sec
-  // String to display as a timer
-  String _sTime = '';
-  int _timeSec = 0;
   int _timeTick = 0;
   double prevTime = 0;
 
@@ -166,7 +161,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _beat.beatCount = initBeatCount;
 
     _playing = false;
-    _sTime = _time2string(_time);
   }
 
   @override
@@ -175,102 +169,59 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  void startTimer()
-  {
-    assert(false);
-    return;
-    _timer?.cancel();
-    setState(() {
-      _timeTick = 0;
-      _timeSec = 0;
-    });
-    _period = 60000 ~/ _tempoBpm;
-    Duration duration = new Duration(milliseconds: _period ~/ _beat.subBeatCount);
-    _timer = new Timer.periodic(duration, _handleTimer);
-  }
-
-  void stopTimer()
-  {
-    //_timer?.cancel();
-  }
-
   bool isTicking()
   {
     return _playing;
-    //return _timer != null && _timer.isActive;
-  }
-
-  // time in seconds
-  String _time2string(int time)
-  {
-    if (time < 0)
-      time = 0;
-    if (time >= 60000)
-      time %= 60000;
-    return (time ~/ 60).toString().padLeft(2, '0') + ':' + (time % 60).toString().padLeft(2, '0');
-  }
-
-  void _handleTimer(Timer timer)
-  {
-    //print('_handleTimer $_playing');
-    if (timer.isActive)
-    setState(()
-    {
-      _time = timer.tick;
-      _sTime = _time2string(_time);
-      /*
-      _timeTick++;
-      _beatCurrent = (_timeTick ~/ _subBeatCount);
-      if (_beatCount == 1 && _subBeatCount == 1)
-        _beatCurrent %= 2;
-      else
-        _beatCurrent %= _beatCount;
-      _subBeatCurrent = _timeTick % _subBeatCount;
-      _timeSec = (60 * _timeTick) ~/ (_tempoBpm * _subBeatCount);
-      */
-    });
   }
 
   void _play()
   {
-    //setState(() {
     if (_playing)
     {
-      //metronome1?.play();
+      _togglePlay();
       //_playing = !_playing;
       _playing = false;
-      assert(_timer != null);
-      _timer.cancel();
-      //_timer.stop();
       if (animate60fps)
         _controller.stop();
+      setState(() {});
     }
     else
     {
       prevTime = 0;
       _timeTick = 0;
-      _time = 0;
-      _sTime = _time2string(_time);
+      //TODO _timer.reset();
 
       _setBeat();
+      _togglePlay();
     }
 /*
-      if (isTicking())
-      {
-        stopTimer();
-      }
-      else
-        startTimer();
+    _playing = !_playing;
+    if (_playing)
+      _controller.repeat();
+    else
+      _controller.stop();
 */
-/*
-      _playing = !_playing;
-      if (_playing)
-        _controller.repeat();
-      else
-        _controller.stop();
-*/
-    //});
-    _togglePlay();
+  }
+
+  // Start graphics animation
+  void _start(int param)
+  {
+    /*
+    if (_mode)
+      barrelOrgan?.play();
+    else
+      ;//metronome1?.play();
+     */
+
+    if (animate60fps)
+    {
+      _controller.reset();
+      _controller.forward();
+    }
+    setState(() {
+      _playing = true;
+    });
+    //_knob.pressed = true;
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -308,27 +259,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           }
         )
       ),
-    );
-  }
-
-  ///widget Timer
-  Widget _buildTimer(TextStyle textStyle)
-  {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.purple.withOpacity(_opacity),
-        //shape: BoxShape.circle,
-        border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
-        borderRadius: BorderRadius.circular(_borderRadius),
-      ),
-      //margin: EdgeInsets.all(16),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-        child: Text(_sTime,
-          //textAlign: TextAlign.left,
-          style: textStyle,
-        )
-      )
     );
   }
 
@@ -588,32 +518,38 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //backgroundColor: Colors.black45
     );
 
+    final double horzSpace = portrait ? 16 : 0;
     List<Widget> children = new List<Widget>();
 
     if (!showVolume)  //TODO: remove
       children.add(Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+        padding: EdgeInsets.symmetric(horizontal: horzSpace, vertical: 0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,//spaceAround
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ///widget Metre
-            Flexible(
-              //  mainAxisAlignment: MainAxisAlignment.start,//spaceAround
-              child: _buildMetre(),
-            ),
+            //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
+            _buildMetre(),
+            //),
             ///widget Timer
-            _buildTimer(textStyleTimer),
+            TimerWidget(
+              active: _playing,
+              opacity: _opacity,
+              color: Colors.purple,
+              borderWidth: 2,
+              borderRadius: _borderRadius,
+              textStyle: textStyleTimer,
+            ),
             ///widget Subbeat widget
-            Flexible(
-              child: _buildSubbeat(textStyle),
-            )
+            //Flexible(child:
+            _buildSubbeat(textStyle),
+            //)
           ])
         )
       );
 
-
-      /*
+    /*
           DropdownButton<int>(
             value: _subBeatCount,
             style: textStyle,
@@ -817,6 +753,76 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// /////////////////////////////////////////////////////////////////////////
   /// Flutter-Java inter operation
   ///
+
+  Future<dynamic> _handleMsg(MethodCall call) async
+  {
+    if (call.method == 'warmedUp')
+    {
+      warmupFrames = call.arguments;
+      _start(call.arguments);
+    }
+    else if (call.method == 'timeFrame')
+    {
+      int beatOrder = call.arguments['note'];
+      int offset = call.arguments['offset'];
+      int cycle = call.arguments['cycle'];
+
+      List<int> pair = _beat.beatPair(beatOrder);
+
+      //beatOrder += _timeTick;
+      //_beatCurrent =  beatOrder ~/ _subBeatCount;
+      if (_beat.beatCount == 1 && _beat.subBeatCount == 1)
+        //_beatCurrent %= 2;
+        _beatCurrent = (_beatCurrent + 1) % 2;
+      else
+        _beatCurrent = pair[0];
+      _subBeatCurrent = pair[1];
+
+      _timeTick++;
+      if (!animate60fps)
+        setState(() {});
+
+      Provider.of<MetronomeState>(context, listen: false).setActiveState(_beatCurrent, _subBeatCurrent);
+      redraw = true;
+      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
+
+      /*
+      int writtenFrames = call.arguments;
+
+      double msecTime = (writtenFrames - warmupFrames) * 1000 / nativeSampleRate;
+      //metronome1?.setFrame(writtenFrames - warmupFrames);
+
+      double period = 60000 / (_tempoBpm * _subBeatCount);
+
+      print('writtenFrames: $writtenFrames - $warmupFrames - $msecTime - $prevTime - $period');
+
+      if (msecTime - prevTime > 0.8 * period)
+      {
+        int ticks = (msecTime - prevTime) ~/ period;
+        _timeTick += ticks;
+        prevTime = msecTime;
+
+        print('_timeTick: $_timeTick');
+
+        setState(()
+        {
+          //_timeTick++;
+
+          _beatCurrent = (_timeTick ~/ _subBeatCount);
+          if (_beatCount == 1 && _subBeatCount == 1)
+            _beatCurrent %= 2;
+          else
+            _beatCurrent %= _beatCount;
+          _subBeatCurrent = _timeTick % _subBeatCount;
+          _timeSec = (60 * _timeTick) ~/ (_tempoBpm * _subBeatCount);
+        });
+      }
+      print('timer $_timeTick - $_timeSec');
+        */
+    }
+    return new Future.value('');
+  }
+
   Future<void> _togglePlay() async
   {
     Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm.toInt() ~/ _beat.beatCount, denominator: _noteValue);
@@ -969,98 +975,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     } on PlatformException {
       _infoMsg = 'Exception: Failed setting volume';
     }
-  }
-
-  // Start graphics animation
-  void _start(int param)
-  {
-    //print("_start $param");
-    /*
-    if (_mode)
-      barrelOrgan?.play();
-    else
-      ;//metronome1?.play();
-     */
-    Duration duration = new Duration(milliseconds: 1000);
-    _timer = new Timer.periodic(duration, _handleTimer);
-
-    if (animate60fps)
-    {
-      _controller.reset();
-      _controller.forward();
-    }
-    _playing = true;
-    //_knob.pressed = true;
-    //print('_start');
-  }
-
-  Future<dynamic> _handleMsg(MethodCall call) async
-  {
-    if (call.method == 'warmedUp')
-    {
-      warmupFrames = call.arguments;
-      _start(call.arguments);
-    }
-    else if (call.method == 'timeFrame')
-    {
-      int beatOrder = call.arguments['note'];
-      int offset = call.arguments['offset'];
-      int cycle = call.arguments['cycle'];
-
-      List<int> pair = _beat.beatPair(beatOrder);
-
-      //beatOrder += _timeTick;
-      //_beatCurrent =  beatOrder ~/ _subBeatCount;
-      if (_beat.beatCount == 1 && _beat.subBeatCount == 1)
-        //_beatCurrent %= 2;
-        _beatCurrent = (_beatCurrent + 1) % 2;
-      else
-        _beatCurrent = pair[0];
-      _subBeatCurrent = pair[1];
-
-      _timeTick++;
-      if (!animate60fps)
-        setState(() {});
-
-      Provider.of<MetronomeState>(context, listen: false).setActiveState(_beatCurrent, _subBeatCurrent);
-      redraw = true;
-      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
-
-      /*
-      int writtenFrames = call.arguments;
-
-      double msecTime = (writtenFrames - warmupFrames) * 1000 / nativeSampleRate;
-      //metronome1?.setFrame(writtenFrames - warmupFrames);
-
-      double period = 60000 / (_tempoBpm * _subBeatCount);
-
-      print('writtenFrames: $writtenFrames - $warmupFrames - $msecTime - $prevTime - $period');
-
-      if (msecTime - prevTime > 0.8 * period)
-      {
-        int ticks = (msecTime - prevTime) ~/ period;
-        _timeTick += ticks;
-        prevTime = msecTime;
-
-        print('_timeTick: $_timeTick');
-
-        setState(()
-        {
-          //_timeTick++;
-
-          _beatCurrent = (_timeTick ~/ _subBeatCount);
-          if (_beatCount == 1 && _subBeatCount == 1)
-            _beatCurrent %= 2;
-          else
-            _beatCurrent %= _beatCount;
-          _subBeatCurrent = _timeTick % _subBeatCount;
-          _timeSec = (60 * _timeTick) ~/ (_tempoBpm * _subBeatCount);
-        });
-      }
-      print('timer $_timeTick - $_timeSec');
-        */
-    }
-    return new Future.value('');
   }
 
   Future<void> _getAudioParams() async
