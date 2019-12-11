@@ -23,7 +23,8 @@ class OwlWidget extends StatefulWidget
   OwlWidget({this.id, this.onTap,
     this.accent, this.active,
     this.denominator,
-    this.subBeat, this.subBeatCount});
+    this.subBeat, this.subBeatCount}):
+    assert(subBeatCount > 0);
 
   @override
   OwlState createState() => OwlState(subBeatCount, active, subBeat);
@@ -35,11 +36,12 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   static final int maxSubCount = 8;
   int subCount;
   int subBeat;
-  bool active;
 
   int _counter;
 
-  int prevActive = 0;
+  bool active = false;
+  int activeSubbeat = 0;
+  int activeHash = 0;
   bool redraw = false;
   AnimationController _controller;
   int _period = 60000;
@@ -59,14 +61,16 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     )
     ..addListener(() {
       final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-      int active = state.getBeatState(widget.id);
+      int hash = state.getBeatState(widget.id);
       //print('AnimationController ${widget.id} $_counter');
-      _counter++;
-      if (active != prevActive)
+      //_counter++;
+      if (hash != activeHash)
         setState((){
           print('AnimationController ${widget.id} $_counter');
           print('  active $active');
-          prevActive = active;
+          activeHash = hash;
+          active = state.activeBeat == widget.id;
+          activeSubbeat = state.activeSubbeat;
           redraw = false;
           //_time = _controller.value;
         });
@@ -87,10 +91,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
   @override
   Widget build(BuildContext context) {
-    assert(widget.subBeatCount > 0);
-    print('OwlState: ${widget.id} - $_counter - ${widget.active} - ${widget.subBeatCount} - ${widget.subBeat}');
-    _counter++;
-
     //final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
       //.setActive(widget.id, widget.subBeatCount);
     //int activeBeat = state.activeBeat;
@@ -108,7 +108,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       owls.add(w);
     }
 */
-    int nFile3 = widget.accent ? 2 : 1;
+    final int nFile3 = widget.accent ? 2 : 1;
     //Size childSize = new Size(minWidth, minWidth * 546 / 668);
     final List<Widget> subOwls = List<Widget>();
     for (int i = 0; i < widget.subBeatCount; i++)
@@ -120,9 +120,9 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       subOwls.add(w);
     }
 
-    final int activeBeat = prevActive >> 16;
-    final int activeSubbeat = prevActive & 0xFFFF;
-    bool active = widget.id == activeBeat;
+    final int beat = activeHash >> 16;
+    final int subbeat = activeHash & 0xFFFF;
+    //final bool active = widget.id == activeBeat;
 
     final int nFile1 = widget.accent ? 1 : 2;
     int nFile2 = active ? 3 : 0;
@@ -132,8 +132,10 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       if (nFile2 > 4)
         nFile2 = 1 + nFile2 % 5;
     }
+    final String imageName = 'images/owl$nFile1-$nFile2.png';
 
-    print('OwlState2: ${widget.id} - $activeBeat - $activeSubbeat - $active');
+    print('OwlState: ${widget.id} - $beat - $_counter - ${widget.subBeatCount} - ${widget.active} - $active - $subbeat - ${widget.subBeat}');
+    _counter++;
 
     //return Image.asset('images/owl2-$division.png',
     /// Provider-Selector
@@ -189,7 +191,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   children: owls,
                 ),
                 */
-                      Image.asset('images/owl$nFile1-$nFile2.png',
+                      Image.asset(imageName,
                       //width: widget.width,
                       fit: BoxFit.contain
                       ),
@@ -213,7 +215,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   ])
 
                   :
-                  Image.asset('images/owl$nFile1-$nFile2.png',
+                  Image.asset(imageName,
                     //width: widget.width,
                     fit: BoxFit.contain
                   ),

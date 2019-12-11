@@ -37,7 +37,8 @@ class MetronomeState with ChangeNotifier
 
   int getBeatState(int  id)
   {
-    return id == _activeBeat ? (_activeBeat << 16) | (_activeSubbeat & 0xFFFF) : 0xFFFF;
+    //return id == _activeBeat ? (_activeBeat << 16) | (_activeSubbeat & 0xFFFF) : 0xFFFF;
+    return (_activeBeat << 16) | (_activeSubbeat & 0xFFFF);
   }
 
   void setActiveState(int beat, int subbeat)
