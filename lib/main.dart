@@ -15,10 +15,11 @@ import 'settings.dart';
 import 'Melody.dart';
 import 'BipPauseCycle.dart';
 
-/// You can find main control widgets by comment tag: ///widget
+/// Сontrol widgets can be found by comment tag: ///widget
 
 /// UI controls opacity constant
 final double _cCtrlOpacity = 0.4;
+
 final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
@@ -81,12 +82,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     MethodChannel('samples.flutter.io/owlenome');
 
   /// UI parameters
+  ///
+  /// Controls border radius
   double _borderRadius = 16;
-  Size _padding = Size(24, 36);
+  /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
+  Size _padding = Size(24, 36);
 
-  Size _screenSize;
+  /// Size of square owl's area
   double _widthSquare;
+  /// Overall screen size
+  Size _screenSize;
 
 
   BeatMetre _beat = new BeatMetre();
@@ -720,9 +726,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (!animate60fps)
         setState(() {});
 
+      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
       Provider.of<MetronomeState>(context, listen: false).setActiveState(_beatCurrent, _subBeatCurrent);
       redraw = true;
-      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
 
       /*
       int writtenFrames = call.arguments;
