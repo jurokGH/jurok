@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+//import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
 import 'owl_widget.dart';
@@ -189,6 +189,7 @@ class OwlGridState extends State<OwlGrid>
 
   @override
   Widget build(BuildContext context) {
+    print('OwlGridState');
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
 
