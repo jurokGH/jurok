@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
 import 'beat_metre.dart';
-import 'note_ui.dart';
 import 'owl_grid.dart';
 import 'knob.dart';
 import 'metre_ui.dart';
+import 'subbeat_ui.dart';
 import 'tempo_ui.dart';
 import 'timer_ui.dart';
 import 'settings.dart';
@@ -71,6 +71,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// Configuration constants
   static const int initBeatCount = 4;
+  static const int minBeatCount = 2;
+  static const int maxBeatCount = 12;
   static const int maxSubBeatCount = 8;
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
@@ -85,6 +87,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///
   /// Controls border radius
   double _borderRadius = 16;
+  /// Controls border radius
+  double _borderWidth = 2;
   /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
   Size _padding = Size(24, 36);
@@ -231,17 +235,38 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_knob.pressed = true;
   }
 
-  /// Loop through subdivision list: 1, 2, 4, 3
-  int nextSubbeat(int subBeat)
+  void onMetreChanged(int beats, int note)
   {
-    subBeat++;
-    if (subBeat == 3)
-      subBeat = 4;
-    else if (subBeat == 4)
-      subBeat = 1;
-    else if (subBeat >= 5)
-      subBeat = 3;
-    return subBeat;
+    if (_beat.beatCount != beats)
+    {
+      _beat.beatCount = beats;
+      //_beatCurrent %= _beat.beatCount;
+      _beatCurrent = _subBeatCurrent = 0;
+      Provider.of<MetronomeState>(context, listen: false).reset();
+      if (_playing)
+        _setBeat();
+      setState(() {});
+    }
+    if (_noteValue != note)
+    {
+      _noteValue = note;
+      if (_playing)
+        _setTempo(0);
+      setState(() {});
+    }
+  }
+
+  void onSubbeatChanged(int subbeatCount)
+  {
+    setState(()
+    {
+      //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
+      _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
+      _beatCurrent = _subBeatCurrent = 0;
+      Provider.of<MetronomeState>(context, listen: false).reset();
+    });
+    if (_playing)
+      _setBeat();
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -282,45 +307,36 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  ///widget Metre
-  Widget _buildMetre()
+  ///widget Plate under controls
+  Widget _buildPlate(Widget widget, {Offset padding = Offset.zero})
   {
     return Container(
       decoration: BoxDecoration(
         color: Colors.purple.withOpacity(_opacity),
         //shape: BoxShape.circle,
-        border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
-        borderRadius: BorderRadius.circular(_borderRadius),
+        border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: _borderWidth),
+        borderRadius: BorderRadius.circular(_borderRadius)
       ),
-      //margin: EdgeInsets.all(16),
-      child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-      child: MetreWidget(
+      padding: EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
+      //margin: const EdgeInsets.all(0),
+      child: widget
+    );
+  }
+
+  ///widget Metre
+  Widget _buildMetre(TextStyle textStyle)
+  {
+    return _buildPlate(
+      MetreWidget(
         beats: _beat.beatCount,
-        minBeats: 2,
-        maxBeats: 12,
+        minBeats: minBeatCount,
+        maxBeats: maxBeatCount,
         note: _noteValue,
         minNote: minNoteValue,
         maxNote: maxNoteValue,
-        onChanged: (int beats, int note) {
-          setState(() {
-            if (_beat.beatCount != beats)
-            {
-              _beat.beatCount = beats;
-              //_beatCurrent %= _beat.beatCount;
-              _beatCurrent = _subBeatCurrent = 0;
-              Provider.of<MetronomeState>(context, listen: false).reset();
-              if (_playing)
-                _setBeat();
-            }
-            if (_noteValue != note)
-            {
-              _noteValue = note;
-              if (_playing)
-                _setTempo(0);
-            }
-          });
-        }),
+        color: Colors.white,
+        textStyle: textStyle,
+        onChanged: onMetreChanged
       )
     );
   }
@@ -328,57 +344,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Subbeat
   Widget _buildSubbeat(TextStyle textStyle)
   {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.purple.withOpacity(_opacity),
-        //shape: BoxShape.circle,
-        border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
-        borderRadius: BorderRadius.circular(_borderRadius),
+    return _buildPlate(
+      SubbeatWidget(
+        subbeatCount: _beat.subBeatCount,
+        noteValue: _noteValue,
+        color: Colors.white,
+        textStyle: textStyle,
+        onChanged: onSubbeatChanged,
       ),
-      //margin: EdgeInsets.all(16),
-      child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-    child:
-
-    GestureDetector(
-      onTap: () {
-        setState(() {
-          //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
-          _beat.subBeatCount = nextSubbeat(_beat.subBeatCount);
-          _beatCurrent = _subBeatCurrent = 0;
-          Provider.of<MetronomeState>(context, listen: false).reset();
-          if (_playing)
-            _setBeat();
-        });
-      },
-      child: Row(
-        children: <Widget>[
-          Image.asset('images/owl2-3.png',
-            height: 50,
-            fit: BoxFit.contain
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-            child: Text('=', style: textStyle)
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-            child: SizedBox(
-              height: 70,
-              width: 20.0 + 4 * 15,
-              child: NoteWidget(
-                subDiv: _beat.subBeatCount,
-                denominator: _noteValue * _beat.subBeatCount,
-                active: -1,
-                colorPast: Colors.white,
-                colorNow: Colors.white,
-                colorFuture: Colors.white,
-              )
-            )
-          ),
-        ]
-      )
-    )));
+    );
   }
 
   ///widget Volume
@@ -414,7 +388,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           decoration: BoxDecoration(
             color: Colors.purple.withOpacity(_opacity),
             //shape: BoxShape.circle,
-            border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
+            border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: _borderWidth),
             borderRadius: BorderRadius.circular(_borderRadius),
           ),
           //margin: EdgeInsets.all(16),
@@ -487,14 +461,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           Flexible(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: _buildMetre(),
+              child: _buildMetre(textStyle),
             ),
           ),
           ///widget Subbeat widget
           Flexible(
             child: _buildSubbeat(textStyle),
-          )
-        ]));
+          ),
+        ]
+      ));
     //<<<<<<<<
 
     return Container(
@@ -526,19 +501,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //backgroundColor: Colors.black45
     );
 
-    final double horzSpace = portrait ? 16 : 0;
+    final double horzSpace = portrait ? 16 : 16;
     List<Widget> children = new List<Widget>();
 
     if (!showVolume)  //TODO: remove
       children.add(Padding(
-        padding: EdgeInsets.symmetric(horizontal: horzSpace, vertical: 0),
+        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,//spaceAround
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ///widget Metre
             //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
-            _buildMetre(),
+            _buildMetre(textStyle),
             //),
             ///widget Timer
             portrait ?
@@ -546,7 +521,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               active: _playing,
               opacity: _opacity,
               color: Colors.purple,
-              borderWidth: 2,
+              borderWidth: _borderWidth,
               borderRadius: _borderRadius,
               textStyle: textStyleTimer,
             )
@@ -576,7 +551,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             padding: EdgeInsets.all(12),
             shape: CircleBorder(
               //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.purple, width: 2.0)
+              side: BorderSide(color: Colors.purple, width: _borderWidth)
             ),
             onPressed: () {
               setState(() {
@@ -617,7 +592,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             padding: EdgeInsets.all(12),
             shape: CircleBorder(
               //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.purple, width: 2.0)
+              side: BorderSide(color: Colors.purple, width: _borderWidth)
             ),
             onPressed: () {
               setState(() {
@@ -635,32 +610,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
         ///widget Tempo list
         Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(_opacity),
-                //shape: BoxShape.circle,
-                border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: 2),
-                borderRadius: BorderRadius.circular(_borderRadius),
-              ),
-              //margin: EdgeInsets.all(16),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: TempoWidget(
-                  tempo: _tempoBpm,
-                  onChanged: (int tempo) {
-                    if (_tempoBpm != tempo)
-                      setState(() {
-                        _tempoBpm = tempo;
-                        if (_playing)
-                          _setTempo(0.0);
-                      });
-                  }
-                ))
-            )
-          )
-          //]
+          child: _buildPlate(TempoWidget(
+            tempo: _tempoBpm,
+            onChanged: (int tempo) {
+              if (_tempoBpm != tempo)
+                setState(() {
+                  _tempoBpm = tempo;
+                  if (_playing)
+                    _setTempo(0.0);
+                });
+              }
+            ),
+            padding: new Offset(8, 0),
+          ),
         ),
       ];
 

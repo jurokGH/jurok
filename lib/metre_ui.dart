@@ -11,17 +11,21 @@ class MetreWidget extends StatefulWidget
   final int minNote;
   final int maxNote;
   final Color color;
+  final TextStyle textStyle;
 
   //final ValueChanged<int> onChanged;
   final ValueChanged2<int, int> onChanged;
 
-  MetreWidget({this.beats, this.note, this.onChanged,
-    this.minBeats = 1, this.maxBeats = 8, this.minNote = 1, this.maxNote = 8,
-    this.color = Colors.white});
+  MetreWidget({
+    this.beats, this.note,
+    @required this.onChanged,
+    this.minBeats = 1, this.maxBeats = 8,
+    this.minNote = 1, this.maxNote = 8,
+    this.color = Colors.white,
+    @required this.textStyle});
 
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
     return MetreState();
   }
 }
@@ -58,11 +62,8 @@ class MetreState extends State<MetreWidget>
   @override
   Widget build(BuildContext context)
   {
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: widget.color,
-      //backgroundColor: Colors.black45
-    );
-    TextStyle textStyleMenu = textStyle.apply(
+    TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
+    TextStyle textStyleMenu = widget.textStyle.copyWith(
       color: widget.color,
       backgroundColor: Colors.deepPurple
     );
@@ -158,7 +159,7 @@ class MetreState extends State<MetreWidget>
                   widget.onChanged(beats, widget.note);
                 },
                 child: Text(widget.beats.toString(),
-                  style: textStyle,
+                  style: textStyleColor,
                 ),
               ),
               //child: Text(widget.beats.toString(),
@@ -207,7 +208,7 @@ class MetreState extends State<MetreWidget>
                   widget.onChanged(widget.beats, note);
                 },
                 child: Text(widget.note.toString(),
-                  style: textStyle,
+                  style: textStyleColor,
                 ),
               ),
             ]
