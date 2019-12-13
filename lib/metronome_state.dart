@@ -14,13 +14,13 @@ class MetronomeState with ChangeNotifier
   int _activeSubbeat = 0;
 
   //List<Int32> _list;
-  Int32List _list;
+  //Int32List _list;
 
   //BeatMetre get beat => _beat;
   int get activeBeat => _activeBeat;
   int get activeSubbeat => _activeSubbeat;
 
-  UnmodifiableInt32ListView get list => _list;
+  //UnmodifiableInt32ListView get list => _list;
   //UnmodifiableListView<Int32> get list => UnmodifiableListView<Int32>(_list);
 
   MetronomeState();
@@ -30,15 +30,19 @@ class MetronomeState with ChangeNotifier
     _activeBeat = _activeSubbeat = 0;
   }
 
+  bool isActiveBeat(int id)
+  {
+    return id == _activeBeat;
+  }
+
   int getActiveState()
   {
     return (_activeBeat << 16) | (_activeSubbeat & 0xFFFF);
   }
 
-  int getBeatState(int  id)
+  int getBeatState(int id)
   {
-    //return id == _activeBeat ? (_activeBeat << 16) | (_activeSubbeat & 0xFFFF) : 0xFFFF;
-    return (_activeBeat << 16) | (_activeSubbeat & 0xFFFF);
+    return id == _activeBeat ? ((_activeBeat << 16) | (_activeSubbeat & 0xFFFF)) : 0xFFFF;
   }
 
   void setActiveState(int beat, int subbeat)

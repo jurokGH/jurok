@@ -152,14 +152,16 @@ class OwlGrid extends StatefulWidget
 //  /final double width;
 
   BeatMetre beat;
-  final int beatCurrent;
-  final int subBeatCurrent;
   final int noteValue;
+  final int activeBeat;
+  final int activeSubbeat;
+  final bool playing;
 
   final ValueChanged2<int, int> onChanged;
 
   OwlGrid({@required this.beat, this.noteValue,
-    this.beatCurrent, this.subBeatCurrent,
+    this.activeBeat, this.activeSubbeat,
+    this.playing = false,
     this.onChanged,
     //this.width,
     });
@@ -168,11 +170,14 @@ class OwlGrid extends StatefulWidget
   OwlGridState createState() => OwlGridState();
 }
 
-class OwlGridState extends State<OwlGrid>
+class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<OwlGrid>
 {
-  int subCount;
-  int subCur;
-  bool active;
+  AnimationController _controller;
+  int _period = 60000;
+
+  //int subCount;
+  //int subCur;
+  //bool active;
 
   int _counter;
 
@@ -180,11 +185,36 @@ class OwlGridState extends State<OwlGrid>
   {
   }
 
+  void toggleAnimation()
+  {
+    if (widget.playing)
+    {
+      if (!_controller.isAnimating)
+        _controller.repeat();
+    }
+    else
+    {
+      if (_controller.isAnimating)
+        _controller.stop();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
+    _controller = new AnimationController(
+      vsync: this,
+      duration: new Duration(milliseconds: _period),
+    );
+
     _counter = 0;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -204,22 +234,25 @@ class OwlGridState extends State<OwlGrid>
       {
         OwlWidget w = new OwlWidget(
           id: k,
+          accent: k == 0,
+          active: k == widget.activeBeat,
+          activeSubbeat: k == widget.activeBeat ? widget.activeSubbeat : -1,
+          subbeatCount: widget.beat.subBeats[k],
+          denominator: widget.noteValue,
+          animation: _controller.view,
           onTap: (int id, int subCount) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
             widget.onChanged(id, subCount);
-          },
-          accent: k == 0,
-          active: k == widget.beatCurrent,
-          denominator: widget.noteValue,
-          subBeat: widget.subBeatCurrent,
-          subBeatCount: widget.beat.subBeats[k]);
+          });
 
         wOwls.add(LayoutId(
           id: k,
           child: w
         ));
       }
+
+    toggleAnimation();
 
     //return Consumer<MetronomeState>(
       //builder: (BuildContext context, MetronomeState metronome, Widget child) {

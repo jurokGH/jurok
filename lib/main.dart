@@ -107,9 +107,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //int _beatCount = 4;  // _metreBeats
   //int _subBeatCount = 1;
   /// Current playing beat
-  int _beatCurrent = 0;
+  int _activeBeat = 0;
   /// Current playing subbeat of current beat
-  int _subBeatCurrent = 0;
+  int _activeSubbeat = 0;
   /// Melody parameters
   double _quortaInMSec = 20;
   int _bars = 1;
@@ -194,6 +194,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _playing = false;
       if (animate60fps)
         _controller.stop();
+      /// Stops OwlGridState::AnimationController
       setState(() {});
     }
     else
@@ -229,9 +230,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _controller.reset();
       _controller.forward();
     }
-    setState(() {
-      _playing = true;
-    });
+    _playing = true;
+    setState(() {});
     //_knob.pressed = true;
   }
 
@@ -240,33 +240,42 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
-      //_beatCurrent %= _beat.beatCount;
-      _beatCurrent = _subBeatCurrent = 0;
+      //_activeBeat %= _beat.beatCount;
+      _activeBeat = _activeSubbeat = 0;
       Provider.of<MetronomeState>(context, listen: false).reset();
       if (_playing)
         _setBeat();
-      setState(() {});
     }
     if (_noteValue != note)
     {
       _noteValue = note;
       if (_playing)
         _setTempo(0);
-      setState(() {});
     }
+    setState(() {});
   }
 
   void onSubbeatChanged(int subbeatCount)
   {
-    setState(()
-    {
-      //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
-      _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
-      _beatCurrent = _subBeatCurrent = 0;
-      Provider.of<MetronomeState>(context, listen: false).reset();
-    });
+    //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
+    _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
+    _activeBeat = _activeSubbeat = 0;
+    Provider.of<MetronomeState>(context, listen: false).reset();
     if (_playing)
       _setBeat();
+    setState(() {});
+  }
+
+  void onOwlChanged(int id, int subCount)
+  {
+    assert(id < _beat.subBeats.length);
+    //TODO
+    _beat.subBeats[id] = subCount;
+    _activeBeat = _activeSubbeat = 0;
+    Provider.of<MetronomeState>(context, listen: false).reset();
+    if (_playing)
+      _setBeat();
+    setState(() {});
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -430,19 +439,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ///widget Owls
       Expanded(
         child: OwlGrid(
+          playing: _playing,
           beat: _beat,
-          beatCurrent: _beatCurrent,
-          subBeatCurrent: _subBeatCurrent,
+          activeBeat: _activeBeat,
+          activeSubbeat: _activeSubbeat,
           noteValue: _noteValue,
           //width: _widthSquare,
           //childSize: childSize,
-          onChanged: (int id, int subCount) {
-            assert(id < _beat.subBeats.length);
-            //TODO
-            _beat.subBeats[id] = subCount;
-            if (_playing)
-              _setBeat();
-          },
+          onChanged: onOwlChanged,
         )
       ),
     ];
@@ -492,7 +496,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // Remaining section with controls
   Widget _buildControls(bool portrait, bool showVolume)
   {
-    TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
+    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
       color: Colors.white,
       //backgroundColor: Colors.black45
     );
@@ -676,20 +680,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       List<int> pair = _beat.beatPair(beatOrder);
 
       //beatOrder += _timeTick;
-      //_beatCurrent =  beatOrder ~/ _subBeatCount;
+      //_activeBeat =  beatOrder ~/ _subBeatCount;
       if (_beat.beatCount == 1 && _beat.subBeatCount == 1)
-        //_beatCurrent %= 2;
-        _beatCurrent = (_beatCurrent + 1) % 2;
+        //_activeBeat %= 2;
+        _activeBeat = (_activeBeat + 1) % 2;
       else
-        _beatCurrent = pair[0];
-      _subBeatCurrent = pair[1];
+        _activeBeat = pair[0];
+      _activeSubbeat = pair[1];
 
       _timeTick++;
       if (!animate60fps)
         setState(() {});
 
-      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_beatCurrent - $_subBeatCurrent');
-      Provider.of<MetronomeState>(context, listen: false).setActiveState(_beatCurrent, _subBeatCurrent);
+      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
+      Provider.of<MetronomeState>(context, listen: false).setActiveState(_activeBeat, _activeSubbeat);
       redraw = true;
 
       /*
@@ -714,12 +718,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         {
           //_timeTick++;
 
-          _beatCurrent = (_timeTick ~/ _subBeatCount);
+          _activeBeat = (_timeTick ~/ _subBeatCount);
           if (_beatCount == 1 && _subBeatCount == 1)
-            _beatCurrent %= 2;
+            _activeBeat %= 2;
           else
-            _beatCurrent %= _beatCount;
-          _subBeatCurrent = _timeTick % _subBeatCount;
+            _activeBeat %= _beatCount;
+          _activeSubbeat = _timeTick % _subBeatCount;
           _timeSec = (60 * _timeTick) ~/ (_tempoBpm * _subBeatCount);
         });
       }
