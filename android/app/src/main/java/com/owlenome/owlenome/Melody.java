@@ -30,7 +30,7 @@ class Utility
    * Возвращает время игры бипа согласно штампу и номеру сэмла.
    * Интерполирует через nativeSampleRate;
    */
-  public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
+  final static  public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
   {
     return stampTime + samples2nanoSec(frequency, frameToPlayN - stampFrame);
   }
@@ -38,7 +38,7 @@ class Utility
   /**
    * Определяем число samples в данном числе наносекунд.
    */
-  public long nanoSec2samples(int frequency, long time)
+  final static public long nanoSec2samples(int frequency, long time)
   {
     return Math.round((double) time * frequency * 1e-9);
   }
@@ -46,7 +46,7 @@ class Utility
   /**
    * Определяем время в наносекундах из samples
    */
-  public long samples2nanoSec(int frequency, long samplesN)
+  final static  public long samples2nanoSec(int frequency, long samplesN)
   {
     return Math.round(1e9 * samplesN / frequency);
   }
@@ -63,7 +63,7 @@ class Utility
    * @return какова должна быть длительность цикла при данном tempo.
    */
 // in seconds
-  public double tempoToCycleDuration(Tempo tempo, int bars, int nativeSampleRate)
+  final static public double tempoToCycleDuration(Tempo tempo, int bars, int nativeSampleRate)
   {
     //VG Note value (denominator) changes actual beat tempo
     int totalBeatsPerCycle = bars * tempo.denominator;
@@ -106,8 +106,8 @@ class Melody
     _nativeSampleRate = nativeSampleRate;
     _numerator = numerator;
 
-    Utility utility = new Utility();
-    framesInQuorta = (int) utility.nanoSec2samples(_nativeSampleRate, (long) (1e+6 * quortaInMSec));
+    //Utility utility = new Utility();
+    framesInQuorta = (int) Utility.nanoSec2samples(_nativeSampleRate, (long) (1e+6 * quortaInMSec));
   }
 
   public void init(byte[][] notes, int[] pauses)
@@ -148,10 +148,10 @@ class Melody
   {
     int BPMtoSet = Math.min((int) cycle.getMaximalTempo(_nativeSampleRate, _bars, tempo.denominator),
       tempo.beatsPerMinute);
-    Utility utility = new Utility();
+    //Utility utility = new Utility();
     //System.out.print("BPMtoSet ");
     //System.out.println(BPMtoSet);
-    cycle.setNewDuration(utility.tempoToCycleDuration(new Tempo(BPMtoSet, tempo.denominator),
+    cycle.setNewDuration(Utility.tempoToCycleDuration(new Tempo(BPMtoSet, tempo.denominator),
       _bars, _nativeSampleRate));
     return BPMtoSet;
   }

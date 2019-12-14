@@ -1,6 +1,7 @@
 package com.owlenome.owlenome;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -232,6 +233,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       {
         //IS>>
         // Create new metronome beat melody
+
+
+
         beatMelody = new AccentBeat(nativeSampleRate, quortaDuration,
           beat.beatCount, beat.accent,
           beat.beatFreq, beat.beatDuration, beat.accentFreq, beat.accentDuration,
