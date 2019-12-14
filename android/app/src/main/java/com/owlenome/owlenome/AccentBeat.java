@@ -66,8 +66,8 @@ class AccentBeat extends Melody
         int iNote = (i == accent && j == 0) ? 1 : 0;
         symbols[k] = iNote;
         //TODO vg Why /2?
-        bipAndPause[k] = new BipAndPause(melody[iNote].length / 2, //pauseFactor);
-          pauseFactor / subBeats.get(i));
+        bipAndPause[k] = new BipAndPause(melody[iNote].length / 2, pauseFactor);
+          //pauseFactor / subBeats.get(i));
       }
 
     cycle = new BipPauseCycle(symbols, elasticSymbol, bipAndPause, numerator);
