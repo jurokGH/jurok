@@ -88,13 +88,13 @@ class Melody
 
   public BipPauseCycle cycle;
   // Bip alphabet
-  byte[][] melody;
+  byte[][] melody;//ToDo: rename; they are just a set of sounds, not a melody.
   // To be removed
   BipAndPause[] _bipAndPauseSing;
 
   /**
    * Создаёт схему с длительностями нот.
-   * Играем "sing, sing, sing".
+   * (когда-то играло "Sing, sing, sing.").
    *
    * @param quortaInMSec Определяет длительность четвертного бипа и соответственно
    *                     всех остальных несжимаемых звуков. Это эмуляция реальной

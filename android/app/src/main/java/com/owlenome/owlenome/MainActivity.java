@@ -49,6 +49,15 @@ class BeatMetre
 
 public class MainActivity extends FlutterActivity implements MethodChannel.MethodCallHandler
 {
+
+  // Сюда собираем пары звуков. Не наглядно. Временное решение.
+  // Скажем, schemeFilesIndexes[0] - два звука классического метронома,
+  // schemeFilesIndexes[1] - два барабана;
+  // schemeFilesIndexes[2] - типа, совы кричат
+  // schemeFilesIndexes[3] - или там порноактрисы,
+  // ну и так далее. Надо устаканить.
+  int[][] schemeFilesIndexes;
+
   private static final String SOUND_CHANNEL = "samples.flutter.io/owlenome";
 
   private MethodChannel channel;
@@ -69,6 +78,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     GeneratedPluginRegistrant.registerWith(this);
 
     getNativeAudioParams();
+
+    //ToDo: adhoc, причесать потом
+    schemeFilesIndexes=new int[][]
+            {
+                    {R.raw.drum_accent,R.raw.drum},
+                    {R.raw.std_accent,R.raw.std},
+                    {R.raw.woodblock_short1,R.raw.cabasa1},
+                    {R.raw.short_drum,R.raw.short_drum1}
+            };
 
     // Receive messages from audio playing thread
     Handler handler = new Handler(Looper.getMainLooper())
@@ -163,6 +181,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       int numerator = methodCall.argument("numerator");
       int melodyType = methodCall.argument("mod");
 
+
+      //TODO
       //if (melodyType == 0)
       {
         boolean res = false;
@@ -187,9 +207,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       //IS:
       // Get beat parameters from Flutter
       BeatMetre beat = new BeatMetre();
-      int bars = 1;
-      int numerator = 1;
-      int quortaDuration = 25;
+
 
       List<Integer> config = methodCall.argument("config");
       if (config.size() >= 3)
@@ -207,13 +225,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       }
       if (config.size() >= 10)
       {
-        bars = config.get(7);
-        numerator = config.get(8);
-        quortaDuration = config.get(9);
+        //bars = config.get(7);
+       // numerator = config.get(8);
+        //quortaDuration = config.get(9);
       }
 
       //IS: VG Hack!!!
-      numerator = 1;
+     // numerator = 1;
 
       List<Integer> subBeats = methodCall.argument("subBeats");
       if (subBeats.size() > 0)
@@ -236,16 +254,25 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
 
-        beatMelody = new AccentBeat(nativeSampleRate, quortaDuration,
+        beatMelody = new AccentBeat(nativeSampleRate,
           beat.beatCount, beat.accent,
-          beat.beatFreq, beat.beatDuration, beat.accentFreq, beat.accentDuration,
-          bars, numerator,
-          beat.subBeats);
+          beat.beatFreq, beat.beatDuration, beat.accentFreq,
+                beat.accentDuration,
+          beat.subBeats,
+                getResources(),
+                schemeFilesIndexes,
+                2
+                //-1 - старые добрые писки
+                //0, 1, 2 - см. schemeFilesIndexes=new ....
+                );
 
         metroAudio.setMelody(beatMelody);
         //IS<<
 
+
+
         List<Double> bipsAndPauses = new ArrayList<Double>();
+        //IS: Do we need this? Seems that we already have it.
         for (int i = 0; i < metroAudio.melody._bipAndPauseSing.length; i++)
         {
           bipsAndPauses.add((double) metroAudio.melody._bipAndPauseSing[i].bipDuration);
