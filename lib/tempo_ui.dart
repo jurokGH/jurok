@@ -135,7 +135,7 @@ class TempoState extends State<TempoWidget>
     final String txt = tempoList[_index].name;
 
     final TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
+      color: Colors.black,
       //backgroundColor: Colors.black45
     );
 
@@ -159,7 +159,7 @@ class TempoState extends State<TempoWidget>
       },
       child: Text(
         txt,
-        style: textStyle,
+        style: TextStyle(height: 1, fontSize: 24),
       )
     );
   }
