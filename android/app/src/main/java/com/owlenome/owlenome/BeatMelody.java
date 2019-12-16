@@ -1,5 +1,7 @@
 package com.owlenome.owlenome;
 
+//EXCLUDE FROM THE PROJECT
+
 /**
  * Пример музыкальной схемы: есть конкретные бипы, и соответствующий  им цикл.
  */

@@ -93,8 +93,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   int latencyUntested; //ToDo
   // Previous tempo value to compare with a new one
   Tempo _tempo = new Tempo(1, 1);
-  // Beat melody
-  Melody beatMelody = null;
+  // Beat setOfNotes
+  AccentedMelody beatMelody = null;
   MetroAudioProbnik metroAudio;
 
   @Override
@@ -154,7 +154,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       return;
     }
 
-    if (methodCall.method.equals("start1"))
+
+
+    if (methodCall.method.equals("start1"))//TODO: Do we need this???
     {
       _tempo.beatsPerMinute = methodCall.argument("tempo");
       _tempo.denominator = methodCall.argument("note");
@@ -164,8 +166,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       if (melodyType == 0)
       {
+        ArrayList<Integer> subbeats=new ArrayList<Integer>();
+        subbeats.add(1);subbeats.add(1);
         if (beatMelody == null)
-          beatMelody = new BeatMelody(nativeSampleRate, quortaDuration, 1, numerator);
+          beatMelody = new AccentedMelody(listOfMusicSсhemes.get(0),nativeSampleRate,
+                  2, subbeats
+          );
+
+          // IS: I've no idea what this suppose to do...(
+        // beatMelody = new BeatMelody(nativeSampleRate, quortaDuration, 1, numerator);
 
         metroAudio.setMelody(beatMelody);
         boolean res = start(_tempo);
@@ -272,14 +281,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       //if (!metroAudio.isPlaying())
       {
         //IS>>
-        // Create new metronome beat melody
+        // Create new metronome beat setOfNotes
 
 
 
-        beatMelody = new AccentBeat(nativeSampleRate,
+        beatMelody = new AccentedMelody(listOfMusicSсhemes.get(0),nativeSampleRate,
                 beat.beatCount,
-                beat.subBeats,
-                listOfMusicSсhemes.get(0)
+                beat.subBeats
         );
 
         metroAudio.setMelody(beatMelody);

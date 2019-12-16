@@ -1,5 +1,7 @@
 package com.owlenome.owlenome;
 
+//EXCLUDE FROM THE PROJECT
+
 class Tempo
 {
   int beatsPerMinute;
@@ -88,7 +90,7 @@ class Melody
 
   public BipPauseCycle cycle;
   // Bip alphabet
-  byte[][] melody;//ToDo: rename; they are just a set of sounds, not a melody.
+  byte[][] melody;//ToDo: rename; they are just a set of sounds, not a setOfNotes.
   // To be removed
   BipAndPause[] _bipAndPauseSing;
 

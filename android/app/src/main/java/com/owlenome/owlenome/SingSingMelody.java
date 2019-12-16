@@ -74,7 +74,7 @@ class  SingSingSing
   final byte[] noteE5quortaTuk;
 
 
-  final byte[][] melody;
+  final byte[][] setOfNotes;
   final byte[] pause8;
 
 
@@ -108,7 +108,7 @@ class  SingSingSing
       pause8 = melodyTools.getSilence(framesInQuorta/2);
 
       bars = 9;
-      melody = new byte[][]{
+      setOfNotes = new byte[][]{
         noteB5half, noteA5half,
         noteG5half, noteA5half,//4
         pause8, noteB5quorta, noteB5eighth, noteA5quorta, noteA5quorta,//9
@@ -125,18 +125,18 @@ class  SingSingSing
       pause8 = melodyTools.getSilence(framesInQuorta*2);
 
       bars = 1;
-      melody = new byte[][]{noteB5half, pause8};
+      setOfNotes = new byte[][]{noteB5half, pause8};
     }
 
     double pauseFactor = 1.0;//Годится любое неотрицательное значение.
     //ToDo: протестировать арфиметику: задать разные pauseFactor и
     //убедиться, что наименьший темп не меняется. Он зависит лишь от длительности
     //quortaInMSec (ToDo: поменять, это неудобно)
-    BipAndPause[] bipAndPauseSing = new BipAndPause[melody.length];
+    BipAndPause[] bipAndPauseSing = new BipAndPause[setOfNotes.length];
     for (int i = 0; i < bipAndPauseSing.length; i++)
     {
       //TODO vg Why /2?
-      bipAndPauseSing[i] = new BipAndPause(melody[i].length / 2, pauseFactor);
+      bipAndPauseSing[i] = new BipAndPause(setOfNotes[i].length / 2, pauseFactor);
     }
 
     _bipAndPauseSing = bipAndPauseSing;
