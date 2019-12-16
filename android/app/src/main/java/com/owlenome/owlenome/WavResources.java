@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class WavResources {
+  class WavResources {
 
     static final int wavSampleRate=44100;
     static final int headerSize=44;

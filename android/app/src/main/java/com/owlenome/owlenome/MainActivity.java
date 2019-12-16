@@ -50,40 +50,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 {
 
 
+  int currentMusicScheme=3;
 
   // Сюда собираем пары звуков.
   List<MusicScheme2Bips> listOfMusicSсhemes;
   MusicScheme2Bips musicSсhemeTunable;
 
-  private void initializeSchemes(){
-
-
-    //Старые добрые бипы. //ToDo: при настройке звуков из flutter, меняем эту схему
-    musicSсhemeTunable=new MusicScheme2Bips("OldBipsA4C5",  440,
-            25, 523.25, 35);
-    listOfMusicSсhemes =new ArrayList<MusicScheme2Bips>();
-    listOfMusicSсhemes.add(musicSсhemeTunable);
-
-    Resources res=getResources();
-    listOfMusicSсhemes.add(
-            new MusicScheme2Bips("Drums1", res,
-                    R.raw.drum_accent,R.raw.drum)
-    );
-    listOfMusicSсhemes.add(
-            new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
-                    R.raw.drum_accent,R.raw.drum)
-    );
-
-    listOfMusicSсhemes.add(
-            new MusicScheme2Bips("WoodblockCabasa-1", res,
-                    R.raw.woodblock_short1,R.raw.cabasa1)
-    );
-    listOfMusicSсhemes.add(
-            new MusicScheme2Bips("ShortDrums-1", res,
-                    R.raw.short_drum,R.raw.short_drum1)
-    );
-
-  }
   private static final String SOUND_CHANNEL = "samples.flutter.io/owlenome";
 
   private MethodChannel channel;
@@ -154,10 +126,10 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       return;
     }
 
+    BeatMetre beat = new BeatMetre();
 
-
-    if (methodCall.method.equals("start1"))//TODO: Do we need this???
-    {
+    if (methodCall.method.equals("start1"))//TODO: Do we need this?
+    {/*
       _tempo.beatsPerMinute = methodCall.argument("tempo");
       _tempo.denominator = methodCall.argument("note");
       int quortaDuration = methodCall.argument("quorta");
@@ -166,15 +138,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       if (melodyType == 0)
       {
-        ArrayList<Integer> subbeats=new ArrayList<Integer>();
-        subbeats.add(1);subbeats.add(1);
-        if (beatMelody == null)
-          beatMelody = new AccentedMelody(listOfMusicSсhemes.get(0),nativeSampleRate,
-                  2, subbeats
-          );
 
-          // IS: I've no idea what this suppose to do...(
-        // beatMelody = new BeatMelody(nativeSampleRate, quortaDuration, 1, numerator);
+         beatMelody = new BeatMelody(nativeSampleRate, quortaDuration, 1, numerator);
 
         metroAudio.setMelody(beatMelody);
         boolean res = start(_tempo);
@@ -191,7 +156,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           result.success(bipsAndPauses);
         else
           result.error("UNAVAILABLE", "Failed starting sound", null);
-      }
+
+      }*/
       /*
       else if (melodyType == 1)
       {
@@ -207,7 +173,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       int quortaDuration = methodCall.argument("quorta");
       int numerator = methodCall.argument("numerator");
-      int melodyType = methodCall.argument("mod");
+      //int melodyType = methodCall.argument("mod");
+      currentMusicScheme=methodCall.argument("mod");
 
 
       //TODO
@@ -234,7 +201,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     {
       //IS:
       // Get beat parameters from Flutter
-      BeatMetre beat = new BeatMetre();
+   //   BeatMetre beat = new BeatMetre();
 
 
       List<Integer> config = methodCall.argument("config");
@@ -278,25 +245,22 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           beat.subBeats.add(beat.subBeatCount);
       }
 
+      beatMelody = new AccentedMelody(listOfMusicSсhemes.get(currentMusicScheme),nativeSampleRate,
+              beat.beatCount,
+              beat.subBeats
+      );
+
       //if (!metroAudio.isPlaying())
       {
         //IS>>
         // Create new metronome beat setOfNotes
 
-
-
-        beatMelody = new AccentedMelody(listOfMusicSсhemes.get(0),nativeSampleRate,
-                beat.beatCount,
-                beat.subBeats
-        );
-
         metroAudio.setMelody(beatMelody);
         //IS<<
 
 
-
+/*//IS: Do we need this? Seems that we already have it.
         List<Double> bipsAndPauses = new ArrayList<Double>();
-        //IS: Do we need this? Seems that we already have it.
         for (int i = 0; i < metroAudio.melody._bipAndPauseSing.length; i++)
         {
           bipsAndPauses.add((double) metroAudio.melody._bipAndPauseSing[i].bipDuration);
@@ -307,6 +271,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           result.success(bipsAndPauses);
         else
           result.error("UNAVAILABLE", "Failed creating sound", null);
+        */
       }
       //else
       //result.error("UNAVAILABLE", "Failed creating sound", null);
@@ -340,6 +305,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         result.error("UNAVAILABLE", "Failed to get audio params", null);
       }
     }
+    //ToDo: is it correct?
+    else if (methodCall.method.equals("setMusicScheme")){
+      currentMusicScheme=methodCall.argument("mod");
+
+    }
+
+
     else
     {
       result.notImplemented();
@@ -465,5 +437,43 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       else
         metroAudio.stop();
     }
+  }
+
+
+  /**
+   * Тут определяем музыкальные схемы
+   */
+  private void initializeSchemes(){
+
+
+    listOfMusicSсhemes =new ArrayList<MusicScheme2Bips>();
+
+    //Старые добрые бипы. //ToDo: при настройке звуков из flutter, можно менять именно
+    // эту схему, чтобы не плодить их.
+    musicSсhemeTunable=new MusicScheme2Bips("OldBipsA4C5",  440,
+            25, 523.25, 35);
+
+    listOfMusicSсhemes.add(musicSсhemeTunable);
+
+    Resources res=getResources();
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("Drums1", res,
+                    R.raw.drum_accent_mono,R.raw.drum)
+    );
+    /*listOfMusicSсhemes.add(
+            new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
+                    R.raw.drum_accent,R.raw.drum)
+    ); //Где-то потерялся один из звуков, ну и нафиг не нужна эта схема.
+    */
+
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("WoodblockCabasa-1", res,
+                    R.raw.woodblock_short1,R.raw.cabasa1)
+    );
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("ShortDrums-1", res,
+                    R.raw.short_drum_accent,R.raw.short_drum1)
+    );
+
   }
 }

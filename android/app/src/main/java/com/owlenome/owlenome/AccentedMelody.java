@@ -3,8 +3,8 @@ package com.owlenome.owlenome;
 import java.util.List;
 
 
-// Accented beat setOfNotes for metronome
-class AccentedMelody //extends Melody
+//То, что мы будем играть. Определено с точностью до темпа (темп регулируется через setTempo)
+class AccentedMelody
 {
 
   byte[][] setOfNotes;
@@ -19,21 +19,6 @@ class AccentedMelody //extends Melody
                     List<Integer> subBeats
                     )
   {
-    //beatDuration == quortaInMSec;//IS: Why? Anyway, я эту свою муть выкинул отовсюду по возможности.
-   // super(nativeSampleRate, beatDuration, 1, 1);
-
-    //MelodyToolsPCM16 melodyTools = new MelodyToolsPCM16(nativeSampleRate);
-
-
-
-
-    /* obsolete
-    // Half notes
-    //440, 523.25
-    byte[] note2 = melodyTools.getFreq(beatFreq, framesInQuorta * 2, 2, 2);
-    byte[] accentNote = melodyTools.getFreq(accentFreq, framesInQuorta * 2, 2, 2);
-     */
-
 
 //    Это сейчас не нужно - использовалось в песенке Singsing для несжимаемой паузы
 //    (иначе ритм ломался).
@@ -52,8 +37,7 @@ class AccentedMelody //extends Melody
         maxSubBeatCount = subBeats.get(i);
     }
 
-    //super.init(notes, pauses);
-    //cycle.printFinal();
+
 
     //Создаём реальные массивы звуков
     musicScheme.load(nativeSampleRate);
@@ -121,5 +105,79 @@ IS: Вить, это ты спрашиваешь или я?  "IS:" - это мн
      * Поэтому нужно будет
      * (в дальнейшем) написать эту простую процедуру.
      */
+  }
+}
+
+
+class Tempo
+{
+  int beatsPerMinute;
+  int denominator;
+
+  /**
+   * Пример: темп 240 восьмых в минуту
+   *
+   * @param beatsPerMinute ударов в минуту
+   * @param denominator    длительность удара (четвертая, шестнадцатая, etc)
+   */
+  public Tempo(int beatsPerMinute, int denominator)
+  {
+    this.beatsPerMinute = beatsPerMinute;
+    this.denominator = denominator;
+  }
+
+  boolean equals(Tempo tempo)
+  {
+    return beatsPerMinute == tempo.beatsPerMinute &&
+            denominator == tempo.denominator;
+  }
+}
+
+class Utility
+{
+  /**
+   * Возвращает время игры бипа согласно штампу и номеру сэмла.
+   * Интерполирует через nativeSampleRate;
+   */
+  final static  public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
+  {
+    return stampTime + samples2nanoSec(frequency, frameToPlayN - stampFrame);
+  }
+
+  /**
+   * Определяем число samples в данном числе наносекунд.
+   */
+  final static public long nanoSec2samples(int frequency, long time)
+  {
+    return Math.round((double) time * frequency * 1e-9);
+  }
+
+  /**
+   * Определяем время в наносекундах из samples
+   */
+  final static  public long samples2nanoSec(int frequency, long samplesN)
+  {
+    return Math.round(1e9 * samplesN / frequency);
+  }
+
+  /**
+   * Пересчитываем  темпо (традиционный, дуракций) в длительность цикла в сэмплах
+   * BipPauseCycle исходя из того, сколько там bars (то есть, какова его длина в нотах)
+   * и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
+   * возможная длина.
+   * <p>
+   * (В случае простого метронома bars=1.)
+   *
+   * @param tempo музыкальный темп
+   * @return какова должна быть длительность цикла при данном tempo.
+   */
+// in seconds
+  final static public double tempoToCycleDuration(Tempo tempo, int bars, int nativeSampleRate)
+  {
+    //VG Note value (denominator) changes actual beat tempo
+    int totalBeatsPerCycle = bars * tempo.denominator;
+    double samplesPerBeat = nativeSampleRate * 60.0 / tempo.beatsPerMinute;
+
+    return samplesPerBeat * totalBeatsPerCycle;
   }
 }

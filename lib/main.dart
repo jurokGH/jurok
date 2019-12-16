@@ -23,14 +23,9 @@ final double _cCtrlOpacity = 0.4;
 final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
-void main()
-{
-  return runApp(
-    ChangeNotifierProvider(
-      create: (_) => new MetronomeState(),
-      child: App()
-    )
-  );
+void main() {
+  return runApp(ChangeNotifierProvider(
+      create: (_) => new MetronomeState(), child: App()));
 }
 
 class App extends StatelessWidget {
@@ -64,8 +59,8 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin<HomePage>
-{
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin<HomePage> {
   // for showSnackBar to run
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -77,27 +72,38 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
   static const int minTempo = 6;
-  static const int maxTempo = 500;
+
+  static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to
+  //the music scheme.
+
+  ///Пение рокочущих сов
+  ///Сколько схем:
+  int activeMusicScheme=3;
+  ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
+  ///как мы это согласовываем? Пока - руками.
+  int nmbOfSchemes=4;
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
-    MethodChannel('samples.flutter.io/owlenome');
+      MethodChannel('samples.flutter.io/owlenome');
 
   /// UI parameters
   ///
   /// Controls border radius
   double _borderRadius = 16;
+
   /// Controls border radius
   double _borderWidth = 2;
+
   /// Controls opacity
-  double _opacity = _cCtrlOpacity;  // Control's opacity
+  double _opacity = _cCtrlOpacity; // Control's opacity
   Size _padding = Size(24, 36);
 
   /// Size of square owl's area
   double _widthSquare;
+
   /// Overall screen size
   Size _screenSize;
-
 
   BeatMetre _beat = new BeatMetre();
   BeatSound _soundConfig = new BeatSound();
@@ -108,8 +114,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //int _subBeatCount = 1;
   /// Current playing beat
   int _activeBeat = 0;
+
   /// Current playing subbeat of current beat
   int _activeSubbeat = 0;
+
   /// Melody parameters
   double _quortaInMSec = 20;
   int _bars = 1;
@@ -180,25 +188,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  bool isTicking()
-  {
+  bool isTicking() {
     return _playing;
   }
 
-  void _play()
-  {
-    if (_playing)
-    {
+  void _play() {
+    if (_playing) {
       _togglePlay();
       //_playing = !_playing;
       _playing = false;
-      if (animate60fps)
-        _controller.stop();
+      if (animate60fps) _controller.stop();
+
       /// Stops OwlGridState::AnimationController
       setState(() {});
-    }
-    else
-    {
+    } else {
       prevTime = 0;
       _timeTick = 0;
       //TODO _timer.reset();
@@ -216,8 +219,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   // Start graphics animation
-  void _start(int param)
-  {
+  void _start(int param) {
     /*
     if (_mode)
       barrelOrgan?.play();
@@ -225,8 +227,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ;//metronome1?.play();
      */
 
-    if (animate60fps)
-    {
+    if (animate60fps) {
       _controller.reset();
       _controller.forward();
     }
@@ -235,46 +236,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_knob.pressed = true;
   }
 
-  void onMetreChanged(int beats, int note)
-  {
-    if (_beat.beatCount != beats)
-    {
+  void onMetreChanged(int beats, int note) {
+    if (_beat.beatCount != beats) {
       _beat.beatCount = beats;
       //_activeBeat %= _beat.beatCount;
       _activeBeat = _activeSubbeat = 0;
       Provider.of<MetronomeState>(context, listen: false).reset();
-      if (_playing)
-        _setBeat();
+      if (_playing) _setBeat();
     }
-    if (_noteValue != note)
-    {
+    if (_noteValue != note) {
       _noteValue = note;
-      if (_playing)
-        _setTempo(0);
+      if (_playing) _setTempo(0);
     }
     setState(() {});
   }
 
-  void onSubbeatChanged(int subbeatCount)
-  {
+  void onSubbeatChanged(int subbeatCount) {
     //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
-    _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
+    _beat.subBeatCount = subbeatCount; //nextSubbeat(_beat.subBeatCount);
     _activeBeat = _activeSubbeat = 0;
     Provider.of<MetronomeState>(context, listen: false).reset();
-    if (_playing)
-      _setBeat();
+    if (_playing) _setBeat();
     setState(() {});
   }
 
-  void onOwlChanged(int id, int subCount)
-  {
+  void onOwlChanged(int id, int subCount) {
     assert(id < _beat.subBeats.length);
     //TODO
     _beat.subBeats[id] = subCount;
     _activeBeat = _activeSubbeat = 0;
     Provider.of<MetronomeState>(context, listen: false).reset();
-    if (_playing)
-      _setBeat();
+    if (_playing) _setBeat();
     setState(() {});
   }
 
@@ -287,56 +279,53 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     _screenSize = mediaQueryData.size;
-    _widthSquare = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
+    _widthSquare = _screenSize.width > _screenSize.height
+        ? _screenSize.height
+        : _screenSize.width;
     print('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
 
     return Scaffold(
-      key: _scaffoldKey,  // for showSnackBar to run
-      backgroundColor: Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
+      key: _scaffoldKey, // for showSnackBar to run
+      backgroundColor: Color.fromARGB(0xFF, 0x45, 0x1A, 0x24), //TODO: need?
       //appBar: AppBar(title: Text(widget.title),),
-      body: Center(
-        child: OrientationBuilder(
-          builder: (context, orientation) {
-            /// Owl square and controls
-            List<Widget> innerUI = <Widget>[
-              _buildOwlenome(false),
-              _buildControls(orientation == Orientation.portrait, false)
-            ];
+      body: Center(child: OrientationBuilder(builder: (context, orientation) {
+        /// Owl square and controls
+        List<Widget> innerUI = <Widget>[
+          _buildOwlenome(false),
+          _buildControls(orientation == Orientation.portrait, false)
+        ];
 
-            return orientation == Orientation.portrait ?
-              // Vertical/portrait
-              Column(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start) :
-              // Horizontal/landscape
-              Row(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start);
-          }
-        )
-      ),
+        return orientation == Orientation.portrait
+            ?
+            // Vertical/portrait
+            Column(
+                children: innerUI, mainAxisAlignment: MainAxisAlignment.start)
+            :
+            // Horizontal/landscape
+            Row(children: innerUI, mainAxisAlignment: MainAxisAlignment.start);
+      })),
     );
   }
 
   ///widget Plate under controls
-  Widget _buildPlate(Widget widget, {Offset padding = Offset.zero})
-  {
+  Widget _buildPlate(Widget widget, {Offset padding = Offset.zero}) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.purple.withOpacity(_opacity),
-        //shape: BoxShape.circle,
-        border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: _borderWidth),
-        borderRadius: BorderRadius.circular(_borderRadius)
-      ),
-      padding: EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
-      //margin: const EdgeInsets.all(0),
-      child: widget
-    );
+        decoration: BoxDecoration(
+            color: Colors.purple.withOpacity(_opacity),
+            //shape: BoxShape.circle,
+            border: Border.all(
+                color: Colors.purpleAccent.withOpacity(_opacity),
+                width: _borderWidth),
+            borderRadius: BorderRadius.circular(_borderRadius)),
+        padding:
+            EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
+        //margin: const EdgeInsets.all(0),
+        child: widget);
   }
 
   ///widget Metre
-  Widget _buildMetre(TextStyle textStyle)
-  {
-    return _buildPlate(
-      MetreWidget(
+  Widget _buildMetre(TextStyle textStyle) {
+    return _buildPlate(MetreWidget(
         beats: _beat.beatCount,
         minBeats: minBeatCount,
         maxBeats: maxBeatCount,
@@ -345,14 +334,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         maxNote: maxNoteValue,
         color: Colors.white,
         textStyle: textStyle,
-        onChanged: onMetreChanged
-      )
-    );
+        onChanged: onMetreChanged));
   }
 
   ///widget Subbeat
-  Widget _buildSubbeat(TextStyle textStyle)
-  {
+  Widget _buildSubbeat(TextStyle textStyle) {
     return _buildPlate(
       SubbeatWidget(
         subbeatCount: _beat.subBeatCount,
@@ -365,22 +351,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   ///widget Volume
-  Widget _builVolume()
-  {
+  Widget _builVolume() {
     TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
-      color: Colors.purple,
-      //backgroundColor: Colors.black45
-    );
+          color: Colors.purple,
+          //backgroundColor: Colors.black45
+        );
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          _volume.toString(),
-          style: textStyle,
-        ),
-        ///widget Volume slider
-        Slider(
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+      Text(
+        _volume.toString(),
+        style: textStyle,
+      ),
+
+      ///widget Volume slider
+      Slider(
           min: 0.0,
           max: 100.0,
           value: _volume.toDouble(),
@@ -390,273 +374,279 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               _mute = _volume == 0;
               _setVolume(_volume);
             });
-          }
+          }),
+
+      ///widget Mute button
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.purple.withOpacity(_opacity),
+          //shape: BoxShape.circle,
+          border: Border.all(
+              color: Colors.purpleAccent.withOpacity(_opacity),
+              width: _borderWidth),
+          borderRadius: BorderRadius.circular(_borderRadius),
         ),
-        ///widget Mute button
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.purple.withOpacity(_opacity),
-            //shape: BoxShape.circle,
-            border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: _borderWidth),
-            borderRadius: BorderRadius.circular(_borderRadius),
-          ),
-          //margin: EdgeInsets.all(16),
-          child: IconButton(
-            iconSize: 24,
-            padding: const EdgeInsets.all(0),
-            icon: Icon(
-              _mute ? Icons.volume_mute : Icons.volume_up,
-              //size: 24,
-              semanticLabel: 'Mute volume',
-            ),
-            onPressed: () {
-              setState(() {
-                _mute = !_mute;
-                _setVolume(_mute ? 0 : _volume);
-              });
-            },
-            tooltip: 'Mute volume',
-          ),
-        ),
-        ///widget Settings
-        IconButton(
+        //margin: EdgeInsets.all(16),
+        child: IconButton(
           iconSize: 24,
-          icon: Icon(Icons.settings,),
-          color: Colors.white.withOpacity(_opacity),
+          padding: const EdgeInsets.all(0),
+          icon: Icon(
+            _mute ? Icons.volume_mute : Icons.volume_up,
+            //size: 24,
+            semanticLabel: 'Mute volume',
+          ),
           onPressed: () {
-            //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
-            Navigator.of(context).push(_createSettings());
+            setState(() {
+              _mute = !_mute;
+              _setVolume(_mute ? 0 : _volume);
+            });
           },
-        )
-      ]
-    );
+          tooltip: 'Mute volume',
+        ),
+      ),
+
+      ///widget Settings
+      IconButton(
+        iconSize: 24,
+        icon: Icon(
+          Icons.settings,
+        ),
+        color: Colors.white.withOpacity(_opacity),
+        onPressed: () {
+          //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
+          Navigator.of(context).push(_createSettings());
+        },
+      )
+    ]);
   }
 
   ///widget Square section with metronome itself
-  Widget _buildOwlenome(bool showControls)
-  {
+  Widget _buildOwlenome(bool showControls) {
     List<Widget> children = <Widget>[
       ///widget Owls
       Expanded(
-        child: OwlGrid(
-          playing: _playing,
-          beat: _beat,
-          activeBeat: _activeBeat,
-          activeSubbeat: _activeSubbeat,
-          noteValue: _noteValue,
-          //width: _widthSquare,
-          //childSize: childSize,
-          onChanged: onOwlChanged,
-        )
-      ),
+          child: OwlGrid(
+        playing: _playing,
+        beat: _beat,
+        activeBeat: _activeBeat,
+        activeSubbeat: _activeSubbeat,
+        noteValue: _noteValue,
+        //width: _widthSquare,
+        //childSize: childSize,
+        onChanged: onOwlChanged,
+      )),
     ];
 
     //>>>>>>>>TODO: remove later if don't need
     /// Row with Metre and Subbeat controls
     TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
+          color: Colors.white,
+          //backgroundColor: Colors.black45
+        );
     if (showControls)
-      children.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ///widget Metre
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: _buildMetre(textStyle),
-            ),
+      children.add(
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        ///widget Metre
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: _buildMetre(textStyle),
           ),
-          ///widget Subbeat widget
-          Flexible(
-            child: _buildSubbeat(textStyle),
-          ),
-        ]
-      ));
+        ),
+
+        ///widget Subbeat widget
+        Flexible(
+          child: _buildSubbeat(textStyle),
+        ),
+      ]));
     //<<<<<<<<
 
     return Container(
-      width: _widthSquare,
-      height: _widthSquare,
-      ///widget Background
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('images/Backg-Up-1.jpg'),
-          fit: BoxFit.cover
-        )
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: children,
-      )
-    );
+        width: _widthSquare,
+        height: _widthSquare,
+
+        ///widget Background
+        decoration: BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage('images/Backg-Up-1.jpg'), fit: BoxFit.cover)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        ));
   }
 
   // Remaining section with controls
-  Widget _buildControls(bool portrait, bool showVolume)
-  {
+  Widget _buildControls(bool portrait, bool showVolume) {
     TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
+          color: Colors.white,
+          //backgroundColor: Colors.black45
+        );
     TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
-      color: Colors.white,
-      //backgroundColor: Colors.black45
-    );
+          color: Colors.white,
+          //backgroundColor: Colors.black45
+        );
 
     final double horzSpace = portrait ? 16 : 16;
     List<Widget> children = new List<Widget>();
 
-    if (!showVolume)  //TODO: remove
+    if (!showVolume) //TODO: remove
       children.add(Padding(
-        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ///widget Metre
-            //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
-            _buildMetre(textStyle),
-            //),
-            ///widget Timer
-            portrait ?
-            TimerWidget(
-              active: _playing,
-              opacity: _opacity,
-              color: Colors.purple,
-              borderWidth: _borderWidth,
-              borderRadius: _borderRadius,
-              textStyle: textStyleTimer,
-            )
-            :
-            Container(width: 0, height: 0),
-            ///widget Subbeat widget
-            //Flexible(child:
-            _buildSubbeat(textStyle),
-            //)
-          ])
-        )
-      );
+          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ///widget Metre
+                //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
+                _buildMetre(textStyle),
+                //),
+                ///widget Timer
+                portrait
+                    ? Column(children: [
+                        ///ToDo: НЕЛЕГАЛЬНО ВПИХНУТЫЙ ПЕРЕКЛЮЧАТЕЛЬ бипов (завернуто в чилдрен)
+                        RaisedButton(
+                            child: Text('U-aaa: '+activeMusicScheme.toString(),
+                                style: TextStyle(
+                                    color: Colors.lightGreen,
+                                    fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              activeMusicScheme=(activeMusicScheme+1)%nmbOfSchemes;
+                              setState(() {
+                                _setMusicScheme(activeMusicScheme);
+                              });
+                            }),
+                        TimerWidget(
+                          active: _playing,
+                          opacity: _opacity,
+                          color: Colors.purple,
+                          borderWidth: _borderWidth,
+                          borderRadius: _borderRadius,
+                          textStyle: textStyleTimer,
+                        )
+                      ])
+                    : Container(width: 0, height: 0),
 
-      List<Widget> otherChildren = <Widget>[
+                ///widget Subbeat widget
+                //Flexible(child:
+                _buildSubbeat(textStyle),
+                //)
+              ])));
+
+    List<Widget> otherChildren = <Widget>[
       ///widget Tempo widget
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        //crossAxisAlignment: CrossAxisAlignment.end,
-        //mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          portrait ?
-          ///widget Tempo down (-1) button
-          RaisedButton(
-            // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
-            child: Text('-1',
-              textScaleFactor: 1.8,),
-            padding: EdgeInsets.all(12),
-            shape: CircleBorder(
-              //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.purple, width: _borderWidth)
-            ),
-            onPressed: () {
-              setState(() {
-                _tempoBpm -= 1;
-                if (_tempoBpm < minTempo)
-                  _tempoBpm = minTempo;
-                if (_playing)
-                  _setTempo(0.0);
-              });
-            },
-          )
-          :
-          Container(width: 0, height: 0),
-          ///widget Tempo knob control
-          Knob(
-            value: _tempoBpm.toDouble(),
-            min: minTempo.toDouble(),
-            max: maxTempo.toDouble(),
-            size: 0.28 * _widthSquare,
-            color: Colors.purple.withOpacity(_opacity),
-            onPressed: _play,
-            onChanged: (double value) {
-              setState(() {
-                _tempoBpm = value.round();
-                //_tempoList.setTempo(_tempoBpm);
-                if (_playing)
-                  _setTempo(0.0);
-              });
-            },
-          ),
-          portrait ?
-          ///widget Tempo up (+1) button
-          RaisedButton(
-            // Can use instead: Icon(Icons.exposure_plus_1, semanticLabel: 'Increase tempo by one', size: 36.0, color: Colors.white)
-            child: Text('+1',
-              textScaleFactor: 1.8,),
-            //style: textStyle),
-            padding: EdgeInsets.all(12),
-            shape: CircleBorder(
-              //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.purple, width: _borderWidth)
-            ),
-            onPressed: () {
-              setState(() {
-                _tempoBpm += 1;
-                if (_tempoBpm > maxTempo)
-                  _tempoBpm = maxTempo;
-                if (_playing)
-                  _setTempo(0.0);
-              });
-            },
-          )
-          :
-          Container(width: 0, height: 0),
-        ]),
+      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //crossAxisAlignment: CrossAxisAlignment.end,
+          //mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            portrait
+                ?
 
-        ///widget Tempo list
-        Center(
-          child: _buildPlate(TempoWidget(
-            tempo: _tempoBpm,
-            onChanged: (int tempo) {
-              if (_tempoBpm != tempo)
+                ///widget Tempo down (-1) button
+                RaisedButton(
+                    // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
+                    child: Text(
+                      '-1',
+                      textScaleFactor: 1.8,
+                    ),
+                    padding: EdgeInsets.all(12),
+                    shape: CircleBorder(
+                        //borderRadius: new BorderRadius.circular(18.0),
+                        side: BorderSide(
+                            color: Colors.purple, width: _borderWidth)),
+                    onPressed: () {
+                      setState(() {
+                        _tempoBpm -= 1;
+                        if (_tempoBpm < minTempo) _tempoBpm = minTempo;
+                        if (_playing) _setTempo(0.0);
+                      });
+                    },
+                  )
+                : Container(width: 0, height: 0),
+
+            ///widget Tempo knob control
+            Knob(
+              value: _tempoBpm.toDouble(),
+              min: minTempo.toDouble(),
+              max: maxTempo.toDouble(),
+              size: 0.28 * _widthSquare,
+              color: Colors.purple.withOpacity(_opacity),
+              onPressed: _play,
+              onChanged: (double value) {
                 setState(() {
-                  _tempoBpm = tempo;
-                  if (_playing)
-                    _setTempo(0.0);
+                  _tempoBpm = value.round();
+                  //_tempoList.setTempo(_tempoBpm);
+                  if (_playing) _setTempo(0.0);
                 });
-              }
+              },
             ),
-            padding: new Offset(8, 0),
-          ),
+            portrait
+                ?
+
+                ///widget Tempo up (+1) button
+                RaisedButton(
+                    // Can use instead: Icon(Icons.exposure_plus_1, semanticLabel: 'Increase tempo by one', size: 36.0, color: Colors.white)
+                    child: Text(
+                      '+1',
+                      textScaleFactor: 1.8,
+                    ),
+                    //style: textStyle),
+                    padding: EdgeInsets.all(12),
+                    shape: CircleBorder(
+                        //borderRadius: new BorderRadius.circular(18.0),
+                        side: BorderSide(
+                            color: Colors.purple, width: _borderWidth)),
+                    onPressed: () {
+                      setState(() {
+                        _tempoBpm += 1;
+                        if (_tempoBpm > maxTempo) _tempoBpm = maxTempo;
+                        if (_playing) _setTempo(0.0);
+                      });
+                    },
+                  )
+                : Container(width: 0, height: 0),
+          ]),
+
+      ///widget Tempo list
+      Center(
+        child: _buildPlate(
+          TempoWidget(
+              tempo: _tempoBpm,
+              onChanged: (int tempo) {
+                if (_tempoBpm != tempo)
+                  setState(() {
+                    _tempoBpm = tempo;
+                    if (_playing) _setTempo(0.0);
+                  });
+              }),
+          padding: new Offset(8, 0),
         ),
-      ];
+      ),
+    ];
 
     children.addAll(otherChildren);
 
     ///widget Volume
-    if (showVolume)
-      children.add(_builVolume());
+    if (showVolume) children.add(_builVolume());
 
     // Fill up the remaining screen as the last widget in column/row
     return Expanded(
-      child: Container(
-        /// Background
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/Backg-Dn-1.jpg'),
-            fit: BoxFit.cover,
-          )
-        ),
-        //Padding(
-        //  padding: const EdgeInsets.all(8.0),
-        //  child:
-        //child: IntrinsicHeight(
+        child: Container(
 
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: children,
-        )
-      )
-    );
+            /// Background
+            decoration: BoxDecoration(
+                image: DecorationImage(
+              image: AssetImage('images/Backg-Dn-1.jpg'),
+              fit: BoxFit.cover,
+            )),
+            //Padding(
+            //  padding: const EdgeInsets.all(8.0),
+            //  child:
+            //child: IntrinsicHeight(
+
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: children,
+            )));
   }
 
   /// <<<<<<<< Widget section
@@ -664,15 +654,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Flutter-Java inter operation
   ///
 
-  Future<dynamic> _handleMsg(MethodCall call) async
-  {
-    if (call.method == 'warmedUp')
-    {
+  Future<dynamic> _handleMsg(MethodCall call) async {
+    if (call.method == 'warmedUp') {
       warmupFrames = call.arguments;
       _start(call.arguments);
-    }
-    else if (call.method == 'timeFrame')
-    {
+    } else if (call.method == 'timeFrame') {
       int beatOrder = call.arguments['note'];
       int offset = call.arguments['offset'];
       int cycle = call.arguments['cycle'];
@@ -689,11 +675,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _activeSubbeat = pair[1];
 
       _timeTick++;
-      if (!animate60fps)
-        setState(() {});
+      if (!animate60fps) setState(() {});
 
-      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
-      Provider.of<MetronomeState>(context, listen: false).setActiveState(_activeBeat, _activeSubbeat);
+      print(
+          'NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
+      Provider.of<MetronomeState>(context, listen: false)
+          .setActiveState(_activeBeat, _activeSubbeat);
       redraw = true;
 
       /*
@@ -733,16 +720,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return new Future.value('');
   }
 
-  Future<void> _togglePlay() async
-  {
-    Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm.toInt() ~/ _beat.beatCount, denominator: _noteValue);
+  Future<void> _togglePlay() async {
+    Tempo tempo = new Tempo(
+        beatsPerMinute: _tempoBpm.toInt() ~/ _beat.beatCount,
+        denominator: _noteValue);
 
-    if (melody == null)
-    {
-      melody = new BeatMelody(nativeSampleRate, _quortaInMSec, _bars, _beat.beatCount);
+    if (melody == null) {
+      melody = new BeatMelody(
+          nativeSampleRate, _quortaInMSec, _bars, _beat.beatCount);
       //bipPauseCycle = melody.cycle;
       int realBpM = melody.cycle.setTempo(tempo, _bars);
-      double dur = melody.cycle.tempoToCycleDuration(tempo, _bars, nativeSampleRate);
+      double dur =
+          melody.cycle.tempoToCycleDuration(tempo, _bars, nativeSampleRate);
 
       //print("realBPM - duration: $realBpM, $dur");
       //metronome1?.setCycle(melody.cycle, latency);
@@ -750,14 +739,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
 
     List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
-    try
-    {
-      final Map<String, int> args =
-      <String, int>{
-        'tempo' : _tempoBpm, 'note' : _noteValue,
+    try {
+      final Map<String, int> args = <String, int>{
+        'tempo': _tempoBpm,
+        'note': _noteValue,
         'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
-        'mod': 0
+        'mod': activeMusicScheme,
       };
       final bool result = await _channel.invokeMethod('start', args);
 /*
@@ -780,67 +768,66 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //print("realBPM: $_tempoBpm, $realBpM");
       }
  */
-    }
-    on PlatformException
-    {
+    } on PlatformException {
       _infoMsg = 'Exception: Failed to start playing';
     }
   }
 
-  Future<void> _playSing() async
-  {
+  Future<void> _playSing() async {
     //melody = new SingSingMelody(nativeSampleRate, 30);
   }
 
   /// Send beat music to Java sound player
-  Future<void> _setBeat() async
-  {
+  Future<void> _setBeat() async {
     //Tempo tempo = new Tempo(beatsPerMinute: _subBeatCount * _tempoBpm.toInt(), denominator: _noteValue);
     List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
-    try
-    {
+    try {
       //IS:
-      final List<int> config = [_beat.beatCount, _beat.accent, _beat.subBeatCount,
-        _soundConfig.beatFreq, _soundConfig.beatDuration, _soundConfig.accentFreq, _soundConfig.accentDuration,
-        _bars, _beat.beatCount, _quortaInMSec.toInt()];
+      final List<int> config = [
+        _beat.beatCount,
+        _beat.accent,
+        _beat.subBeatCount,
+        _soundConfig.beatFreq,
+        _soundConfig.beatDuration,
+        _soundConfig.accentFreq,
+        _soundConfig.accentDuration,
+        _bars,
+        _beat.beatCount,
+        _quortaInMSec.toInt()
+      ];
 
-      final Map<String, List<int>> args =
-        <String, List<int>>{'config': config, 'subBeats': _beat.subBeats};
+      final Map<String, List<int>> args = <String, List<int>>{
+        'config': config,
+        'subBeats': _beat.subBeats
+      };
 
       final List result = await _channel.invokeMethod('setBeat', args);
-      if (result.length == 0)
-      {
+      if (result.length == 0) {
         _infoMsg = 'Failed setting beat';
         print(_infoMsg);
       }
-    }
-    on PlatformException
-    {
+    } on PlatformException {
       _infoMsg = 'Exception: Failed setting beat';
     }
   }
 
   /// Send music tempo to Java sound player
-  Future<void> _setTempo(double tempo) async
-  {
+  Future<void> _setTempo(double tempo) async {
     //int iTempo = (tempo + 0.5).toInt();
     //int i_tempoBpm = _tempoBpm;
-    Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm ~/ _beat.beatCount, denominator: _noteValue);
-    try
-    {
-      final Map<String, int> args =
-      <String, int>{
-        'tempo' : _tempoBpm,
-        'note' : _noteValue
+    Tempo tempo = new Tempo(
+        beatsPerMinute: _tempoBpm ~/ _beat.beatCount, denominator: _noteValue);
+    try {
+      final Map<String, int> args = <String, int>{
+        'tempo': _tempoBpm,
+        'note': _noteValue
       };
       final int result = await _channel.invokeMethod('setTempo', args);
       //assert(result == 1);
-      if (result != 1)
-      {
+      if (result != 1) {
         _infoMsg = 'Failed setting tempo';
         print(_infoMsg);
-      }
-      else
+      } else
         _infoMsg = 'Tempo: $_tempoBpm';
     } on PlatformException {
       _infoMsg = 'Exception: Failed setting tempo';
@@ -871,14 +858,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   /// Send music volume to Java sound player
-  Future<void> _setVolume(int volume) async
-  {
-    try
-    {
-      final int result = await _channel.invokeMethod('setVolume', {'volume' : volume});
+  Future<void> _setVolume(int volume) async {
+    try {
+      final int result =
+          await _channel.invokeMethod('setVolume', {'volume': volume});
       //assert(result == 1);
-      if (result != 1)
-      {
+      if (result != 1) {
         _infoMsg = 'Failed setting volume';
         print(_infoMsg);
       }
@@ -887,34 +872,44 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
-  Future<void> _getAudioParams() async
-  {
-    try
-    {
-      final Map<String, dynamic> result = await _channel.invokeMapMethod('getAudioParams');
-      if (result != null)
-      {
+
+  /// /ToDo: IS:   musicScheme to set
+  Future<void> _setMusicScheme(int musicScheme) async {
+    try {
+      final int result =
+      await _channel.invokeMethod('setMusicScheme', {'mod': musicScheme});
+      //assert(result == 1);
+      if (result != 1) {
+        _infoMsg = 'Failed setting  music scheme, lay-la,la-la-la-lay-la-la...';
+        print(_infoMsg);
+      }
+    } on PlatformException {
+      _infoMsg = 'Exception: Failed setting  music scheme';
+    }
+  }
+
+  Future<void> _getAudioParams() async {
+    try {
+      final Map<String, dynamic> result =
+          await _channel.invokeMapMethod('getAudioParams');
+      if (result != null) {
         nativeSampleRate = result['nativeSampleRate'];
         nativeBuffer = result['nativeBuffer'];
         latencyUntested = result['latencyUntested'];
-        _infoMsg = 'Native audio params: $nativeSampleRate - $nativeBuffer - $latencyUntested';
-      }
-      else
+        _infoMsg =
+            'Native audio params: $nativeSampleRate - $nativeBuffer - $latencyUntested';
+      } else
         _infoMsg = 'Failed to get audio params';
-    }
-    on PlatformException
-    {
+    } on PlatformException {
       _infoMsg = 'Failed to get audio params';
     }
 
     print(_infoMsg);
-    setState(() {});  // Update UI
+    setState(() {}); // Update UI
   }
 
-
   // Settings boilerplate
-  Route _createSettings()
-  {
+  Route _createSettings() {
     return MaterialPageRoute(builder: (context) => SettingsWidget());
     /*
     return PageRouteBuilder(
@@ -934,7 +929,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
    */
   }
 }
-
 
 ///VG: Don't delete
 /*
