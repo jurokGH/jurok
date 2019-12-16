@@ -26,38 +26,64 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 class BeatMetre
 {
   int beatCount;
-  int accent;
+  //int[] accents; //ToDo
   int subBeatCount;
   List<Integer> subBeats;
-  double beatFreq;
-  int beatDuration;
-  double accentFreq;
-  int accentDuration;
 
   BeatMetre()
   {
     beatCount = 4;
-    accent = 0;
+    //accents = new int[];
     subBeatCount = 1;
-    beatFreq = 440;
+    /*beatFreq = 440;
     beatDuration = 25;
     accentFreq = 523.25;
-    accentDuration = 25;
+    accentDuration = 25;*/
     subBeats = new ArrayList<Integer>();
   }
 }
 
+
+
+
 public class MainActivity extends FlutterActivity implements MethodChannel.MethodCallHandler
 {
 
-  // Сюда собираем пары звуков. Не наглядно. Временное решение.
-  // Скажем, schemeFilesIndexes[0] - два звука классического метронома,
-  // schemeFilesIndexes[1] - два барабана;
-  // schemeFilesIndexes[2] - типа, совы кричат
-  // schemeFilesIndexes[3] - или там порноактрисы,
-  // ну и так далее. Надо устаканить.
-  int[][] schemeFilesIndexes;
 
+
+  // Сюда собираем пары звуков.
+  List<MusicScheme2Bips> listOfMusicSсhemes;
+  MusicScheme2Bips musicSсhemeTunable;
+
+  private void initializeSchemes(){
+
+
+    //Старые добрые бипы. //ToDo: при настройке звуков из flutter, меняем эту схему
+    musicSсhemeTunable=new MusicScheme2Bips("OldBipsA4C5",  440,
+            25, 523.25, 35);
+    listOfMusicSсhemes =new ArrayList<MusicScheme2Bips>();
+    listOfMusicSсhemes.add(musicSсhemeTunable);
+
+    Resources res=getResources();
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("Drums1", res,
+                    R.raw.drum_accent,R.raw.drum)
+    );
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
+                    R.raw.drum_accent,R.raw.drum)
+    );
+
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("WoodblockCabasa-1", res,
+                    R.raw.woodblock_short1,R.raw.cabasa1)
+    );
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("ShortDrums-1", res,
+                    R.raw.short_drum,R.raw.short_drum1)
+    );
+
+  }
   private static final String SOUND_CHANNEL = "samples.flutter.io/owlenome";
 
   private MethodChannel channel;
@@ -79,14 +105,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     getNativeAudioParams();
 
-    //ToDo: adhoc, причесать потом
-    schemeFilesIndexes=new int[][]
-            {
-                    {R.raw.drum_accent,R.raw.drum},
-                    {R.raw.std_accent,R.raw.std},
-                    {R.raw.woodblock_short1,R.raw.cabasa1},
-                    {R.raw.short_drum,R.raw.short_drum1}
-            };
+    initializeSchemes();
 
     // Receive messages from audio playing thread
     Handler handler = new Handler(Looper.getMainLooper())
@@ -213,15 +232,18 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       if (config.size() >= 3)
       {
         beat.beatCount = config.get(0);
-        beat.accent = config.get(1);
+        //beat.accent = config.get(1);//ToDo: array of int
         beat.subBeatCount = config.get(2);
       }
       if (config.size() >= 7)
       {
+        /*
+        //ToDo: меняем параметры musicSсhemeTunable
+
         beat.beatFreq = 0.001 * config.get(3);
         beat.beatDuration = config.get(4);
         beat.accentFreq = 0.001 * config.get(5);
-        beat.accentDuration = config.get(6);
+        beat.accentDuration = config.get(6);*/
       }
       if (config.size() >= 10)
       {
@@ -255,16 +277,10 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
         beatMelody = new AccentBeat(nativeSampleRate,
-          beat.beatCount, beat.accent,
-          beat.beatFreq, beat.beatDuration, beat.accentFreq,
-                beat.accentDuration,
-          beat.subBeats,
-                getResources(),
-                schemeFilesIndexes,
-                2
-                //-1 - старые добрые писки
-                //0, 1, 2 - см. schemeFilesIndexes=new ....
-                );
+                beat.beatCount,
+                beat.subBeats,
+                listOfMusicSсhemes.get(0)
+        );
 
         metroAudio.setMelody(beatMelody);
         //IS<<

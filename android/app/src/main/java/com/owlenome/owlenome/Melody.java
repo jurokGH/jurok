@@ -141,7 +141,7 @@ class Melody
    * Устанавливаем новую длительность цикла. Имеется арифметическое ограничение снизу
    * (см. getMaximalTempo).
    *
-   * @param tempo музыкальный ритм
+   * @param tempo музыкальный темп
    * @return установленных ударов в минуту
    */
   public int setTempo(Tempo tempo)

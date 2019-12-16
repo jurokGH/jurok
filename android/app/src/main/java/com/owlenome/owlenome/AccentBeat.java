@@ -1,51 +1,7 @@
 package com.owlenome.owlenome;
 
-import android.content.res.Resources;
-
 import java.util.List;
 
-
-class MusicScheme2sounds {
-  byte[] weakBeat;
-  byte[] strongBeat;
-
-
-
-
-  //Из частот и длительностей. ДОЛГАЯ! Линейна по длительности звуков, с большими коэффициентами (даблы, синусы, жуть)
-  MusicScheme2sounds(int nativeSampleRate,
-                     /// Frequency (Hz) and duration (millisec) of beat
-                     double beatFreq, int beatDuration,
-                     /// Frequency (Hz) and duration (millisec) of accent (strong) beat
-                     double accentFreq, int accentDuration){
-
-    MelodyToolsPCM16 melodyTools = new MelodyToolsPCM16(nativeSampleRate);
-
-    int lengthWeak=(int)Utility.nanoSec2samples(nativeSampleRate,beatDuration*1000000);
-    int lengthStrong=(int)Utility.nanoSec2samples(nativeSampleRate,accentDuration*1000000);
-
-    // Half notes
-    //440, 523.25
-    weakBeat = melodyTools.getFreq(beatFreq, lengthWeak, 2, 2);
-    strongBeat = melodyTools.getFreq(accentFreq, lengthStrong, 2, 2);
-  }
-
-
-  //Из ресурсов. ДОЛГАЯ! Линейна по длительности звуков, с большими коэффициентами (даблы, чтение из файлов, жуть)
-  MusicScheme2sounds(Resources res, int resIDWeakWav, int resIDStrongWav, int nativeSampleRate){
-    weakBeat= WavResources.getSoundFromResID(res,resIDWeakWav,nativeSampleRate);
-    strongBeat= WavResources.getSoundFromResID(res,resIDStrongWav,nativeSampleRate);
-   //todo
-  }
-
-  //Из двух готовых звуков - может, это самое прекрасное, что можно придумать? Быстрая:)
-  MusicScheme2sounds(byte[] weakBeat,
-                     byte[] strongBeat){
-    this.strongBeat=strongBeat; this.weakBeat=weakBeat;
-  }
-
-
-}
 
 
 //Вместо AccentBeat (я не стал его пока удалять, но потом
@@ -55,7 +11,7 @@ class AccentedMelody extends Melody{
 
 
     public AccentedMelody(int nativeSampleRate, int quortaInMSec,
-                       MusicScheme2sounds musScheme,
+                       MusicScheme2Bips musScheme,
                       // Number of beats
                       int beats,
                       // Number of subbeats in each i-th beat
@@ -140,35 +96,23 @@ class AccentedMelody extends Melody{
 
 // Accented beat melody for metronome
 // VG: Currently made ugly
-class AccentBeat extends Melody
+class AccentBeat //extends Melody
 {
   public AccentBeat(int nativeSampleRate,
                     // Number of beats
                     int beats,
-                    // Index of accented beat
-                    int accent,
-                    /// Frequency (milliHz) and duration (millisec) of regular (weak) beat
-                    //IS: Why milli? It seems that you use HZ (e.g. 440)
-                    double beatFreq, int beatDuration,
-                    /// Frequency (milliHz) and duration (millisec) of accent (strong) beat
-                    double accentFreq, int accentDuration,
-                    // Number of subbeats in each i-th beat
+                    //int[] accents,//ToDo
                     List<Integer> subBeats,
-                    Resources res,
-                    int[][] schemeFilesIndexes,
-                    int indexOfScheme
+                    MusicScheme2Bips musicScheme
                     )
   {
     //beatDuration == quortaInMSec;//IS: Why? Anyway, я эту свою муть выкинул отовсюду по возможности.
-    super(nativeSampleRate, beatDuration, 1, 1);
+   // super(nativeSampleRate, beatDuration, 1, 1);
 
     //MelodyToolsPCM16 melodyTools = new MelodyToolsPCM16(nativeSampleRate);
 
 
 
-    MusicScheme2sounds scheme = new MusicScheme2sounds(nativeSampleRate, beatFreq, beatDuration,  accentFreq, accentDuration);
-    byte[] weakBeat =scheme.weakBeat;
-    byte[] strongBeat=scheme.strongBeat;
 
     /* obsolete
     // Half notes
@@ -198,20 +142,12 @@ class AccentBeat extends Melody
     //super.init(notes, pauses);
     //cycle.printFinal();
 
+    //Создаём реальные массивы звуков
+    musicScheme.load(nativeSampleRate);
 
-    if (indexOfScheme==-1) {
-      //IS:
-      // Bip alphabet
-      // #0 - regular bip
-      // #1 - accent bip
-      // #2 - pause
-      melody = new byte[][]{weakBeat, strongBeat};
-    }
-    else {
-      MusicScheme2sounds Scheme = new MusicScheme2sounds(res,
-              schemeFilesIndexes[indexOfScheme][0], schemeFilesIndexes[indexOfScheme][1], nativeSampleRate);
-      melody = new byte[][]{Scheme.weakBeat, Scheme.strongBeat};
-    }
+    byte[] weakBeat =musicScheme.weakBeat;
+    byte[] strongBeat=musicScheme.strongBeat;
+
 
     int[] symbols = new int[bipCount];
     int elasticSymbol = 2;
@@ -225,7 +161,7 @@ class AccentBeat extends Melody
     for (int i = 0; i < beats; i++)
       for (int j = 0; j < subBeats.get(i); j++, k++)
       {
-        int iNote = (i == accent && j == 0) ? 1 : 0;
+        int iNote = (i == 0 && j == 0) ? 1 : 0; //ToDo: accents
         symbols[k] = iNote;
         bipsAndPauses[k] = new BipAndPause(
                 melody[iNote].length/2,
@@ -235,12 +171,12 @@ class AccentBeat extends Melody
 
     cycle = new BipPauseCycle(symbols, elasticSymbol, bipsAndPauses, 1);
 
-      //ToDo: IS: Should we remove all this stuff like print etc? Seems to create memory leak!
+      //ToDo: IS: Should we remove (in release)  all this stuff like print etc? Seems to create memory leak!
     System.out.printf("AccentBeat %d %d %d %d %d %d\n", beats, bipCount, 1, 1, accent, beatDuration);
     _bipAndPauseSing = bipsAndPauses;
 /*
 //IS: Это не нужно для метронома/без визуализации?
-IS отвечает: Надо забыть комментарий ниже (у нас нет сейчас пауз в мелодии, и они не нужны). Но важно понять, как выглядит прямая речь, а то я путаюсь в комментах и тебя путаю:)
+IS отвечает: Надо забыть код ниже (у нас нет сейчас пауз в мелодии, и они не нужны). Но важно понять, как выглядит прямая речь, а то я путаюсь в комментах и тебя путаю:)
 IS: Вить, это ты спрашиваешь или я?  "IS:" - это мне или я?  Юрик, может это ты?
     // Даём паузам в мелодии значение тишины - это нужно для рисования, чтобы
     // лучше видеть разницу аудио и видео
