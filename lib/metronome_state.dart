@@ -13,6 +13,9 @@ class MetronomeState with ChangeNotifier
   /// Active subbeat
   int _activeSubbeat = 0;
 
+  DateTime time0 = new DateTime.fromMillisecondsSinceEpoch(0);
+  Stopwatch _timer;
+  int _time0;
   //List<Int32> _list;
   //Int32List _list;
 
@@ -23,7 +26,24 @@ class MetronomeState with ChangeNotifier
   //UnmodifiableInt32ListView get list => _list;
   //UnmodifiableListView<Int32> get list => UnmodifiableListView<Int32>(_list);
 
-  MetronomeState();
+  MetronomeState()
+  {
+    _timer = new Stopwatch();
+  }
+
+  void start()
+  {
+    _timer.reset();
+    _time0 = _timer.elapsedMicroseconds;
+    if (!_timer.isRunning)
+      _timer.start();
+  }
+
+  void stop()
+  {
+    if (_timer.isRunning)
+      _timer.stop();
+  }
 
   void reset()
   {
@@ -33,6 +53,11 @@ class MetronomeState with ChangeNotifier
   bool isActiveBeat(int id)
   {
     return id == _activeBeat;
+  }
+
+  int getActiveSubbeat(int id)
+  {
+    return id == _activeBeat ? _activeSubbeat : -1;
   }
 
   int getActiveState()

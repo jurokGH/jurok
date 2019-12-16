@@ -26,10 +26,10 @@ class BipAndPause
 
 class Pair
 {
-  int a;
-  int l;
+  int char;
+  int len;
 
-  Pair(this.a, this.l);
+  Pair(this.char, this.len);
 }
 
 // Представляет позицию в цикле:
@@ -39,12 +39,17 @@ class Position
 {
   int n;
   int offset;
+  int cycle;
 
-  Position(this.n, this.offset);
+  Position(this.n, this.offset)
+  {
+    cycle = 0;
+  }
 
   void reset()
   {
     n = offset = 0;
+    cycle = 0;
   }
 }
 
@@ -182,6 +187,30 @@ class BipPauseCycle
   // минимуму 1/(d_i+1), взятому по элементам цикла
   double leastDilationRatio;
 
+  /// time - time from begin in seconds
+  Position timePosition(double time)
+  {
+    double samples = time * _nativeSampleRate;
+    Position pos;
+    pos.cycle = samples ~/ duration;
+    samples = samples % duration;
+
+    double dur = 0;
+    for (int i = 0; i < cycle.length / 2; i++)
+    {
+      pos.n = i;
+      double length = cycle[2*i].len + cycle[2*i+1].len + fractionParts[i];
+      dur += length;
+      if (dur > samples)
+      {
+        pos.offset = (length - dur + samples) ~/ 1;
+        break;
+      }
+    }
+
+    return pos;
+  }
+
   // Элементы цикла на нечетных местах меняют длину.
   // Если позиция указывает на такой элемент, то она меняется
   // внутри отрезка
@@ -189,8 +218,8 @@ class BipPauseCycle
   // не поменялось.
   // Звуки же мы всегда доигрыаем до конца, иначе будут щелчки.
 
-  // @param newDuration Новая длительность. В силу арифметических причин ограничена снизу leastDuration.
-  //                    Будет установлена (с определенной точностью), если не меньше  leastDuration+1.
+  // newDuration Новая длительность (seconds). В силу арифметических причин ограничена снизу leastDuration.
+  //             Будет установлена (с определенной точностью), если не меньше  leastDuration+1.
 
   //vg TODO Support sound with 0 pause
   void setNewDuration(double newDuration)
@@ -212,26 +241,26 @@ class BipPauseCycle
     // Stretch pauses keeping sounds at constant duration
     for (int i = 0; i < cycle.length / 2; i++)
     {
-      int durSound = cycle[2*i].l;
+      int durSound = cycle[2*i].len;
       double durPause = (initElasticDurations[i] + durSound) * ratio - durSound;
-      cycle[2*i+1].l = durPause.toInt();
+      cycle[2*i+1].len = durPause.toInt();
       fractionParts[i] = durPause % 1;
 
-      //print('$i - ${cycle[2*i +1].l}');
+      //print('$i - ${cycle[2*i +1].len}');
     }
 
     // Stretch current position if it's playing pause at the moment
     ratio = newDuration / duration;
     if (position.n % 2 == 1)
     {
-      int durSound = cycle[position.n-1].l;
+      int durSound = cycle[position.n-1].len;
       position.offset = max((position.offset + durSound) * ratio - durSound, 0).toInt();
     }
 
     // Full new duration of cycle
     duration = 0;
     for (int i = 0; i < cycle.length / 2; i++)
-      duration += cycle[2*i].l + cycle[2*i+1].l + fractionParts[i];
+      duration += cycle[2*i].len + cycle[2*i+1].len + fractionParts[i];
 
     //print(duration  );
   }
@@ -338,11 +367,11 @@ class BipPauseCycle
   // [0,2) и периодически уменьшаем её на 1, дописывая (один сэпмл) к длительности
   // выгружаемого  elastic.
 
-  // @param totalLength суммарная длина элементов
+  // samples - длина элементов в сэмплах
   // @return считанный массив символов,  с указанием начала воспроизведения
   // в первом символе и того, сколько нужно записать в буфер
 
-  TempoLinear readTempoLinear(int totalLength)
+  TempoLinear readTempoLinear(int samples)
   {
     TempoLinear result = new TempoLinear();
     result.startInFirst = position.offset;
@@ -352,14 +381,14 @@ class BipPauseCycle
 
     int freeSpace;
     int lastToRead;
-    int toRead = totalLength;
+    int toRead = samples;
     bool compensateError;
     while (toRead > 0)
     {
       //элемент алфевита для выбираемой пары:
-      symbolsToRead.add(cycle[position.n].a);
+      symbolsToRead.add(cycle[position.n].char);
       //сколько места осталось в данном элементе цикла:
-      freeSpace = cycle[position.n].l - position.offset;
+      freeSpace = cycle[position.n].len - position.offset;
 
       //compensateError указывает, что мы в тишине и накопилась погрешность
       compensateError = (position.n % 2 == 1) && (accumulatedError >= 1);
@@ -416,7 +445,7 @@ class BipPauseCycle
     String elements = "";
     for (Pair pair in cycle)
     {
-      elements+= " (" + pair.a.toString()+"," + pair.l.toString() + ")";
+      elements+= " (" + pair.char.toString()+"," + pair.len.toString() + ")";
     }
     print(tagForPrint+"Elements: (a_0,length_0), (a_1,length_1)...:"+elements+"\n");
 
@@ -452,7 +481,7 @@ class BipPauseCycle
 
     for (int i = 0; i < cycle.length/2; i++)
     {
-      elements += " " + cycle[2*i+1].l.toString() + ", " + fractionParts[i].toString() + ";";  // TODO String.format("%d, %.3f;"
+      elements += " " + cycle[2*i+1].len.toString() + ", " + fractionParts[i].toString() + ";";  // TODO String.format("%d, %.3f;"
     }
     print(tagForPrint + "elasticLengths, fractionParts: " + elements);
   }
@@ -462,16 +491,15 @@ class BipPauseCycle
   // и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
   // возможная длина.
   // (В случае простого метронома bars=1.)
-  // @param tempo музыкальный темп
-  // @return  какова должна быть длительность цикла при данном tempo.
-  // in seconds
+  // tempo - музыкальный темп
+  // @return - длительность цикла при данном tempo (in seconds)
   double tempoToCycleDuration(Tempo tempo, int bars, int nativeSampleRate)
   {
     print('tempoToCycleDuration: ${tempo.beatsPerMinute}, ${tempo.denominator}, $bars, $nativeSampleRate');
 
-    int totalBeatsPerCycle = bars * tempo.denominator;
-    double framesPerBeat = nativeSampleRate * 60.0 / tempo.beatsPerMinute;
-    return framesPerBeat * totalBeatsPerCycle;
+    int beatsPerCycle = bars * tempo.denominator;
+    double samplesPerBeat = nativeSampleRate * 60.0 / tempo.beatsPerMinute;
+    return samplesPerBeat * beatsPerCycle;
   }
 
   // Каков будет темп при данной длительности цикла в сэмплах. Зависит от bars и

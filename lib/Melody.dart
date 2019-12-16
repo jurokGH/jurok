@@ -126,6 +126,6 @@ class Melody
     cycle = new BipPauseCycle.fromMelody(frequency, bipAndPause, numerator);
     //pausesNms = new int[]{1};//, 2};
     for (int i = 0; i < pauses.length; i++)
-      cycle.cycle[pauses[i] * 2].a = cycle.elasticSymbol;
+      cycle.cycle[pauses[i] * 2].char = cycle.elasticSymbol;
   }
 }
