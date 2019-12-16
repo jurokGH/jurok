@@ -15,6 +15,7 @@ class OwlWidget extends StatefulWidget
   int subbeatCount;
   final int denominator;
   final Animation<double> animation;
+  final List<Image> images;
 
   //final double width;
 
@@ -28,7 +29,8 @@ class OwlWidget extends StatefulWidget
     @required this.denominator,
     @required this.activeSubbeat,
     @required this.subbeatCount,
-    @required this.animation}):
+    @required this.animation,
+    @required this.images}):
     assert(subbeatCount > 0);
 
   @override
@@ -48,7 +50,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
   int activeHash;
   bool redraw = false;
-  AnimationController _controller0;
+  //AnimationController _controller0;
   int _period = 60000;
   Animation<double> _controller;
 
@@ -59,24 +61,25 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   void onRedraw()
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-
     int hash = state.getBeatState(widget.id);
-    //print('AnimationController ${widget.id} $_counter $hash');
+    print('AnimationController ${widget.id} $_counter $hash');
     _counter++;
     bool newActive = state.isActiveBeat(widget.id);
+    int newActiveSubbeat = state.getActiveSubbeat(widget.id);
     //if (hash != activeHash)
-    if (active != newActive)
-      if (newActive || activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
+    if (active != newActive || activeSubbeat != newActiveSubbeat)
+      //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
       {
         //print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
         setState((){
           activeHash = hash;
-          active = state.isActiveBeat(widget.id);
-          activeSubbeat = state.activeSubbeat;
+          active = newActive;
+          activeSubbeat = newActiveSubbeat;
           redraw = false;
           //_time = _controller.value;
         });
-      }
+    }
+    print('AnimationController');
   }
 
   @override
@@ -105,7 +108,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   @override
   void dispose()
   {
-    _controller0.dispose();
+    //_controller0.dispose();
+    _controller.removeListener(onRedraw);
     super.dispose();
   }
 
@@ -153,14 +157,14 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     //final bool active = widget.id == activeBeat;
 
     final int nFile1 = widget.accent ? 1 : 2;
-    int nFile2 = active ? 3 : 0;
+    int indexImage = active ? 3 : 0;
     if (active && widget.subbeatCount > 1)
     {
-      nFile2 = activeSubbeat % widget.subbeatCount + 1;
-      if (nFile2 > 4)
-        nFile2 = 1 + nFile2 % 5;
+      indexImage = activeSubbeat % widget.subbeatCount + 1;
+      if (indexImage > 4)
+        indexImage = 1 + indexImage % 4;
     }
-    final String imageName = 'images/owl$nFile1-$nFile2.png';
+    final String imageName = 'images/owl$nFile1-$indexImage.png';
 
     print('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
     //if (subbeatCount != widget.subbeatCount)
@@ -224,7 +228,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   Stack(
                     children: <Widget>[
                       /*            IndexedStack(
-                  index: nFile2,
+                  index: indexImage,
                   children: owls,
                 ),
                 */
@@ -252,11 +256,13 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   ])
 
                   :
+                  widget.images[indexImage]
+  /*
                   Image.asset(imageName,
                     //width: widget.width,
                     fit: BoxFit.contain
                   ),
-
+*/
                 /*
               child: CustomPaint(
               size: Size(80, 100),

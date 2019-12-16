@@ -95,7 +95,7 @@ class _MetronomeState1 extends State<Metronome1> with SingleTickerProviderStateM
       int length = bipPauseCycle.cycle.length;
       print('LengthLength: $length');
       for (int i = 0; i < length; i++) {
-        totalDurInt += bipPauseCycle.cycle[i].l;
+        totalDurInt += bipPauseCycle.cycle[i].len;
       }
 
       int dur = (totalDurInt * 1000) ~/ nativeSampleRate;
@@ -387,7 +387,7 @@ class _MetronomePainter extends CustomPainter
 
       totalPlayed = 0;
       for (int i = 0; i < bipPauseCycle.position.n; i++)
-        totalPlayed += bipPauseCycle.cycle[i].l;
+        totalPlayed += bipPauseCycle.cycle[i].len;
       totalPlayed += bipPauseCycle.position.offset;
 
       double rotateAngleDeg = 90.0 + samplesToDegree * (latencyInFrames - totalPlayed);
@@ -400,7 +400,7 @@ class _MetronomePainter extends CustomPainter
  /*
     for (int i = 0; i < length; i++)
     {
-      if (bipPauseCycle.cycle[i].a != bipPauseCycle.elasticSymbol)
+      if (bipPauseCycle.cycle[i].char != bipPauseCycle.elasticSymbol)
       {
         // canvas.drawArc(oval, anglesDeg[i]+rotateAngleDeg, anglesDeg[i + 1] - anglesDeg[i], true, paint);
         //ToDo: лишний счет
@@ -451,7 +451,7 @@ class _MetronomePainter extends CustomPainter
     length = bipPauseCycle.cycle.length;
     totalDurInt = 0;  //Игнорируем дробные части
     for (int i = 0; i < length; i++)
-      totalDurInt += bipPauseCycle.cycle[i].l;
+      totalDurInt += bipPauseCycle.cycle[i].len;
     if (totalDurInt == 0)
     {
       return;
@@ -466,7 +466,7 @@ class _MetronomePainter extends CustomPainter
     for (int i = 1; i < length; i++)
     {
 
-      anglesDeg[i] = anglesDeg[i - 1] + (samplesToDegree * bipPauseCycle.cycle[i-1].l);
+      anglesDeg[i] = anglesDeg[i - 1] + (samplesToDegree * bipPauseCycle.cycle[i-1].len);
       // С ног на голову...
       anglesRad[i] = deg2rad(anglesDeg[i]);
     }

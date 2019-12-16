@@ -14,6 +14,7 @@ import 'timer_ui.dart';
 import 'settings.dart';
 import 'Melody.dart';
 import 'BipPauseCycle.dart';
+import 'AccentBeat.dart';
 
 /// Сontrol widgets can be found by comment tag: ///widget
 
@@ -227,6 +228,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     if (animate60fps)
     {
+      DateTime.now();
+
       _controller.reset();
       _controller.forward();
     }
@@ -520,7 +523,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             _buildMetre(textStyle),
             //),
             ///widget Timer
-            portrait ?
+            false && portrait ?
             TimerWidget(
               active: _playing,
               opacity: _opacity,
@@ -690,7 +693,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
       _timeTick++;
       if (!animate60fps)
-        setState(() {});
+        ;//VG0 setState(() {});
 
       print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
       Provider.of<MetronomeState>(context, listen: false).setActiveState(_activeBeat, _activeSubbeat);
@@ -737,6 +740,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm.toInt() ~/ _beat.beatCount, denominator: _noteValue);
 
+/*
     if (melody == null)
     {
       melody = new BeatMelody(nativeSampleRate, _quortaInMSec, _bars, _beat.beatCount);
@@ -744,10 +748,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       int realBpM = melody.cycle.setTempo(tempo, _bars);
       double dur = melody.cycle.tempoToCycleDuration(tempo, _bars, nativeSampleRate);
 
+      AccentBeat melody1 = new AccentBeat(nativeSampleRate, _quortaInMSec,
+        _beat,
+        0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
+        0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
+        _bars, 1);
+
       //print("realBPM - duration: $realBpM, $dur");
       //metronome1?.setCycle(melody.cycle, latency);
       //metronome1?.setTempo(_tempoBpm, nativeSampleRate, _noteValue, dur);
     }
+*/
 
     List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
     try
@@ -795,8 +806,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Send beat music to Java sound player
   Future<void> _setBeat() async
   {
+    melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
+      _beat,
+      0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
+      0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
+      _bars, 1);
+
     //Tempo tempo = new Tempo(beatsPerMinute: _subBeatCount * _tempoBpm.toInt(), denominator: _noteValue);
-    List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
+    //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
     try
     {
       //IS:

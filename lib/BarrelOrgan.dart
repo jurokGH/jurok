@@ -76,7 +76,7 @@ class BarrelOrganState extends State<BarrelOrgan> with SingleTickerProviderState
       int totalDurInt = 0;  //Игнорируем дробные части
       int length = bipPauseCycle.cycle.length;
       for (int i = 0; i < length; i++) {
-        totalDurInt += bipPauseCycle.cycle[i].l;
+        totalDurInt += bipPauseCycle.cycle[i].len;
       }
 
       int dur = (totalDurInt * 1000) ~/ 48000;
@@ -289,7 +289,7 @@ class BarrelOrganPainter extends CustomPainter
 
     totalPlayed = 0;
     for (int i = 0; i < bipPauseCycle.position.n; i++)
-      totalPlayed += bipPauseCycle.cycle[i].l;
+      totalPlayed += bipPauseCycle.cycle[i].len;
     totalPlayed += bipPauseCycle.position.offset;
     print('totalPlayed: $totalPlayed');
     double rotateAngleDeg = 90.0 + samplesToDegree * (latencyInFrames - totalPlayed);
@@ -300,8 +300,8 @@ class BarrelOrganPainter extends CustomPainter
 
     for (int i = 0; i < length; i++)
     {
-      print("$i / ${bipPauseCycle.cycle[i].a}");
-      if (bipPauseCycle.cycle[i].a != bipPauseCycle.elasticSymbol)
+      print("$i / ${bipPauseCycle.cycle[i].char}");
+      if (bipPauseCycle.cycle[i].char != bipPauseCycle.elasticSymbol)
       {
         // canvas.drawArc(oval, anglesDeg[i]+rotateAngleDeg, anglesDeg[i + 1] - anglesDeg[i], true, paint);
         //ToDo: лишний счет
@@ -364,8 +364,8 @@ class BarrelOrganPainter extends CustomPainter
     totalDurInt = 0;  //Игнорируем дробные части
     print('setAngles2');
     for (int i = 0; i < length; i++) {
-      totalDurInt += bipPauseCycle.cycle[i].l;
-      print(bipPauseCycle.cycle[i].l);
+      totalDurInt += bipPauseCycle.cycle[i].len;
+      print(bipPauseCycle.cycle[i].len);
     }
     if (totalDurInt == 0) {
       print("totalDurInttotalDurInttotalDurInt");
@@ -383,7 +383,7 @@ class BarrelOrganPainter extends CustomPainter
     for (int i = 1; i < length; i++)
     {
 
-      anglesDeg[i] = anglesDeg[i - 1] + (samplesToDegree * bipPauseCycle.cycle[i-1].l);
+      anglesDeg[i] = anglesDeg[i - 1] + (samplesToDegree * bipPauseCycle.cycle[i-1].len);
       // С ног на голову...
       anglesRad[i] = deg2rad(anglesDeg[i]);
       print("${anglesRad[i]}");

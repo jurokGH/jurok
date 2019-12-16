@@ -61,6 +61,53 @@ class _OwlLayout extends MultiChildLayoutDelegate
     _layout = beatRowsList(count);
   }
 
+  Size calcImageSize(Size size)
+  {
+    double x0, y0;
+    x0 = y0 = 0;
+
+    int xCount = maxValue(_layout);
+    int yCount = _layout.length;
+
+    // Size is (0, 0) if display does not show (e.g. locked)
+    double w = size.width > 0 ? (size.width - padding.width * (xCount - 1)) / xCount : 0;
+    double h = size.height > 0 ? (size.height - padding.height * (yCount - 1)) / yCount : 0;
+    // Width of 4 owls in row
+    double width4 = (size.width - padding.width * 3) / 4;
+    double width4h = (size.height - padding.height) / (4 * aspect);
+    // Choose minimum of 2 widths
+    double maxWidth = width4 > width4h ? width4h : width4;
+    maxWidth *= maxCoef4;
+
+    double dy;
+
+    bool vertical = h > aspect * w;
+    if (vertical)
+    {
+      h = aspect * w;
+      y0 = (size.height - yCount * h) / (2 * yCount);
+      dy = h + 2 * y0;
+    }
+    else
+    {
+      w = h / aspect;
+      y0 = 0;
+      dy = h + padding.height;
+    }
+
+    //print('maxWidth123 $maxWidth - $w - $h');
+    //TODO
+    // Limit owl size by maxCoef4 coefficient
+    if (w > maxWidth)
+    {
+      //w = maxWidth;
+      //h = aspect * maxWidth;
+    }
+    print('calcImageSize $size - $w - $h');
+
+    return new Size(w, h);
+  }
+
   @override
   void performLayout(Size size)
   {
@@ -99,7 +146,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
       dy = h + padding.height;
     }
 
-    //print('maxWidth123 $maxWidth - $w - $h');
+    print('Layout $maxWidth - $w - $h');
     //TODO
     // Limit owl size by maxCoef4 coefficient
     if (w > maxWidth)
@@ -175,6 +222,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   AnimationController _controller;
   int _period = 60000;
 
+  List<List<Image>> _images;
+  Size _imageSize;
+
   //int subCount;
   //int subCur;
   //bool active;
@@ -183,6 +233,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
   OwlGridState()
   {
+    _imageSize = new Size(0, 0);
   }
 
   void toggleAnimation()
@@ -208,6 +259,8 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       duration: new Duration(milliseconds: _period),
     );
 
+    //loadImages();
+
     _counter = 0;
   }
 
@@ -217,11 +270,45 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     super.dispose();
   }
 
+  void loadImages(Size size)
+  {
+    if (_imageSize == size)
+      return;
+
+    _images = null;
+    //AssetImage
+    _images = new List<List<Image>>(2);
+    for (int i = 0; i < 2; i++)
+    {
+      List<Image> il = new List<Image>(5);
+      //_images.add(il);
+      _images[i] = il;
+      int k = i + 1;
+      for (int j = 0; j < 5; j++)
+        il[j] = new Image.asset('images/owl$k-$j.png',
+          width: size.width,
+          //height: size.height,
+          fit: BoxFit.contain);
+    }
+    _imageSize = size;
+    print('loadImages $size');
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('OwlGridState');
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
+    print('OwlGridState $size');
+    double widthSquare = size.width > size.height ? size.height : size.width;
+    size = new Size.square(widthSquare);
+
+    _OwlLayout layout = new _OwlLayout(
+      count: widget.beat.beatCount,
+      aspect: 2 * 668 / 546,
+    );
+
+    Size imageSize = layout.calcImageSize(size);
+    loadImages(imageSize);
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
     int maxCountX = maxValue(beatRows);
@@ -232,14 +319,16 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     for (int i = 0; i < beatRows.length; i++)
       for (int j = 0; j < beatRows[i]; j++, k++)
       {
+        bool accent = k == 0;
         OwlWidget w = new OwlWidget(
           id: k,
-          accent: k == 0,
+          accent: accent,
           active: k == widget.activeBeat,
           activeSubbeat: k == widget.activeBeat ? widget.activeSubbeat : -1,
           subbeatCount: widget.beat.subBeats[k],
           denominator: widget.noteValue,
           animation: _controller.view,
+          images: new List<Image>.unmodifiable(_images[accent ? 0 : 1]),
           onTap: (int id, int subCount) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
@@ -258,10 +347,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       //builder: (BuildContext context, MetronomeState metronome, Widget child) {
         return CustomMultiChildLayout(
           children: wOwls,
-          delegate: _OwlLayout(
-            count: widget.beat.beatCount,
-            aspect: 2 * 668 / 546,
-          )
+          delegate: layout,
         );
       //}
     //);
