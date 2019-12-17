@@ -1,6 +1,7 @@
 package com.owlenome.owlenome;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,29 +26,36 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 class BeatMetre
 {
   int beatCount;
-  int accent;
+  //int[] accents; //ToDo
   int subBeatCount;
   List<Integer> subBeats;
-  double beatFreq;
-  int beatDuration;
-  double accentFreq;
-  int accentDuration;
 
   BeatMetre()
   {
     beatCount = 4;
-    accent = 0;
+    //accents = new int[];
     subBeatCount = 1;
-    beatFreq = 440;
+    /*beatFreq = 440;
     beatDuration = 25;
     accentFreq = 523.25;
-    accentDuration = 25;
+    accentDuration = 25;*/
     subBeats = new ArrayList<Integer>();
   }
 }
 
+
+
+
 public class MainActivity extends FlutterActivity implements MethodChannel.MethodCallHandler
 {
+
+
+  int currentMusicScheme=3;
+
+  // Сюда собираем пары звуков.
+  List<MusicScheme2Bips> listOfMusicSсhemes;
+  MusicScheme2Bips musicSсhemeTunable;
+
   private static final String SOUND_CHANNEL = "samples.flutter.io/owlenome";
 
   private MethodChannel channel;
@@ -57,8 +65,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   int latencyUntested; //ToDo
   // Previous tempo value to compare with a new one
   Tempo _tempo = new Tempo(1, 1);
-  // Beat melody
-  Melody beatMelody = null;
+  // Beat setOfNotes
+  AccentedMelody beatMelody = null;
   MetroAudioProbnik metroAudio;
 
   @Override
@@ -68,6 +76,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     GeneratedPluginRegistrant.registerWith(this);
 
     getNativeAudioParams();
+
+    initializeSchemes();
 
     // Receive messages from audio playing thread
     Handler handler = new Handler(Looper.getMainLooper())
@@ -116,8 +126,10 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       return;
     }
 
-    if (methodCall.method.equals("start1"))
-    {
+    BeatMetre beat = new BeatMetre();
+
+    if (methodCall.method.equals("start1"))//TODO: Do we need this?
+    {/*
       _tempo.beatsPerMinute = methodCall.argument("tempo");
       _tempo.denominator = methodCall.argument("note");
       int quortaDuration = methodCall.argument("quorta");
@@ -126,8 +138,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       if (melodyType == 0)
       {
-        if (beatMelody == null)
-          beatMelody = new BeatMelody(nativeSampleRate, quortaDuration, 1, numerator);
+
+         beatMelody = new BeatMelody(nativeSampleRate, quortaDuration, 1, numerator);
 
         metroAudio.setMelody(beatMelody);
         boolean res = start(_tempo);
@@ -144,7 +156,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           result.success(bipsAndPauses);
         else
           result.error("UNAVAILABLE", "Failed starting sound", null);
-      }
+
+      }*/
       /*
       else if (melodyType == 1)
       {
@@ -160,8 +173,11 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       int quortaDuration = methodCall.argument("quorta");
       int numerator = methodCall.argument("numerator");
-      int melodyType = methodCall.argument("mod");
+      //int melodyType = methodCall.argument("mod");
+      currentMusicScheme=methodCall.argument("mod");
 
+
+      //TODO
       //if (melodyType == 0)
       {
         boolean res = false;
@@ -185,34 +201,35 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     {
       //IS:
       // Get beat parameters from Flutter
-      BeatMetre beat = new BeatMetre();
-      int bars = 1;
-      int numerator = 1;
-      int quortaDuration = 25;
+   //   BeatMetre beat = new BeatMetre();
+
 
       List<Integer> config = methodCall.argument("config");
       if (config.size() >= 3)
       {
         beat.beatCount = config.get(0);
-        beat.accent = config.get(1);
+        //beat.accent = config.get(1);//ToDo: array of int
         beat.subBeatCount = config.get(2);
       }
       if (config.size() >= 7)
       {
+        /*
+        //ToDo: меняем параметры musicSсhemeTunable
+
         beat.beatFreq = 0.001 * config.get(3);
         beat.beatDuration = config.get(4);
         beat.accentFreq = 0.001 * config.get(5);
-        beat.accentDuration = config.get(6);
+        beat.accentDuration = config.get(6);*/
       }
       if (config.size() >= 10)
       {
-        bars = config.get(7);
-        numerator = config.get(8);
-        quortaDuration = config.get(9);
+        //bars = config.get(7);
+       // numerator = config.get(8);
+        //quortaDuration = config.get(9);
       }
 
       //IS: VG Hack!!!
-      numerator = 1;
+     // numerator = 1;
 
       List<Integer> subBeats = methodCall.argument("subBeats");
       if (subBeats.size() > 0)
@@ -228,19 +245,21 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           beat.subBeats.add(beat.subBeatCount);
       }
 
+      beatMelody = new AccentedMelody(listOfMusicSсhemes.get(currentMusicScheme),nativeSampleRate,
+              beat.beatCount,
+              beat.subBeats
+      );
+
       //if (!metroAudio.isPlaying())
       {
         //IS>>
-        // Create new metronome beat melody
-        beatMelody = new AccentBeat(nativeSampleRate, quortaDuration,
-          beat.beatCount, beat.accent,
-          beat.beatFreq, beat.beatDuration, beat.accentFreq, beat.accentDuration,
-          bars, numerator,
-          beat.subBeats);
+        // Create new metronome beat setOfNotes
 
         metroAudio.setMelody(beatMelody);
         //IS<<
 
+
+/*//IS: Do we need this? Seems that we already have it.
         List<Double> bipsAndPauses = new ArrayList<Double>();
         for (int i = 0; i < metroAudio.melody._bipAndPauseSing.length; i++)
         {
@@ -252,6 +271,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           result.success(bipsAndPauses);
         else
           result.error("UNAVAILABLE", "Failed creating sound", null);
+        */
       }
       //else
       //result.error("UNAVAILABLE", "Failed creating sound", null);
@@ -285,6 +305,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         result.error("UNAVAILABLE", "Failed to get audio params", null);
       }
     }
+    //ToDo: is it correct?
+    else if (methodCall.method.equals("setMusicScheme")){
+      currentMusicScheme=methodCall.argument("mod");
+
+    }
+
+
     else
     {
       result.notImplemented();
@@ -410,5 +437,43 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       else
         metroAudio.stop();
     }
+  }
+
+
+  /**
+   * Тут определяем музыкальные схемы
+   */
+  private void initializeSchemes(){
+
+
+    listOfMusicSсhemes =new ArrayList<MusicScheme2Bips>();
+
+    //Старые добрые бипы. //ToDo: при настройке звуков из flutter, можно менять именно
+    // эту схему, чтобы не плодить их.
+    musicSсhemeTunable=new MusicScheme2Bips("OldBipsA4C5",  440,
+            25, 523.25, 35);
+
+    listOfMusicSсhemes.add(musicSсhemeTunable);
+
+    Resources res=getResources();
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("Drums1", res,
+                    R.raw.drum_accent_mono,R.raw.drum)
+    );
+    /*listOfMusicSсhemes.add(
+            new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
+                    R.raw.drum_accent,R.raw.drum)
+    ); //Где-то потерялся один из звуков, ну и нафиг не нужна эта схема.
+    */
+
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("WoodblockCabasa-1", res,
+                    R.raw.woodblock_short1,R.raw.cabasa1)
+    );
+    listOfMusicSсhemes.add(
+            new MusicScheme2Bips("ShortDrums-1", res,
+                    R.raw.short_drum_accent,R.raw.short_drum1)
+    );
+
   }
 }

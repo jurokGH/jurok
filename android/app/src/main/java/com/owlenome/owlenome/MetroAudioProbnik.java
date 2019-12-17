@@ -135,11 +135,11 @@ public class MetroAudioProbnik
   //ByteBuffer byteBuffer;
   MelodyBuffer melodyBuffer;
 
-  Melody melody;
+  AccentedMelody melody;
   //BipAndPause _bipAndPauseSing;
   boolean newMelody = false;
 
-  void setMelody(Melody m)
+  void setMelody(AccentedMelody m)
   {
     //TODO
     melody = m;
@@ -555,7 +555,7 @@ public class MetroAudioProbnik
       silenceToWrite = melodyTools.getSilence(framesToWriteAtOnce);
     }
 
-    int copy2buffer(Melody melody, Position pos)
+    int copy2buffer(AccentedMelody melody, Position pos)
     {
       buffer.position(0);
       //long writtenSamples = -1;
@@ -577,7 +577,7 @@ public class MetroAudioProbnik
         }
         else
         {
-          buffer.put(melody.melody[linear.symbols[i]],
+          buffer.put(melody.setOfNotes[linear.symbols[i]],
             //melodyTest[linear.symbols[i]],
             offset,
             linear.durations[i] * 2);
@@ -589,7 +589,7 @@ public class MetroAudioProbnik
       }
       buffer.position(0);
 
-      //ToDo: то, что выше, нужно оформить как метод внутри melody
+      //ToDo: то, что выше, нужно оформить как метод внутри setOfNotes
       if (!noMessages)
       {
         linear.print();
@@ -825,7 +825,7 @@ public class MetroAudioProbnik
             }
             else
             {
-              byteBuffer.put(melody.melody[linear.symbols[i]],
+              byteBuffer.put(setOfNotes.setOfNotes[linear.symbols[i]],
                 //melodyTest[linear.symbols[i]],
                 offset,
                 linear.durations[i] * 2);
@@ -835,7 +835,7 @@ public class MetroAudioProbnik
             }
             toWrite += linear.durations[i] * 2;
           }
-          //ToDo: то, что выше, нужно оформить как метод внутри melody
+          //ToDo: то, что выше, нужно оформить как метод внутри setOfNotes
           if (!noMessages)
           {
             linear.print();

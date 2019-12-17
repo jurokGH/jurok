@@ -24,14 +24,9 @@ final double _cCtrlOpacity = 0;
 final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
-void main()
-{
-  return runApp(
-    ChangeNotifierProvider(
-      create: (_) => new MetronomeState(),
-      child: App()
-    )
-  );
+void main() {
+  return runApp(ChangeNotifierProvider(
+      create: (_) => new MetronomeState(), child: App()));
 }
 
 class App extends StatelessWidget {
@@ -78,7 +73,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
   static const int minTempo = 6;
-  static const int maxTempo = 250;
+
+  static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to
+  //the music scheme.
+
+  ///Пение рокочущих сов
+  ///Сколько схем:
+  int activeMusicScheme=3;
+  ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
+  ///как мы это согласовываем? Пока - руками.
+  int nmbOfSchemes=4;
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
@@ -98,7 +102,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _widthSquare;
   /// Overall screen size
   Size _screenSize;
-
 
   BeatMetre _beat = new BeatMetre();
   BeatSound _soundConfig = new BeatSound();
@@ -772,7 +775,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'tempo' : _tempoBpm, 'note' : _noteValue,
         'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
-        'mod': 0
+        'mod': activeMusicScheme,
       };
       final bool result = await _channel.invokeMethod('start', args);
 /*
@@ -821,9 +824,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     try
     {
       //IS:
-      final List<int> config = [_beat.beatCount, _beat.accent, _beat.subBeatCount,
-        _soundConfig.beatFreq, _soundConfig.beatDuration, _soundConfig.accentFreq, _soundConfig.accentDuration,
-        _bars, _beat.beatCount, _quortaInMSec.toInt()];
+      final List<int> config = [
+        _beat.beatCount,
+        _beat.accent,
+        _beat.subBeatCount,
+        _soundConfig.beatFreq,
+        _soundConfig.beatDuration,
+        _soundConfig.accentFreq,
+        _soundConfig.accentDuration,
+        _bars,
+        _beat.beatCount,
+        _quortaInMSec.toInt()
+      ];
 
       final Map<String, List<int>> args =
         <String, List<int>>{'config': config, 'subBeats': _beat.subBeats};
@@ -908,13 +920,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
-  Future<void> _getAudioParams() async
-  {
-    try
-    {
-      final Map<String, dynamic> result = await _channel.invokeMapMethod('getAudioParams');
-      if (result != null)
-      {
+
+  /// /ToDo: IS:   musicScheme to set
+  Future<void> _setMusicScheme(int musicScheme) async {
+    try {
+      final int result =
+      await _channel.invokeMethod('setMusicScheme', {'mod': musicScheme});
+      //assert(result == 1);
+      if (result != 1) {
+        _infoMsg = 'Failed setting  music scheme, lay-la,la-la-la-lay-la-la...';
+        print(_infoMsg);
+      }
+    } on PlatformException {
+      _infoMsg = 'Exception: Failed setting  music scheme';
+    }
+  }
+
+  Future<void> _getAudioParams() async {
+    try {
+      final Map<String, dynamic> result =
+          await _channel.invokeMapMethod('getAudioParams');
+      if (result != null) {
         nativeSampleRate = result['nativeSampleRate'];
         nativeBuffer = result['nativeBuffer'];
         latencyUntested = result['latencyUntested'];
