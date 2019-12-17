@@ -36,7 +36,8 @@ final double _cCtrlOpacity = 0;
 final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
-void main() {
+void main()
+{
   return runApp(ChangeNotifierProvider(
       create: (_) => new MetronomeState(), child: App()));
 }
@@ -85,16 +86,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
   static const int minTempo = 6;
-
-  static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to
-  //the music scheme.
-
-  ///Пение рокочущих сов
-  ///Сколько схем:
-  int activeMusicScheme=3;
-  ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
-  ///как мы это согласовываем? Пока - руками.
-  int nmbOfSchemes=4;
+  static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to the music scheme
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
@@ -159,8 +151,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Melody melody;
   //BipPauseCycle bipPauseCycle;
 
-  //BarrelOrgan barrelOrgan;
-  //Metronome1 metronome1;
+  /// Пение рокочущих сов
+  /// Сколько схем:
+  ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
+  ///как мы это согласовываем? Пока - руками.
+  final int _soundSchemeCount = 4;
+  int _activeSoundScheme = 0;
 
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
@@ -201,7 +197,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   @override
-  void dispose() {
+  void dispose()
+  {
     _controller.dispose();
     super.dispose();
   }
@@ -451,6 +448,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           icon: Icon(Icons.settings,),
           color: _textColor.withOpacity(_opacity),
           onPressed: () {
+            setState(() {
+              _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
+            });
+            _setMusicScheme(_activeSoundScheme);
+
             //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
             //Navigator.of(context).push(_createSettings());
           },
@@ -633,22 +635,46 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           Container(width: 0, height: 0),
         ]),
 
-        ///widget Tempo list
-        Center(
-          child: _buildPlate(TempoWidget(
-            tempo: _tempoBpm,
-            onChanged: (int tempo) {
-              if (_tempoBpm != tempo)
-                setState(() {
-                  _tempoBpm = tempo;
-                  if (_playing)
-                    _setTempo(0.0);
-                });
-              }
+        Stack(
+          children: <Widget>[
+            ///widget Tempo list
+            Center(
+              child: _buildPlate(TempoWidget(
+                tempo: _tempoBpm,
+                textStyle: _textStyle,
+                onChanged: (int tempo) {
+                  if (_tempoBpm != tempo)
+                    setState(() {
+                      _tempoBpm = tempo;
+                      if (_playing)
+                        _setTempo(0.0);
+                    });
+                  }
+                ),
+                padding: _padding,
+              ),
             ),
-            padding: new Offset(4, 0),
-          ),
-        ),
+            Align(
+              alignment: Alignment.centerRight,
+              //padding: EdgeInsets.only(right: _padding.dx),
+              ///widget Settings
+              child: IconButton(
+                iconSize: 30,
+                icon: Icon(Icons.settings,),
+                color: _accentColor,
+                onPressed: () {
+                  setState(() {
+                    _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
+                  });
+                  _setMusicScheme(_activeSoundScheme);
+
+                  //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
+                  //Navigator.of(context).push(_createSettings());
+                },
+              )
+            )
+          ]
+        )
       ];
 
     children.addAll(otherChildren);
@@ -786,7 +812,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'tempo' : _tempoBpm, 'note' : _noteValue,
         'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
-        'mod': activeMusicScheme,
+        'mod': _activeSoundScheme,
       };
       final bool result = await _channel.invokeMethod('start', args);
 /*

@@ -62,7 +62,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     int hash = state.getBeatState(widget.id);
-    print('AnimationController ${widget.id} $_counter $hash');
+    //print('AnimationController ${widget.id} $_counter $hash');
     _counter++;
     bool newActive = state.isActiveBeat(widget.id);
     int newActiveSubbeat = state.getActiveSubbeat(widget.id);
@@ -70,7 +70,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     if (active != newActive || activeSubbeat != newActiveSubbeat)
       //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
       {
-        //print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
+        print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
         setState((){
           activeHash = hash;
           active = newActive;
@@ -79,7 +79,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
           //_time = _controller.value;
         });
     }
-    print('AnimationController');
   }
 
   @override
