@@ -5,18 +5,20 @@ import 'package:flutter/material.dart';
 class TempoWidget extends StatefulWidget
 {
   final int tempo;  // bpm
-  ValueChanged<int> onChanged;
+  final TextStyle textStyle;
+  final ValueChanged<int> onChanged;
 
-  TempoWidget({this.tempo, this.onChanged});
+  TempoWidget({
+    this.tempo,
+    @required this.textStyle,
+    this.onChanged});
 
   void setTempo(int bpm)
   {
   }
 
   @override
-  State<StatefulWidget> createState() {
-    return TempoState();
-  }
+  State<StatefulWidget> createState() => TempoState();
 }
 
 class TempoDef
@@ -134,15 +136,9 @@ class TempoState extends State<TempoWidget>
     assert(0 <= _index && _index < tempoList.length);
     final String txt = tempoList[_index].name;
 
-    final TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.black,
-      //backgroundColor: Colors.black45
-    );
-
     return GestureDetector(
       onTap: () {
         setState(() {
-          //int tempo = widget.tempo;
           _index++;
           if (_index >= tempoList.length)
             _index = 1;
@@ -157,9 +153,8 @@ class TempoState extends State<TempoWidget>
           _index = 1;
         widget.onChanged(tempoList[_index].tempo);
       },
-      child: Text(
-        txt,
-        style: TextStyle(height: 1, fontSize: 24),
+      child: Text(txt,
+        style: widget.textStyle
       )
     );
   }

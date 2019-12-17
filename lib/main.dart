@@ -16,10 +16,22 @@ import 'Melody.dart';
 import 'BipPauseCycle.dart';
 import 'AccentBeat.dart';
 
-/// Сontrol widgets can be found by comment tag: ///widget
+///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/// UI Сontrol widgets can be found by comment tag: ///widget
+///
 
-/// UI controls opacity constant
+///>>>>>> JG!
+/// UI global constants
+/// Theme primary color
+final Color _cPrimaryColor = Colors.grey;
+/// Theme accent color
+final Color _cAccentColor = Colors.blueGrey;
+/// Text color
+final Color _cTextColor = Colors.black;
+/// UI Controls color and opacity
+final Color _cCtrlColor = Colors.grey;
 final double _cCtrlOpacity = 0;
+///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
@@ -36,12 +48,12 @@ class App extends StatelessWidget {
       title: _cAppName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.grey,
-        accentColor: Colors.blueGrey,
-        iconTheme: IconThemeData(color: Colors.black),
+        primarySwatch: _cPrimaryColor,
+        accentColor: _cAccentColor,
+        iconTheme: IconThemeData(color: _cTextColor),
         buttonTheme: ButtonThemeData(
           //minWidth: 150,
-          buttonColor: Colors.grey.withOpacity(_cCtrlOpacity),
+          buttonColor: _cCtrlColor.withOpacity(_cCtrlOpacity),
           colorScheme: ColorScheme.light(),
           textTheme: ButtonTextTheme.primary,
         ),
@@ -88,15 +100,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const MethodChannel _channel =
     MethodChannel('samples.flutter.io/owlenome');
 
+  ///>>>>>> JG!
   /// UI parameters
   ///
-  /// Controls border radius
+  /// All UI text parameters
+  Color _primaryColor = _cPrimaryColor;
+  Color _accentColor = _cAccentColor;
+  Color _textColor = _cTextColor;
+  Color _ctrlColor = _cCtrlColor;
+  TextStyle _textStyle;
+  double _textSize = 24;
+
+  /// Controls border parameters
   double _borderRadius = 12;
-  /// Controls border radius
   double _borderWidth = 3;
   /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
-  Size _padding = Size(24, 36);
+  /// Standart padding
+  Offset _padding = new Offset(4, 4);//Size(24, 36);
+  ///<<<<<< JG!
 
   /// Size of square owl's area
   double _widthSquare;
@@ -296,6 +318,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _widthSquare = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
     print('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
 
+    if (_textStyle == null)
+      _textStyle = Theme.of(context).textTheme.display1
+        .copyWith(color: _textColor, fontSize: _textSize, height: 1);
+
     return Scaffold(
       key: _scaffoldKey,  // for showSnackBar to run
       backgroundColor: Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
@@ -327,9 +353,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(_opacity),
+        color: _ctrlColor.withOpacity(_opacity),
         //shape: BoxShape.circle,
-        border: Border.all(color: Colors.blueGrey.withOpacity(_opacity), width: _borderWidth),
+        border: Border.all(color: _accentColor.withOpacity(_opacity), width: _borderWidth),
         borderRadius: BorderRadius.circular(_borderRadius)
       ),
       padding: EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
@@ -349,7 +375,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         note: _noteValue,
         minNote: minNoteValue,
         maxNote: maxNoteValue,
-        color: Colors.black,
+        color: _textColor,
         textStyle: textStyle,
         onChanged: onMetreChanged
       )
@@ -363,7 +389,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       SubbeatWidget(
         subbeatCount: _beat.subBeatCount,
         noteValue: _noteValue,
-        color: Colors.black,
+        color: _textColor,
         textStyle: textStyle,
         onChanged: onSubbeatChanged,
       ),
@@ -373,17 +399,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Volume
   Widget _builVolume()
   {
-    TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
-      color: Colors.grey,
-      //backgroundColor: Colors.black45
-    );
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
           _volume.toString(),
-          style: textStyle,
+          style: _textStyle,
         ),
         ///widget Volume slider
         Slider(
@@ -401,9 +422,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ///widget Mute button
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(_opacity),
+            color: _ctrlColor.withOpacity(_opacity),
             //shape: BoxShape.circle,
-            border: Border.all(color: Colors.blueGrey.withOpacity(_opacity), width: _borderWidth),
+            border: Border.all(color: _accentColor.withOpacity(_opacity), width: _borderWidth),
             borderRadius: BorderRadius.circular(_borderRadius),
           ),
           //margin: EdgeInsets.all(16),
@@ -428,10 +449,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         IconButton(
           iconSize: 24,
           icon: Icon(Icons.settings,),
-          color: Colors.black.withOpacity(_opacity),
+          color: _textColor.withOpacity(_opacity),
           onPressed: () {
             //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
-            Navigator.of(context).push(_createSettings());
+            //Navigator.of(context).push(_createSettings());
           },
         )
       ]
@@ -459,10 +480,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     //>>>>>>>>TODO: remove later if don't need
     /// Row with Metre and Subbeat controls
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.black,
-      //backgroundColor: Colors.black45
-    );
     if (showControls)
       children.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -471,12 +488,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           Flexible(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: _buildMetre(textStyle),
+              child: _buildMetre(_textStyle),
             ),
           ),
           ///widget Subbeat widget
           Flexible(
-            child: _buildSubbeat(textStyle),
+            child: _buildSubbeat(_textStyle),
           ),
         ]
       ));
@@ -487,10 +504,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       height: _widthSquare,
       ///widget Background
       decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.grey, Colors.blueGrey])
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [_primaryColor, _accentColor])
        // image: DecorationImage(
         //  image: AssetImage('images/Backg-Up-1.jpg'),
          // fit: BoxFit.cover
@@ -506,35 +523,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // Remaining section with controls
   Widget _buildControls(bool portrait, bool showVolume)
   {
-    TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
-      color: Colors.black,
-      //backgroundColor: Colors.black45
-    );
-    TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
-      color: Colors.black,
-      //backgroundColor: Colors.black45
-    );
+    final TextStyle textStyleTimer = _textStyle.copyWith(fontSize: 20);
 
     final double horzSpace = portrait ? 16 : 16;
     List<Widget> children = new List<Widget>();
 
     if (!showVolume)  //TODO: remove
       children.add(Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: EdgeInsets.symmetric(horizontal: _padding.dx, vertical: _padding.dy),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ///widget Metre
             //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
-            _buildMetre(textStyle),
+            _buildMetre(_textStyle),
             //),
             ///widget Timer
             false && portrait ?
             TimerWidget(
               active: _playing,
               opacity: _opacity,
-              color: Colors.grey,
+              color: _ctrlColor,
               borderWidth: _borderWidth,
               borderRadius: _borderRadius,
               textStyle: textStyleTimer,
@@ -543,7 +553,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             Container(width: 0, height: 0),
             ///widget Subbeat widget
             //Flexible(child:
-            _buildSubbeat(textStyle),
+            _buildSubbeat(_textStyle),
             //)
           ])
         )
@@ -565,7 +575,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             padding: EdgeInsets.all(12),
             shape: CircleBorder(
               //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.grey, width: _borderWidth)
+              side: BorderSide(color: _ctrlColor, width: _borderWidth)
             ),
             onPressed: () {
               setState(() {
@@ -585,7 +595,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             min: minTempo.toDouble(),
             max: maxTempo.toDouble(),
             size: 0.36 * _widthSquare,
-            color: Colors.grey.withOpacity(_opacity),
+            color: _textColor.withOpacity(0.5),
+            textStyle: _textStyle,
             onPressed: _play,
             onChanged: (double value) {
               setState(() {
@@ -606,7 +617,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             padding: EdgeInsets.all(12),
             shape: CircleBorder(
               //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.grey, width: _borderWidth)
+              side: BorderSide(color: _ctrlColor, width: _borderWidth)
             ),
             onPressed: () {
               setState(() {
@@ -652,9 +663,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         /// Background
         decoration: BoxDecoration(
             gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [Colors.grey, Colors.blueGrey])
+                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
+                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
+                colors: [_primaryColor, _accentColor])
         ),
         //Padding(
         //  padding: const EdgeInsets.all(8.0),

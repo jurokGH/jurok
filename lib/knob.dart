@@ -14,14 +14,18 @@ class Knob extends StatefulWidget
 
   final double size;
   final Color color;
+  final TextStyle textStyle;
 
   final ValueChanged<double> onChanged;
   final OnPressedCallback onPressed;
 
-  Knob({this.value, this.min = 0, this.max = 1,
+  Knob({@required this.value,
+    this.min = 0, this.max = 1,
     this.pressed = false,
-    this.color = Colors.blue, this.size = 50,
-    this.onChanged, this.onPressed});
+    this.size = 50,
+    this.color = Colors.blue,
+    @required this.textStyle,
+    @required this.onChanged, @required this.onPressed});
 
   @override
   State<StatefulWidget> createState() => KnobState();
@@ -32,16 +36,13 @@ class KnobState extends State<Knob>
   static const double minAngle = -160;
   static const double maxAngle = 160;
   static const double sweepAngle = maxAngle - minAngle;
+  static const double innerRadius = 0.25;
 
   bool pressed = false;
 
   @override
   Widget build(BuildContext context)
   {
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.black,
-      //backgroundColor: Colors.black45
-    );
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
     double distanceToAngle = (widget.max - widget.min);
 
@@ -60,27 +61,32 @@ class KnobState extends State<Knob>
             widget.onPressed();
           },
           onPanUpdate: (DragUpdateDetails details) {
-            Offset center = new Offset(size / 2, size / 2);
+            double radius = size / 2;
+            Offset center = new Offset(radius, radius);
             Offset cur = details.localPosition - center;
             Offset prev = cur - details.delta;
-            double da = atan2(cur.dy, cur.dx) - atan2(prev.dy, prev.dx);
-            da *= 180 / pi;
 
-            //TODO print('Knob ${atan2(cur.dy, cur.dx)} - ${atan2(prev.dy, prev.dx)}');
-            if (-180 < da && da < 180)
+            radius *= innerRadius;
+            if (cur.distanceSquared > radius * radius)  // TODO
             {
-              //double changeInX = details.delta.dx;
-              //double changeInValue = distanceToAngle * changeInX;
-              // Change velocity over the radius
-              double coef = 2 * cur.distance / size;
-              if (coef < 0.3)
-                coef = 0.3;
+              double da = atan2(cur.dy, cur.dx) - atan2(prev.dy, prev.dx);
+              da *= 180 / pi;
+              //TODO print('Knob ${atan2(cur.dy, cur.dx)} - ${atan2(prev.dy, prev.dx)}');
+              if (-180 < da && da < 180)
+              {
+                //double changeInX = details.delta.dx;
+                //double changeInValue = distanceToAngle * changeInX;
+                // Change velocity over the radius
+                double coef = 2 * cur.distance / size;
+                if (coef < 0.3)
+                  coef = 0.3;
 
-              double newValue = widget.value + (1 / coef) * da * (widget.max - widget.min) / sweepAngle;
-              double clippedValue = min(max(newValue, widget.min), widget.max);
-              //print('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
-              if (clippedValue != widget.value)
-                widget.onChanged(clippedValue);
+                double newValue = widget.value + (1 / coef) * da * (widget.max - widget.min) / sweepAngle;
+                double clippedValue = min(max(newValue, widget.min), widget.max);
+                //print('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
+                if (clippedValue != widget.value)
+                  widget.onChanged(clippedValue);
+              }
             }
           },
           /*
@@ -114,13 +120,14 @@ class KnobState extends State<Knob>
                       Center(
                           child: Icon(pressed ? Icons.pause : Icons.play_arrow,
                             size: 0.5 * size,
-                            color: textStyle.color.withOpacity(0.5),
+                            color: widget.color,
                           )
                       ),
 
                       Center(
                           child: Text(widget.value.toInt().toString(),
-                            style: TextStyle(height: 1, fontSize: 24),)
+                            style: widget.textStyle
+                          )
                       ),
                     ]
                 )
