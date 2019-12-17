@@ -56,8 +56,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
   OwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
 
-  //bool isActive() => subCount > 0;
-
   void onRedraw()
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
@@ -115,30 +113,12 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   @override
   Widget build(BuildContext context)
   {
-/*
-    if (_controller.status != AnimationStatus.forward)
-    {
-      active = widget.active;
-      activeSubbeat = widget.activeSubbeat;
-    }
-*/
     //final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
       //.setActive(widget.id, widget.subbeatCount);
     //int activeBeat = state.activeBeat;
     //int activeSubbeat = state.activeSubbeat;
     //bool accent = widget.id == activeBeat;
 
-/*
-    final List<Widget> owls = List<Widget>();
-    for (int i = 0; i < widget.subbeatCount % 5; i++)
-    {
-      Widget w = new Image.asset('images/owl$nFile1-${i+1}.png',
-        width: widget.width,
-        fit: BoxFit.contain
-      );
-      owls.add(w);
-    }
-*/
     final int nFile3 = widget.accent ? 2 : 1;
     //Size childSize = new Size(minWidth, minWidth * 546 / 668);
     final List<Widget> subOwls = List<Widget>();
@@ -173,7 +153,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
     _counter++;
 
-    //return Image.asset('images/owl2-$division.png',
     /// Provider-Selector
     return GestureDetector(
           onTap: () {
@@ -194,8 +173,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-          //  width: 80,
-          //  height: 100,
             children: <Widget>[
               RepaintBoundary(
                 child: AspectRatio(
@@ -208,7 +185,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                       subDiv: widget.subbeatCount,
                       denominator: widget.denominator * widget.subbeatCount,
                       active: active ? activeSubbeat : -1,
-                      //active: widget.active ? widget.activeSubbeat : -1,
                       activeNoteType: ActiveNoteType.explosion,
                       colorPast: Colors.white,
                       colorNow: Colors.red,
@@ -256,20 +232,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
                   :
                   widget.images[indexImage]
-  /*
-                  Image.asset(imageName,
-                    //width: widget.width,
-                    fit: BoxFit.contain
-                  ),
-*/
-                /*
-              child: CustomPaint(
-              size: Size(80, 100),
-              painter: OwlPainter(id: widget.id, active: active),
-              isComplex: false,
-              willChange: true,
-              )
-              */
                 )
               )
           ])
