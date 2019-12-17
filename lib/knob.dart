@@ -34,12 +34,12 @@ class KnobState extends State<Knob>
   static const double sweepAngle = maxAngle - minAngle;
 
   bool pressed = false;
-  
+
   @override
   Widget build(BuildContext context)
   {
     TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
+      color: Colors.black,
       //backgroundColor: Colors.black45
     );
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
@@ -94,37 +94,37 @@ class KnobState extends State<Knob>
         },
              */
           child: Stack(
-            children: <Widget>[
-              Transform.rotate(
-                angle: angle,
-                child: ClipOval(
-                  child: Container(
-                    color: widget.color,
-                    child: Image.asset('images/TempoKnob.png',
-                      height: size,
-                      fit: BoxFit.cover
-                    )
-                  )
+              children: <Widget>[
+                Transform.rotate(
+                  angle: angle,
+                  child: ClipOval(
+                      child: Container(
+                          color: widget.color,
+                          child: Image.asset('images/TempoKnob.png',
+                              height: size,
+                              fit: BoxFit.cover
+                          )
+                      )
+                  ),
                 ),
-              ),
 
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Icon(pressed ? Icons.pause : Icons.play_arrow,
-                    size: 0.4 * size,
-                    color: textStyle.color.withOpacity(0.8),
-                    )
-                  ),
+                Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(
+                          child: Icon(pressed ? Icons.pause : Icons.play_arrow,
+                            size: 0.5 * size,
+                            color: textStyle.color.withOpacity(0.5),
+                          )
+                      ),
 
-                  Center(
-                    child: Text(widget.value.toInt().toString(),
-                      style: textStyle)
-                  ),
-                ]
-              )
-            ]
+                      Center(
+                          child: Text(widget.value.toInt().toString(),
+                            style: TextStyle(height: 1, fontSize: 24),)
+                      ),
+                    ]
+                )
+              ]
           ),
         ),
       ),

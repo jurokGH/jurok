@@ -19,7 +19,7 @@ import 'AccentBeat.dart';
 /// Сontrol widgets can be found by comment tag: ///widget
 
 /// UI controls opacity constant
-final double _cCtrlOpacity = 0.4;
+final double _cCtrlOpacity = 0;
 
 final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
@@ -41,12 +41,12 @@ class App extends StatelessWidget {
       title: _cAppName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.purple,
-        accentColor: Colors.purpleAccent,
-        iconTheme: IconThemeData(color: Colors.white),
+        primarySwatch: Colors.grey,
+        accentColor: Colors.blueGrey,
+        iconTheme: IconThemeData(color: Colors.black),
         buttonTheme: ButtonThemeData(
           //minWidth: 150,
-          buttonColor: Colors.purple.withOpacity(_cCtrlOpacity),
+          buttonColor: Colors.grey.withOpacity(_cCtrlOpacity),
           colorScheme: ColorScheme.light(),
           textTheme: ButtonTextTheme.primary,
         ),
@@ -87,9 +87,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// UI parameters
   ///
   /// Controls border radius
-  double _borderRadius = 16;
+  double _borderRadius = 12;
   /// Controls border radius
-  double _borderWidth = 2;
+  double _borderWidth = 3;
   /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
   Size _padding = Size(24, 36);
@@ -324,9 +324,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.purple.withOpacity(_opacity),
+        color: Colors.grey.withOpacity(_opacity),
         //shape: BoxShape.circle,
-        border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: _borderWidth),
+        border: Border.all(color: Colors.blueGrey.withOpacity(_opacity), width: _borderWidth),
         borderRadius: BorderRadius.circular(_borderRadius)
       ),
       padding: EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
@@ -346,7 +346,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         note: _noteValue,
         minNote: minNoteValue,
         maxNote: maxNoteValue,
-        color: Colors.white,
+        color: Colors.black,
         textStyle: textStyle,
         onChanged: onMetreChanged
       )
@@ -360,7 +360,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       SubbeatWidget(
         subbeatCount: _beat.subBeatCount,
         noteValue: _noteValue,
-        color: Colors.white,
+        color: Colors.black,
         textStyle: textStyle,
         onChanged: onSubbeatChanged,
       ),
@@ -371,7 +371,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _builVolume()
   {
     TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
-      color: Colors.purple,
+      color: Colors.grey,
       //backgroundColor: Colors.black45
     );
 
@@ -398,9 +398,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ///widget Mute button
         Container(
           decoration: BoxDecoration(
-            color: Colors.purple.withOpacity(_opacity),
+            color: Colors.grey.withOpacity(_opacity),
             //shape: BoxShape.circle,
-            border: Border.all(color: Colors.purpleAccent.withOpacity(_opacity), width: _borderWidth),
+            border: Border.all(color: Colors.blueGrey.withOpacity(_opacity), width: _borderWidth),
             borderRadius: BorderRadius.circular(_borderRadius),
           ),
           //margin: EdgeInsets.all(16),
@@ -425,7 +425,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         IconButton(
           iconSize: 24,
           icon: Icon(Icons.settings,),
-          color: Colors.white.withOpacity(_opacity),
+          color: Colors.black.withOpacity(_opacity),
           onPressed: () {
             //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
             Navigator.of(context).push(_createSettings());
@@ -457,7 +457,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //>>>>>>>>TODO: remove later if don't need
     /// Row with Metre and Subbeat controls
     TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
+      color: Colors.black,
       //backgroundColor: Colors.black45
     );
     if (showControls)
@@ -484,10 +484,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       height: _widthSquare,
       ///widget Background
       decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('images/Backg-Up-1.jpg'),
-          fit: BoxFit.cover
-        )
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.grey, Colors.blueGrey])
+       // image: DecorationImage(
+        //  image: AssetImage('images/Backg-Up-1.jpg'),
+         // fit: BoxFit.cover
+       // )
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -499,12 +503,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // Remaining section with controls
   Widget _buildControls(bool portrait, bool showVolume)
   {
-    TextStyle textStyle = Theme.of(context).textTheme.display1.apply(
-      color: Colors.white,
+    TextStyle textStyle = Theme.of(context).textTheme.headline.apply(
+      color: Colors.black,
       //backgroundColor: Colors.black45
     );
     TextStyle textStyleTimer = Theme.of(context).textTheme.subhead.apply(
-      color: Colors.white,
+      color: Colors.black,
       //backgroundColor: Colors.black45
     );
 
@@ -513,7 +517,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     if (!showVolume)  //TODO: remove
       children.add(Padding(
-        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +531,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             TimerWidget(
               active: _playing,
               opacity: _opacity,
-              color: Colors.purple,
+              color: Colors.grey,
               borderWidth: _borderWidth,
               borderRadius: _borderRadius,
               textStyle: textStyleTimer,
@@ -553,12 +557,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ///widget Tempo down (-1) button
           RaisedButton(
             // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
-            child: Text('-1',
+            child: Text('-',
               textScaleFactor: 1.8,),
             padding: EdgeInsets.all(12),
             shape: CircleBorder(
               //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.purple, width: _borderWidth)
+              side: BorderSide(color: Colors.grey, width: _borderWidth)
             ),
             onPressed: () {
               setState(() {
@@ -577,8 +581,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             value: _tempoBpm.toDouble(),
             min: minTempo.toDouble(),
             max: maxTempo.toDouble(),
-            size: 0.28 * _widthSquare,
-            color: Colors.purple.withOpacity(_opacity),
+            size: 0.36 * _widthSquare,
+            color: Colors.grey.withOpacity(_opacity),
             onPressed: _play,
             onChanged: (double value) {
               setState(() {
@@ -593,13 +597,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ///widget Tempo up (+1) button
           RaisedButton(
             // Can use instead: Icon(Icons.exposure_plus_1, semanticLabel: 'Increase tempo by one', size: 36.0, color: Colors.white)
-            child: Text('+1',
+            child: Text('+',
               textScaleFactor: 1.8,),
             //style: textStyle),
             padding: EdgeInsets.all(12),
             shape: CircleBorder(
               //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.purple, width: _borderWidth)
+              side: BorderSide(color: Colors.grey, width: _borderWidth)
             ),
             onPressed: () {
               setState(() {
@@ -628,7 +632,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 });
               }
             ),
-            padding: new Offset(8, 0),
+            padding: new Offset(4, 0),
           ),
         ),
       ];
@@ -644,10 +648,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       child: Container(
         /// Background
         decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/Backg-Dn-1.jpg'),
-            fit: BoxFit.cover,
-          )
+            gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Colors.grey, Colors.blueGrey])
         ),
         //Padding(
         //  padding: const EdgeInsets.all(8.0),
