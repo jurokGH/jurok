@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
   static const int minTempo = 6;
-  static const int maxTempo = 500;
+  static const int maxTempo = 250;
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
