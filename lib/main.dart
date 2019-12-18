@@ -831,10 +831,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     {
       final Map<String, int> args =
       <String, int>{
-        'tempo' : _tempoBpm, 'note' : _noteValue,
+        'tempo': _tempoBpm,
+        'note': _noteValue,
         'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
-        'mod': _activeSoundScheme,
       };
       final bool result = await _channel.invokeMethod('start', args);
 /*
@@ -864,11 +864,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
-  Future<void> _playSing() async
-  {
-    //melody = new SingSingMelody(nativeSampleRate, 30);
-  }
-
   /// Send beat music to Java sound player
   Future<void> _setBeat() async
   {
@@ -885,22 +880,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //IS:
       final List<int> config = [
         _beat.beatCount,
-        _beat.accent,
         _beat.subBeatCount,
-        _soundConfig.beatFreq,
-        _soundConfig.beatDuration,
-        _soundConfig.accentFreq,
-        _soundConfig.accentDuration,
-        _bars,
-        _beat.beatCount,
-        _quortaInMSec.toInt()
+        _activeSoundScheme,
+//        _soundConfig.beatFreq,
+//        _soundConfig.beatDuration,
+//        _soundConfig.accentFreq,
+//        _soundConfig.accentDuration,
+//        _bars,
+//        _beat.beatCount,
+//        _quortaInMSec.toInt(),
       ];
 
-      final Map<String, List<int>> args =
-        <String, List<int>>{'config': config, 'subBeats': _beat.subBeats};
+      final Map<String, List<int>> args = <String, List<int>>{
+        'config': config,
+        'subBeats': _beat.subBeats,
+        'accents': _beat.accents,
+      };
 
-      final List result = await _channel.invokeMethod('setBeat', args);
-      if (result.length == 0)
+      final int result = await _channel.invokeMethod('setBeat', args);
+
+      if (result == 1)
       {
         _infoMsg = 'Failed setting beat';
         print(_infoMsg);
@@ -917,7 +916,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     //int iTempo = (tempo + 0.5).toInt();
     //int i_tempoBpm = _tempoBpm;
-    Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm ~/ _beat.beatCount, denominator: _noteValue);
+    //Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm ~/ _beat.beatCount, denominator: _noteValue);
     try
     {
       final Map<String, int> args =
@@ -979,13 +978,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
-
-  /// /ToDo: IS:   musicScheme to set
-  Future<void> _setMusicScheme(int musicScheme) async {
-    try {
-      final int result =
-      await _channel.invokeMethod('setMusicScheme', {'mod': musicScheme});
-      //assert(result == 1);
+  /// Send sound scheme number to Java sound player
+  Future<void> _setMusicScheme(int musicScheme) async
+  {
+    try
+    {
+      final int result = await _channel.invokeMethod('setScheme', {'scheme': musicScheme});
       if (result != 1) {
         _infoMsg = 'Failed setting  music scheme, lay-la,la-la-la-lay-la-la...';
         print(_infoMsg);

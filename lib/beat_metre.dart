@@ -9,8 +9,6 @@ class BeatMetre
   /// Number of subbeats if they are the same for all beats
   /// Used if number of beats is increasing
   int _subBeatCount;
-  /// Index of accented beat
-  int accent;
   /// Number of subbeats in each i-th beat
   /// _beatCount == subBeats.length
   List<int> subBeats;
@@ -19,6 +17,10 @@ class BeatMetre
   /// notes.length - number of simple metres in metronome beat melody
   List<int> metres;
 
+  /// Indices of accented beats in each simple metre (row)
+  /// accents.length == metres.length
+  List<int> accents;
+
   /// notes[i] - i-th notes (bips)
   /// notes[i][j] - musical char of j-th subdivision of i-th note (bip)
   List<List<int>> notes;
@@ -26,13 +28,17 @@ class BeatMetre
   BeatMetre()
   {
     _beatCount = 4;
-    accent = 0;
     _subBeatCount = 1;
     subBeats = new List<int>.filled(_beatCount, 1, growable: true);
+    metres = new List<int>.filled(1, _beatCount, growable: true);
+    accents = new List<int>.filled(1, 0, growable: true);
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
+
+  ///TODO For now
+  int get accent => accents.length > 0 ? accents[0] : 0;
 
   int get beatCount => _beatCount;
   set beatCount(int count)
