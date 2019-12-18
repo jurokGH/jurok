@@ -89,6 +89,7 @@ class MetreState extends State<MetreWidget>
     */
     Container(
       width: 80,
+      //height: 100,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage('images/Metre.png'),

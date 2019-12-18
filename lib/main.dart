@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Color _textColor = _cTextColor;
   Color _ctrlColor = _cCtrlColor;
   TextStyle _textStyle;
-  double _textSize = 24;
+  double _textSize = 28;
 
   /// Controls border parameters
   double _borderRadius = 12;
@@ -326,13 +326,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       body: Center(
         child: OrientationBuilder(
           builder: (context, orientation) {
+            bool portrait = orientation == Orientation.portrait;
+
             /// Owl square and controls
             List<Widget> innerUI = <Widget>[
-              _buildOwlenome(false),
-              _buildControls(orientation == Orientation.portrait, false)
+              _buildOwlenome(portrait, false),
+              _buildControls(portrait, false)
             ];
 
-            return orientation == Orientation.portrait ?
+            return portrait ?
               // Vertical/portrait
               Column(children: innerUI,
                 mainAxisAlignment: MainAxisAlignment.start) :
@@ -461,8 +463,34 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  Widget _buildOneButton(String text, int delta)
+  {
+    return RaisedButton(
+      // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
+      child: Text(text,
+        style: _textStyle,
+        textScaleFactor: 2.0,),
+      //padding: EdgeInsets.all(4),
+      shape: CircleBorder(
+        //borderRadius: new BorderRadius.circular(18.0),
+        side: BorderSide(color: _ctrlColor, width: _borderWidth)
+      ),
+      onPressed: () {
+        setState(() {
+          _tempoBpm += delta;
+          if (_tempoBpm < minTempo)
+            _tempoBpm = minTempo;
+          if (_tempoBpm > maxTempo)
+            _tempoBpm = maxTempo;
+          if (_playing)
+            _setTempo(0.0);
+        });
+      },
+    );
+  }
+
   ///widget Square section with metronome itself
-  Widget _buildOwlenome(bool showControls)
+  Widget _buildOwlenome(bool portrait, showControls)
   {
     List<Widget> children = <Widget>[
       ///widget Owls
@@ -501,9 +529,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ));
     //<<<<<<<<
 
+    //VG TODO
+    double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ?
+      0.03 * _widthSquare : 0;
+    double paddingY = _beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
+
     return Container(
       width: _widthSquare,
       height: _widthSquare,
+      padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
+        EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
       ///widget Background
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -530,9 +565,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final double horzSpace = portrait ? 16 : 16;
     List<Widget> children = new List<Widget>();
 
+    double paddingY = portrait ? 0 : 0.1 * _widthSquare;
+
     if (!showVolume)  //TODO: remove
       children.add(Padding(
-        padding: EdgeInsets.symmetric(horizontal: _padding.dx, vertical: _padding.dy),
+        padding: EdgeInsets.only(top: paddingY, left: _padding.dx, right: _padding.dx),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,7 +579,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             _buildMetre(_textStyle),
             //),
             ///widget Timer
-            false && portrait ?
+            portrait ?
             TimerWidget(
               active: _playing,
               opacity: _opacity,
@@ -561,85 +598,69 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         )
       );
 
-      List<Widget> otherChildren = <Widget>[
-      ///widget Tempo widget
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        //crossAxisAlignment: CrossAxisAlignment.end,
-        //mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          portrait ?
-          ///widget Tempo down (-1) button
-          RaisedButton(
-            // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
-            child: Text('-',
-              textScaleFactor: 1.8,),
-            padding: EdgeInsets.all(12),
-            shape: CircleBorder(
-              //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: _ctrlColor, width: _borderWidth)
-            ),
-            onPressed: () {
-              setState(() {
-                _tempoBpm -= 1;
-                if (_tempoBpm < minTempo)
-                  _tempoBpm = minTempo;
-                if (_playing)
-                  _setTempo(0.0);
-              });
-            },
-          )
-          :
-          Container(width: 0, height: 0),
-          ///widget Tempo knob control
-          Knob(
-            value: _tempoBpm.toDouble(),
-            min: minTempo.toDouble(),
-            max: maxTempo.toDouble(),
-            size: 0.36 * _widthSquare,
-            color: _textColor.withOpacity(0.5),
-            textStyle: _textStyle,
-            onPressed: _play,
-            onChanged: (double value) {
-              setState(() {
-                _tempoBpm = value.round();
-                //_tempoList.setTempo(_tempoBpm);
-                if (_playing)
-                  _setTempo(0.0);
-              });
-            },
-          ),
-          portrait ?
-          ///widget Tempo up (+1) button
-          RaisedButton(
-            // Can use instead: Icon(Icons.exposure_plus_1, semanticLabel: 'Increase tempo by one', size: 36.0, color: Colors.white)
-            child: Text('+',
-              textScaleFactor: 1.8,),
-            //style: textStyle),
-            padding: EdgeInsets.all(12),
-            shape: CircleBorder(
-              //borderRadius: new BorderRadius.circular(18.0),
-              side: BorderSide(color: _ctrlColor, width: _borderWidth)
-            ),
-            onPressed: () {
-              setState(() {
-                _tempoBpm += 1;
-                if (_tempoBpm > maxTempo)
-                  _tempoBpm = maxTempo;
-                if (_playing)
-                  _setTempo(0.0);
-              });
-            },
-          )
-          :
-          Container(width: 0, height: 0),
-        ]),
+    ///widget Tempo knob control
+    Widget wixKnob = new Knob(
+      value: _tempoBpm.toDouble(),
+      min: minTempo.toDouble(),
+      max: maxTempo.toDouble(),
+      size: 0.36 * _widthSquare,
+      color: _textColor.withOpacity(0.5),
+      textStyle: _textStyle,
+      onPressed: _play,
+      onChanged: (double value) {
+        setState(() {
+          _tempoBpm = value.round();
+          //_tempoList.setTempo(_tempoBpm);
+          if (_playing)
+            _setTempo(0.0);
+        });
+      },
+    );
+
+    List<Widget> tempoControls = new List<Widget>();
+    if (portrait)
+    {
+      ///widget Tempo down (-1) button
+      tempoControls.add(_buildOneButton('-', -1));
+      ///widget Tempo knob control
+      tempoControls.add(wixKnob);
+      ///widget Tempo up (+1) button
+      tempoControls.add(_buildOneButton('+', 1));
+    }
+    else
+    {
+      ///widget Tempo knob control
+      tempoControls.add(wixKnob);
+      ///widget Tempo up/down (+1/-1) buttons
+      tempoControls.add(
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          //mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _buildOneButton('+', 1),
+            _buildOneButton('-', -1),
+          ]
+        )
+      );
+    }
+
+    List<Widget> otherChildren = <Widget>[
+      Expanded(child:
+        Row(
+          mainAxisAlignment: portrait ?
+            MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
+          //crossAxisAlignment: CrossAxisAlignment.end,
+          //mainAxisSize: MainAxisSize.min,
+          children: tempoControls
+        ),
+      ),
 
         Stack(
+          alignment: AlignmentDirectional.center,
           children: <Widget>[
             ///widget Tempo list
-            Center(
-              child: _buildPlate(TempoWidget(
+            //Center(child:
+              _buildPlate(TempoWidget(
                 tempo: _tempoBpm,
                 textStyle: _textStyle,
                 onChanged: (int tempo) {
@@ -652,16 +673,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   }
                 ),
                 padding: _padding,
-              ),
+              //),
             ),
             Align(
               alignment: Alignment.centerRight,
               //padding: EdgeInsets.only(right: _padding.dx),
               ///widget Settings
               child: IconButton(
-                iconSize: 30,
+                iconSize: 32,
+                //padding: EdgeInsets.all(_padding.dx),
                 icon: Icon(Icons.settings,),
-                color: _accentColor,
+                color: portrait ? _accentColor : _primaryColor,
                 onPressed: () {
                   setState(() {
                     _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;

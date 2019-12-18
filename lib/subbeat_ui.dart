@@ -63,8 +63,8 @@ class SubbeatState extends State<SubbeatWidget>
             padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
             child: SizedBox(
               //aspectRatio: 0.5,
-              height: 60,
-              width: 65,
+              height: 50,
+              width: 50,
               child: NoteWidget(
                 subDiv: widget.subbeatCount,
                 denominator: widget.noteValue * widget.subbeatCount,

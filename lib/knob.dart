@@ -22,7 +22,7 @@ class Knob extends StatefulWidget
   Knob({@required this.value,
     this.min = 0, this.max = 1,
     this.pressed = false,
-    this.size = 50,
+    this.size,
     this.color = Colors.blue,
     @required this.textStyle,
     @required this.onChanged, @required this.onPressed});
@@ -43,12 +43,14 @@ class KnobState extends State<Knob>
   @override
   Widget build(BuildContext context)
   {
+    double size = widget.size != null ? widget.size :
+      MediaQuery.of(context).size.shortestSide; //TODO
+
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
     double distanceToAngle = (widget.max - widget.min);
 
     double normalisedValue = (widget.value - widget.min)/(widget.max - widget.min);
     double angle = (minAngle + normalisedValue * sweepAngle) * 2 * pi / 360;
-    double size = widget.size;
     return Center(
       child: Container(
         width: size,
@@ -100,38 +102,34 @@ class KnobState extends State<Knob>
         },
              */
           child: Stack(
-              children: <Widget>[
-                Transform.rotate(
-                  angle: angle,
-                  child: ClipOval(
-                      child: Container(
-                          color: widget.color,
-                          child: Image.asset('images/TempoKnob.png',
-                              height: size,
-                              fit: BoxFit.cover
-                          )
-                      )
-                  ),
+            alignment: Alignment.center,
+            children: <Widget>[
+              Transform.rotate(
+                angle: angle,
+                child: ClipOval(
+                  child: Container(
+                    color: widget.color,
+                    child: Image.asset('images/TempoKnob.png',
+                      height: size,
+                      fit: BoxFit.cover
+                    )
+                  )
                 ),
+              ),
 
-                Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Center(
-                          child: Icon(pressed ? Icons.pause : Icons.play_arrow,
-                            size: 0.5 * size,
-                            color: widget.color,
-                          )
-                      ),
-
-                      Center(
-                          child: Text(widget.value.toInt().toString(),
-                            style: widget.textStyle
-                          )
-                      ),
-                    ]
-                )
-              ]
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(pressed ? Icons.pause : Icons.play_arrow,
+                    size: 0.5 * size,
+                    color: widget.color,
+                  ),
+                  Text(widget.value.toInt().toString(),
+                    style: widget.textStyle
+                  ),
+                ]
+              )
+            ]
           ),
         ),
       ),
