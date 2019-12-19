@@ -182,7 +182,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Query native hardware audio parameters
     //_getAudioParams();
 
-
+    //IS: If I comment this, nothing redraws.
+    //So what is the role of another controller?
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),

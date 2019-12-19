@@ -171,7 +171,7 @@ class Utility
    * @param tempo музыкальный темп
    * @return какова должна быть длительность цикла при данном tempo.
    */
-// in seconds
+// in seconds //IS: IN SAMPLES
   final static public double tempoToCycleDuration(Tempo tempo, int bars, int nativeSampleRate)
   {
     //VG Note value (denominator) changes actual beat tempo

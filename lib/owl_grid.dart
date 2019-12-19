@@ -220,7 +220,8 @@ class OwlGrid extends StatefulWidget
 class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<OwlGrid>
 {
   AnimationController _controller;
-  int _period = 60000;
+  int _period = 60000;//IS: В чем смысл? Вот он и останавливается.
+  //new Duration(days: 3653)
 
   List<List<Image>> _images;
   Size _imageSize;
@@ -259,6 +260,18 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       duration: new Duration(milliseconds: _period),
     );
 
+    //IS: Витя, я совсем не понимаю, как ты делаешь, но тем не менее у меня
+    // возник вопрос. Разве не должно быть что-то
+    //типа такого тут,  -
+    // widget.data._animationController.addListener(() {
+    //      if ([очень быстро проверяем, изменилось ли состояние]) this.setState(() {}); //надо рисовать
+    //    });
+    //- просто, чтобы не вызывать set state когда не нужно?
+    //Да, я понимаю, что совы/ноты там потом отлавливают свои изменения,
+    //но всё же получается, что мы 60 раз в секунду нагружаем всё систему
+    //лишней работой (может быть, и не большой, но лишней).
+    //Сорри, если я чего не понимаю.
+
     //loadImages();
 
     _counter = 0;
@@ -296,6 +309,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
   @override
   Widget build(BuildContext context) {
+
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
     print('OwlGridState $size');
