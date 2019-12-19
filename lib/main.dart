@@ -182,12 +182,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Query native hardware audio parameters
     //_getAudioParams();
 
-    /*
+
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
     );
-    */
+
 
     /*
     ..addListener(() {
