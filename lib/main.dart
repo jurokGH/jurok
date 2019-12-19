@@ -12,9 +12,9 @@ import 'subbeat_ui.dart';
 import 'tempo_ui.dart';
 import 'timer_ui.dart';
 import 'settings.dart';
-import 'Melody.dart';
+//import 'Melody.dart';
 import 'BipPauseCycle.dart';
-import 'AccentBeat.dart';
+//import 'AccentBeat.dart';
 
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
@@ -82,9 +82,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int initBeatCount = 4;
   static const int minBeatCount = 2;
   static const int maxBeatCount = 12;
+
   static const int maxSubBeatCount = 8;
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
+
   static const int minTempo = 6;
   static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to the music scheme
 
@@ -118,7 +120,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Size _screenSize;
 
   BeatMetre _beat = new BeatMetre();
-  BeatSound _soundConfig = new BeatSound();
+  //BeatSound _soundConfig = new BeatSound();
 
   // Metre denominator
   int _noteValue = 4;
@@ -128,10 +130,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _activeBeat = 0;
   /// Current playing subbeat of current beat
   int _activeSubbeat = 0;
-  /// Melody parameters
+  /* /// Melody parameters
   double _quortaInMSec = 20;
   int _bars = 1;
-  //int _numerator = 1;
+  //int _numerator = 1;*/
 
   int _volume = 50;
   bool _mute = false;
@@ -139,16 +141,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //MelodyMeter _melodyMeter;
   int _counter = 0;
 
+  /*
   // Native hardware audio parameters
   int nativeSampleRate = 0;
   int nativeBuffer = 0;
   int latencyUntested = 0;
+   */
 
+  /*
   int latency = 0;
-  int warmupFrames = 0;
+  int warmupFrames = 0;*/
   String _infoMsg = '';
 
-  Melody melody;
+  //Melody melody;
   //BipPauseCycle bipPauseCycle;
 
   /// Пение рокочущих сов
@@ -175,12 +180,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Channel callback from hardware Java code
     _channel.setMethodCallHandler(_handleMsg);
     // Query native hardware audio parameters
-    _getAudioParams();
+    //_getAudioParams();
 
+    /*
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
     );
+    */
+
     /*
     ..addListener(() {
       if (redraw)
@@ -737,7 +745,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     if (call.method == 'warmedUp')
     {
-      warmupFrames = call.arguments;
+     int warmupFrames = call.arguments;
       _start(call.arguments);
     }
     else if (call.method == 'timeFrame')
@@ -833,7 +841,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       <String, int>{
         'tempo': _tempoBpm,
         'note': _noteValue,
-        'quorta': _quortaInMSec.toInt(),
+        //'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
       };
       final bool result = await _channel.invokeMethod('start', args);
@@ -867,11 +875,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Send beat music to Java sound player
   Future<void> _setBeat() async
   {
-    melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
+   /* melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
       _beat,
       0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
       0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
-      _bars, 1);
+      _bars, 1);*/
 
     //Tempo tempo = new Tempo(beatsPerMinute: _subBeatCount * _tempoBpm.toInt(), denominator: _noteValue);
     //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
@@ -993,6 +1001,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
+  /*
   Future<void> _getAudioParams() async {
     try {
       final Map<String, dynamic> result =
@@ -1013,7 +1022,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     print(_infoMsg);
     setState(() {});  // Update UI
-  }
+  }*/
 
 
   // Settings boilerplate

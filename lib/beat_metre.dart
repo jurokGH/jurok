@@ -1,6 +1,7 @@
 import 'dart:core';
 
 /// Metronome beat melody configuration
+/// Represents rhythm
 
 class BeatMetre
 {
@@ -98,7 +99,13 @@ class BeatMetre
   }
 }
 
+/*
+
+
 /// Beat sound configuration boilerplate
+
+ //IS: I suppose that it has nothing to do with the rhythm notion
+
 
 class BeatSound
 {
@@ -127,3 +134,4 @@ class BeatSoundScheme
   int scheme;
   List<BeatSound> notes;
 }
+*/
