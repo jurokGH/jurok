@@ -16,7 +16,7 @@ import android.content.res.Resources;
 //мы должны согласовывать руками всю эту бадягу.
 class MusicScheme2Bips {
     enum SType {
-        from2files, syntesSymple, syntesSophisticated
+        from2files, syntesSimple, syntesSophisticated
     }
 
     final SType type;
@@ -34,7 +34,7 @@ class MusicScheme2Bips {
     MusicScheme2Bips(String name,
                      double beatFreq, int beatDuration,
                      double accentFreq, int accentDuration) {
-        this.type = SType.syntesSymple;
+        this.type = SType.syntesSimple;
         this.name = name;
         this.beatDuration = beatDuration;
         this.beatFreq = beatFreq;
@@ -63,7 +63,7 @@ class MusicScheme2Bips {
     int strongFileIndex, weakFileIndex;
 
 
-    //параметры для syntesSymple
+    //параметры для sintesSimple
 
     double beatFreq;
     int beatDuration;
@@ -71,8 +71,10 @@ class MusicScheme2Bips {
     double accentFreq;
     int accentDuration;
 
+    //
     //Параметры для сложной схемы
-    //...
+    //...todo...
+    //---
 
     byte[] weakBeat;
     byte[] strongBeat;
@@ -82,7 +84,7 @@ class MusicScheme2Bips {
     void load(int nativeSampleRate) {
 
         switch (type) {
-            case  syntesSymple: loadFromSinusoids(nativeSampleRate);
+            case syntesSimple: loadFromSinusoids(nativeSampleRate);
             break;
 
             case  from2files: loadFromRes(nativeSampleRate);
@@ -93,7 +95,7 @@ class MusicScheme2Bips {
         }
     }
 
-
+    //Из частот. ДОЛГАЯ!
     private  void loadFromSinusoids(int nativeSampleRate) {
 
 
@@ -114,10 +116,8 @@ class MusicScheme2Bips {
     }
 
     //Из двух готовых звуков - может, это самое прекрасное, что можно придумать? Быстрая:)
-    private  void loadFrimBytes(byte[] weakBeat,
-                       byte[] strongBeat ){
-        this.strongBeat=strongBeat; this.weakBeat=weakBeat;
-    }
+    private  void loadFrimBytes(byte[] weakBeat, byte[] strongBeat )
+    {        this.strongBeat=strongBeat; this.weakBeat=weakBeat;    }
 
 
 

@@ -220,8 +220,8 @@ class OwlGrid extends StatefulWidget
 class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<OwlGrid>
 {
   AnimationController _controller;
-  int _period = 60000;//IS: В чем смысл? Вот он и останавливается.
-  //new Duration(days: 3653)
+  int _period = 60000;//IS: А не мало?
+  //duration: new Duration(days: 3653)
 
   List<List<Image>> _images;
   Size _imageSize;
@@ -309,6 +309,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
   @override
   Widget build(BuildContext context) {
+
 
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;

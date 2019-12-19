@@ -838,7 +838,7 @@ public class MetroAudioProbnik
           //ToDo: то, что выше, нужно оформить как метод внутри setOfNotes
           if (!noMessages)
           {
-            linear.print();
+            linear.printAcc1();
             cycle.printPosition();
             System.out.printf("error, totalErrorsCorrected: %.3f, %d\n", cycle.accumulatedError,
               cycle.totalErrorsCorrected);

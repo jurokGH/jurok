@@ -126,6 +126,30 @@ public class MelodyToolsPCM16
     return generatedSound;
   }
 
+
+  /**
+   * Изменяем громкость
+   * @param samples сэмплы в байтах, массив четной длины
+   * @param vol in [0,1]
+   * @return
+   */
+  public static byte[] changeVolume(byte[] samples, double vol) {
+    if (vol==1) return samples;
+    int nOfSamples=samples.length/2;
+    byte[] newSamplesByte=new byte[nOfSamples*2];
+    //Бадяга дальше нужна, поскольку из-за огруглений нет дистибутивности:
+    //если просто поэлементно умножим массив - будет много погрешностей
+    for (int i=0; i<samples.length/2; i++){
+      //ToDo: протестить типы и битовую арифметику.
+      short newSample= (short) (vol* (samples[2*i+1]<<8)+vol*samples[2*i]);
+      newSamplesByte[2 * i] = (byte) (newSample & 0x00ff);
+      newSamplesByte[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
+    }
+    return newSamplesByte;
+  }
+
+
+
   //ToDo: генерировать ноты по полутонам, или по октавам и именам
   //http://pages.mtu.edu/~suits/notefreqs.html
   public byte[] noteA4(int samplesN, int degIn, int degOut)
