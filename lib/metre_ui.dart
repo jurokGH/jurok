@@ -56,26 +56,14 @@ class MetreState extends State<MetreWidget>
     Metre(6, 8),
   ];
   int _iMetre = 2;
+  Offset _tapPosition;
 
   MetreState();
 
   @override
   Widget build(BuildContext context)
   {
-    TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
-    TextStyle textStyleMenu = widget.textStyle.copyWith(
-      color: widget.color,
-      backgroundColor: Colors.deepPurple
-    );
-
-    List<PopupMenuEntry<int>> menuItems = new List<PopupMenuEntry<int>>();
-    for (int i = 0; i < _metreList.length; i++)
-      menuItems.add(new PopupMenuItem<int>(
-        value: i,
-        child: Text(_metreList[i].toString()),
-        textStyle: textStyleMenu,
-        height: 12
-      ));
+    //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
 
     // TODO: implement build
     return
@@ -98,6 +86,7 @@ class MetreState extends State<MetreWidget>
       ),
       //Padding(
       //  padding: const EdgeInsets.all(8.0),
+
       child: GestureDetector(
         onDoubleTap: () {
           _iMetre++;
@@ -105,22 +94,8 @@ class MetreState extends State<MetreWidget>
             _iMetre = 0;
           widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
         },
-        onLongPress: () {
-          List<PopupMenuEntry> menuItems = new List<PopupMenuEntry>();
-          for (int i = 0; i < _metreList.length; i++)
-            menuItems.add(new PopupMenuItem(
-              value: i,
-              child: Text(_metreList[i].toString()),
-              textStyle: textStyleMenu,
-              height: 36
-            ));
-
-          showMenu(
-            context: context,
-            position: RelativeRect.fromLTRB(0, 0, 20, 100),
-            items: menuItems,
-          );
-        },
+        onTapDown:  _storePosition,
+        onLongPress: _showMenu,
         onVerticalDragEnd: (DragEndDetails details) {
           _iMetre -= details.primaryVelocity.sign.toInt();
           if (_iMetre >= _metreList.length)
@@ -129,6 +104,7 @@ class MetreState extends State<MetreWidget>
             _iMetre = _metreList.length - 1;
           widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
         },
+
         child: IntrinsicWidth(  //TODO Time-expensive!
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -154,13 +130,14 @@ class MetreState extends State<MetreWidget>
                     beats = widget.minBeats;
                   widget.onChanged(beats, widget.note);
                 },
+                onLongPress: _showMenu,
                 onTap: () {
                   int beats = widget.beats >= widget.maxBeats ?
                     widget.minBeats : widget.beats + 1;
                   widget.onChanged(beats, widget.note);
                 },
                 child: Text(widget.beats.toString(),
-                  style: textStyleColor,
+                  style: widget.textStyle,
                 ),
               ),
               //child: Text(widget.beats.toString(),
@@ -203,13 +180,14 @@ class MetreState extends State<MetreWidget>
                     note = widget.minNote;
                   widget.onChanged(widget.beats, note);
                 },
+                onLongPress: _showMenu,
                 onTap: () {
                   int note = widget.note >= widget.maxNote ?
                     widget.minNote : 2 * widget.note;
                   widget.onChanged(widget.beats, note);
                 },
                 child: Text(widget.note.toString(),
-                  style: textStyleColor,
+                  style: widget.textStyle,
                 ),
               ),
             ]
@@ -217,6 +195,52 @@ class MetreState extends State<MetreWidget>
         )
       )
     );
+  }
+
+  void _storePosition(TapDownDetails details)
+  {
+    _tapPosition = details.globalPosition;
+  }
+
+  void _showMenu()
+  {
+    TextStyle textStyleMenu = widget.textStyle;
+    //.copyWith(color: widget.color);
+
+    List<PopupMenuEntry<int>> menuItems = new List<PopupMenuEntry<int>>();
+    for (int i = 0; i < _metreList.length; i++)
+      menuItems.add(new PopupMenuItem(
+        value: i,
+        child: Text(_metreList[i].toString()),
+        textStyle: textStyleMenu,
+        height: 28
+      ));
+
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject();
+
+    showMenu<int>(
+      context: context,
+      position: //RelativeRect.fromLTRB(0, 0, 0, 0),
+      RelativeRect.fromRect(
+        _tapPosition & Size(100, 100), // smaller rect, the touch area
+        Offset.zero & overlay.size   // Bigger rect, the entire screen
+      ),
+      items: menuItems,
+      initialValue: _iMetre,
+      elevation: 4,
+      //shape: ,
+      color: widget.color,
+      //captureInheritedThemes: false,
+    )
+    .then<void>((int choice) {
+      if (choice != null)
+      {
+        setState(() {
+          _iMetre = choice;
+        });
+        widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
+      }
+    });
   }
 }
 

@@ -12,7 +12,7 @@ import 'subbeat_ui.dart';
 import 'tempo_ui.dart';
 import 'timer_ui.dart';
 import 'settings.dart';
-import 'Melody.dart';
+import 'tempo.dart';
 import 'BipPauseCycle.dart';
 import 'AccentBeat.dart';
 
@@ -110,6 +110,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _opacity = _cCtrlOpacity;  // Control's opacity
   /// Standart padding
   Offset _padding = new Offset(4, 4);//Size(24, 36);
+
+  /// Show advertising box
+  bool _showAds = false;
   ///<<<<<< JG!
 
   /// Size of square owl's area
@@ -148,7 +151,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int warmupFrames = 0;
   String _infoMsg = '';
 
-  Melody melody;
+  //Melody melody;
   //BipPauseCycle bipPauseCycle;
 
   /// Пение рокочущих сов
@@ -167,6 +170,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   int _timeTick = 0;
   double prevTime = 0;
+
+  double _subbeatWidth = 60;
 
   @override
   void initState() {
@@ -192,6 +197,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
 
     _beat.beatCount = initBeatCount;
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.beatMetre = _beat;
 
     _playing = false;
   }
@@ -210,6 +217,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void _play()
   {
+    //_subbeatWidth = _subbeatWidth == 0 ? 60 : 0;
+
     if (_playing)
     {
       _togglePlay();
@@ -229,6 +238,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _setBeat();
       _togglePlay();
     }
+    setState(() {});
 /*
     _playing = !_playing;
     if (_playing)
@@ -238,26 +248,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
   }
 
-  // Start graphics animation
-  void _start(int param)
+  // Start animation of graphics
+  void _start()
   {
-    /*
-    if (_mode)
-      barrelOrgan?.play();
-    else
-      ;//metronome1?.play();
-     */
-
-    if (animate60fps)
-    {
-      DateTime.now();
-
-      _controller.reset();
-      _controller.forward();
-    }
     _playing = true;
     setState(() {});
-    //_knob.pressed = true;
   }
 
   void onMetreChanged(int beats, int note)
@@ -270,14 +265,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       Provider.of<MetronomeState>(context, listen: false).reset();
       if (_playing)
         _setBeat();
+      setState(() {});
     }
     if (_noteValue != note)
     {
       _noteValue = note;
       if (_playing)
-        _setTempo(0);
+        _setTempo(note);
+      else
+        setState(() {});
     }
-    setState(() {});
   }
 
   void onSubbeatChanged(int subbeatCount)
@@ -374,7 +371,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         note: _noteValue,
         minNote: minNoteValue,
         maxNote: maxNoteValue,
-        color: _textColor,
+        color: _primaryColor,
         textStyle: textStyle,
         onChanged: onMetreChanged
       )
@@ -482,10 +479,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             _tempoBpm = minTempo;
           if (_tempoBpm > maxTempo)
             _tempoBpm = maxTempo;
-          if (_playing)
-            _setTempo(0.0);
         });
+        if (_playing)
+          _setTempo(_tempoBpm);
       },
+    );
+  }
+
+  Widget _buildAds()
+  {
+    return Container(
+      height: 30,
+      color: Colors.grey[600],
     );
   }
 
@@ -593,6 +598,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ///widget Subbeat widget
             //Flexible(child:
             _buildSubbeat(_textStyle),
+//            AnimatedOpacity(
+//              duration: new Duration(seconds: 1),
+//              opacity: _subbeatWidth,
+//              child: _buildSubbeat(_textStyle),
+//            )
+//            AnimatedContainer(
+//              duration: new Duration(seconds: 1),
+//              width: _subbeatWidth,
+//              child:
+//            _buildSubbeat(_textStyle),
+//            )
             //)
           ])
         )
@@ -608,12 +624,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       textStyle: _textStyle,
       onPressed: _play,
       onChanged: (double value) {
-        setState(() {
-          _tempoBpm = value.round();
-          //_tempoList.setTempo(_tempoBpm);
-          if (_playing)
-            _setTempo(0.0);
-        });
+        _tempoBpm = value.round();
+        //_tempoList.setTempo(_tempoBpm);
+        if (_playing)
+          _setTempo(_tempoBpm);
+        //else
+          //setState(() {});
       },
     );
 
@@ -665,11 +681,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 textStyle: _textStyle,
                 onChanged: (int tempo) {
                   if (_tempoBpm != tempo)
-                    setState(() {
-                      _tempoBpm = tempo;
-                      if (_playing)
-                        _setTempo(0.0);
-                    });
+                    _tempoBpm = tempo;
+                    if (_playing)
+                      _setTempo(tempo);
+                    //else
+                      //setState(() {});
                   }
                 ),
                 padding: _padding,
@@ -705,6 +721,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (showVolume)
       children.add(_builVolume());
 
+    if (_showAds)
+      children.add(_buildAds());
+
     // Fill up the remaining screen as the last widget in column/row
     return Expanded(
       child: Container(
@@ -735,14 +754,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<dynamic> _handleMsg(MethodCall call) async
   {
-    if (call.method == 'warmedUp')
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+
+    if (call.method == 'warm')
     {
+      print('START-STABLE');
       warmupFrames = call.arguments;
-      _start(call.arguments);
+      state.start();
+      _start();
+    }
+    else if (call.method == 'sync')
+    {
+      int index = call.arguments['index'];
+      int beatIndex = call.arguments['beat'];
+      int subbeatIndex = call.arguments['sub'];
+      int offset = call.arguments['offset'];
+      int cycle = call.arguments['cycle'];
+      int time = call.arguments['time'];
+
+      //print('SYNC $index - $offset - $time');
+
+      //warmupFrames = call.arguments;
+      state.sync(index, offset / nativeSampleRate, beatIndex, subbeatIndex, time);
     }
     else if (call.method == 'timeFrame')
     {
-      int beatOrder = call.arguments['note'];
+      int beatOrder = call.arguments['index'];
       int offset = call.arguments['offset'];
       int cycle = call.arguments['cycle'];
 
@@ -761,70 +798,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (!animate60fps)
         ;//VG0 setState(() {});
 
-      print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
-      Provider.of<MetronomeState>(context, listen: false).setActiveState(_activeBeat, _activeSubbeat);
+      //print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
+      //state.setActiveState(_activeBeat, _activeSubbeat);
       redraw = true;
-
-      /*
-      int writtenFrames = call.arguments;
-
-      double msecTime = (writtenFrames - warmupFrames) * 1000 / nativeSampleRate;
-      //metronome1?.setFrame(writtenFrames - warmupFrames);
-
-      double period = 60000 / (_tempoBpm * _subBeatCount);
-
-      print('writtenFrames: $writtenFrames - $warmupFrames - $msecTime - $prevTime - $period');
-
-      if (msecTime - prevTime > 0.8 * period)
-      {
-        int ticks = (msecTime - prevTime) ~/ period;
-        _timeTick += ticks;
-        prevTime = msecTime;
-
-        print('_timeTick: $_timeTick');
-
-        setState(()
-        {
-          //_timeTick++;
-
-          _activeBeat = (_timeTick ~/ _subBeatCount);
-          if (_beatCount == 1 && _subBeatCount == 1)
-            _activeBeat %= 2;
-          else
-            _activeBeat %= _beatCount;
-          _activeSubbeat = _timeTick % _subBeatCount;
-          _timeSec = (60 * _timeTick) ~/ (_tempoBpm * _subBeatCount);
-        });
-      }
-      print('timer $_timeTick - $_timeSec');
-        */
     }
     return new Future.value('');
   }
 
   Future<void> _togglePlay() async
   {
-    Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm.toInt() ~/ _beat.beatCount, denominator: _noteValue);
-
-/*
-    if (melody == null)
-    {
-      melody = new BeatMelody(nativeSampleRate, _quortaInMSec, _bars, _beat.beatCount);
-      //bipPauseCycle = melody.cycle;
-      int realBpM = melody.cycle.setTempo(tempo, _bars);
-      double dur = melody.cycle.tempoToCycleDuration(tempo, _bars, nativeSampleRate);
-
-      AccentBeat melody1 = new AccentBeat(nativeSampleRate, _quortaInMSec,
-        _beat,
-        0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
-        0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
-        _bars, 1);
-
-      //print("realBPM - duration: $realBpM, $dur");
-      //metronome1?.setCycle(melody.cycle, latency);
-      //metronome1?.setTempo(_tempoBpm, nativeSampleRate, _noteValue, dur);
-    }
-*/
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.setTempo(_tempoBpm, _noteValue);
 
     List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
     try
@@ -832,31 +816,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final Map<String, int> args =
       <String, int>{
         'tempo': _tempoBpm,
-        'note': _noteValue,
+        'note': _beat.beatCount,//_noteValue,
         'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
       };
-      final bool result = await _channel.invokeMethod('start', args);
-/*
-      final List result = await _channel.invokeMethod('start', args);
-      if (result.length > 0)
-      {
-        //result.length ~/ 2);
-        for (int i = 0; i < result.length; i += 2)
-        {
-          bipsAndPauses.add(new BipAndPause(result[i].toInt(), result[i+1]));
-
-          //print("$i : ${result[i].toInt()} - ${result[i+1]}");
-        }
-        //bipPauseCycle = new BipPauseCycle.fromMelody(nativeSampleRate, bipsAndPauses, _numerator);
-
-        //msg = 'Cycle length: ${result.length % 2}';
-        //bipPauseCycle = melody.cycle;//bipPauseCycle0;
-
-        //int realBpM = bipPauseCycle.setTempo(tempo, _bars);
-        //print("realBPM: $_tempoBpm, $realBpM");
-      }
- */
+      final int realTempo = await _channel.invokeMethod('start', args);
     }
     on PlatformException
     {
@@ -867,11 +831,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Send beat music to Java sound player
   Future<void> _setBeat() async
   {
-    melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
       _beat,
       0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
       0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
       _bars, 1);
+    state.beatMetre = _beat;
+    state.reset();
 
     //Tempo tempo = new Tempo(beatsPerMinute: _subBeatCount * _tempoBpm.toInt(), denominator: _noteValue);
     //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
@@ -882,6 +849,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         _beat.beatCount,
         _beat.subBeatCount,
         _activeSoundScheme,
+        _tempoBpm,
+        _beat.beatCount,//_noteValue
 //        _soundConfig.beatFreq,
 //        _soundConfig.beatDuration,
 //        _soundConfig.accentFreq,
@@ -899,7 +868,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
       final int result = await _channel.invokeMethod('setBeat', args);
 
-      if (result == 1)
+      if (result != 0)
       {
         _infoMsg = 'Failed setting beat';
         print(_infoMsg);
@@ -912,21 +881,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   /// Send music tempo to Java sound player
-  Future<void> _setTempo(double tempo) async
+  Future<void> _setTempo(int tempo) async
   {
-    //int iTempo = (tempo + 0.5).toInt();
-    //int i_tempoBpm = _tempoBpm;
-    //Tempo tempo = new Tempo(beatsPerMinute: _tempoBpm ~/ _beat.beatCount, denominator: _noteValue);
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.setTempo(_tempoBpm, _noteValue);
+
     try
     {
       final Map<String, int> args =
       <String, int>{
         'tempo' : _tempoBpm,
-        'note' : _noteValue
+        'note' : _beat.beatCount,//_noteValue
       };
       final int result = await _channel.invokeMethod('setTempo', args);
       //assert(result == 1);
-      if (result != 1)
+      if (result != 0)
       {
         _infoMsg = 'Failed setting tempo';
         print(_infoMsg);

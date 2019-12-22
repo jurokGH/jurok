@@ -107,7 +107,8 @@ public class MetroAudioProbnik
   int buffsPerHalf;
 
   /**
-   * Начало работы. Не означает временя старта метронома. Отладочное.
+   * Начало работы. Не означает время старта метронома. Отладочное.
+   * in nanoseconds
    */
   long initTime;
 
@@ -139,10 +140,13 @@ public class MetroAudioProbnik
   //BipAndPause _bipAndPauseSing;
   boolean newMelody = false;
 
-  void setMelody(AccentedMelody m)
+  void setMelody(AccentedMelody m, Tempo tempo)
   {
     //TODO
     melody = m;
+    if (tempo.beatsPerMinute < cMinTempoBpm)
+      tempo.beatsPerMinute = cMinTempoBpm;
+    _tempo = tempo;
     if (state == STATE_PLAYING)
       newMelody = true;
   }
@@ -222,6 +226,10 @@ public class MetroAudioProbnik
   Long framesBeforeHeadToReallyPlay;
   Long staticLatencyInMs;
 
+  long timeStable = 0;
+  long timeSync = 0;
+  int cycleSync = 0;
+
   /**
    * Состояние: STATE_READY, STATE_STARTING, STATE_PLAYING,   STATE_STOPPING
    */
@@ -252,6 +260,13 @@ public class MetroAudioProbnik
     msg.what = state;
     msg.arg1 = (int) (totalWrittenFrames & 0xFFFFFFFFL);
     msg.arg2 = (int) ((totalWrittenFrames >> 32) & 0xFFFFFFFFL);
+    handler.sendMessage(msg);
+  }
+
+  void sendMessage(int cycleCount, int index, int offset, long time)
+  {
+    //sendMessage(pos.cycleCount, pos.n, pos.offset, time);
+    Message msg = handler.obtainMessage(state, index, offset);  //pos.offset);
     handler.sendMessage(msg);
   }
 
@@ -710,13 +725,14 @@ public class MetroAudioProbnik
             if (audioIsStable(prevStamp, currentStamp))
             {
               warmingUp = false;  // Разогрелись!
-              setState(STATE_PLAYING);
-
               veryFirstStampTime = currentStamp.nanoTime;
               veryFirstStampFrame = currentStamp.framePosition;
 
+              setState(STATE_PLAYING);
+
+              timeStable = System.nanoTime();
               //ToDo: ТЕСТ. Показал отличные, неразличимые на глаз результаты на моём телефоне
-              Long playHeadTimeOfVeryFirstStamp = System.nanoTime() -  // исходим из того, что играется уже равномерно
+              Long playHeadTimeOfVeryFirstStamp = timeStable - // исходим из того, что играется уже равномерно
                 samples2nanoSec(audioTrack.getPlaybackHeadPosition() - veryFirstStampFrame);
               staticLatencyInFrames = nanoSec2samples(veryFirstStampTime - playHeadTimeOfVeryFirstStamp);
               staticLatencyInMs = (long) ((playHeadTimeOfVeryFirstStamp - veryFirstStampTime) * 1e-6);
@@ -774,8 +790,11 @@ public class MetroAudioProbnik
           written2 = audioTrack.write(halfOfBigBufferOfSilence, 0, silenceLengthInBytes)+
                   audioTrack.write(halfOfBigBufferOfSilence, 0, halfOfBigBufferOfSilence.length);*/
 
+          boolean sync = newTempo || newMelody;
+
           if (newMelody)
           {
+            System.out.printf("---------SetNewMelody------");
             realBPM = melody.setTempo(_tempo);
 
             melody.cycle.position.reset();
@@ -785,6 +804,7 @@ public class MetroAudioProbnik
           }
           if (newTempo)
           {
+            System.out.printf("---------SetNewTempo------");
             //ToDo: Разобраться с переменными - какие в классе, какие в потоке
             if (!noMessages)
             {
@@ -806,50 +826,36 @@ public class MetroAudioProbnik
             }
           }
 
+          if (sync)
+          {
+            Position pos = melody.cycle.position;
+            long timeNow = System.nanoTime();
+            long time = timeNow - timeStable;
+            timeSync = time;
+            timeStable = timeNow;
+            int cycles = (int) (time / melody.cycle.duration);
+            cycleSync = cycles;
+            if (cycles != pos.cycleCount)
+              System.out.printf("Error: Cycle count is different %d - %d\n", cycles, pos.cycleCount);
+
+            int offset = pos.offset;
+            if (pos.n % 2 != 0)
+              offset += melody.cycle.cycle[pos.n - 1].l;
+            sendMessage(pos.cycleCount, pos.n / 2, offset, time);
+            //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
+          }
           //byteBuffer.position(0);
 
           //long writtenSamples = -1;
           Position pos = new Position(-1, 0);
           int toWrite = mBuffer.copy2buffer(melody, pos);
 /*
-          //Тестим цикл. //ToDo: поправить written's!
-          int toWrite = 0;
-          linear = cycle.readTempoLinear(framesToWriteAtOnce);
-          for (int i = 0; i < linear.durations.length; i++)
-          {
-            int offset = i == 0 ? linear.startInFirst * 2 : 0;
-            if (linear.symbols[i] == cycle.elasticSymbol)
-            {
-              byteBuffer.put(silenceToWrite,0,
-              linear.durations[i] * 2);
-            }
-            else
-            {
-              byteBuffer.put(setOfNotes.setOfNotes[linear.symbols[i]],
-                //melodyTest[linear.symbols[i]],
-                offset,
-                linear.durations[i] * 2);
-              assert(offset == 0);
-              writtenSamples = totalWrittenFrames + toWrite / 2 + offset;
-              //sendMessage(writtenSamples);
-            }
-            toWrite += linear.durations[i] * 2;
-          }
-          //ToDo: то, что выше, нужно оформить как метод внутри setOfNotes
-          if (!noMessages)
-          {
-            linear.print();
-            cycle.printPosition();
-            System.out.printf("error, totalErrorsCorrected: %.3f, %d\n", cycle.accumulatedError,
-              cycle.totalErrorsCorrected);
-          }
-*/
           if (pos.n >= 0)
           {
             sendMessage(pos);
             //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
           }
-
+*/
           //Пишем звук
           //byteBuffer.position(0);
           written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
@@ -860,11 +866,6 @@ public class MetroAudioProbnik
           totalWrittenFrames += written / 2;
 
           framesBeforeHeadToReallyPlay = staticLatencyInFrames + (totalWrittenFrames - headJustAfterWrite);
-
-          //Рисуем картинку
-          //barrelOrgan.draw(framesBeforeHeadToReallyPlay);
-
-          //commandInvalidateIV();
 
           if (conditionToPrint())
           {
@@ -890,6 +891,8 @@ public class MetroAudioProbnik
         {
           collectInfo(stampIsGood);
         }
+
+        //System.out.printf("Jframe %d - %d (%d - %d\n)", currentTime, headPosInFrames, currentStamp.framePosition, currentStamp.nanoTime);
 
         prevTime = currentTime;
         prevHeadPosInFrames = headPosInFrames;
@@ -1014,13 +1017,13 @@ public class MetroAudioProbnik
    * Использовать для профилирования.
    * Если true, то сообщения не запасаются.
    */
-  final boolean noMessages = false;
+  final boolean noMessages = true;
 
   /**
    * Если noMessages=true - сообщения не будут собираться/печататься.
    * В противном случае указывает, печатать сразу или запасать сообщения.
    */
-  private boolean printLater = true;
+  private boolean printLater = false;
 
   /**
    * Если noMessages=true - сообщения не будут собираться/печататься.

@@ -59,6 +59,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   void onRedraw()
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.update();
     int hash = state.getBeatState(widget.id);
     //print('AnimationController ${widget.id} $_counter $hash');
     _counter++;
@@ -68,7 +69,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     if (active != newActive || activeSubbeat != newActiveSubbeat)
       //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
       {
-        print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
+        //print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
+
         setState((){
           activeHash = hash;
           active = newActive;
@@ -119,16 +121,19 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     //int activeSubbeat = state.activeSubbeat;
     //bool accent = widget.id == activeBeat;
 
-    final int nFile3 = widget.accent ? 2 : 1;
-    //Size childSize = new Size(minWidth, minWidth * 546 / 668);
     final List<Widget> subOwls = List<Widget>();
-    for (int i = 0; i < widget.subbeatCount; i++)
+    if (drawSubOwls)
     {
-      Widget w = new Image.asset('images/owl$nFile3-0.png',
-          //width: widget.width / 7,
-        fit: BoxFit.contain
-      );
-      subOwls.add(w);
+      final int nFile3 = widget.accent ? 2 : 1;
+      //Size childSize = new Size(minWidth, minWidth * 546 / 668);
+      for (int i = 0; i < widget.subbeatCount; i++)
+      {
+        Widget w = new Image.asset('images/owl$nFile3-0.png',
+            //width: widget.width / 7,
+          fit: BoxFit.contain
+        );
+        subOwls.add(w);
+      }
     }
 
     final int beat0 = activeHash >> 16;
@@ -145,11 +150,11 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     }
     final String imageName = 'images/owl$nFile1-$indexImage.png';
 
-    print('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
+    //print('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
     //if (subbeatCount != widget.subbeatCount)
       //print('!Owl:subbeatCount ${widget.subbeatCount}');
     if (active != widget.active)
-      print('!Owl:active $active ${widget.active}');
+      ;//print('!Owl:active $active ${widget.active}');
 
     _counter++;
 
@@ -273,7 +278,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     }
 
     //return Image.asset('images/owl2-$division.png',
-    /// Provider-Selector
+      /// Provider-Selector
     return Selector<MetronomeState, int>(
       selector: (BuildContext context, MetronomeState state) => state.getBeatState(widget.id),
       builder: (BuildContext context, int activeState, Widget child)

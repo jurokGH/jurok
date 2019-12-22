@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-//import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
 import 'owl_widget.dart';
@@ -250,6 +250,12 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     }
   }
 
+  void onTimer()
+  {
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.update();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -258,6 +264,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       vsync: this,
       duration: new Duration(milliseconds: _period),
     );
+    //..addListener(onTimer);
 
     //loadImages();
 
@@ -302,6 +309,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     double widthSquare = size.width > size.height ? size.height : size.width;
     size = new Size.square(widthSquare);
 
+    if (widthSquare == 0)
+      return Container();
+
     _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
       aspect: 2 * 668 / 546,
@@ -314,6 +324,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     int maxCountX = maxValue(beatRows);
     maxCountX = 4;
 
+    //TODO Recreate only on beatRows change
     final List<Widget> wOwls = List<Widget>();
     int k = 0;
     for (int i = 0; i < beatRows.length; i++)

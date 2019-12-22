@@ -88,6 +88,8 @@ class KnobState extends State<Knob>
                 //print('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
                 if (clippedValue != widget.value)
                   widget.onChanged(clippedValue);
+                //if (pressed)
+                  //setState(() {});
               }
             }
           },

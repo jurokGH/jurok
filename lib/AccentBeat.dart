@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'BipPauseCycle.dart';
 import 'beat_metre.dart';
+import 'tempo.dart';
 import 'Melody.dart';
 
 class AccentBeat extends Melody

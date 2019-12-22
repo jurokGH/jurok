@@ -81,24 +81,39 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       @Override
       public void handleMessage(Message msg)
       {
+        //int whtmsg.what & 0x3
         if (msg.what == MetroAudioProbnik.STATE_PLAYING)
         {
           if (msg.arg2 == -1)
           {
             //STATE_STARTING
             System.out.println("WARMEDUP");
-            channel.invokeMethod("warmedUp", msg.arg1);
-          }
+            channel.invokeMethod("warm", msg.arg1);
+          }/*
           else
           {
             //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
             //channel.invokeMethod("timeFrame", totalWrittenFrames);
             //long arg = (msg.arg1 & 0xFFFFFFFFL) & ((msg.arg2 >> 32) & 0xFFFFFFFFL);
             Map<String, Object> args = new HashMap<>();
-            args.put("note", msg.arg1);
+            args.put("index", msg.arg1);
             args.put("offset", 0);
             args.put("cycle", msg.arg2);
             channel.invokeMethod("timeFrame", args);
+          }*/
+          else
+          {
+            //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
+            //channel.invokeMethod("timeFrame", totalWrittenFrames);
+            //long arg = (msg.arg1 & 0xFFFFFFFFL) & ((msg.arg2 >> 32) & 0xFFFFFFFFL);
+            Map<String, Object> args = new HashMap<>();
+            args.put("index", msg.arg1);
+            args.put("beat", 0);
+            args.put("sub", 0);
+            args.put("offset", msg.arg2);
+            args.put("cycle", metroAudio.cycleSync);
+            args.put("time", metroAudio.timeSync);
+            channel.invokeMethod("sync", args);
           }
         }
       }
@@ -129,12 +144,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       _tempo.beatsPerMinute = methodCall.argument("tempo");
       _tempo.denominator = methodCall.argument("note");
 
-      boolean res = false;
+      int realTempo = 0;
       if (beatMelody != null)
-        res = start(_tempo);
-      if (res)
+        realTempo = start(_tempo) ? _tempo.beatsPerMinute : 0;
+      if (realTempo > 0)
         //List<Map<Double, Integer> a = new HashMap<>
-        result.success(res);
+        result.success(realTempo);
       else
         result.error("UNAVAILABLE", "Failed starting sound", null);
     }
@@ -152,6 +167,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         int schemeIndex = config.get(2);
         if (schemeIndex < soundSсhemes.size())
           currentMusicScheme = schemeIndex;
+        _tempo.beatsPerMinute = config.get(3);
+        _tempo.denominator = config.get(4);
       }
       if (config.size() >= 7)
       {
@@ -199,31 +216,16 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         nativeSampleRate, beat.beatCount, beat.subBeats);
       //IS
       // Create new metronome beat setOfNotes
-      metroAudio.setMelody(beatMelody);
+      metroAudio.setMelody(beatMelody, _tempo);
 
-/*//IS: Do we need this? Seems that we already have it.
-        List<Double> bipsAndPauses = new ArrayList<Double>();
-        for (int i = 0; i < metroAudio.melody._bipAndPauseSing.length; i++)
-        {
-          bipsAndPauses.add((double) metroAudio.melody._bipAndPauseSing[i].bipDuration);
-          bipsAndPauses.add(metroAudio.melody._bipAndPauseSing[i].pauseFactor);
-        }
-        if (bipsAndPauses.size() > 0)
-          //List<Map<Double, Integer> a = new HashMap<>
-          result.success(bipsAndPauses);
-        else
-          result.error("UNAVAILABLE", "Failed creating sound", null);
-*/
-      //else
-      //result.error("UNAVAILABLE", "Failed creating sound", null);
-      result.success(1);
+      result.success(0);
     }
     else if (methodCall.method.equals("setTempo"))
     {
       int tempoBpm = methodCall.argument("tempo");
       int noteValue = methodCall.argument("note");
-      int res = setTempo(tempoBpm, noteValue);
-      result.success(res);
+      int realTempo = setTempo(tempoBpm, noteValue);
+      result.success(realTempo);
     }
     else if (methodCall.method.equals("setVolume"))
     {
@@ -347,10 +349,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     {
       _tempo = tempo;
       metroAudio.setTempo(tempo);// + minimalTempoBPM);
-      return 1;
     }
-    else
-      return 0;
+    return tempoBpm;
   }
 
   public void _onStartStopBn(Tempo tempo)

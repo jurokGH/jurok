@@ -1,6 +1,7 @@
 import 'dart:core';
 import 'dart:typed_data';
 
+import 'tempo.dart';
 import 'SoundPCM16.dart';
 import 'BipPauseCycle.dart';
 

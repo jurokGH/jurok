@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'tempo.dart';
 
 /// Metronome beat melody configuration
 
@@ -7,7 +8,7 @@ class BeatMetre
   /// Number of beats
   int _beatCount;
   /// Number of subbeats if they are the same for all beats
-  /// Used if number of beats is increasing
+  /// Used as default if number of beats is increasing
   int _subBeatCount;
   /// Number of subbeats in each i-th beat
   /// _beatCount == subBeats.length
@@ -75,8 +76,8 @@ class BeatMetre
     //print('beatPair $index - ${subBeats.length}');
     for (int i = 0; i < subBeats.length; i++)
     {
-      print('$i - ${subBeats[i]}');
-      if (index - subBeats[i] < 0)
+      //print('$i - ${subBeats[i]}');
+      if (index < subBeats[i])
       {
         beat = i;
         subBeat = index;
@@ -95,6 +96,42 @@ class BeatMetre
     for (int i = 0; i < subBeats.length; i++)
       count += subBeats[i];
     return count;
+  }
+
+  /// Start time (in seconds) of [beat, subbeat] sound relating to begin of this beat metre
+  /// bpm - tempo, beats per minute
+
+  double timeOfBeat(int tempoBpm, int beat, int subbeat)
+  {
+    double bps = tempoBpm / 60;
+    beat %= beatCount;
+    //assert(subbeat < subBeats[beat]);
+    return (beat + subbeat / subBeats[beat]) / bps;
+  }
+
+  /// time - time from begin in seconds
+  List<int> timePosition(double time, Tempo tempo)
+  {
+    double duration = _beatCount * 60.0 / tempo.beatsPerMinute;
+    //Position pos = new Position(0, 0);
+    int cycle = time ~/ duration;
+    if (time < 0)
+      time = -time;
+
+    //print('timePosition0 $duration');
+
+    double timeInBeat = time % duration;
+    duration /= _beatCount;  // Duration of 1 beat
+    int beat = timeInBeat ~/ duration;
+    //print('timePosition1 $duration - $timeInBeat - $beat - ${subBeats[beat]}');
+    double time1 = timeInBeat % duration;
+    duration /= subBeats[beat];  // Duration of 1 subbeat of a given beat
+    int subbeat = time1 ~/ duration;
+    double offset = time1 % duration;
+
+    //print('timePosition $time1 - $duration - offset $beat - $subbeat - ${subBeats[beat]}');
+
+    return [beat, subbeat];
   }
 }
 

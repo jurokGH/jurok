@@ -11,6 +11,7 @@ class AccentedMelody
   BipAndPause[] _bipAndPauseSing;
   private int _nativeSampleRate;
   public BipPauseCycle cycle;
+
   public AccentedMelody(
                     MusicScheme2Bips musicScheme,int nativeSampleRate,
                     // Number of beats
@@ -89,9 +90,6 @@ IS: Вить, это ты спрашиваешь или я?  "IS:" - это мн
   {
     int BPMtoSet = Math.min((int) cycle.getMaximalTempo(_nativeSampleRate, 1, tempo.denominator),
             tempo.beatsPerMinute);
-    //Utility utility = new Utility();
-    //System.out.print("BPMtoSet ");
-    //System.out.println(BPMtoSet);
     cycle.setNewDuration(Utility.tempoToCycleDuration(new Tempo(BPMtoSet, tempo.denominator),
             1, _nativeSampleRate));
     return BPMtoSet;

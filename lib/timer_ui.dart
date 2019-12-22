@@ -99,6 +99,7 @@ class TimerState extends State<TimerWidget>
       _time = timer.tick;
       _sTime = _time2string(_time);
     });
+    print('Timer: ' + _sTime);
   }
 
   /// Build time string in format 00:00
