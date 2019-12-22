@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
 import 'beat_metre.dart';
+import 'beat_sound.dart';
 import 'owl_grid.dart';
 import 'knob.dart';
 import 'metre_ui.dart';
@@ -766,7 +767,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (call.method == 'warm')
     {
       print('START-STABLE');
-      warmupFrames = call.arguments;
+      int warmupFrames = call.arguments;
       state.start();
       _start();
     }
@@ -782,7 +783,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //print('SYNC $index - $offset - $time');
 
       //warmupFrames = call.arguments;
-      state.sync(index, offset / nativeSampleRate, beatIndex, subbeatIndex, time);
+      state.sync(index, 1e-6 * offset, beatIndex, subbeatIndex, time);
     }
     else if (call.method == 'timeFrame')
     {
@@ -824,8 +825,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       <String, int>{
         'tempo': _tempoBpm,
         'note': _beat.beatCount,//_noteValue,
-        'quorta': _quortaInMSec.toInt(),
-        'note': _noteValue,
         //'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
       };
@@ -841,11 +840,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _setBeat() async
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    /*
     state.melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
       _beat,
       0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
       0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
       _bars, 1);
+     */
     state.beatMetre = _beat;
     state.reset();
 

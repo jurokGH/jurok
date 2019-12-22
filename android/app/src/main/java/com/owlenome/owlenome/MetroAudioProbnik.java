@@ -841,7 +841,7 @@ public class MetroAudioProbnik
             int offset = pos.offset;
             if (pos.n % 2 != 0)
               offset += melody.cycle.cycle[pos.n - 1].l;
-            sendMessage(pos.cycleCount, pos.n / 2, offset, time);
+            sendMessage(pos.cycleCount, pos.n / 2, (int) (1e6 * offset / nativeSampleRate), time);
             //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
           }
           //byteBuffer.position(0);

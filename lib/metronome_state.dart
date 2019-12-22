@@ -128,7 +128,7 @@ class MetronomeState with ChangeNotifier
     tempo.denominator = noteValue;
 
     int _bars = 1;
-    melody.cycle.setTempo(tempo, _bars);
+    //melody.cycle.setTempo(tempo, _bars);
   }
 
   bool isActiveBeat(int id)
