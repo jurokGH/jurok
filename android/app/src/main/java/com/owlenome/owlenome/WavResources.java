@@ -60,8 +60,7 @@ import java.io.InputStream;
 
         double delta=(double)oldSampleRate/newSampleRate;
         int[] newSamples16=new int[(int)(samples16.length/delta)];
-        int xLeft;//ToDo: Вить, как правильно - объявить один раз переменные вне цикла,
-        //или объявлять их внутри цикла на каждой итерации. Что быстрее? Что грозит большей утечкой?
+        int xLeft;
         int f_1,f_2;
         double positionInOld=0;
         for (int i=0;i<newSamples16.length;i++){
@@ -71,8 +70,8 @@ import java.io.InputStream;
             //но следующее за xLeft уже может выйти на 1 за пределы начального массива
             if (xLeft<samples16.length-1){f_2=samples16[xLeft+1];} else {f_2=samples16[samples16.length-1];}
 
-            double interpolant=f_1;
-            //(positionInOld-xLeft)*f_2+(1.0+xLeft-positionInOld)*f_1;
+            double interpolant=//f_1;
+             (positionInOld-xLeft)*f_2+(1.0+xLeft-positionInOld)*f_1;
             newSamples16[i]=(int)interpolant;
 
             positionInOld+=delta;

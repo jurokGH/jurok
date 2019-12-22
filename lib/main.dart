@@ -12,9 +12,10 @@ import 'subbeat_ui.dart';
 import 'tempo_ui.dart';
 import 'timer_ui.dart';
 import 'settings.dart';
+//import 'Melody.dart';
 import 'tempo.dart';
 import 'BipPauseCycle.dart';
-import 'AccentBeat.dart';
+//import 'AccentBeat.dart';
 
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
@@ -85,6 +86,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int maxSubBeatCount = 8;
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;
+
   static const int minTempo = 6;
   static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to the music scheme
 
@@ -131,10 +133,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _activeBeat = 0;
   /// Current playing subbeat of current beat
   int _activeSubbeat = 0;
-  /// Melody parameters
+  /* /// Melody parameters
   double _quortaInMSec = 20;
   int _bars = 1;
-  //int _numerator = 1;
+  //int _numerator = 1;*/
 
   int _volume = 50;
   bool _mute = false;
@@ -142,13 +144,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //MelodyMeter _melodyMeter;
   int _counter = 0;
 
+  /*
   // Native hardware audio parameters
   int nativeSampleRate = 0;
   int nativeBuffer = 0;
   int latencyUntested = 0;
+   */
 
+  /*
   int latency = 0;
-  int warmupFrames = 0;
+  int warmupFrames = 0;*/
   String _infoMsg = '';
 
   //Melody melody;
@@ -180,8 +185,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Channel callback from hardware Java code
     _channel.setMethodCallHandler(_handleMsg);
     // Query native hardware audio parameters
-    _getAudioParams();
+    //_getAudioParams();
 
+    //IS: If I comment this, nothing redraws.
+    //So what is the role of another controller?
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
@@ -818,6 +825,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'tempo': _tempoBpm,
         'note': _beat.beatCount,//_noteValue,
         'quorta': _quortaInMSec.toInt(),
+        'note': _noteValue,
+        //'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
       };
       final int realTempo = await _channel.invokeMethod('start', args);
@@ -962,6 +971,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
+  /*
   Future<void> _getAudioParams() async {
     try {
       final Map<String, dynamic> result =
@@ -982,7 +992,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     print(_infoMsg);
     setState(() {});  // Update UI
-  }
+  }*/
 
 
   // Settings boilerplate
