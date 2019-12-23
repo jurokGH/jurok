@@ -69,7 +69,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     if (active != newActive || activeSubbeat != newActiveSubbeat)
       //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
       {
-        //print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
+        print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
 
         setState((){
           activeHash = hash;

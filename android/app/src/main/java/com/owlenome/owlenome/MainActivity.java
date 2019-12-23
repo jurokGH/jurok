@@ -146,12 +146,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       int realTempo = 0;
       if (beatMelody != null)
-        realTempo = start(_tempo) ? _tempo.beatsPerMinute : 0;
-      if (realTempo > 0)
-        //List<Map<Double, Integer> a = new HashMap<>
-        result.success(realTempo);
-      else
-        result.error("UNAVAILABLE", "Failed starting sound", null);
+        realTempo = start(_tempo);
+      //List<Map<Double, Integer> a = new HashMap<>
+      result.success(realTempo);
     }
     else if (methodCall.method.equals("setBeat"))
     {
@@ -216,16 +213,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         nativeSampleRate, beat.beatCount, beat.subBeats);
       //IS
       // Create new metronome beat setOfNotes
-      metroAudio.setMelody(beatMelody, _tempo);
-
-      result.success(0);
+      int maxTempo = metroAudio.setMelody(beatMelody, _tempo);
+      result.success(maxTempo);
     }
     else if (methodCall.method.equals("setTempo"))
     {
       int tempoBpm = methodCall.argument("tempo");
       int noteValue = methodCall.argument("note");
-      int realTempo = setTempo(tempoBpm, noteValue);
-      result.success(realTempo);
+      int maxTempo = setTempo(tempoBpm, noteValue);
+      result.success(maxTempo);
     }
     else if (methodCall.method.equals("setVolume"))
     {
@@ -256,7 +252,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       {
         currentMusicScheme = schemeIndex;
         result.success(1);
-    }
+      }
       else
         result.success(0);
     }
@@ -316,73 +312,38 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   }
 
   // Start/stop with given tempo rate
-  private boolean start(Tempo tempo)
+  private int start(Tempo tempo)
   {
-    boolean res = true;
+    int realTempo = 0;
     //_onStartStopBn(tempo);
     if (metroAudio.state == MetroAudioProbnik.STATE_READY)
     {
       _tempo = tempo;
-      res = metroAudio.play(tempo);// + minimalTempoBPM);
+      realTempo = metroAudio.play(tempo);// + minimalTempoBPM);
 
       //ToDo: TEST
     }
     else
     {
       metroAudio.stop();
+      realTempo = metroAudio.getTempo();
     }
 
-    /*
-    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-    } else {
-    }
-    */
-    return res;
+    //if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+    return realTempo;
   }
 
   // Set new tempo rate
   private int setTempo(int tempoBpm, int noteValue)
   {
+    int maxTempo = 0;
     Tempo tempo = new Tempo(tempoBpm, noteValue);
-    Log.d("setTempo", "Tempo: " + Integer.toString(tempo.beatsPerMinute));
-    if (!_tempo.equals(tempo))
+    //TODO if (!_tempo.equals(tempo))
     {
       _tempo = tempo;
-      metroAudio.setTempo(tempo);// + minimalTempoBPM);
+      maxTempo = metroAudio.setTempo(tempo);// + minimalTempoBPM);
     }
-    return tempoBpm;
-  }
-
-  public void _onStartStopBn(Tempo tempo)
-  {
-    if (metroAudio.state == MetroAudioProbnik.STATE_READY)
-    {
-      //ToDo: сделать булевым, и если false - значит, мы не запустились
-      //metroAudio.play(seekBar.getProgress()+minimalTempoBPM);
-      //int tempo = 300;
-
-      metroAudio.play(tempo);// + minimalTempoBPM);
-
-      _tempo = tempo;
-      //ToDo: TEST
-    /*
-    BarrelOrgan.draw(cvMetr,metroAudio.singSingSing.cycleSing,
-            0,
-            oval,paint );
-    ivMetr.invalidate();*/
-      //  bnPlayStop.setText("Started");
-    }
-    else
-    {
-      //bnPlayStop.setText("Play");
-      if (!_tempo.equals(tempo))
-      {
-        _tempo = tempo;
-        metroAudio.setTempo(_tempo);// + minimalTempoBPM);
-      }
-      else
-        metroAudio.stop();
-    }
+    return maxTempo;
   }
 
   // Тут определяем музыкальные схемы

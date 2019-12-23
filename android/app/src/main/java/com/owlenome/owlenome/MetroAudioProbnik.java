@@ -77,14 +77,6 @@ public class MetroAudioProbnik
   private float _volume = 0.5f;
   //private final float initVolume=(float) 0.5;
 
-  public boolean isPlaying()
-  {
-    return audioTrack != null &&
-      (audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING ||
-        state != STATE_READY);
-  }
-
-
   /**
    * Ноты, волны данной частоты
    */
@@ -140,30 +132,94 @@ public class MetroAudioProbnik
   //BipAndPause _bipAndPauseSing;
   boolean newMelody = false;
 
-  void setMelody(AccentedMelody m, Tempo tempo)
+  //ToDo: TEST
+  private boolean newTempo = false;
+  private Tempo _tempo;
+
+  boolean doPlay; //ToDo: логика состояния
+
+  // Sound writer task
+  MetroRunnable _task = null;
+
+  public int setMelody(AccentedMelody m, Tempo tempo)
   {
     //TODO
     melody = m;
+
     if (tempo.beatsPerMinute < cMinTempoBpm)
       tempo.beatsPerMinute = cMinTempoBpm;
     _tempo = tempo;
     if (state == STATE_PLAYING)
       newMelody = true;
+
+    return (int) melody.getMaxTempo(tempo);
   }
 
-  //ToDo: TEST
-  private boolean newTempo = false;
-  private Tempo _tempo;
+  int getTempo()
+  {
+    return _task == null ? _tempo.beatsPerMinute : _task.realBPM;
+  }
 
-  public void setTempo(Tempo tempo)
+  public int setTempo(Tempo tempo)
   {
     if (tempo.beatsPerMinute < cMinTempoBpm)
       tempo.beatsPerMinute = cMinTempoBpm;
     _tempo = tempo;
-    newTempo = true;
+    if (state == STATE_PLAYING)
+      newTempo = true;
+
+    return melody != null ? (int) melody.getMaxTempo(tempo) : 0;
   }
 
-  boolean doPlay; //ToDo: логика состояния
+  // volume = [0..100]
+  public void setVolume(int volume)
+  {
+    assert (_maxVolume > _minVolume);
+    float newVolume = _minVolume + 0.01f * volume * (_maxVolume - _minVolume);
+    if (newVolume < _minVolume)
+      newVolume = _minVolume;
+    if (newVolume > _maxVolume)
+      newVolume = _maxVolume;
+
+    if (newVolume != _volume)
+    {
+      _volume = newVolume;
+      if (audioTrack != null)
+        audioTrack.setVolume(_volume);
+    }
+  }
+
+  public boolean isPlaying()
+  {
+    return audioTrack != null &&
+      (audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING ||
+        state != STATE_READY);
+  }
+
+  public int play(Tempo tempo)
+  {
+    boolean res = true;
+    _tempo = tempo;
+
+    setState(STATE_STARTING);
+    doPlay = true;
+
+    initTrack();
+
+    //TODO Every time?
+    _maxVolume = audioTrack.getMaxVolume();
+    _minVolume = audioTrack.getMinVolume();
+    audioTrack.setVolume(_volume);
+
+    //ToDo: обмен данными между потоками. Нужно получать скорость, и выдавать
+    //привязку ко времени.
+    _task = new MetroRunnable(melodyBuffer);
+    new Thread(_task).start();
+    //ToDo: сделать булевым, и если false - значит, мы не запустились
+
+    double maxTempo = melody.getMaxTempo(tempo);
+    return res ? (int) (tempo.beatsPerMinute >= maxTempo ? maxTempo : tempo.beatsPerMinute) : 0;
+  }
 
   public void stop()
   {
@@ -284,46 +340,6 @@ public class MetroAudioProbnik
     msg.arg2 = (int) ((writtenSamples >> 32) & 0xFFFFFFFFL);
     handler.sendMessage(msg);
     */
-  }
-
-  // volume = [0..100]
-  public void setVolume(int volume)
-  {
-    assert (_maxVolume > _minVolume);
-    float newVolume = _minVolume + 0.01f * volume * (_maxVolume - _minVolume);
-    if (newVolume < _minVolume)
-      newVolume = _minVolume;
-    if (newVolume > _maxVolume)
-      newVolume = _maxVolume;
-
-    if (newVolume != _volume)
-    {
-      _volume = newVolume;
-      if (audioTrack != null)
-        audioTrack.setVolume(_volume);
-    }
-  }
-
-  public boolean play(Tempo tempo)
-  {
-    boolean res = true;
-    _tempo = tempo;
-
-    setState(STATE_STARTING);
-    doPlay = true;
-
-    initTrack();
-
-    //TODO Every time?
-    _maxVolume = audioTrack.getMaxVolume();
-    _minVolume = audioTrack.getMinVolume();
-    audioTrack.setVolume(_volume);
-
-    //ToDo: обмен данными между потоками. Нужно получать скорость, и выдавать
-    //привязку ко времени.
-    new Thread(new MetroRunnable(melodyBuffer)).start();
-    //ToDo: сделать булевым, и если false - значит, мы не запустились
-    return res;
   }
 
   /**

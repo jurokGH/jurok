@@ -241,6 +241,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   {
     if (widget.playing)
     {
+      print('toggleAnimation');
       if (!_controller.isAnimating)
         _controller.repeat();
     }
@@ -315,8 +316,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   }
 
   @override
-  Widget build(BuildContext context) {
-
+  Widget build(BuildContext context)
+  {
+    print('OwlGrid::build');
 
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;

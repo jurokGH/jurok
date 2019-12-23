@@ -144,6 +144,11 @@ IS: Надо забыть код ниже (у нас нет сейчас пау�
  */
   }
 
+  public double getMaxTempo(Tempo tempo)
+  {
+    return cycle.getMaximalTempo(_nativeSampleRate, 1, tempo.denominator);
+  }
+
   public int setTempo(Tempo tempo)
   {
     int BPMtoSet = Math.min((int) cycle.getMaximalTempo(_nativeSampleRate, 1, tempo.denominator),
@@ -218,7 +223,7 @@ class Utility
    * Возвращает время игры бипа согласно штампу и номеру сэмла.
    * Интерполирует через nativeSampleRate;
    */
-  final static  public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
+  final static public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
   {
     return stampTime + samples2nanoSec(frequency, frameToPlayN - stampFrame);
   }

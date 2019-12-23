@@ -10,6 +10,7 @@ class Knob extends StatefulWidget
   final double value;
   final double min;
   final double max;
+  final double limit;
   final bool pressed;
 
   final double size;
@@ -21,6 +22,7 @@ class Knob extends StatefulWidget
 
   Knob({@required this.value,
     this.min = 0, this.max = 1,
+    this.limit = 0,
     this.pressed = false,
     this.size,
     this.color = Colors.blue,
@@ -43,6 +45,7 @@ class KnobState extends State<Knob>
   @override
   Widget build(BuildContext context)
   {
+    print('Knob::build');
     double size = widget.size != null ? widget.size :
       MediaQuery.of(context).size.shortestSide; //TODO
 
@@ -60,13 +63,16 @@ class KnobState extends State<Knob>
             setState(() {
               pressed = !pressed;
             });
-            widget.onPressed();
+            widget.onPressed();  //TODO Should place it inside setState?
           },
           onPanUpdate: (DragUpdateDetails details) {
             double radius = size / 2;
             Offset center = new Offset(radius, radius);
             Offset cur = details.localPosition - center;
             Offset prev = cur - details.delta;
+
+            if (details.delta.distanceSquared < 2 || cur.dx.abs() < 1 || prev.dx.abs() < 1)
+              return;
 
             radius *= innerRadius;
             if (cur.distanceSquared > radius * radius)  // TODO

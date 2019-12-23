@@ -58,12 +58,8 @@ class TimerState extends State<TimerWidget>
     _timer?.cancel();
   }
 
-  @override
-  Widget build(BuildContext context)
+  void toggleAnimation()
   {
-    final Color borderColor = Theme.of(context).accentColor.withOpacity(widget.opacity);
-    //Colors.purpleAccent.withOpacity(widget.opacity)
-    print("Timer:build");
     if (widget.active)
     {
       if (!isActive())
@@ -74,8 +70,23 @@ class TimerState extends State<TimerWidget>
       if (isActive())
         stop();
     }
+  }
 
-    return Container(
+  @override
+  Widget build(BuildContext context)
+  {
+    final Color borderColor = Theme.of(context).accentColor.withOpacity(widget.opacity);
+    //Colors.purpleAccent.withOpacity(widget.opacity)
+    print('Timer: ' + _sTime);
+    toggleAnimation();
+
+    return //FittedBox(
+      //fit: BoxFit.scaleDown,
+      //child:
+/*
+      DecoratedBox(
+      //width:80,
+      //height:30,
       decoration: BoxDecoration(
         color: widget.color.withOpacity(widget.opacity),
         //shape: BoxShape.circle,
@@ -83,13 +94,29 @@ class TimerState extends State<TimerWidget>
         borderRadius: BorderRadius.circular(widget.borderRadius),
       ),
       //margin: EdgeInsets.all(16),
-      child: Padding(
+      child:
+*/
+      Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         child: Text(_sTime,
           style: widget.textStyle,
         )
       )
-    );
+    //)
+    ;
+  }
+
+  TextBox _calcLastLineEnd(BuildContext context, BoxConstraints constraints)
+  {
+    final textSpan = TextSpan(text: _sTime, style: widget.textStyle);
+    final richTextWidget = Text.rich(textSpan).build(context) as RichText;
+    final renderObject = richTextWidget.createRenderObject(context);
+    renderObject.layout(constraints);
+    final lastBox = renderObject
+      .getBoxesForSelection(TextSelection(
+      baseOffset: 0, extentOffset: textSpan.toPlainText().length))
+      .last;
+    return lastBox;
   }
 
   void _handleTimer(Timer timer)
@@ -99,7 +126,6 @@ class TimerState extends State<TimerWidget>
       _time = timer.tick;
       _sTime = _time2string(_time);
     });
-    print('Timer: ' + _sTime);
   }
 
   /// Build time string in format 00:00

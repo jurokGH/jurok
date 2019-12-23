@@ -142,6 +142,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _volume = 50;
   bool _mute = false;
   int _tempoBpm = 60;
+  int _tempoBpmMax = maxTempo;
   //MelodyMeter _melodyMeter;
   int _counter = 0;
 
@@ -642,6 +643,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       value: _tempoBpm.toDouble(),
       min: minTempo.toDouble(),
       max: maxTempo.toDouble(),
+      limit: _tempoBpmMax.toDouble(),
       size: 0.36 * _widthSquare,
       color: _textColor.withOpacity(0.5),
       textStyle: _textStyle,
@@ -844,6 +846,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'numerator': _beat.beatCount,
       };
       final int realTempo = await _channel.invokeMethod('start', args);
+      if (realTempo == 0)
+      {
+        _infoMsg = 'Failed starting/stopping';
+        print(_infoMsg);
+      }
+      else
+      {
+        setState(() {
+          //_tempoBpm = realTempo;
+        });
+      }
     }
     on PlatformException
     {
@@ -891,12 +904,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'accents': _beat.accents,
       };
 
-      final int result = await _channel.invokeMethod('setBeat', args);
+      final int limitTempo = await _channel.invokeMethod('setBeat', args);
 
-      if (result != 0)
+      if (limitTempo == 0)
       {
         _infoMsg = 'Failed setting beat';
         print(_infoMsg);
+      }
+      else
+      {
+        setState(() {
+          _tempoBpmMax = limitTempo;
+        });
       }
     }
     on PlatformException
@@ -918,16 +937,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'tempo' : _tempoBpm,
         'note' : _beat.beatCount,//_noteValue
       };
-      final int result = await _channel.invokeMethod('setTempo', args);
+      final int limitTempo = await _channel.invokeMethod('setTempo', args);
       //assert(result == 1);
-      if (result != 0)
+      if (limitTempo == 0)
       {
         _infoMsg = 'Failed setting tempo';
         print(_infoMsg);
       }
       else
-        _infoMsg = 'Tempo: $_tempoBpm';
-    } on PlatformException {
+      {
+        setState(() {
+          _tempoBpmMax = limitTempo;
+        });
+      }
+    }
+    on PlatformException
+    {
       _infoMsg = 'Exception: Failed setting tempo';
     }
     //metroAudio.reSetTempo(progress + minimal_tempoBpm);
