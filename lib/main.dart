@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Offset _padding = new Offset(4, 4);//Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = true;
+  bool _showAds = false;
   ///<<<<<< JG!
 
   /// Size of square owl's area
@@ -246,7 +246,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _setBeat();
       _togglePlay();
     }
-    setState(() {});
+    //VG0 setState(() {});
 /*
     _playing = !_playing;
     if (_playing)
@@ -293,7 +293,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Provider.of<MetronomeState>(context, listen: false).reset();
     if (_playing)
       _setBeat();
-    setState(() {});
+    else
+      ;//VG0 setState(() {});
   }
 
   void onOwlChanged(int id, int subCount)
@@ -305,7 +306,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Provider.of<MetronomeState>(context, listen: false).reset();
     if (_playing)
       _setBeat();
-    setState(() {});
+    //VG0 setState(() {});
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -331,10 +332,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       body: Center(
         child: OrientationBuilder(
           builder: (context, orientation) {
-            bool portrait = orientation == Orientation.portrait;
+            final bool portrait = orientation == Orientation.portrait;
 
             /// Owl square and controls
-            List<Widget> innerUI = <Widget>[
+            final List<Widget> innerUI = <Widget>[
               _buildOwlenome(portrait, false),
               _buildControls(portrait, false)
             ];
@@ -389,7 +390,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Subbeat
   Widget _buildSubbeat(TextStyle textStyle)
   {
-    return _buildPlate(
+    return Center(child:
+      //_buildPlate(
       SubbeatWidget(
         subbeatCount: _beat.subBeatCount,
         noteValue: _noteValue,
@@ -507,9 +509,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   ///widget Square section with metronome itself
-  Widget _buildOwlenome(bool portrait, showControls)
+  Widget _buildOwlenome(bool portrait, bool showControls)
   {
-    List<Widget> children = <Widget>[
+    final List<Widget> children = <Widget>[
       ///widget Owls
       Expanded(
         child: OwlGrid(
@@ -547,9 +549,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //<<<<<<<<
 
     //VG TODO
-    double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ?
+    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ?
       0.03 * _widthSquare : 0;
-    double paddingY = _beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
+    final double paddingY = _beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
 
     return Container(
       width: _widthSquare,
@@ -583,6 +585,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     List<Widget> children = new List<Widget>();
 
     double paddingY = portrait ? 0 : 0.1 * _widthSquare;
+    double width = portrait ? _widthSquare : _screenSize.width - _widthSquare;
 
     if (!showVolume)  //TODO: remove
       children.add(Padding(
@@ -593,9 +596,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           children: [
             ///widget Metre
             //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
-            _buildMetre(_textStyle),
+            SizedBox(
+              width: 0.5 * (width - 2 * _padding.dx),
+              child: _buildMetre(_textStyle)
+            ),
             //),
             ///widget Timer
+/*
             portrait ?
             TimerWidget(
               active: _playing,
@@ -607,9 +614,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             )
             :
             Container(width: 0, height: 0),
+*/
             ///widget Subbeat widget
             //Flexible(child:
-            _buildSubbeat(_textStyle),
+            SizedBox(
+              width: 0.5 * (width - 2 * _padding.dx),
+              child: _buildSubbeat(_textStyle)
+            ),
 //            AnimatedOpacity(
 //              duration: new Duration(seconds: 1),
 //              opacity: _subbeatWidth,
@@ -641,7 +652,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         if (_playing)
           _setTempo(_tempoBpm);
         //else
-          //setState(() {});
+          setState(() {});
       },
     );
 
@@ -686,23 +697,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         Stack(
           alignment: AlignmentDirectional.center,
           children: <Widget>[
-            ///widget Tempo list
-            //Center(child:
-              _buildPlate(TempoWidget(
-                tempo: _tempoBpm,
-                textStyle: _textStyle,
-                onChanged: (int tempo) {
-                  if (_tempoBpm != tempo)
-                    _tempoBpm = tempo;
-                    if (_playing)
-                      _setTempo(tempo);
-                    //else
-                      //setState(() {});
-                  }
-                ),
-                padding: _padding,
-              //),
-            ),
             Align(
               alignment: Alignment.centerRight,
               //padding: EdgeInsets.only(right: _padding.dx),
@@ -721,8 +715,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
                   //Navigator.of(context).push(_createSettings());
                 },
-              )
-            )
+              ),
+            ),
+            ///widget Tempo list
+            //Center(child:
+              _buildPlate(TempoWidget(
+                tempo: _tempoBpm,
+                textStyle: _textStyle,
+                onChanged: (int tempo) {
+                  if (_tempoBpm != tempo)
+                    _tempoBpm = tempo;
+                    if (_playing)
+                      _setTempo(tempo);
+                    else
+                      setState(() {});
+                  }
+                ),
+                padding: _padding,
+              //),
+            ),
           ]
         )
       ];
