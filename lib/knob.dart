@@ -90,9 +90,9 @@ class KnobState extends State<Knob>
                   coef = 0.3;
 
                 double newValue = widget.value + (1 / coef) * da * (widget.max - widget.min) / sweepAngle;
-                double clippedValue = min(max(newValue, widget.min), widget.max);
+                double clippedValue = min(max(newValue, widget.min), min(widget.limit, widget.max));
                 //print('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
-                if (clippedValue != widget.value)
+                //if (clippedValue != widget.value)
                   widget.onChanged(clippedValue);
                 //if (pressed)
                   //setState(() {});

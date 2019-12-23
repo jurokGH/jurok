@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Offset _padding = new Offset(4, 4);//Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = false;
+  bool _showAds = true;
   ///<<<<<< JG!
 
   /// Size of square owl's area
@@ -497,13 +497,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildAds()
+  Widget _buildAds(bool portrait)
   {
     return Container(
-      height: 50,
-      color: Colors.grey[600],
+      height: portrait ? 50 : 32,
+      color: Colors.grey[400],
       child: Image.asset('images/Ad-1.png',
-        height: 50,
+        //height: portrait ? 50 : 32,
         fit: BoxFit.contain
       ),
     );
@@ -747,7 +747,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       children.add(_builVolume());
 
     if (_showAds)
-      children.add(_buildAds());
+      children.add(_buildAds(portrait));
 
     // Fill up the remaining screen as the last widget in column/row
     return Expanded(
