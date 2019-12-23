@@ -60,6 +60,7 @@ flutter:
     - images/owl2-4.png
     - images/Metre.png
     - images/TempoKnob.png
+    - images/Ad-1.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

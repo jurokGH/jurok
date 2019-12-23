@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Offset _padding = new Offset(4, 4);//Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = false;
+  bool _showAds = true;
   ///<<<<<< JG!
 
   /// Size of square owl's area
@@ -497,8 +497,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildAds()
   {
     return Container(
-      height: 30,
+      height: 50,
       color: Colors.grey[600],
+      child: Image.asset('images/Ad-1.png',
+        height: 50,
+        fit: BoxFit.contain
+      ),
     );
   }
 
