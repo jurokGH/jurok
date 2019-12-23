@@ -294,7 +294,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_playing)
       _setBeat();
     else
-      ;//VG0 setState(() {});
+      setState(() {});
   }
 
   void onOwlChanged(int id, int subCount)
