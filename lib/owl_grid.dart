@@ -266,7 +266,19 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       vsync: this,
       duration: new Duration(milliseconds: _period),
     );
-    //..addListener(onTimer);
+    //TODO ..addListener(onTimer);
+
+    //VG Попробую ответить здесь, хотя такая переписка мне как серпом по яйцу.
+    //VG IS: Илья, как ты видишь выше, я пробовал вариант, о котором ты говоришь.
+    // При этом перерисовываются все совы-доли, т.к. во флаттере нет простой возможности
+    // сказать виджету снаружи, чтобы он перерисовал себя:
+    // нет возможности взять у виджета ссылку на его State.
+    // Весь этот ваш флюттер - какая-то недоделанная неудобная фигня, сделанная только с одной,
+    // богом ненавистной целью: поднять бабла.
+    //
+    // Сейчас сделано так что, каждый виджет-сова сама смотрит, надо ли именно её перерисовываться.
+    // Поэтому перерисовывается каждый раз (60 Hz) только 1-2 совы.
+    // 1-2 < 4 - вот ответ на твой вопрос.
 
     //IS: Витя, я совсем не понимаю, как ты делаешь, но тем не менее у меня
     // возник вопрос. Разве не должно быть что-то
@@ -318,8 +330,6 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   @override
   Widget build(BuildContext context)
   {
-    print('OwlGrid::build');
-
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
     print('OwlGridState $size');

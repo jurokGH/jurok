@@ -10,6 +10,8 @@ class MetreWidget extends StatefulWidget
   final int note;
   final int minNote;
   final int maxNote;
+  final double width;
+  final double height;
   final Color color;
   final TextStyle textStyle;
 
@@ -21,6 +23,7 @@ class MetreWidget extends StatefulWidget
     @required this.onChanged,
     this.minBeats = 1, this.maxBeats = 8,
     this.minNote = 1, this.maxNote = 8,
+    this.width = 0, this.height = 0,
     this.color = Colors.white,
     @required this.textStyle});
 
