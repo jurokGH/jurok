@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Offset _padding = new Offset(4, 4);//Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = true;
+  bool _showAds = false;
   ///<<<<<< JG!
 
   /// Size of square owl's area
@@ -165,8 +165,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Сколько схем:
   ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
   ///как мы это согласовываем? Пока - руками.
-  final int _soundSchemeCount = 4;
   int _activeSoundScheme = 0;
+  int _soundSchemeCount = 4;
+  final List<String> _soundSchemes = [
+    'Plain',
+    'Drums 1',
+    'Cabasa',
+    'Short Drums'
+  ];
 
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
@@ -204,6 +210,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //});
     });
 */
+
+    _soundSchemeCount = _soundSchemes.length;
 
     _beat.beatCount = initBeatCount;
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
@@ -707,6 +715,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 iconSize: 32,
                 //padding: EdgeInsets.all(_padding.dx),
                 icon: Icon(Icons.settings,),
+                color: portrait ? _accentColor : _primaryColor,
+                onPressed: () {
+                  setState(() {
+                    _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
+                  });
+                  _setMusicScheme(_activeSoundScheme);
+
+                  //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
+                  //Navigator.of(context).push(_createSettings());
+                },
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              //padding: EdgeInsets.only(right: _padding.dx),
+              ///widget Settings
+              child: FlatButton(
+                child: Text(_soundSchemes[_activeSoundScheme],
+                  style: _textStyle.copyWith(fontSize: 16),
+                ),
+                padding: EdgeInsets.all(2),
+                textTheme: ButtonTextTheme.primary,
                 color: portrait ? _accentColor : _primaryColor,
                 onPressed: () {
                   setState(() {
