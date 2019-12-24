@@ -142,6 +142,8 @@ public class MetroAudioProbnik
   MetroRunnable _task = null;
 
   public int setMelody(AccentedMelody m, Tempo tempo)
+
+
   {
     //TODO
     melody = m;
