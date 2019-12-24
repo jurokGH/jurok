@@ -462,9 +462,8 @@ class NotePainter extends CustomPainter {
         (subDivN+1)*((size.width- (_safeX+_safeX))/(subDiv+1));
   }
 
-
-  _init(){
-
+  _init()
+  {
     ///Определяем тип базовой ноты
     int n = 1;
     int exp = 0;
@@ -598,10 +597,12 @@ class NotePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(NotePainter oldDelegate) {
-    // TODO
-    //return this.denominator != oldDelegate.denominator &&
-    //  this.subDiv != oldDelegate.subDiv &&
-    //  this.active != oldDelegate.active;
-    return true;
+    return this.denominator != oldDelegate.denominator ||
+      this.subDiv != oldDelegate.subDiv ||
+      this.active != oldDelegate.active ||
+      this.colorPast != oldDelegate.colorPast ||
+      this.colorNow != oldDelegate.colorNow ||
+      this.colorFuture != oldDelegate.colorFuture ||
+      this.activeNoteType != oldDelegate.activeNoteType;
   }
 }

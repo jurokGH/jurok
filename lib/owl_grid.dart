@@ -220,22 +220,18 @@ class OwlGrid extends StatefulWidget
 class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<OwlGrid>
 {
   AnimationController _controller;
-  int _period = 60000;//IS: А не мало?
+  int _period = 60000; //IS: А не мало? VG: Он повторяется: _controller.repeat
   //duration: new Duration(days: 3653)
 
   List<List<Image>> _images;
-  Size _imageSize;
+  Size _imageSize = Size.zero;
 
   //int subCount;
   //int subCur;
   //bool active;
-
   int _counter;
 
-  OwlGridState()
-  {
-    _imageSize = new Size(0, 0);
-  }
+  OwlGridState();
 
   void toggleAnimation()
   {
@@ -243,7 +239,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     {
       print('toggleAnimation');
       if (!_controller.isAnimating)
-        _controller.repeat();
+        _controller.repeat().orCancel;
     }
     else
     {
@@ -308,23 +304,35 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     if (_imageSize == size)
       return;
 
-    _images = null;
+    _imageSize = size;
     //AssetImage
     _images = new List<List<Image>>(2);
     for (int i = 0; i < 2; i++)
     {
       List<Image> il = new List<Image>(5);
-      //_images.add(il);
       _images[i] = il;
       int k = i + 1;
       for (int j = 0; j < 5; j++)
         il[j] = new Image.asset('images/owl$k-$j.png',
           width: size.width,
           //height: size.height,
-          fit: BoxFit.contain);
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium, //TODO Choose right one
+          /// !!! To prevent flickering of first owls !!!
+          gaplessPlayback: true);
     }
-    _imageSize = size;
+    precacheImages(context, size);
+
     print('loadImages $size');
+  }
+
+  /// Using precacheImages in didChangeDependencies as they suggested don't have any effect
+  void precacheImages(BuildContext context, Size size)
+  {
+    print('precacheImages');
+    for (int i = 0; i < _images.length; i++)
+      for (int j = 0; j < _images[i].length; j++)
+        precacheImage(_images[i][j].image, context);
   }
 
   @override
@@ -345,6 +353,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     );
 
     Size imageSize = layout.calcImageSize(size);
+    //TODO Test: Move loadImages to initState, but keep precacheImages here?
     loadImages(imageSize);
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
@@ -381,6 +390,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
     toggleAnimation();
 
+    //TODO
     //return Consumer<MetronomeState>(
       //builder: (BuildContext context, MetronomeState metronome, Widget child) {
         return CustomMultiChildLayout(
