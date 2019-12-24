@@ -178,7 +178,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   bool animate60fps = true;
   bool redraw = false;
   AnimationController _controller;
-  int _period = 60000;
+  Animation<double> _animation;
+  Animation<Offset> _animationPos;
+  Animation<Offset> _animationNeg;
+  Animation<Offset> _animationDown;
+  int _period = 1000;
   bool _playing;
 
   int _timeTick = 0;
@@ -201,6 +205,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       vsync: this,
       duration: new Duration(milliseconds: _period),
     );
+    _animationPos = new Tween<Offset>(begin: Offset.zero, end: const Offset(2, 0)).animate(_controller);
+    _animationNeg = new Tween<Offset>(begin: Offset.zero, end: const Offset(-2, 0)).animate(_controller);
+    _animationDown = new Tween<Offset>(begin: Offset.zero, end: const Offset(0, 2)).animate(_controller);
+    //_animation = new Tween<double>(begin: 1, end: 0).animate(_controller);
+    //_animation = new Tween<double> CurvedAnimation(parent: _controller, curve: Curves.linear);
     /*
     ..addListener(() {
       if (redraw)
@@ -241,8 +250,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _togglePlay();
       //_playing = !_playing;
       _playing = false;
-      if (animate60fps)
-        _controller.stop();
+      //if (animate60fps)
+        //_controller.stop();
+      _controller.reverse();
       /// Stops OwlGridState::AnimationController
       setState(() {});
     }
@@ -251,6 +261,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       prevTime = 0;
       _timeTick = 0;
       //TODO _timer.reset();
+
+      _controller.forward ();
 
       _setBeat();
       _togglePlay();
@@ -536,27 +548,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
     ];
 
-    //>>>>>>>>TODO: remove later if don't need
-    /// Row with Metre and Subbeat controls
-    if (showControls)
-      children.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ///widget Metre
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: _buildMetre(_textStyle),
-            ),
-          ),
-          ///widget Subbeat widget
-          Flexible(
-            child: _buildSubbeat(_textStyle),
-          ),
-        ]
-      ));
-    //<<<<<<<<
-
     //VG TODO
     final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ?
       0.03 * _widthSquare : 0;
@@ -596,40 +587,47 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double paddingY = portrait ? 0 : 0.1 * _widthSquare;
     double width = portrait ? _widthSquare : _screenSize.width - _widthSquare;
 
-    if (!showVolume)  //TODO: remove
-      children.add(Padding(
-        padding: EdgeInsets.only(top: paddingY, left: _padding.dx, right: _padding.dx),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ///widget Metre
-            //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
+    children.add(Padding(
+      padding: EdgeInsets.only(top: paddingY, left: _padding.dx, right: _padding.dx),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ///widget Metre
+          //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
+          SlideTransition(
+            position: _animationNeg,
+            child:
             SizedBox(
-              width: 0.5 * (width - 2 * _padding.dx),
-              child: _buildMetre(_textStyle)
-            ),
-            //),
-            ///widget Timer
+            width: 0.5 * (width - 2 * _padding.dx),
+            child: _buildMetre(_textStyle)
+          )
+          ),
+          //),
+          ///widget Timer
 /*
-            portrait ?
-            TimerWidget(
-              active: _playing,
-              opacity: _opacity,
-              color: _ctrlColor,
-              borderWidth: _borderWidth,
-              borderRadius: _borderRadius,
-              textStyle: textStyleTimer,
-            )
-            :
-            Container(width: 0, height: 0),
+          portrait ?
+          TimerWidget(
+            active: _playing,
+            opacity: _opacity,
+            color: _ctrlColor,
+            borderWidth: _borderWidth,
+            borderRadius: _borderRadius,
+            textStyle: textStyleTimer,
+          )
+          :
+          Container(width: 0, height: 0),
 */
-            ///widget Subbeat widget
-            //Flexible(child:
-            SizedBox(
-              width: 0.5 * (width - 2 * _padding.dx),
-              child: _buildSubbeat(_textStyle)
-            ),
+          ///widget Subbeat widget
+          //Flexible(child:
+      SlideTransition(
+        position: _animationPos,
+        child:
+          SizedBox(
+            width: 0.5 * (width - 2 * _padding.dx),
+            child: _buildSubbeat(_textStyle)
+          )
+      ),
 //            AnimatedOpacity(
 //              duration: new Duration(seconds: 1),
 //              opacity: _subbeatWidth,
@@ -641,10 +639,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 //              child:
 //            _buildSubbeat(_textStyle),
 //            )
-            //)
-          ])
-        )
-      );
+          //)
+        ])
+      )
+    );
 
     ///widget Tempo knob control
     Widget wixKnob = new Knob(
@@ -669,12 +667,38 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     List<Widget> tempoControls = new List<Widget>();
     if (portrait)
     {
+      RelativeRect rect0 = RelativeRect.fill;
+      RelativeRect rect1 = RelativeRect.fill;
+
       ///widget Tempo down (-1) button
-      tempoControls.add(_buildOneButton('-', -1));
+      //tempoControls.add(_buildOneButton('-', -1));
+      tempoControls.add(
+//        SizeTransition(
+//          axis: Axis.horizontal,
+//          axisAlignment: 1,
+//          sizeFactor: _animation,
+        SlideTransition(
+          position: _animationNeg,
+          child: Center(child:_buildOneButton('-', -1))
+        )
+      );
       ///widget Tempo knob control
       tempoControls.add(wixKnob);
       ///widget Tempo up (+1) button
-      tempoControls.add(_buildOneButton('+', 1));
+      tempoControls.add(
+        //PositionedTransition(
+          //rect: new RelativeRectTween(begin: rect0, end: rect1).animate(_controller),
+        //ScaleTransition(
+          //axis: Axis.horizontal,
+          //axisAlignment: -1,
+//          ScaleTransition(
+//          scale: _animation,
+          SlideTransition(
+            position: _animationPos,
+          child: Center(child:_buildOneButton('+', 1))
+        )
+      );
+      //tempoControls.add(_buildOneButton('+', 1));
     }
     else
     {
@@ -704,6 +728,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
       ),
 
+  SlideTransition(
+    position: _animationDown,
+    child:
         Stack(
           alignment: AlignmentDirectional.center,
           children: <Widget>[
@@ -768,13 +795,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
           ]
         )
+        )
       ];
 
     children.addAll(otherChildren);
 
     ///widget Volume
     if (showVolume)
-      children.add(_builVolume());
+      children.add(
+        SlideTransition(
+          position: _animationDown,
+          child:
+          _builVolume()
+        ));
 
     if (_showAds)
       children.add(_buildAds(portrait));
