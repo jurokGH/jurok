@@ -205,9 +205,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       vsync: this,
       duration: new Duration(milliseconds: _period),
     );
-    _animationPos = new Tween<Offset>(begin: Offset.zero, end: const Offset(2, 0)).animate(_controller);
-    _animationNeg = new Tween<Offset>(begin: Offset.zero, end: const Offset(-2, 0)).animate(_controller);
-    _animationDown = new Tween<Offset>(begin: Offset.zero, end: const Offset(0, 2)).animate(_controller);
+    _animationPos = new Tween<Offset>(begin: Offset.zero, end: const Offset(2, 0)).chain(CurveTween(curve: Curves.easeIn)).animate(_controller);
+    _animationNeg = new Tween<Offset>(begin: Offset.zero, end: const Offset(-2, 0)).chain(CurveTween(curve: Curves.easeIn)).animate(_controller);
+    _animationDown = new Tween<Offset>(begin: Offset.zero, end: const Offset(0, 3)).chain(CurveTween(curve: Curves.easeIn)).animate(_controller);
     //_animation = new Tween<double>(begin: 1, end: 0).animate(_controller);
     //_animation = new Tween<double> CurvedAnimation(parent: _controller, curve: Curves.linear);
     /*
