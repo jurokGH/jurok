@@ -3,24 +3,23 @@ package com.owlenome.owlenome;
 import java.util.List;
 
 
-//То, что мы будем играть. Определено с точностью до темпа (темп регулируется через setTempo)
+
+//То, что мы будем играть. Определено с точностью до
+// темпа (темп регулируется через setTempo)
 class AccentedMelody
 {
 
-  final int absoluteMaxSubBeatNumber =8; //ToDo: adHoc, под нашу задачу
 
   byte[][] setOfNotes;
 
-  byte[][] setOfStrongNotes;
-  byte[][] setOfWeakNotes;
 
   BipAndPause[] _bipAndPauseSing;
   private int _nativeSampleRate;
   public BipPauseCycle cycle;
 
+
+
   /**
-   * Акценты должны идти подряд. (Это не самое общее, но очень простое и музыкально
-   * корректное решение.)
    * @param musicScheme
    * @param nativeSampleRate
    * @param beats
@@ -52,53 +51,23 @@ class AccentedMelody
       if (subBeats.get(i) > maxSubBeatCount)
         maxSubBeatCount = subBeats.get(i);
     }
-    byte accents[]=GeneralProsody.getAccents1(beats,false); //false - чтобы распевней
-
-    byte maxAccent=0;
-    for(int i=0; i<accents.length;i++){
-      if (maxAccent<accents[i]) maxAccent=accents[i]; }
-
-
-    //Создаём реальные массивы звуков.
-
-    //Загружаем пару основных звуков:
-    musicScheme.load(nativeSampleRate);
 
     //Теперь расставляем акценты.
     //Тут живёт особая философия, и делать это можно по-разному.
     //ToDo:   пробовать  по-разному и слушать.
+    byte accents[]=GeneralProsody.getAccents1(beats,false); //false - чтобы распевней
 
-    //Сначала - акценты долей
-    setOfStrongNotes=new byte[maxAccent+1][];
-    for(int acnt=0;acnt<setOfStrongNotes.length;acnt++)
-    {
-      setOfStrongNotes[acnt]= MelodyToolsPCM16.changeVolume(musicScheme.strongBeat,accentToVolumeFactor(acnt));
-    }
+    //Создаём реальные массивы акцентированных звуков.
+    musicScheme.load(nativeSampleRate);
 
-    //Теперь - поддолей.
-    //byte maxWeakAccent=4;
-
-
-    setOfWeakNotes=new byte[4][]; //ВАЖНО! 4 - именно столько разных
-    //звуков нужно, чтобы представить деление  доли на произвольное
-    //число поддолей до 8. Это позволяет запасти все слабые звуки сразу:
-    //35 кб хватает, чтобы запасти их всех, если длина бипа до 100мс.
-    //По вермени звучания бипа затраченная память растёт естественно линейно.
-    //По максимальному числу долей - логарифмически.
-    //Запасаем всё и не паримся в данной задаче.
-    for(int acnt=0; acnt<setOfWeakNotes.length; acnt++){
-      setOfWeakNotes[acnt]= MelodyToolsPCM16.changeVolume(musicScheme.weakBeat,accentToVolumeFactor(acnt));
-    }
 
 
     //Ноты. Сначала сильные, потом слабые
-    setOfNotes = new byte[setOfStrongNotes.length+setOfWeakNotes.length][];
-    for(int i=0;i<setOfStrongNotes.length;i++){
-      setOfNotes[i]=setOfStrongNotes[i];    }
-    for(int i=0;i<setOfWeakNotes.length;i++){
-      setOfNotes[i+setOfStrongNotes.length]=setOfWeakNotes[i]; }
-
-
+    setOfNotes = new byte[musicScheme.setOfStrongNotes.length+musicScheme.setOfWeakNotes.length][];
+    for(int i=0;i<musicScheme.setOfStrongNotes.length;i++){
+      setOfNotes[i]=musicScheme.setOfStrongNotes[i];    }
+    for(int i=0;i<musicScheme.setOfWeakNotes.length;i++){
+      setOfNotes[i+musicScheme.setOfStrongNotes.length]=musicScheme.setOfWeakNotes[i]; }
 
 
     int[] symbols = new int[bipCount];
@@ -117,7 +86,7 @@ class AccentedMelody
         if (j == 0) {//сильная доля
           symbols[k] = accents[i];
         } else {
-          symbols[k] = setOfStrongNotes.length + weakAccents[j];
+          symbols[k] = musicScheme.setOfStrongNotes.length + weakAccents[j];
         }
         int noteLength = setOfNotes[symbols[k]].length;
         _bipAndPauseSing[k] = new BipAndPause(
@@ -176,20 +145,6 @@ IS: Надо забыть код ниже (у нас нет сейчас пау�
 
 
 
-
-  /**
-   * Возвращает множитель громкости по акценту.
-   * @param accent Натуральное, 0 -> 1;
-   * @return Коэффициент уменьшения громкости
-   */
-  private double accentToVolumeFactor(int accent){
-  //  if (accent==0) return 1; else return  0;
-
-      int den=(1<<accent);
-    return (1.0-leastVolume)/den+leastVolume;
-  }
-
-  final double leastVolume=0.0;
 }
 
 

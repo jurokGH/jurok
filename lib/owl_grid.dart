@@ -319,9 +319,12 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       int k = i + 1;
       for (int j = 0; j < 5; j++)
         il[j] = new Image.asset('images/owl$k-$j.png',
-          width: size.width,
-          //height: size.height,
-          fit: BoxFit.contain);
+            width: size.width,
+            //height: size.height,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium, //TODO Choose right one
+            /// !!! To prevent flickering of first owls !!!
+            gaplessPlayback: true);
     }
     _imageSize = size;
     print('loadImages $size');

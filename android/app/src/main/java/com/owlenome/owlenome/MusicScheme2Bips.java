@@ -2,6 +2,7 @@ package com.owlenome.owlenome;
 
 import android.content.res.Resources;
 
+import com.owlenome.owlenome.GeneralProsody;
 
 
 //Этот класс представляет собой данные, нужные для создания массива двух бипов (музыкальной схемы).
@@ -15,12 +16,19 @@ import android.content.res.Resources;
 //А вот данные о звуковых файлах ему не нужно знать. В любом случае,
 //мы должны согласовывать руками всю эту бадягу.
 class MusicScheme2Bips {
-    enum SType {
+    //adHoc, под нашу задачу. Хватает для деления на 12 долей/поддолей
+    final int absoluteMaxOfStrongAccents =4;
+    final int absoluteMaxOfWeakAccents =4;
+
+    enum SyntesType {
         from2files, syntesSimple, syntesSophisticated
     }
 
-    final SType type;
+    final SyntesType type;
     final String name;
+
+    final GeneralProsody.AccentationType strongAccentationType;
+    final GeneralProsody.AccentationType weakAccentationType;
 
     /**
      * Из частот, простые бипы-дудочка (синусоида), как игралось в шарманке
@@ -33,13 +41,18 @@ class MusicScheme2Bips {
      */
     MusicScheme2Bips(String name,
                      double beatFreq, int beatDuration,
-                     double accentFreq, int accentDuration) {
-        this.type = SType.syntesSimple;
+                     double accentFreq, int accentDuration,
+                      GeneralProsody.AccentationType strongAccentationType,
+                     GeneralProsody.AccentationType weakAccentationType
+                     ) {
+        this.type = SyntesType.syntesSimple;
         this.name = name;
         this.beatDuration = beatDuration;
         this.beatFreq = beatFreq;
         this.accentFreq = accentFreq;
         this.accentDuration = accentDuration;
+        this.strongAccentationType=strongAccentationType;
+        this.weakAccentationType=weakAccentationType;
     }
 
 
@@ -51,12 +64,17 @@ class MusicScheme2Bips {
      * @param strongFileIndex
      * @param weakFileIndex
      */
-    MusicScheme2Bips(String name, Resources res, int strongFileIndex, int weakFileIndex) {
+    MusicScheme2Bips(String name, Resources res,
+                     int strongFileIndex, int weakFileIndex,
+                     GeneralProsody.AccentationType strongAccentationType,
+                     GeneralProsody.AccentationType weakAccentationType) {
         this.res = res;
         this.name = name;
-        this.type = SType.from2files;
+        this.type = SyntesType.from2files;
         this.strongFileIndex = strongFileIndex;
         this.weakFileIndex = weakFileIndex;
+        this.strongAccentationType=strongAccentationType;
+        this.weakAccentationType=weakAccentationType;
     }
 
     Resources res;
@@ -76,13 +94,20 @@ class MusicScheme2Bips {
     //...todo...
     //---
 
-    byte[] weakBeat;
-    byte[] strongBeat;
+    private byte[] weakBeat;
+    private byte[] strongBeat;
+
+
+    byte[][] setOfStrongNotes;
+    byte[][] setOfWeakNotes;
+
+
 
 
     //Из частот и длительностей. ДОЛГАЯ! Линейна по длительности звуков, с большими коэффициентами (даблы, синусы, жуть)
     void load(int nativeSampleRate) {
 
+        //Загружаем два базовых звука
         switch (type) {
             case syntesSimple: loadFromSinusoids(nativeSampleRate);
             break;
@@ -92,6 +117,23 @@ class MusicScheme2Bips {
 
             default:
 
+        }
+
+        //Теперь создаём из них все нужные звуки
+        switch (strongAccentationType){
+            case Agogic:
+                setOfStrongNotes=GeneralProsody.agodicAccents(strongBeat,
+                        absoluteMaxOfStrongAccents);
+
+                break;
+        }
+
+        switch (weakAccentationType) {
+            case Agogic:
+                setOfStrongNotes = GeneralProsody.agodicAccents(weakBeat,
+                        absoluteMaxOfWeakAccents);
+
+                break;
         }
     }
 
@@ -116,7 +158,7 @@ class MusicScheme2Bips {
     }
 
     //Из двух готовых звуков - может, это самое прекрасное, что можно придумать? Быстрая:)
-    private  void loadFrimBytes(byte[] weakBeat, byte[] strongBeat )
+    private  void loadFromBytes(byte[] weakBeat, byte[] strongBeat )
     {        this.strongBeat=strongBeat; this.weakBeat=weakBeat;    }
 
 

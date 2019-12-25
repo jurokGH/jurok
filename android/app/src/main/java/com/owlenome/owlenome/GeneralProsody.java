@@ -1,6 +1,8 @@
 package com.owlenome.owlenome;
 
 
+
+
 //Пришло время расставить акценты!
 //Содержит набор быстрых простеньких процедур (на 19.12.19 - набор состоит из одной),
 // расставляющих акценты для данного числа
@@ -17,19 +19,12 @@ package com.owlenome.owlenome;
 
 public class GeneralProsody {
 
-
-    /**
-     * По акценту, приходящемуся на долю и числу её поддолей
-     * возвращаем массив акцентов поддолей
-     * Индекс 1 значит, что мы находимся в филосовском поиске
-     */
-    private int[] subAccents1(int acc, int nOfSubbeats)
-    {
-        //ToDo: under consturtion; perhaps, redundand.
-
-        int[] res=new int[nOfSubbeats]; return res;
-
+    enum AccentationType{
+        Dynamic,
+        Agogic
     }
+
+
 
 
 
@@ -120,8 +115,42 @@ public class GeneralProsody {
         //делить число долей на 3, а не на 2. Или же стараться приблизится к трёхдольному
         //размеру в нерегулярных случаях, а не к двудольному.
         //Тут начинается Римский-Корсаков и могут получится очень любопытные звучания.
-
+        //Мы же пока на этом заканчиваем.
     }
+
+
+    //Возвращает последовательность звуков по данному, где акценты расставлены
+    //с помощью изменения громкости. 0-й элемент массива - самый сильный, последний - самый слабый
+    public static  byte[][] agodicAccents(byte[] initSound, int nOfAccents){
+        byte[][] sounds=new byte[nOfAccents][];
+        for(int acnt=0;acnt<sounds.length;acnt++) {
+            sounds[acnt] = MelodyToolsPCM16.changeVolume(initSound, accentToVolumeFactor(acnt));
+        }
+        return  sounds;
+    }
+
+    final static  double leastVolume=0.0;
+
+    /**
+     * Возвращает множитель громкости по акценту.
+     * @param accent Натуральное, 0 -> 1;
+     * @return Коэффициент уменьшения громкости
+     */
+    private  static double accentToVolumeFactor(int accent){
+
+        //int den=(1<<accent);
+        double den=1.0;
+        for (int i=0;i<accent;i++){den=3.0/2*den;}
+
+        //tmp
+        //if (accent==0){den=1.0;}
+        //  if (accent==1){den= 3.0/2;}
+        //if (accent==2){den=  9.0/4;}
+        //if (accent==1) return leastVolume;
+
+        return (1.0-leastVolume)/den+leastVolume;
+    }
+
 
 
 
