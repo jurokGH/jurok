@@ -256,6 +256,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       else
         result.success(0);
     }
+    else if (methodCall.method.equals("getSchemes"))
+    {
+      ArrayList<String> names = new ArrayList<String>();
+      for (int i = 0; i < soundSсhemes.size(); i++)
+        names.add(soundSсhemes.get(i).name);
+      //if (names.size() > 0)
+      result.success(names);
+      //channel.invokeMethod("foo", args, new MethodChannel.Result(){
+    }
     else
     {
       result.notImplemented();
