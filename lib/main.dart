@@ -167,12 +167,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///как мы это согласовываем? Пока - руками.
   int _activeSoundScheme = 0;
   int _soundSchemeCount = 4;
-  final List<String> _soundSchemes = [
-    'Plain',
-    'Drums 1',
-    'Cabasa',
-    'Short Drums'
-  ];
+  List<String> _soundSchemes = ['Plain'];
 
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
@@ -211,7 +206,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     });
 */
 
-    _soundSchemeCount = _soundSchemes.length;
+    _getMusicSchemes();
 
     _beat.beatCount = initBeatCount;
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
@@ -1039,6 +1034,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       }
     } on PlatformException {
       _infoMsg = 'Exception: Failed setting  music scheme';
+    }
+  }
+
+  Future<void> _getMusicSchemes() async
+  {
+    try
+    {
+      List<dynamic> result = await _channel.invokeMethod('getSchemes');
+      if (result.length > 0)
+      {
+        _soundSchemes = new List<String>();
+        _soundSchemes.add('Plain');
+        for (int i = 0; i < result.length; i++)
+          _soundSchemes.add(result[i]);
+        _soundSchemeCount = _soundSchemes.length;
+        if (_activeSoundScheme >= _soundSchemeCount)
+          _activeSoundScheme = 0;
+        setState((){});
+      }
+    } on PlatformException {
+      _infoMsg = 'Exception: Failed getting music schemes';
     }
   }
 
