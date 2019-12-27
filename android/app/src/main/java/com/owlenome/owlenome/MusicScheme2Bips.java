@@ -2,8 +2,6 @@ package com.owlenome.owlenome;
 
 import android.content.res.Resources;
 
-import com.owlenome.owlenome.GeneralProsody;
-
 
 //Этот класс представляет собой данные, нужные для создания массива двух бипов (музыкальной схемы).
 //Он нужен для того, чтобы определить музыкальные схемы, но не загружать
@@ -94,8 +92,8 @@ class MusicScheme2Bips {
     //...todo...
     //---
 
-    private byte[] weakBeat;
-    private byte[] strongBeat;
+     byte[] weakBeat;
+     byte[] strongBeat;
 
 
     byte[][] setOfStrongNotes;
@@ -121,19 +119,32 @@ class MusicScheme2Bips {
 
         //Теперь создаём из них все нужные звуки
         switch (strongAccentationType){
-            case Agogic:
-                setOfStrongNotes=GeneralProsody.agodicAccents(strongBeat,
+            case Dynamic:
+                setOfStrongNotes=GeneralProsody.dynamicAccents(strongBeat,
                         absoluteMaxOfStrongAccents);
 
                 break;
         }
 
         switch (weakAccentationType) {
-            case Agogic:
-                setOfStrongNotes = GeneralProsody.agodicAccents(weakBeat,
+            case Dynamic:
+                setOfWeakNotes = GeneralProsody.dynamicAccents(weakBeat,
                         absoluteMaxOfWeakAccents);
 
                 break;
+        }
+
+
+
+
+        //TODO: убрать!!! ПОЛИГОН
+        for(int i=0; i<setOfWeakNotes.length;i++){
+            setOfWeakNotes[i]=MelodyToolsPCM16.changeVolume(setOfWeakNotes[i],0.12);
+        }
+
+        //TODO: убрать!!! ПОЛИГОН
+        for(int i=0; i<setOfStrongNotes.length;i++){
+            MelodyToolsPCM16.mixTMPPROBAPERA(setOfStrongNotes[i],setOfWeakNotes[0]);
         }
     }
 

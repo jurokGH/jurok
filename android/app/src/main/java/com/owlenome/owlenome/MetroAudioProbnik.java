@@ -74,7 +74,7 @@ public class MetroAudioProbnik
 
   private float _minVolume;
   private float _maxVolume;
-  private float _volume = 0.5f;
+  private float _volume = 1.0f;
   //private final float initVolume=(float) 0.5;
 
   /**

@@ -120,16 +120,31 @@ public class GeneralProsody {
 
 
     //Возвращает последовательность звуков по данному, где акценты расставлены
-    //с помощью изменения громкости. 0-й элемент массива - самый сильный, последний - самый слабый
-    public static  byte[][] agodicAccents(byte[] initSound, int nOfAccents){
+    //с помощью изменения громкости. 0-й акцент - самый сильный.
+    public static  byte[][] dynamicAccents(byte[] initSound, int nOfAccents){
         byte[][] sounds=new byte[nOfAccents][];
         for(int acnt=0;acnt<sounds.length;acnt++) {
             sounds[acnt] = MelodyToolsPCM16.changeVolume(initSound, accentToVolumeFactor(acnt));
+
+
+            /*//TODO: Полигон. УБРАТЬ
+            MelodyToolsPCM16 TmpTools=new MelodyToolsPCM16(48000);
+            double[] tmp=TmpTools.doubleFrom16BitPCM(sounds[acnt]);
+            sounds[acnt]=TmpTools.doubleTo16BitPCM(tmp);*/
+
         }
+
+
+
         return  sounds;
     }
 
+    //Ниже этой громкости звук не уменьшится
     final static  double leastVolume=0.0;
+
+    //на что делим, уменьшая акцент
+    //Sibelius: 1.5; плохо выделяет
+    final static double accentIncreaseVolume=2.5;
 
     /**
      * Возвращает множитель громкости по акценту.
@@ -140,7 +155,7 @@ public class GeneralProsody {
 
         //int den=(1<<accent);
         double den=1.0;
-        for (int i=0;i<accent;i++){den=3.0/2*den;}
+        for (int i=0;i<accent;i++){den=accentIncreaseVolume*den;}
 
         //tmp
         //if (accent==0){den=1.0;}

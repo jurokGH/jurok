@@ -167,7 +167,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///как мы это согласовываем? Пока - руками.
   int _activeSoundScheme = 0;
   int _soundSchemeCount = 4;
-  List<String> _soundSchemes = ['Plain'];
+  List<String> _soundSchemes = [];
 
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
@@ -1045,7 +1045,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (result.length > 0)
       {
         _soundSchemes = new List<String>();
-        _soundSchemes.add('Plain');
+        //_soundSchemes.add('Plain');
         for (int i = 0; i < result.length; i++)
           _soundSchemes.add(result[i]);
         _soundSchemeCount = _soundSchemes.length;
