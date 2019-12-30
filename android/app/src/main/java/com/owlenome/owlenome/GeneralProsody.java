@@ -140,11 +140,11 @@ public class GeneralProsody {
     }
 
     //Ниже этой громкости звук не уменьшится
-    final static  double leastVolume=0.0;
+    final static  double leastVolume=0.20;
 
     //на что делим, уменьшая акцент
     //Sibelius: 1.5; плохо выделяет
-    final static double accentIncreaseVolume=2.5;
+    final static double accentIncreaseVolume=1.5;
 
     /**
      * Возвращает множитель громкости по акценту.
