@@ -46,7 +46,6 @@ flutter:
   assets:
     - images/Backg-Up-1.jpg
     - images/Backg-Dn-1.jpg
-    - images/Backg-Up-1.png
     - images/Backg-Dn-1.png
     - images/owl1-0.png
     - images/owl1-1.png

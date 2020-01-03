@@ -554,25 +554,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final double paddingY = _beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
 
     return Container(
-      width: _widthSquare,
-      height: _widthSquare,
-      padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
+        width: _widthSquare,
+        height: _widthSquare,
+        padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
         EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
-      ///widget Background
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [_primaryColor, _accentColor])
-       // image: DecorationImage(
-        //  image: AssetImage('images/Backg-Up-1.jpg'),
-         // fit: BoxFit.cover
-       // )
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: children,
-      )
+        ///widget Background
+        decoration: BoxDecoration(
+          //  gradient: LinearGradient(
+          //   begin: Alignment.topCenter,
+          //   end: Alignment.bottomCenter,
+          //      colors: [_primaryColor, _accentColor])
+            image: DecorationImage(
+                image: AssetImage('images/Backg-Up-1.jpg'),
+                fit: BoxFit.cover
+            )
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        )
     );
   }
 
@@ -816,11 +816,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Expanded(
       child: Container(
         /// Background
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
-                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
-                colors: [_primaryColor, _accentColor])
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage('images/Backg-Up-1.jpg'),
+                  fit: BoxFit.cover
+              )
         ),
         //Padding(
         //  padding: const EdgeInsets.all(8.0),
