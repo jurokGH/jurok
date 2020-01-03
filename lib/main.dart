@@ -29,7 +29,7 @@ final Color _cPrimaryColor = Colors.grey;
 /// Theme accent color
 final Color _cAccentColor = Colors.blueGrey;
 /// Text color
-final Color _cTextColor = Colors.black;
+final Color _cTextColor = Colors.white;
 /// UI Controls color and opacity
 final Color _cCtrlColor = Colors.grey;
 final double _cCtrlOpacity = 0;
@@ -474,7 +474,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
         ///widget Settings
         IconButton(
-          iconSize: 24,
+          iconSize: 18,
           icon: Icon(Icons.settings,),
           color: _textColor.withOpacity(_opacity),
           onPressed: () {
@@ -497,7 +497,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
       child: Text(text,
         style: _textStyle,
-        textScaleFactor: 2.0,),
+        textScaleFactor: 1.2,),
       //padding: EdgeInsets.all(4),
       shape: CircleBorder(
         //borderRadius: new BorderRadius.circular(18.0),
@@ -565,7 +565,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //   end: Alignment.bottomCenter,
           //      colors: [_primaryColor, _accentColor])
             image: DecorationImage(
-                image: AssetImage('images/Backg-Up-1.jpg'),
+                image: AssetImage('images/Backg-Dn-2.jpg'),
                 fit: BoxFit.cover
             )
         ),
@@ -597,7 +597,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
           SlideTransition(
             position: _animationNeg,
-            child:
+           child:
             SizedBox(
             width: 0.5 * (width - 2 * _padding.dx),
             child: _buildMetre(_textStyle)
@@ -620,7 +620,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
           ///widget Subbeat widget
           //Flexible(child:
-      SlideTransition(
+     SlideTransition(
         position: _animationPos,
         child:
           SizedBox(
@@ -650,8 +650,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       min: minTempo.toDouble(),
       max: maxTempo.toDouble(),
       limit: _tempoBpmMax.toDouble(),
-      size: 0.36 * _widthSquare,
-      color: _textColor.withOpacity(0.5),
+        size: 0.32 * _widthSquare,
+      color: _textColor.withOpacity(0.6),
       textStyle: _textStyle,
       onPressed: _play,
       onChanged: (double value) {
@@ -673,17 +673,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ///widget Tempo down (-1) button
       //tempoControls.add(_buildOneButton('-', -1));
       tempoControls.add(
-//        SizeTransition(
-//          axis: Axis.horizontal,
-//          axisAlignment: 1,
-//          sizeFactor: _animation,
-        SlideTransition(
-          position: _animationNeg,
-          child: Center(child:_buildOneButton('-', -1))
-        )
-      );
+
+          SlideTransition(
+              position: _animationNeg,
+              child: Center(child:_buildOneButton('-', -1))
+                    )
+
+          );
+
+
       ///widget Tempo knob control
       tempoControls.add(wixKnob);
+
+
+
       ///widget Tempo up (+1) button
       tempoControls.add(
         //PositionedTransition(
@@ -693,10 +696,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //axisAlignment: -1,
 //          ScaleTransition(
 //          scale: _animation,
-          SlideTransition(
-            position: _animationPos,
-          child: Center(child:_buildOneButton('+', 1))
-        )
+
+                SlideTransition(
+                    position: _animationPos,
+                    child: Center(child:_buildOneButton('+', 1))
+                )
       );
       //tempoControls.add(_buildOneButton('+', 1));
     }
@@ -818,7 +822,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         /// Background
           decoration: BoxDecoration(
               image: DecorationImage(
-                  image: AssetImage('images/Backg-Up-1.jpg'),
+                  image: AssetImage('images/Backg-Dn-2.jpg'),
                   fit: BoxFit.cover
               )
         ),

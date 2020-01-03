@@ -51,14 +51,14 @@ class SubbeatState extends State<SubbeatWidget>
       },
       child: Row(
         children: <Widget>[
-          Image.asset('images/owl2-3.png',
+          Image.asset('images/OWL=.png',
             height: 50,
             fit: BoxFit.contain
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-            child: Text('=', style: widget.textStyle.copyWith(color: widget.color))
-          ),
+          //        Padding(
+//            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+//            child: Text('=', style: widget.textStyle.copyWith(color: widget.color))
+//          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
             child: SizedBox(

@@ -190,15 +190,15 @@ class NotePainter extends CustomPainter {
   ///
 
   ///Толщина линий вокруг активной ноты
-  final double _explosionLineWidth = 3;
+  final double _explosionLineWidth = 2;
 
   ///Число линий взрыва
-  final int _numberOfExplosionLines = 16;
+  final int _numberOfExplosionLines = 12;
 
   final Color colorExplosion = Colors.redAccent;
 
   ///Зазор линии взрыва от ноты
-  final double _startLineMultiplier = 1.4;
+  final double _startLineMultiplier = 1.2;
 
   ///[<---- ОБЛАСТЬ ДЕЙСТВИЯ ЮРИКА.   ]
 

@@ -154,7 +154,8 @@ class TempoState extends State<TempoWidget>
         widget.onChanged(tempoList[_index].tempo);
       },
       child: Text(txt,
-        style: widget.textStyle
+        style: TextStyle(color: Colors.white ,
+            fontSize:  12),
       )
     );
   }
