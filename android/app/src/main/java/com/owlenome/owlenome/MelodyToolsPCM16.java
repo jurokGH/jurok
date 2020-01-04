@@ -2,6 +2,7 @@ package com.owlenome.owlenome;
 
 /**
  * Синтез звуков для PCM16.
+ * //TODO Make static what is possible
  */
 public class MelodyToolsPCM16
 {
@@ -25,7 +26,7 @@ public class MelodyToolsPCM16
    */
   public byte[] getFreq(double freq, int lengthInSamples, int degIn, int degOut)
   {
-    return get16BitPcm(fadeInOutPoly(sinusoid(lengthInSamples, freq), degIn, degOut));
+    return doubleTo16BitPCM(fadeInOutPoly(sinusoid(lengthInSamples, freq), degIn, degOut));
   }
 
   /**
@@ -35,7 +36,7 @@ public class MelodyToolsPCM16
    * @param deg     степень затухания
    * @return Новые сэмплы
    */
-  double[] fadePoly(double[] samples, int deg)
+  static double[] fadePoly(double[] samples, int deg)
   {
     double[] res = new double[samples.length];
     if (res.length <= 1) return res;
@@ -58,7 +59,7 @@ public class MelodyToolsPCM16
    * @param degOut  степень затухания
    * @return Новые сэмплы
    */
-  double[] fadeInOutPoly(double[] samples, double degIn, double degOut)
+  static double[] fadeInOutPoly(double[] samples, double degIn, double degOut)
   {
     double[] res = new double[samples.length];
     if (res.length <= 1) return res;
@@ -95,7 +96,7 @@ public class MelodyToolsPCM16
   /**
    * Массив нулевых байт двойной длины (видимо, можно сделать более быстрым образом)
    */
-  byte[] getSilence(int samplesN)
+  static byte[] getSilence(int samplesN)
   {
     int resLength = 2 * samplesN;
     byte[] res = new byte[resLength];
@@ -105,12 +106,12 @@ public class MelodyToolsPCM16
   }
 
   /**
-   * Переводим double сэмплы в массив байт
+   * Переводим double сэмплы в массив байт. Значения double должны быть в отрезке [-1,+1]
    *
    * @param samples сэмплы в формате double
    * @return массив байт для проигрывания в формате 16bitPCM
    */
-  byte[] get16BitPcm(double[] samples)
+  static byte[] doubleTo16BitPCM(double[] samples)
   {
     ///Код из примера  https://masterex.github.io/archive/2012/05/28/android-audio-synthesis.html
     byte[] generatedSound = new byte[2 * samples.length];
@@ -128,6 +129,23 @@ public class MelodyToolsPCM16
 
 
   /**
+   * обратная к doubleTo16BitPCM
+   *(Почти обратная - тут нормализуем по 2^15, а в
+   * doubleTo16BitPCM растягиваем по 2^15-1)
+   *
+   */
+  static double[] doubleFrom16BitPCM(byte[] samples)
+  {
+    double[] samplesDouble=new double[samples.length/2];
+    for (int i=0;i<samplesDouble.length;i++){ //ToDo: DC!!
+      int sample= (samples[2*i+1]<<8)|(0xFF&samples[2*i]);//Вроде так правильно!
+      samplesDouble[i]= 1.0/(Short.MAX_VALUE+1)*sample;
+    }
+    return samplesDouble;
+  }
+
+
+  /**
    * Изменяем громкость
    * @param samples сэмплы в байтах, массив четной длины
    * @param vol in [0,1]
@@ -137,11 +155,22 @@ public class MelodyToolsPCM16
     if (vol==1) return samples;
     int nOfSamples=samples.length/2;
     byte[] newSamplesByte=new byte[nOfSamples*2];
-    //Бадяга дальше нужна, поскольку из-за огруглений нет дистибутивности:
-    //если просто поэлементно умножим массив - будет много погрешностей
+    //ToDo: Вся эта бадяга ниже  кажется просто чушь. - Почему нельзя просто поэлементно умножить?
+    // Второй-то байт беззнаковый!
     for (int i=0; i<samples.length/2; i++){
-      //ToDo: протестить типы и битовую арифметику.
-      short newSample= (short) (vol* (samples[2*i+1]<<8)+vol*samples[2*i]);
+      //ToDo: протестить типы и битовую арифметику. DC!!!!
+
+      //short newSample= (short) (vol* (samples[2*i+1]<<8)+vol*samples[2*i]); -- WRONG!
+      //Последний байт (второй, то есть первый, но меньший, ну понятно) -
+      //Он же со знаком, а PCM его воспринимает без знака. Куда их было их складывать?!
+      //
+      //Эта херня выше создавала забавное звучание на сильной доле drums1 (drum_accent_mono)
+      // - пиужжжжж, чистый бластер, которым убили манерного робота Вертера.
+
+      short newSample= (short) (vol*
+              ( (samples[2*i+1]<<8)|(0xFF&samples[2*i])  )
+      );
+
       newSamplesByte[2 * i] = (byte) (newSample & 0x00ff);
       newSamplesByte[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
     }
@@ -149,8 +178,21 @@ public class MelodyToolsPCM16
   }
 
 
+    //К первому сэмплу примиксовываем второй
+    public static void mixTMPPROBAPERA(byte[] samples1, byte[] samples2){
+      int lngsShort=Math.min(samples1.length,samples2.length)/2;
+      for(int i=0;i<lngsShort;i++){
+          int newSample1=  (samples1[2*i+1]<<8)|(0xFF&samples1[2*i]);
+          int newSample2=  (samples2[2*i+1]<<8)|(0xFF&samples2[2*i]);
+          int newSample=(newSample1+newSample2)/2;
+          samples1[2 * i] = (byte) (newSample & 0x00ff);
+          samples1[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
+      }
+    }
 
-  //ToDo: генерировать ноты по полутонам, или по октавам и именам
+
+
+    //Проще генерировать ноты по полутонам, или по октавам и именам...
   //http://pages.mtu.edu/~suits/notefreqs.html
   public byte[] noteA4(int samplesN, int degIn, int degOut)
   {

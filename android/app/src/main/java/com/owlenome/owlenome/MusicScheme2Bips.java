@@ -3,7 +3,6 @@ package com.owlenome.owlenome;
 import android.content.res.Resources;
 
 
-
 //Этот класс представляет собой данные, нужные для создания массива двух бипов (музыкальной схемы).
 //Он нужен для того, чтобы определить музыкальные схемы, но не загружать
 //их сразу (это было бы расточительно).
@@ -15,12 +14,19 @@ import android.content.res.Resources;
 //А вот данные о звуковых файлах ему не нужно знать. В любом случае,
 //мы должны согласовывать руками всю эту бадягу.
 class MusicScheme2Bips {
-    enum SType {
+    //adHoc, под нашу задачу. Хватает для деления на 12 долей/поддолей
+    final int absoluteMaxOfStrongAccents =4;
+    final int absoluteMaxOfWeakAccents =4;
+
+    enum SyntesType {
         from2files, syntesSimple, syntesSophisticated
     }
 
-    final SType type;
+    final SyntesType type;
     final String name;
+
+    final GeneralProsody.AccentationType strongAccentationType;
+    final GeneralProsody.AccentationType weakAccentationType;
 
     /**
      * Из частот, простые бипы-дудочка (синусоида), как игралось в шарманке
@@ -33,13 +39,18 @@ class MusicScheme2Bips {
      */
     MusicScheme2Bips(String name,
                      double beatFreq, int beatDuration,
-                     double accentFreq, int accentDuration) {
-        this.type = SType.syntesSimple;
+                     double accentFreq, int accentDuration,
+                      GeneralProsody.AccentationType strongAccentationType,
+                     GeneralProsody.AccentationType weakAccentationType
+                     ) {
+        this.type = SyntesType.syntesSimple;
         this.name = name;
         this.beatDuration = beatDuration;
         this.beatFreq = beatFreq;
         this.accentFreq = accentFreq;
         this.accentDuration = accentDuration;
+        this.strongAccentationType=strongAccentationType;
+        this.weakAccentationType=weakAccentationType;
     }
 
 
@@ -51,12 +62,17 @@ class MusicScheme2Bips {
      * @param strongFileIndex
      * @param weakFileIndex
      */
-    MusicScheme2Bips(String name, Resources res, int strongFileIndex, int weakFileIndex) {
+    MusicScheme2Bips(String name, Resources res,
+                     int strongFileIndex, int weakFileIndex,
+                     GeneralProsody.AccentationType strongAccentationType,
+                     GeneralProsody.AccentationType weakAccentationType) {
         this.res = res;
         this.name = name;
-        this.type = SType.from2files;
+        this.type = SyntesType.from2files;
         this.strongFileIndex = strongFileIndex;
         this.weakFileIndex = weakFileIndex;
+        this.strongAccentationType=strongAccentationType;
+        this.weakAccentationType=weakAccentationType;
     }
 
     Resources res;
@@ -76,13 +92,20 @@ class MusicScheme2Bips {
     //...todo...
     //---
 
-    byte[] weakBeat;
-    byte[] strongBeat;
+     byte[] weakBeat;
+     byte[] strongBeat;
+
+
+    byte[][] setOfStrongNotes;
+    byte[][] setOfWeakNotes;
+
+
 
 
     //Из частот и длительностей. ДОЛГАЯ! Линейна по длительности звуков, с большими коэффициентами (даблы, синусы, жуть)
     void load(int nativeSampleRate) {
 
+        //Загружаем два базовых звука
         switch (type) {
             case syntesSimple: loadFromSinusoids(nativeSampleRate);
             break;
@@ -92,6 +115,36 @@ class MusicScheme2Bips {
 
             default:
 
+        }
+
+        //Теперь создаём из них все нужные звуки
+        switch (strongAccentationType){
+            case Dynamic:
+                setOfStrongNotes=GeneralProsody.dynamicAccents(strongBeat,
+                        absoluteMaxOfStrongAccents);
+
+                break;
+        }
+
+        switch (weakAccentationType) {
+            case Dynamic:
+                setOfWeakNotes = GeneralProsody.dynamicAccents(weakBeat,
+                        absoluteMaxOfWeakAccents);
+
+                break;
+        }
+
+
+
+
+        //TODO: убрать!!! ПОЛИГОН
+        for(int i=0; i<setOfWeakNotes.length;i++){
+            setOfWeakNotes[i]=MelodyToolsPCM16.changeVolume(setOfWeakNotes[i],0.12);
+        }
+
+        //TODO: убрать!!! ПОЛИГОН
+        for(int i=0; i<setOfStrongNotes.length;i++){
+            MelodyToolsPCM16.mixTMPPROBAPERA(setOfStrongNotes[i],setOfWeakNotes[0]);
         }
     }
 
@@ -116,7 +169,7 @@ class MusicScheme2Bips {
     }
 
     //Из двух готовых звуков - может, это самое прекрасное, что можно придумать? Быстрая:)
-    private  void loadFrimBytes(byte[] weakBeat, byte[] strongBeat )
+    private  void loadFromBytes(byte[] weakBeat, byte[] strongBeat )
     {        this.strongBeat=strongBeat; this.weakBeat=weakBeat;    }
 
 

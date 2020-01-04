@@ -55,7 +55,9 @@ import java.io.InputStream;
         //int newLinFrames=(samples.length/2)*newSampleRate/oldSampleRate;
         int[] samples16=new int[samples.length/2];
         for (int i=0;i<samples16.length;i++){
-            samples16[i]=(samples[2*i+1]<<8)+samples[2*i];
+            //ToDo: DC
+            //samples16[i]=(samples[2*i+1]<<8)+samples[2*i]; //А это верно? Второй же со знаком!!!
+            samples16[i]=(samples[2*i+1]<<8)|(0xFF&samples[2*i]);
         }
 
         double delta=(double)oldSampleRate/newSampleRate;
@@ -79,6 +81,7 @@ import java.io.InputStream;
 
         //разбираем новый звук по байтам, чередуя их порядок
         byte[] newSamplesByte=new byte[newSamples16.length*2];
+        //ToDo: битовая арифметика без шорт. DC
         for (int i=0; i<newSamples16.length;i++) {
             int sample = newSamples16[i];
             newSamplesByte[2 * i] = (byte) (sample & 0x00ff);

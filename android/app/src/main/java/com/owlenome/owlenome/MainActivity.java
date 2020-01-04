@@ -360,24 +360,47 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   {
     soundSсhemes = new ArrayList<MusicScheme2Bips>();
 
-    //Старые добрые бипы
-    // ToDo: при настройке звуков из flutter, можно менять именно
-    // эту схему, чтобы не плодить их.
-    musicSсhemeTunable = new MusicScheme2Bips("Bips-A4C5",
-      440, 25, 523.25, 35);
-    soundSсhemes.add(musicSсhemeTunable);
-
     Resources res = getResources();
+
     soundSсhemes.add(
-      new MusicScheme2Bips("Drums-1", res, R.raw.drum_accent_mono, R.raw.drum));
+            new MusicScheme2Bips("Workspace-1", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
     soundSсhemes.add(
-      new MusicScheme2Bips("WoodblockCabasa-1", res, R.raw.woodblock_short1, R.raw.cabasa1));
+            new MusicScheme2Bips("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
     soundSсhemes.add(
-      new MusicScheme2Bips("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.short_drum1));
+            new MusicScheme2Bips("WoodblockCabasa-1",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+                    )
+    );
+    soundSсhemes.add(
+      new MusicScheme2Bips("Drums-1", res, R.raw.drum_accent_mono, R.raw.drum,
+              GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+              ));
+    soundSсhemes.add(
+      new MusicScheme2Bips("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
+              GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+              ));
     /*soundSсhemes.add(
             new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
                     R.raw.drum_accent,R.raw.drum)
     ); //Где-то потерялся один из звуков, ну и нафиг не нужна эта схема.
     */
+
+
+    //Старые добрые бипы
+    // ToDo: при настройке звуков из flutter, можно менять именно
+    // эту схему, чтобы не плодить их.
+    musicSсhemeTunable = new MusicScheme2Bips("Bips-A4C5",
+            440, 25, 523.25, 35,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+    );
+    soundSсhemes.add(musicSсhemeTunable);
   }
 }

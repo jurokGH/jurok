@@ -229,9 +229,13 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   //int subCount;
   //int subCur;
   //bool active;
+
   int _counter;
 
-  OwlGridState();
+  OwlGridState()
+  {
+    _imageSize = new Size(0, 0);
+  }
 
   void toggleAnimation()
   {
