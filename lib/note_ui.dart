@@ -147,7 +147,7 @@ class NotePainter extends CustomPainter {
   final double _bigRadiusMultiplier = 1.4;
 
   ///Низ зоны флагов
-  final double _relFlagsZoneBottom = 0.4;
+  final double _relFlagsZoneBottom = 0.5;
 
   ///!!! СЛОЖНОЕ МЕСТО... Непонятно: ширина штиля и пространство
   ///медлу ними должны ли масштабироваться? Пока принято решение, что да.
