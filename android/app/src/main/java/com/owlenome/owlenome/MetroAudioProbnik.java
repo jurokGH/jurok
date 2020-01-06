@@ -77,12 +77,12 @@ public class MetroAudioProbnik
   private float _volume = 1.0f;
   //private final float initVolume=(float) 0.5;
 
-  /**
+  /*
    * Ноты, волны данной частоты
    */
-  private MelodyToolsPCM16 melodyTools;
+  //private MelodyToolsPCM16 melodyTools;
 
-  /**
+  /*
    *  Последовательность байт для тишины. ОДИН ЖЕЛЕЗНЫЙ БУФЕР!
    *  Пишется при разогреве.
    */
@@ -134,43 +134,44 @@ public class MetroAudioProbnik
 
   //ToDo: TEST
   private boolean newTempo = false;
-  private Tempo _tempo;
+  private TempoObsolete _tempoTmpTmpTmp;
 
   boolean doPlay; //ToDo: логика состояния
 
   // Sound writer task
   MetroRunnable _task = null;
 
-  public int setMelody(AccentedMelody m, Tempo tempo)
-
+  public int setMelody(AccentedMelody m, TempoObsolete tempoTmpTmpTmp)
 
   {
     //TODO
     melody = m;
 
-    if (tempo.beatsPerMinute < cMinTempoBpm)
-      tempo.beatsPerMinute = cMinTempoBpm;
-    _tempo = tempo;
+
+    //TODO: IS: what is the meaning of this? Seems to be redundant
+    if (tempoTmpTmpTmp.beatsPerMinute < cMinTempoBpm)
+      tempoTmpTmpTmp.beatsPerMinute = cMinTempoBpm;
+    _tempoTmpTmpTmp = tempoTmpTmpTmp;
     if (state == STATE_PLAYING)
       newMelody = true;
 
-    return (int) melody.getMaxTempo(tempo);
+    return (int) melody.getMaxTempo();
   }
 
   int getTempo()
   {
-    return _task == null ? _tempo.beatsPerMinute : _task.realBPM;
+    return _task == null ? _tempoTmpTmpTmp.beatsPerMinute : _task.realBPM;
   }
 
-  public int setTempo(Tempo tempo)
+  public int setTempo(TempoObsolete tempoTmpTmpTmp)
   {
-    if (tempo.beatsPerMinute < cMinTempoBpm)
-      tempo.beatsPerMinute = cMinTempoBpm;
-    _tempo = tempo;
+    if (tempoTmpTmpTmp.beatsPerMinute < cMinTempoBpm)
+      tempoTmpTmpTmp.beatsPerMinute = cMinTempoBpm;
+    _tempoTmpTmpTmp = tempoTmpTmpTmp;
     if (state == STATE_PLAYING)
       newTempo = true;
 
-    return melody != null ? (int) melody.getMaxTempo(tempo) : 0;
+    return melody != null ? (int) melody.getMaxTempo() : 0;
   }
 
   // volume = [0..100]
@@ -198,10 +199,10 @@ public class MetroAudioProbnik
         state != STATE_READY);
   }
 
-  public int play(Tempo tempo)
+  public int play(TempoObsolete tempoTmpTmpTmp)
   {
     boolean res = true;
-    _tempo = tempo;
+    _tempoTmpTmpTmp = tempoTmpTmpTmp;
 
     setState(STATE_STARTING);
     doPlay = true;
@@ -219,8 +220,8 @@ public class MetroAudioProbnik
     new Thread(_task).start();
     //ToDo: сделать булевым, и если false - значит, мы не запустились
 
-    double maxTempo = melody.getMaxTempo(tempo);
-    return res ? (int) (tempo.beatsPerMinute >= maxTempo ? maxTempo : tempo.beatsPerMinute) : 0;
+    double maxTempo = melody.getMaxTempo();
+    return res ? (int) (tempoTmpTmpTmp.beatsPerMinute >= maxTempo ? maxTempo : tempoTmpTmpTmp.beatsPerMinute) : 0;
   }
 
   public void stop()
@@ -389,7 +390,7 @@ public class MetroAudioProbnik
     this.nativeSampleRate = nativeSampleRate;
     this.nativeBufferInFrames = nativeBufferInFrames;
 
-    _tempo = new Tempo(cTempoBpM, cNnoteValue);
+    _tempoTmpTmpTmp = new TempoObsolete(cTempoBpM, cNnoteValue);
 
     this.handler = handler;
 
@@ -669,7 +670,7 @@ public class MetroAudioProbnik
     @Override
     public void run()
     {
-      realBPM = melody.setTempo(_tempo);
+      realBPM = melody.setTempo(_tempoTmpTmpTmp.beatsPerMinute);
 
       melody.cycle.position.reset();
 
@@ -813,7 +814,7 @@ public class MetroAudioProbnik
           if (newMelody)
           {
             System.out.printf("---------SetNewMelody------");
-            realBPM = melody.setTempo(_tempo);
+            realBPM = melody.setTempo(_tempoTmpTmpTmp.beatsPerMinute);
 
             melody.cycle.position.reset();
 
@@ -828,11 +829,11 @@ public class MetroAudioProbnik
             {
               System.out.printf("---------NewTempo------");
               System.out.printf(String.format("Old length of cycle: %.3f\n", cycle.duration));
-              System.out.printf(String.format("BPMFromSeekBarVal: %d", _tempo.beatsPerMinute));
+              System.out.printf(String.format("BPMFromSeekBarVal: %d", _tempoTmpTmpTmp.beatsPerMinute));
               cycle.print();
             }
 
-            realBPM = melody.setTempo(_tempo);
+            realBPM = melody.setTempo(_tempoTmpTmpTmp.beatsPerMinute);
             newTempo = false;
             //tempo.beatsPerMinute = BPMfromSeekBar;
             //barrelOrgan.reSetAngles(cycle);
@@ -1125,7 +1126,7 @@ public class MetroAudioProbnik
  */
 // in seconds
       /*
-      private double tempoToCycleDuration(Tempo tempo)
+      private double tempoToCycleDuration(TempoTmpTmpTmp tempo)
       {
         int totalBeatsPerCycle = bars * tempo.denominator;
         double framesPerBeat = nativeSampleRate * 60.0 / tempo.beatsPerMinute;
@@ -1176,11 +1177,11 @@ public class MetroAudioProbnik
  * @return установленных ударов в минуту
  */
       /*
-      public int setTempo(Tempo tempo)
+      public int setTempo(TempoTmpTmpTmp tempo)
       {
         int BPMtoSet = Math.min((int) getMaximalTempo(tempo.denominator),
           tempo.beatsPerMinute);
-        cycleSing.setNewDuration(tempoToCycleDuration(new Tempo(BPMtoSet, tempo.denominator)));
+        cycleSing.setNewDuration(tempoToCycleDuration(new TempoTmpTmpTmp(BPMtoSet, tempo.denominator)));
         return BPMtoSet;
       }
 

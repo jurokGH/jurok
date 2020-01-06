@@ -228,9 +228,48 @@ public class BipPauseCycle
    */
   final double leastDilationRatio;
 
+
+
   /**
    * Каков будет темп при данной длительности цикла в сэмплах. Зависит от bars и
    * частоты.
+   *
+   * IS: New, 05.01.2019
+   *
+   * @param durationInFrames какую длительность в сэмплах переводим в tempo
+   * @param beatsInCycle   сколько битов в цикле
+   * @return ударов, соответствующим denominator, в минуту при данной длине цикла
+   */
+  public double cycleDurationToBeatsPM(int frequency, double durationInFrames, int beatsInCycle)
+  {
+    double durInMins = durationInFrames / (frequency * 60.0);
+    return ((double) beatsInCycle) / durInMins;
+  }
+
+
+  /**
+   * Это прообраз общей процедуры, определяющий максимальный темп по данной
+   * звуковой схеме. Результат дробный, поэтому нужно его округлить
+   * в "простой схеме" (когде нет свободного метра, а мы привязаны к музыкальной архаике).
+   * Напонмю, что максимальная скорость (наименьшая длительность цикла) зависят от ужимаемых
+   * elastic's и предшествующих несжимаемых звуков. Иными словами, она зависит от кратчайших бипов
+   * в музыкальной схеме и их доле в сумме со следующей паузой.
+   * Совсем огрубляя: чем короче бипы - тем быстрее можно играть (естественно).
+   *
+   *
+   * IS: New, 05.01.2019
+   *
+   * @param beatsInCycle   сколько битов в цикле
+   * @return наибольший темп, который мы можем установить для цикла при данном знаменателе
+   */
+  public double getMaximalTempo(int frequency, int beatsInCycle)
+  {
+    return cycleDurationToBeatsPM(frequency, leastDuration, beatsInCycle);
+  }
+
+
+  /**
+   * Каков будет темп при данной длительности цикла в сэмплах.
    *
    * @param durationInFrames какую длительность в сэмплах переводим в tempo
    * @param denominator      какой у темпо знаменатель
@@ -242,6 +281,7 @@ public class BipPauseCycle
     int totalBeatsPerCycle = bars * denominator;
     return ((double) totalBeatsPerCycle) / durInMins;
   }
+
 
   /**
    * Это прообраз общей процедуры, определяющий максимальный темп по данной
@@ -255,10 +295,10 @@ public class BipPauseCycle
    * @param denominator в чем исчисляется ритм (4,8,16)
    * @return наибольший темп, который мы можем установить для цикла при данном знаменателе
    */
-  public double getMaximalTempo(int frequency, int bars, int denominator)
+  /*public double getMaximalTempo(int frequency, int bars, int denominator)
   {
     return cycleDurationToBeatsPM(frequency, leastDuration, bars, denominator);
-  }
+  }*/ //TODO: Вернуть
 
   /**
    * Элементы цикла на нечетных местах меняют длину.
