@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _bars = 1;
   //int _numerator = 1;*/
 
-  int _volume = 50;
+  int _volume = 100;
   bool _mute = false;
   int _tempoBpm = 60;
   int _tempoBpmMax = maxTempo;
@@ -977,6 +977,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       {
         setState(() {
           _tempoBpmMax = limitTempo;
+          if (_tempoBpm > _tempoBpmMax)
+            _tempoBpm = _tempoBpmMax;
         });
       }
     }
@@ -1010,6 +1012,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       {
         setState(() {
           _tempoBpmMax = limitTempo;
+          if (_tempoBpm > _tempoBpmMax)
+            _tempoBpm = _tempoBpmMax;
         });
       }
     }
