@@ -18,7 +18,7 @@ class MetronomeState with ChangeNotifier
   /// Start time of given beat metre in microseconds 
   int _timeOrg;
   Tempo tempo;
-  AccentBeat melody;
+  //AccentBeat melody; //IS: Why?
   Position pos;
 
   //DateTime _time0 = new DateTime.fromMillisecondsSinceEpoch(0);
@@ -42,6 +42,7 @@ class MetronomeState with ChangeNotifier
 
   void start()
   {
+    //IS: TODO; WRONG
     _timeOrg = DateTime.now().microsecondsSinceEpoch;
     /*
     _timer.reset();
@@ -68,7 +69,7 @@ class MetronomeState with ChangeNotifier
   /// Synchronize metronome state with current sound state from Java
   void sync(int index, double offset, int beat, int subbeat, int time)
   {
-    _timeOrg = DateTime.now().microsecondsSinceEpoch;
+    _timeOrg = DateTime.now().microsecondsSinceEpoch;//IS: Oh, why? //TODO
     //TODO Use pair/tuple
     List<int> pair = beatMetre.beatPair(index);
     // Correct reference sync time as a beat metre start time
@@ -101,6 +102,8 @@ class MetronomeState with ChangeNotifier
     return changed;
   }
 
+   /* //IS:прикрыл, чтобы разобраться в коде.
+  /// Не используется?
   bool updateCycle()
   {
     bool changed = false;
@@ -121,7 +124,7 @@ class MetronomeState with ChangeNotifier
     }
     return changed;
   }
-
+*/
   void setTempo(int tempoBpm, int noteValue)
   {
     tempo.beatsPerMinute = tempoBpm;

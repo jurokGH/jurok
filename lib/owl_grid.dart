@@ -342,6 +342,10 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   @override
   Widget build(BuildContext context)
   {
+
+
+    int tm= DateTime.now().microsecondsSinceEpoch;
+
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
     print('OwlGridState $size');
@@ -358,7 +362,18 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
     Size imageSize = layout.calcImageSize(size);
     //TODO Test: Move loadImages to initState, but keep precacheImages here?
+
+
     loadImages(imageSize);
+    tm=DateTime.now().microsecondsSinceEpoch-tm;
+    print('ReLoading Images etc in OwlGribBild in microseconds: $tm');
+    //TODO
+    // IS:  Кажется, то, что выше, можно не повротять, когда число сов не менялось
+    // LoadImage занимает лишь лишник 10-15 мкс (20-25 вместе с долгой процедурой DateTime.now(),
+    //которая сама ест около 10  мс).
+    // Но всё вместе - вызывается многократно и занимает тучу времени, до нескольких миллисекунд!
+    // Можно ли эту рутину с раскладкой делать один раз?
+
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
     int maxCountX = maxValue(beatRows);

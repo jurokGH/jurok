@@ -162,12 +162,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //BipPauseCycle bipPauseCycle;
 
   /// Пение рокочущих сов
-  /// Сколько схем:
   ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
-  ///как мы это согласовываем? Пока - руками.
-  int _activeSoundScheme = 0;
-  int _soundSchemeCount = 4;
-  List<String> _soundSchemes = ['Plain'];
+  int _activeSoundScheme = 0;//IS: Why?!
+  int _soundSchemeCount = 4; //IS: Мы уже умеем всё это спраишивать у явы
+  List<String> _soundSchemes = ['Plain'];  //IS: Why?!
+
 
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
@@ -919,7 +918,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else
       {
         setState(() {
-          //_tempoBpm = realTempo;
+           _tempoBpm = realTempo; //IS: TEST
         });
       }
     }
@@ -996,6 +995,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.setTempo(_tempoBpm, _noteValue);
+    //IS: Почему сначала меняется tempo у состояния?
 
     try
     {

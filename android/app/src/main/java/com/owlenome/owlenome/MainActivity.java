@@ -121,7 +121,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     };
 
     metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
-      120, //1000.0/8 --- 240;16,; 1280 - 64 буфера;
+      0,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
       // 160 - основной кандидат (8 моих буферов)
       handler);
 
