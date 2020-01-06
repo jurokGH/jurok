@@ -172,6 +172,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
   bool redraw = false;
+  bool hideCtrls = true;
   AnimationController _controller;
   Animation<double> _animation;
   Animation<Offset> _animationPos;
@@ -247,7 +248,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _playing = false;
       //if (animate60fps)
         //_controller.stop();
-      _controller.reverse();
+      if (hideCtrls)
+        _controller.reverse();
       /// Stops OwlGridState::AnimationController
       setState(() {});
     }
@@ -257,7 +259,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _timeTick = 0;
       //TODO _timer.reset();
 
-      _controller.forward ();
+      if (hideCtrls)
+        _controller.forward();
 
       _setBeat();
       _togglePlay();
