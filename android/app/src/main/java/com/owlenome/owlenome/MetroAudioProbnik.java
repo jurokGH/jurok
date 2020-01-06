@@ -134,24 +134,28 @@ public class MetroAudioProbnik
 
   //ToDo: TEST
   private boolean newTempo = false;
-  private TempoObsolete _tempoTmpTmpTmp;
+  //private Tempo _tempo;
+  private int _beatsPerMinute;
 
   boolean doPlay; //ToDo: логика состояния
 
   // Sound writer task
   MetroRunnable _task = null;
 
-  public int setMelody(AccentedMelody m, TempoObsolete tempoTmpTmpTmp)
+  public int setMelody(AccentedMelody m, int beatsPerMinute)
 
   {
     //TODO
     melody = m;
 
 
-    //TODO: IS: what is the meaning of this? Seems to be redundant
-    if (tempoTmpTmpTmp.beatsPerMinute < cMinTempoBpm)
-      tempoTmpTmpTmp.beatsPerMinute = cMinTempoBpm;
-    _tempoTmpTmpTmp = tempoTmpTmpTmp;
+    //TODO: IS: Эту часть кода я не очень понимаю; она похожа на setTempo
+    //---
+    if (beatsPerMinute < cMinTempoBpm)
+      beatsPerMinute = cMinTempoBpm;
+    _beatsPerMinute = beatsPerMinute;
+    //----
+
     if (state == STATE_PLAYING)
       newMelody = true;
 
@@ -160,14 +164,14 @@ public class MetroAudioProbnik
 
   int getTempo()
   {
-    return _task == null ? _tempoTmpTmpTmp.beatsPerMinute : _task.realBPM;
+    return _task == null ? _beatsPerMinute : _task.realBPM;
   }
 
-  public int setTempo(TempoObsolete tempoTmpTmpTmp)
+  public int setTempo(int beatsPerMinute)
   {
-    if (tempoTmpTmpTmp.beatsPerMinute < cMinTempoBpm)
-      tempoTmpTmpTmp.beatsPerMinute = cMinTempoBpm;
-    _tempoTmpTmpTmp = tempoTmpTmpTmp;
+    if (beatsPerMinute < cMinTempoBpm)
+      beatsPerMinute = cMinTempoBpm;
+    _beatsPerMinute = beatsPerMinute;
     if (state == STATE_PLAYING)
       newTempo = true;
 
@@ -199,10 +203,10 @@ public class MetroAudioProbnik
         state != STATE_READY);
   }
 
-  public int play(TempoObsolete tempoTmpTmpTmp)
+  public int play(int beatsPerMinute)
   {
     boolean res = true;
-    _tempoTmpTmpTmp = tempoTmpTmpTmp;
+    _beatsPerMinute = beatsPerMinute;
 
     setState(STATE_STARTING);
     doPlay = true;
@@ -221,7 +225,7 @@ public class MetroAudioProbnik
     //ToDo: сделать булевым, и если false - значит, мы не запустились
 
     double maxTempo = melody.getMaxTempo();
-    return res ? (int) (tempoTmpTmpTmp.beatsPerMinute >= maxTempo ? maxTempo : tempoTmpTmpTmp.beatsPerMinute) : 0;
+    return res ? (int) (beatsPerMinute >= maxTempo ? maxTempo : beatsPerMinute) : 0;
   }
 
   public void stop()
@@ -390,7 +394,8 @@ public class MetroAudioProbnik
     this.nativeSampleRate = nativeSampleRate;
     this.nativeBufferInFrames = nativeBufferInFrames;
 
-    _tempoTmpTmpTmp = new TempoObsolete(cTempoBpM, cNnoteValue);
+    //_tempo = new Tempo(cTempoBpM, cNnoteValue);
+    _beatsPerMinute=cTempoBpM;
 
     this.handler = handler;
 
@@ -443,6 +448,7 @@ public class MetroAudioProbnik
   ///ToDo: на моём LD не могу создать audioTrack с буфером меньшим, чем 3848 (960*4 =3840)
   public void initTrack()
   {
+    //TODO: Завернуть всё в проверку Build.VERSION.SDK_INT , чтобы не было ругани на deprecated.
       /*
       //CHECK API LEVEL!!! 21 (подходит для Lollipop)  23 (marshmallow)
       //Пробовал, отличия от new AudioTrack не видно
@@ -481,13 +487,15 @@ public class MetroAudioProbnik
               AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);*/
 
     audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-      nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO,
+      nativeSampleRate,
+            AudioFormat.CHANNEL_OUT_MONO,
       AudioFormat.ENCODING_PCM_16BIT,
       centerInFrames * 2 * 2,
       AudioTrack.MODE_STREAM);
 
     // ToDo: проверить, что он создался.
     // На эмуляторе J1 с api 22 штампов нет
+
 
     // Вот какой прекрасныый совет :):):) даётся тут,  https://tekeye.uk/archive/android/avd-sound:
     // Is the PC volume turned up and sound muting off?
@@ -670,7 +678,7 @@ public class MetroAudioProbnik
     @Override
     public void run()
     {
-      realBPM = melody.setTempo(_tempoTmpTmpTmp.beatsPerMinute);
+      realBPM = melody.setTempo(_beatsPerMinute);
 
       melody.cycle.position.reset();
 
@@ -814,7 +822,7 @@ public class MetroAudioProbnik
           if (newMelody)
           {
             System.out.printf("---------SetNewMelody------");
-            realBPM = melody.setTempo(_tempoTmpTmpTmp.beatsPerMinute);
+            realBPM = melody.setTempo(_beatsPerMinute);
 
             melody.cycle.position.reset();
 
@@ -829,11 +837,11 @@ public class MetroAudioProbnik
             {
               System.out.printf("---------NewTempo------");
               System.out.printf(String.format("Old length of cycle: %.3f\n", cycle.duration));
-              System.out.printf(String.format("BPMFromSeekBarVal: %d", _tempoTmpTmpTmp.beatsPerMinute));
+              System.out.printf(String.format("BPMFromSeekBarVal: %d", _beatsPerMinute));
               cycle.print();
             }
 
-            realBPM = melody.setTempo(_tempoTmpTmpTmp.beatsPerMinute);
+            realBPM = melody.setTempo(_beatsPerMinute);
             newTempo = false;
             //tempo.beatsPerMinute = BPMfromSeekBar;
             //barrelOrgan.reSetAngles(cycle);
@@ -1092,6 +1100,8 @@ public class MetroAudioProbnik
   }
 }
 
+
+//IS: VS, Предлагаю удалить всё, что ниже. Это продублировано и устарело.
 /**
  * Пересчитываем  темпо (традиционный, дуракций) в длительность цикла в сэмплах,
  * исходя из того, сколько там bars (то есть, какова его длина в нотах)

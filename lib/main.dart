@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int maxBeatCount = 12;
   static const int maxSubBeatCount = 8;
   static const int minNoteValue = 2;
-  static const int maxNoteValue = 32;
+  static const int maxNoteValue = 32;//IS: ???
 
   static const int minTempo = 6;
   static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to the music scheme
@@ -172,7 +172,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // true - redraw UI with Flutter's AnimationController at 60 fps
   bool animate60fps = true;
   bool redraw = false;
-  bool hideCtrls = true;
+  bool hideCtrls = false;
   AnimationController _controller;
   Animation<double> _animation;
   Animation<Offset> _animationPos;
@@ -906,7 +906,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final Map<String, int> args =
       <String, int>{
         'tempo': _tempoBpm,
-        'note': _beat.beatCount,//_noteValue,
+        'note': _beat.beatCount,//_noteValue,//IS: VS, Полагаю, beatCount тут - опечатка. В любом случае, это больше не нужно.
         //'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
       };
@@ -1002,7 +1002,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final Map<String, int> args =
       <String, int>{
         'tempo' : _tempoBpm,
-        'note' : _beat.beatCount,//_noteValue
+        'note' : _beat.beatCount,//_noteValue IS: Это ява не использует.
       };
       final int limitTempo = await _channel.invokeMethod('setTempo', args);
       //assert(result == 1);

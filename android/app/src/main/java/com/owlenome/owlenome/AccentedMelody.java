@@ -138,7 +138,6 @@ IS: Надо забыть код ниже (у нас нет сейчас пау�
     return BPMtoSet;
   }
 
-
 }
 
 
@@ -146,7 +145,7 @@ IS: Надо забыть код ниже (у нас нет сейчас пау�
 
 //IS: Нам не нужно знать в яве ничего про знаменатели. Кроме того, они ужасно путают всё.
 //Больше не используется.
-class TempoObsolete
+class Tempo
 {
   int beatsPerMinute;
   int denominator;
@@ -157,13 +156,13 @@ class TempoObsolete
    * @param beatsPerMinute ударов в минуту
    * @param denominator    длительность удара (четвертая, шестнадцатая, etc)
    */
-  public TempoObsolete(int beatsPerMinute, int denominator)
+  public Tempo(int beatsPerMinute, int denominator)
   {
     this.beatsPerMinute = beatsPerMinute;
     this.denominator = denominator;
   }
 
-  boolean equals(TempoObsolete tempo)
+  boolean equals(Tempo tempo)
   {
     return beatsPerMinute == tempo.beatsPerMinute &&
             denominator == tempo.denominator;
@@ -230,7 +229,7 @@ class Utility
    * @return какова должна быть длительность цикла при данном tempoTmpTmpTmp.
    */
 // in seconds //IS: IN SAMPLES
-  final static private double tempoToCycleDurationObsolete(TempoObsolete tempoTmpTmpTmp, int bars, int nativeSampleRate)
+  final static private double tempoToCycleDurationObsolete(Tempo tempoTmpTmpTmp, int bars, int nativeSampleRate)
   {
     //VG Note value (denominator) changes actual beat tempoTmpTmpTmp
     int totalBeatsPerCycle = bars * tempoTmpTmpTmp.denominator;

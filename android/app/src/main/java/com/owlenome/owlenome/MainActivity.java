@@ -54,7 +54,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   int nativeBuffer;
   int latencyUntested; //ToDo
   // Previous tempo value to compare with a new one
-  TempoObsolete _tempoTmpTmpTmp = new TempoObsolete(1, 1);
+  //Tempo _tempo  = new Tempo(1, 1);
+  int _beatsPerMinute = 1;
   // Beat setOfNotes
   AccentedMelody beatMelody = null;
   MetroAudioProbnik metroAudio;
@@ -141,12 +142,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     if (methodCall.method.equals("start"))
     {
-      _tempoTmpTmpTmp.beatsPerMinute = methodCall.argument("tempo");
-      _tempoTmpTmpTmp.denominator = methodCall.argument("note");
+      _beatsPerMinute = methodCall.argument("tempo");
+      //_tempo.denominator = methodCall.argument("note");
 
       int realTempo = 0;
       if (beatMelody != null)
-        realTempo = start(_tempoTmpTmpTmp);
+        realTempo = start(_beatsPerMinute);
       //List<Map<Double, Integer> a = new HashMap<>
       result.success(realTempo);
     }
@@ -164,8 +165,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         int schemeIndex = config.get(2);
         if (schemeIndex < soundSсhemes.size())
           currentMusicScheme = schemeIndex;
-        _tempoTmpTmpTmp.beatsPerMinute = config.get(3);
-        _tempoTmpTmpTmp.denominator = config.get(4);
+        _beatsPerMinute = config.get(3);
+        //_tempo.denominator = config.get(4);
       }
       if (config.size() >= 7)
       {
@@ -213,14 +214,14 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         nativeSampleRate, beat.beatCount, beat.subBeats);
       //IS
       // Create new metronome beat setOfNotes
-      int maxTempo = metroAudio.setMelody(beatMelody, _tempoTmpTmpTmp);
+      int maxTempo = metroAudio.setMelody(beatMelody, _beatsPerMinute);
       result.success(maxTempo);
     }
     else if (methodCall.method.equals("setTempo"))
     {
       int tempoBpm = methodCall.argument("tempo");
-      int noteValue = methodCall.argument("note");
-      int maxTempo = setTempo(tempoBpm, noteValue);
+      int noteValue = methodCall.argument("note");//IS: Не нужно.
+      int maxTempo = setTempo(tempoBpm/*, noteValue*/);
       result.success(maxTempo);
     }
     else if (methodCall.method.equals("setVolume"))
@@ -320,15 +321,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     }
   }
 
-  // Start/stop with given tempoTmpTmpTmp rate
-  private int start(TempoObsolete tempoTmpTmpTmp)
+  // Start/stop with given tempo rate
+  private int start(int beatsPerMinute)
   {
     int realTempo = 0;
-    //_onStartStopBn(tempoTmpTmpTmp);
+    //_onStartStopBn(tempo);
     if (metroAudio.state == MetroAudioProbnik.STATE_READY)
     {
-      _tempoTmpTmpTmp = tempoTmpTmpTmp;
-      realTempo = metroAudio.play(tempoTmpTmpTmp);// + minimalTempoBPM);
+      _beatsPerMinute = beatsPerMinute;
+      realTempo = metroAudio.play(beatsPerMinute);// + minimalTempoBPM);
 
       //ToDo: TEST
     }
@@ -343,14 +344,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   }
 
   // Set new tempo rate
-  private int setTempo(int tempoBpm, int noteValue)
+  private int setTempo(int tempoBpm/*, int noteValue*/)
   {
     int maxTempo = 0;
-    TempoObsolete tempoTmpTmpTmp = new TempoObsolete(tempoBpm, noteValue);
-    //TODO if (!_tempoTmpTmpTmp.equals(tempoTmpTmpTmp))
+    //TODO if (!_tempo.equals(tempo))
     {
-      _tempoTmpTmpTmp = tempoTmpTmpTmp;
-      maxTempo = metroAudio.setTempo(tempoTmpTmpTmp);// + minimalTempoBPM);
+      _beatsPerMinute = tempoBpm;
+      maxTempo = metroAudio.setTempo(tempoBpm);// + minimalTempoBPM);
     }
     return maxTempo;
   }
