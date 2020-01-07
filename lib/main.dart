@@ -180,8 +180,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _period = 1000;
   bool _playing;
 
-  int _timeTick = 0;
-  double prevTime = 0;
+ // int _timeTick = 0;
+ // double prevTime = 0;
 
   double _subbeatWidth = 60;
 
@@ -254,8 +254,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
     else
     {
-      prevTime = 0;
-      _timeTick = 0;
+      //prevTime = 0;
+      //_timeTick = 0;
       //TODO _timer.reset();
 
       if (hideCtrls)
@@ -848,8 +848,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (call.method == 'warm')
     {
       print('START-STABLE');
-      int warmupFrames = call.arguments;
-      state.start();
+      //int warmupFrames = call.arguments;
+      int initTime=call.arguments;
+      print('Time in Flutter of stable time (mcs) $initTime');
+      state.start(initTime);
       _start();
     }
     else if (call.method == 'sync')
@@ -864,7 +866,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //print('SYNC $index - $offset - $time');
 
       //warmupFrames = call.arguments;
-      state.sync(index, 1e-6 * offset, beatIndex, subbeatIndex, time);
+      //TODO: замена
+      //state.sync(index, 1e-6 * offset, beatIndex, subbeatIndex, time);
     }
     else if (call.method == 'timeFrame')
     {
@@ -883,7 +886,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         _activeBeat = pair[0];
       _activeSubbeat = pair[1];
 
-      _timeTick++;
+      //_timeTick++;
       if (!animate60fps)
         ;//VG0 setState(() {});
 
@@ -897,9 +900,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _togglePlay() async
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    state.setTempo(_tempoBpm, _noteValue);
+    state.setTempo(_tempoBpm/*, _noteValue*/);//ToDO
 
-    List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
+    //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
     try
     {
       final Map<String, int> args =
@@ -918,7 +921,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else
       {
         setState(() {
-           _tempoBpm = realTempo; //IS: TEST
+           //_tempoBpm = realTempo; //IS: TEST
         });
       }
     }
@@ -940,7 +943,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _bars, 1);
      */
     state.beatMetre = _beat;
-    state.reset();
+    state.reset();//TODO:
 
     //Tempo tempo = new Tempo(beatsPerMinute: _subBeatCount * _tempoBpm.toInt(), denominator: _noteValue);
     //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
@@ -994,7 +997,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _setTempo(int tempo) async
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    state.setTempo(_tempoBpm, _noteValue);
+    state.setTempo(_tempoBpm/*, _noteValue*/);
     //IS: Почему сначала меняется tempo у состояния?
 
     try

@@ -89,7 +89,10 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           {
             //STATE_STARTING
             System.out.println("WARMEDUP");
-            channel.invokeMethod("warm", msg.arg1);
+            //channel.invokeMethod("warm", msg.arg1);
+            long toSend=metroAudio.timeOfVeryFirstBipMcs;
+            channel.invokeMethod("warm", toSend);
+            System.out.printf("Time in Java of stable time (mcs) %d",toSend);
           }/*
           else
           {
@@ -115,13 +118,19 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("cycle", metroAudio.cycleSync);
             args.put("time", metroAudio.timeSync);
             channel.invokeMethod("sync", args);
-          }
+          } //IS: ToDo: Закооно ли то, что мы лазим в
+          //другой поток за переменными? Точнее, что он обращается к тем переменным,
+          //которые мы потом собираем тут? Не может ли
+          //это блокировать его и вызвать потерянные сэмплы?
+          //Я натыкался на статью или видео одного из гугловых звуковых гуру,
+          //который рассказывал кошмары о том, как у него из-за print в потоке такое случалось
+          //и как он неделю мучился. Лох эдакий, понабрали по объявлениям...
         }
       }
     };
 
     metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
-      0,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
+      00,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
       // 160 - основной кандидат (8 моих буферов)
       handler);
 
@@ -360,6 +369,16 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   {
     soundSсhemes = new ArrayList<MusicScheme2Bips>();
 
+
+    //Старые добрые бипы
+    // ToDo: при настройке звуков из flutter, можно менять именно
+    // эту схему, чтобы не плодить их.
+    musicSсhemeTunable = new MusicScheme2Bips("Bips-A4C5",
+            440, 25, 523.25, 30,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+    );
+    soundSсhemes.add(musicSсhemeTunable);
+
     Resources res = getResources();
 
     soundSсhemes.add(
@@ -394,13 +413,5 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     */
 
 
-    //Старые добрые бипы
-    // ToDo: при настройке звуков из flutter, можно менять именно
-    // эту схему, чтобы не плодить их.
-    musicSсhemeTunable = new MusicScheme2Bips("Bips-A4C5",
-            440, 25, 523.25, 35,
-            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
-    );
-    soundSсhemes.add(musicSсhemeTunable);
   }
 }

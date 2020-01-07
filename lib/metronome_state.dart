@@ -11,13 +11,22 @@ class MetronomeState with ChangeNotifier
 {
   BeatMetre beatMetre = new BeatMetre();
   /// Active BeatMetre (note)
-  int _activeBeat = 0;
+  int _activeBeat = -1;
   /// Active subbeat
   int _activeSubbeat = 0;
 
-  /// Start time of given beat metre in microseconds 
+
+
+  ///  start time of A first beat (in microseconds)
   int _timeOrg;
-  Tempo tempo;
+
+  ///Время, когда начинать играть (in microseconds)
+  int timeOfTheFirstBeat=(2<<53);
+
+  //Tempo tempo;
+
+  int beatsPerMinute;
+
   //AccentBeat melody; //IS: Why?
   Position pos;
 
@@ -35,15 +44,19 @@ class MetronomeState with ChangeNotifier
 
   MetronomeState()
   {
-    tempo = new Tempo();
-    pos = new Position(0, 0);
+    //tempo = new Tempo();
+    pos = new Position(-1, 0); //ToDo: (-1,0)?
     //_timer = new Stopwatch();
   }
 
-  void start()
+  void start(int initTime)
   {
-    //IS: TODO; WRONG
-    _timeOrg = DateTime.now().microsecondsSinceEpoch;
+     //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No(((
+
+     timeOfTheFirstBeat=initTime;
+     _timeOrg=initTime;
+
+
     /*
     _timer.reset();
     __time0 = _timer.elapsedMicroseconds;
@@ -66,6 +79,7 @@ class MetronomeState with ChangeNotifier
     pos.reset();
   }
 
+  /* IS: Пока убрал
   /// Synchronize metronome state with current sound state from Java
   void sync(int index, double offset, int beat, int subbeat, int time)
   {
@@ -73,12 +87,13 @@ class MetronomeState with ChangeNotifier
     //TODO Use pair/tuple
     List<int> pair = beatMetre.beatPair(index);
     // Correct reference sync time as a beat metre start time
-    double t = beatMetre.timeOfBeat(tempo.beatsPerMinute, pair[0], pair[1]);
-    _timeOrg -= (1e+6 * (t + offset)) ~/ 1;
+    double t = beatMetre.timeOfBeat( beatsPerMinute, pair[0], pair[1]);
+    _timeOrg -= (1e+6 * (t + offset)) ~/ 1; //IS:   ??
     //VG Do we need to use Java current beat state?
     //_activeBeat = pair[0];
     //_activeSubbeat = pair[1];
   }
+   */
 
   bool update()
   {
@@ -87,9 +102,16 @@ class MetronomeState with ChangeNotifier
       return changed;
 
     int time = DateTime.now().microsecondsSinceEpoch;
+
+    if (time<timeOfTheFirstBeat) return changed;//звука пока нет
+    //Нужно что-то поумнее придумать в этот период. Новости там пользователю
+    //предложить почитать или что еще...
+
     double dt = 1e-6 * (time - _timeOrg);  // in seconds
 
-    List<int> pair = beatMetre.timePosition(dt, tempo);
+
+
+    List<int> pair = beatMetre.timePosition(dt, beatsPerMinute);
     int curBeat = pair[0];
     int curSubbeat = pair[1];
     
@@ -125,12 +147,12 @@ class MetronomeState with ChangeNotifier
     return changed;
   }
 */
-  void setTempo(int tempoBpm, int noteValue)
+  void setTempo(int tempoBpm/*, int noteValue*/)
   {
-    tempo.beatsPerMinute = tempoBpm;
-    tempo.denominator = noteValue;
+    beatsPerMinute = tempoBpm;
+    //tempo.denominator = noteValue;
 
-    int _bars = 1;
+  //  int _bars = 1;
     //melody.cycle.setTempo(tempo, _bars);
   }
 

@@ -252,11 +252,14 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     }
   }
 
+
+  /*
+  ///IS: Временно убрал, чтобы разобраться
   void onTimer()
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.update();
-  }
+  }*/
 
   @override
   void initState() {

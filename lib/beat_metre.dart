@@ -111,13 +111,13 @@ class BeatMetre
   }
 
   /// time - time from begin in seconds
-  List<int> timePosition(double time, Tempo tempo)
+  List<int> timePosition(double time, int beatsPerMinute)
   {
-    double duration = _beatCount * 60.0 / tempo.beatsPerMinute;
+    double duration = _beatCount * 60.0 / beatsPerMinute;
     //Position pos = new Position(0, 0);
     int cycle = time ~/ duration;
     if (time < 0)
-      time = -time;
+      time = -time;//IS: ??//ToDo: я думаю, это отправляет нас в прошлое
 
     //print('timePosition0 $duration');
 

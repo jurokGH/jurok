@@ -285,11 +285,13 @@ public class MetroAudioProbnik
   final static int STATE_STOPPING = 4;
 
 
-  Long staticLatencyInFrames;
-  Long framesBeforeHeadToReallyPlay;
-  Long staticLatencyInMs;
+  long staticLatencyInFrames;
+  long framesBeforeHeadToReallyPlay;
+  long staticLatencyInMs; //ToDo: отладочное, не нужно
+  long staticLatencyInMcs;
 
-  long timeStable = 0;
+  long timeOfStableStampDetected = 0;
+  long timeOfVeryFirstBipMcs =(2<<53);
   long timeSync = 0;
   int cycleSync = 0;
 
@@ -678,6 +680,8 @@ public class MetroAudioProbnik
     @Override
     public void run()
     {
+      boundNanoTimeToRealTime=new BoundNanoTimeToRealTime();
+
       realBPM = melody.setTempo(_beatsPerMinute);
 
       melody.cycle.position.reset();
@@ -755,14 +759,55 @@ public class MetroAudioProbnik
               veryFirstStampTime = currentStamp.nanoTime;
               veryFirstStampFrame = currentStamp.framePosition;
 
-              setState(STATE_PLAYING);
 
-              timeStable = System.nanoTime();
+
+
+              timeOfStableStampDetected = System.nanoTime();
+
+
               //ToDo: ТЕСТ. Показал отличные, неразличимые на глаз результаты на моём телефоне
-              Long playHeadTimeOfVeryFirstStamp = timeStable - // исходим из того, что играется уже равномерно
+              Long playHeadTimeOfVeryFirstStamp = timeOfStableStampDetected - // исходим из того, что играется уже равномерно
                 samples2nanoSec(audioTrack.getPlaybackHeadPosition() - veryFirstStampFrame);
               staticLatencyInFrames = nanoSec2samples(veryFirstStampTime - playHeadTimeOfVeryFirstStamp);
-              staticLatencyInMs = (long) ((playHeadTimeOfVeryFirstStamp - veryFirstStampTime) * 1e-6);
+              staticLatencyInMs = (long) ((veryFirstStampTime-playHeadTimeOfVeryFirstStamp) * 1e-6);
+              //!!! В старом коде staticLatencyInMs была отрицательная
+
+
+              //TODO: UPD 2020 Janv 07: "исходим из того, что играется уже равномерно"
+              //Это не совсем точно. getPlaybackHeadPosition растет дискретно, скачкаими
+              //порядка половины железного буфера (на самом деле, не вполне прогнозируемо)
+              //Из этого следует два вывода:
+              //Первый - стоит взять timeOfStableStampDetected
+              // и audioTrack.getPlaybackHeadPosition()
+              // поближе к моменту снятия стампа.
+              //Второй: следует детальнее проанализировать выбор большого буфера, чтобы
+              //избежать гипотетических неприятностей (если малый буфер близок к большому,
+              //но очень велик, не будет ли большая неточность? хотя наверное такого быть не должно).
+
+              staticLatencyInMcs = (long) ((veryFirstStampTime-playHeadTimeOfVeryFirstStamp) * 1e-3);
+
+              //IS Ниже самый важный шаг:
+              //Первое слагаемое - это просто время (только нужно правильно переводить
+              //нанотайм в микросекунды реального времени).
+              //Второе слагаемое - это постоянный латенси, указывающий, сколько времени проходит
+              //от того, как сэмпл считан головкой и до того, как он будет звучать. Он примерный,
+              //в документации его нет, есть лишь скрытые намеки как его вычислять и оговорки,
+              //что от "нас ничего не зависит". Fingers crossed.
+              //Третье слагаемое - вычисляется из того, сколько было записано всего фреймов
+              //и сколько уже считалось головкой. Этот параметр болезненный, так
+              //как номер сэмпла, считываемого головкой исчисляется с самого начала записи;
+              //поэтому приходится таскать за собой общую сумму записанных сэмплов, и ни в коем
+              // случае их не терять.
+              //TODO: DC; третье слагаемое тут должно быть 0 и вписано для общности,
+              //чтобы в общем случае не запутаться.
+              timeOfVeryFirstBipMcs=
+                      boundNanoTimeToRealTime.nanoToFlutterTime(timeOfStableStampDetected)+//now
+                      staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
+                     samples2nanoSec(totalWrittenFrames-audioTrack.getPlaybackHeadPosition())/1000;
+                   //и сколько у нас от записанного до считываемого головкой сейчас; в данном случае это
+                //должно быть 0.
+
+              setState(STATE_PLAYING);
 
               _cnt = -1;
 
@@ -824,7 +869,7 @@ public class MetroAudioProbnik
             System.out.printf("---------SetNewMelody------");
             realBPM = melody.setTempo(_beatsPerMinute);
 
-            melody.cycle.position.reset();
+            melody.cycle.position.reset();//TODO: why?
 
             cycle = melody.cycle;
             newMelody = false;
@@ -857,9 +902,9 @@ public class MetroAudioProbnik
           {
             Position pos = melody.cycle.position;
             long timeNow = System.nanoTime();
-            long time = timeNow - timeStable;
+            long time = timeNow - timeOfStableStampDetected;
             timeSync = time;
-            timeStable = timeNow;
+            timeOfStableStampDetected = timeNow;
             int cycles = (int) (time / melody.cycle.duration);
             cycleSync = cycles;
             if (cycles != pos.cycleCount)
@@ -868,6 +913,7 @@ public class MetroAudioProbnik
             int offset = pos.offset;
             if (pos.n % 2 != 0)
               offset += melody.cycle.cycle[pos.n - 1].l;
+            //TODO: wrong?
             sendMessage(pos.cycleCount, pos.n / 2, (int) (1e6 * offset / nativeSampleRate), time);
             //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
           }
@@ -945,6 +991,46 @@ public class MetroAudioProbnik
     private long startTimeFromHead, startTimeFromWritten,
       startTimeFromStamp, startTimeFromFirstStamp,
       deltaStampFrames, deltaStampTime;
+
+
+    /** Привязываем nanoTime (с неизвестным нулем)
+     * к реальному времени (microscnd since epoch).
+     * Делаем это один раз, чтобы "не плавало" потом
+     * (относительные изменения могут быть до 15мс).
+     */
+    BoundNanoTimeToRealTime boundNanoTimeToRealTime;
+
+
+    class BoundNanoTimeToRealTime {
+      /**
+       *  Привязавшись один раз и навсегда к моменту времени в конструкторе,
+       *  можем знать реальное время по nanoTime.
+       *
+       */
+      BoundNanoTimeToRealTime(){
+        nanoTimeZero =System.nanoTime();
+        mcsTimeZero =System.currentTimeMillis()*1000;
+      }
+
+      /**
+       * Время в формате флаттера (микросекунды since epoch) из nanoTime
+       * @param nanoTime
+       * @return
+       */
+      long nanoToFlutterTime(long nanoTime){
+        return (nanoTime-nanoTimeZero)/1000+ mcsTimeZero;
+      }
+      /**
+       * время момента X по systemNano
+       */
+      final private long nanoTimeZero;
+      /**
+       *  Реальное время момента X в микросекундах (since epoch)
+       */
+      final private long mcsTimeZero;
+    }
+
+
 
     /**
      * Собираем данные после записи в буфер

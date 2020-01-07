@@ -44,6 +44,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 {
   static final bool drawSubOwls = false;
   static final int maxSubCount = 8;
+  //TODO: static final List<int> basicSetOfSubBeats= [1,2,4,3];
 
   int _counter;
 
@@ -72,6 +73,18 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   void onRedraw()
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+
+
+    //IS:  We need //todo
+    // something before we can play very first bip.
+    //Usually, there is some dozens of ms to skip after the warmedUp event -
+    // we need to skip the hole silent buffer.
+    // (warming up itself is also
+    // could be like 100-400 ms, but it should be treated somewhere else). Todo.
+
+    //Temporary solution: do nothing
+    //if (DateTime.now().microsecondsSinceEpoch<state.timeOfTheFirstBeat) return;
+
     state.update();
     int hash = state.getBeatState(widget.id);
     //print('AnimationController ${widget.id} $_counter $hash');
@@ -226,7 +239,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                     subDiv: widget.subbeatCount,
                     denominator: widget.denominator * widget.subbeatCount,
                     active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.explosion,
+                    activeNoteType: ActiveNoteType.stemFixed,
                     colorPast: Colors.white,
                     colorNow: Colors.red,
                     colorFuture: Colors.white,

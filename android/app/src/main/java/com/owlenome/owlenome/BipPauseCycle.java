@@ -295,10 +295,10 @@ public class BipPauseCycle
    * @param denominator в чем исчисляется ритм (4,8,16)
    * @return наибольший темп, который мы можем установить для цикла при данном знаменателе
    */
-  /*public double getMaximalTempo(int frequency, int bars, int denominator)
+  public double getMaximalTempo(int frequency, int bars, int denominator)
   {
     return cycleDurationToBeatsPM(frequency, leastDuration, bars, denominator);
-  }*/ //TODO: Вернуть
+  }
 
   /**
    * Элементы цикла на нечетных местах меняют длину.
