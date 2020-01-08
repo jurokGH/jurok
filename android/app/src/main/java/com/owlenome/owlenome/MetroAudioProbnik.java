@@ -135,7 +135,7 @@ public class MetroAudioProbnik
   //ToDo: TEST
   private boolean newTempo = false;
   //private Tempo _tempo;
-  private int _beatsPerMinute;
+  private int _beatsPerMinute;//ToDo: убрать?
 
   boolean doPlay; //ToDo: логика состояния
 
@@ -292,8 +292,8 @@ public class MetroAudioProbnik
 
   long timeOfStableStampDetected = 0;
   long timeOfVeryFirstBipMcs =(2<<53);
-  long timeSync = 0;
-  int cycleSync = 0;
+ // long timeSync = 0;
+ // int cycleSync = 0;
 
   /**
    * Состояние: STATE_READY, STATE_STARTING, STATE_PLAYING,   STATE_STOPPING
@@ -335,6 +335,7 @@ public class MetroAudioProbnik
     handler.sendMessage(msg);
   }
 
+  /*
   void sendMessage(Position pos)
   {
     Message msg = handler.obtainMessage(state,
@@ -348,8 +349,8 @@ public class MetroAudioProbnik
     msg.arg1 = (int) (writtenSamples & 0xFFFFFFFFL);
     msg.arg2 = (int) ((writtenSamples >> 32) & 0xFFFFFFFFL);
     handler.sendMessage(msg);
-    */
-  }
+    * /
+  }*/
 
   /**
    * Возвращает время игры бипа согласно штампу и номеру сэмла.
@@ -599,7 +600,7 @@ public class MetroAudioProbnik
       silenceToWrite = melodyTools.getSilence(framesToWriteAtOnce);
     }
 
-    int copy2buffer(AccentedMelody melody, Position pos)
+    int copy2buffer(AccentedMelody melody/*, Position pos*/)
     {
       buffer.position(0);
       //long writtenSamples = -1;
@@ -607,9 +608,9 @@ public class MetroAudioProbnik
       //Тестим цикл. //ToDo: поправить written's!
       int toWrite = 0;
       BipPauseCycle.TempoLinear linear = melody.cycle.readTempoLinear(framesToWriteAtOnce);
-      pos.n = linear.pos.n;
-      pos.offset = linear.pos.offset;
-      pos.cycleCount = linear.pos.cycleCount;
+      /*pos.n = linear.pos.n;
+      pos.offset = linear.pos.offset;*/
+      //pos.cycleCount = linear.pos.cycleCount;//Why???
 
       for (int i = 0; i < linear.durations.length; i++)
       {
@@ -684,7 +685,7 @@ public class MetroAudioProbnik
 
       realBPM = melody.setTempo(_beatsPerMinute);
 
-      melody.cycle.position.reset();
+      melody.cycle.reset();
 
       cycle = melody.cycle;
 
@@ -852,10 +853,10 @@ public class MetroAudioProbnik
         }
         else
         {
-          //Кажется, что write "разблокируется" только в случаях, кратных половине откранного большого буфера
+          //Кажется, что write "разблокируется" только в случаях, кратных половине большого буфера.
           //При этом, кажется, что эта половина еще и сама должна быть четной, иначе начинаются скачки
           //При этом, если очень короткое время (<100мс, например) на весь большой буфер,
-          //тоже начинаются неровности (может быть, это связано с нихким приоритетом процесса?)
+          //тоже начинаются неровности (может быть, это связано с низким приоритетом процесса?)
           //ToDo: отследить "входящий телефонный звонок"
           /*written1 = audioTrack.write(melodyOld[_cnt % melodyOld.length], 0, bipLengthInBytes);
           //остаток - тишина
@@ -867,9 +868,9 @@ public class MetroAudioProbnik
           if (newMelody)
           {
             System.out.printf("---------SetNewMelody------");
-            realBPM = melody.setTempo(_beatsPerMinute);
+            realBPM = melody.setTempo(_beatsPerMinute);//TODO Why??
 
-            melody.cycle.position.reset();//TODO: why?
+            melody.cycle.reset();//TODO: why?
 
             cycle = melody.cycle;
             newMelody = false;
@@ -898,8 +899,9 @@ public class MetroAudioProbnik
             }
           }
 
-          if (sync)
+          if (sync) //IS: ??? //TODO
           {
+            /*
             Position pos = melody.cycle.position;
             long timeNow = System.nanoTime();
             long time = timeNow - timeOfStableStampDetected;
@@ -916,12 +918,14 @@ public class MetroAudioProbnik
             //TODO: wrong?
             sendMessage(pos.cycleCount, pos.n / 2, (int) (1e6 * offset / nativeSampleRate), time);
             //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
+
+             */
           }
           //byteBuffer.position(0);
 
           //long writtenSamples = -1;
-          Position pos = new Position(-1, 0);
-          int toWrite = mBuffer.copy2buffer(melody, pos);
+          //Position pos = new Position(-1, 0);//ISH: ???????
+          int toWrite = mBuffer.copy2buffer(melody/*, pos*/);//Но pos значит не нужен?
 /*
           if (pos.n >= 0)
           {

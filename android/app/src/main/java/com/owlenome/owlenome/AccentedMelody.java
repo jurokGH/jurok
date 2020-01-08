@@ -124,6 +124,11 @@ IS: Надо забыть код ниже (у нас нет сейчас пау�
     return cycle.getMaximalTempo(_nativeSampleRate, nOfBeats);
   }
 
+  /**
+   *
+   * @param beatsPerMinute что хотим
+   * @return что получилось
+   */
   public int setTempo(int beatsPerMinute)
   {
     int BPMtoSet = Math.min(
@@ -176,7 +181,7 @@ class Utility
    * Возвращает время игры бипа согласно штампу и номеру сэмла.
    * Интерполирует через nativeSampleRate;
    */
-  final static public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
+  static public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
   {
     return stampTime + samples2nanoSec(frequency, frameToPlayN - stampFrame);
   }
@@ -202,9 +207,6 @@ class Utility
    * BipPauseCycle исходя из того, сколько там bars (то есть, какова его длина в нотах)
    * и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
    * возможная длина.
-   * @param nativeSampleRate
-   * @param nOfBeats
-   * @param BPM
    * @return длительность в сэмплах данного числа битов при данном tempo (BMP) и частоте
    */
   final static double beatsDurationInSamples(int nativeSampleRate, int nOfBeats, int BPM) {

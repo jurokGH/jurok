@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int maxNoteValue = 32;//IS: ???
 
   static const int minTempo = 6;
-  static const int maxTempo = 250; //ToDo: ask Java what is maximal speed according to the music scheme
+  static const int maxTempo = 5000; //ToDo: ask Java what is maximal speed according to the music scheme
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
@@ -141,7 +141,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   int _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 60;
+  int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  //BipAndPouseCycle
   int _tempoBpmMax = maxTempo;
   //MelodyMeter _melodyMeter;
   int _counter = 0;
@@ -657,7 +658,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         if (_playing)
           _setTempo(_tempoBpm);
         //else
-          setState(() {});
+        setState(() {});
       },
     );
 
@@ -853,7 +854,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       print('Time in Flutter of stable time (mcs) $initTime');
       state.start(initTime);
       _start();
-    }
+    }/*
+    else if (call.method == 'Cauchy')
+      //IS:Устанавливаем время начала первого бипа и темп
+      //Заодно (хотя это и неоптимально) сюда же я максимальную
+      //скорость запихнул.
+      // ToDo: если при мотании кноба
+      //будут задержки, третий аргумент можно получать отдельно.
+    {
+      int bpmToSet = call.arguments['bpm'];
+      int timeOfFirstToSet = call.arguments['time0'];
+      state.sync(timeOfFirstToSet,bpmToSet);
+      /*int newBPMMax=call.arguments['maxBpm'];
+      if (_tempoBpmMax!=newBPMMax) {
+        setState(() { _tempoBpmMax = newBPMMax; });
+        /*
+        _tempoBpmMax = newBPMMax;
+        setState(() {}); //IS: VS, Витя, это правильно так делать?
+         */
+      }*/
+    }*/
+    /*
     else if (call.method == 'sync')
     {
       int index = call.arguments['index'];
@@ -868,7 +889,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //warmupFrames = call.arguments;
       //TODO: замена
       //state.sync(index, 1e-6 * offset, beatIndex, subbeatIndex, time);
-    }
+    }*/
+    /*IS: Obsolete:
     else if (call.method == 'timeFrame')
     {
       int beatOrder = call.arguments['index'];
@@ -893,14 +915,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //print('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
       //state.setActiveState(_activeBeat, _activeSubbeat);
       redraw = true;
-    }
+    }*/
     return new Future.value('');
   }
 
   Future<void> _togglePlay() async
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    state.setTempo(_tempoBpm/*, _noteValue*/);//ToDO
+    //state.setTempo(_tempoBpm/*, _noteValue*/);//ToDO
 
     //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
     try
@@ -908,7 +930,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final Map<String, int> args =
       <String, int>{
         'tempo': _tempoBpm,
-        'note': _beat.beatCount,//_noteValue,//IS: VS, Полагаю, beatCount тут - опечатка. В любом случае, это больше не нужно.
+        //'note': _beat.beatCount,//_noteValue,//IS: VS, Полагаю, beatCount тут - опечатка. В любом случае, это больше не нужно.
         //'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,
       };
@@ -997,15 +1019,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _setTempo(int tempo) async
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    state.setTempo(_tempoBpm/*, _noteValue*/);
-    //IS: Почему сначала меняется tempo у состояния?
+    //state.setTempo(_tempoBpm/*, _noteValue*/);//IS: Почему сначала меняется tempo у состояния?
 
+    //В любом случае, новый темп для анимации устанавливать рано -
+    //Ява начнет играть с данным темпом не сразу.
+    //Есом мы раньше явы поменяем BPM в state,
+    //и, кроме того, не учтем, что изменилось время начального бипа
+    //(то, которое мы бы имели, играя с данным темпом),
+    //то у нас разойдутся звук и анимация
+    //(как наблюдаемые раньше  "путешествия в прошлое").
     try
     {
       final Map<String, int> args =
       <String, int>{
         'tempo' : _tempoBpm,
-        'note' : _beat.beatCount,//_noteValue IS: Это ява не использует.
+        //'note' : _beat.beatCount,//_noteValue IS: Это ява не использует.
       };
       final int limitTempo = await _channel.invokeMethod('setTempo', args);
       //assert(result == 1);

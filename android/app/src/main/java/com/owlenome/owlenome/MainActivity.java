@@ -92,7 +92,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             //channel.invokeMethod("warm", msg.arg1);
             long toSend=metroAudio.timeOfVeryFirstBipMcs;
             channel.invokeMethod("warm", toSend);
-            System.out.printf("Time in Java of stable time (mcs) %d",toSend);
+            System.out.printf("Time in Java of the very frst bip (mcs) %d",toSend);
           }/*
           else
           {
@@ -105,7 +105,19 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("cycle", msg.arg2);
             channel.invokeMethod("timeFrame", args);
           }*/
-          else
+          else//Посылаем начальные условия
+          {
+            Map<String, Object> args = new HashMap<>();
+            int bpm=metroAudio.getTempo();
+            args.put("bpm", bpm);
+            long time0=metroAudio.timeOfVeryFirstBipMcs;
+            args.put("time0", time0);//TODO WRONG TEMP
+            //ToDo: maxTempo - при изменении долей и схем
+            int maxTempo=(int)metroAudio.melody.getMaxTempo();
+            args.put("maxBpm", maxTempo);
+            channel.invokeMethod("Cauchy", args);
+          }
+            /*
           {
             //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
             //channel.invokeMethod("timeFrame", totalWrittenFrames);
@@ -118,7 +130,8 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("cycle", metroAudio.cycleSync);
             args.put("time", metroAudio.timeSync);
             channel.invokeMethod("sync", args);
-          } //IS: ToDo: Закооно ли то, что мы лазим в
+          }*/
+          //IS: ToDo: Закооно ли то, что мы лазим в
           //другой поток за переменными? Точнее, что он обращается к тем переменным,
           //которые мы потом собираем тут? Не может ли
           //это блокировать его и вызвать потерянные сэмплы?
@@ -229,7 +242,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     else if (methodCall.method.equals("setTempo"))
     {
       int tempoBpm = methodCall.argument("tempo");
-      int noteValue = methodCall.argument("note");//IS: Не нужно.
+      //int noteValue = methodCall.argument("note");//IS: Не нужно.
       int maxTempo = setTempo(tempoBpm/*, noteValue*/);
       result.success(maxTempo);
     }

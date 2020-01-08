@@ -3,7 +3,8 @@ package com.owlenome.owlenome;
 import java.util.ArrayList;
 import java.util.List;
 
-class BipAndPause
+
+class BipAndPause//ToDo: Зачем? Дублирует Pair
 {
   int bipDuration;
   double pauseFactor;
@@ -84,7 +85,9 @@ public class BipPauseCycle
     Integer[] durations;
     int startInFirst;
 
-    Position pos;
+    //Position pos; //IS: Зачем может быть нужна позиция в этом списке?
+    //
+
 
     /**
      * Контрольная. Вернёт считанную суммарную длину. Она всегда должна равняться
@@ -167,10 +170,29 @@ public class BipPauseCycle
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  Position position;
 
-  public Position getPosition()
+  /**
+   * Представляет позицию в цикле:
+   *  n - номер элемента цикла, offset - смещение.
+   */
+  class CyclePosition {
+    public int n;
+    public int offset;
+    public CyclePosition (int n, int offset){this.n=n; this.offset=offset;}
+  }
+
+  /**
+   * Позиция в нашем цикле, меняющаяся при считывании через TempoLinear
+   */
+  CyclePosition position;
+
+  /**
+   * UNTESTED
+   * сколько раз прошли по кругу, считывая из массива TempoLinear;
+   */
+  int cycleCount;
+
+  public CyclePosition getPosition()
   {
     return position;
   }
@@ -259,8 +281,8 @@ public class BipPauseCycle
    *
    * IS: New, 05.01.2019
    *
-   * @param beatsInCycle   сколько битов в цикле
-   * @return наибольший темп, который мы можем установить для цикла при данном знаменателе
+   * @param beatsInCycle   сколько beats (с точни зрения BMP) в цикле
+   * @return наибольший темп (BPM), который мы можем установить для цикла
    */
   public double getMaximalTempo(int frequency, int beatsInCycle)
   {
@@ -292,7 +314,8 @@ public class BipPauseCycle
    * в музыкальной схеме и их доле в сумме со следующей паузой.
    * Совсем огрубляя: чем короче бипы - тем быстрее можно играть (естественно).
    *
-   * @param denominator в чем исчисляется ритм (4,8,16)
+   * @param denominator значения нот в чем исчисляется ритм (4,8,16)
+   * @param bars скольно тактов в цикле
    * @return наибольший темп, который мы можем установить для цикла при данном знаменателе
    */
   public double getMaximalTempo(int frequency, int bars, int denominator)
@@ -333,7 +356,7 @@ public class BipPauseCycle
       cycle[2 * i + 1].l = (int) dur;
       fractionParts[i] = dur % 1;
 
-      System.out.println(String.format("%d --- %d", i, cycle[2 * i + 1].l));
+      //System.out.println(String.format("%d --- %d", i, cycle[2 * i + 1].l));
     }
     ratio = newDuration / duration;
     if (position.n % 2 == 1)
@@ -346,9 +369,10 @@ public class BipPauseCycle
     for (int i = 0; i < cycle.length / 2; i++)
       duration += cycle[2 * i].l + cycle[2 * i + 1].l + fractionParts[i];
 
+    /*
     System.out.print("setNewDuration ");
     System.out.println(newDuration);
-    System.out.println(duration);
+    System.out.println(duration);*/
   }
 
   /**
@@ -393,7 +417,9 @@ public class BipPauseCycle
       }
     }
 
-    position = new Position(0, 0);
+
+    position = new CyclePosition(0, 0);
+    cycleCount=0;
 
     //Определяем точную длительность.
     duration = 0.0;
@@ -422,6 +448,14 @@ public class BipPauseCycle
   }
 
   /**
+   *  Обнуляем счетчик и позицию
+   */
+  void reset(){
+    position = new CyclePosition(0, 0);
+    cycleCount=0;
+  }
+
+  /**
    * Конструктор для длинной мелодии
    * //ToDo: рассказть, почему и  как
    * @param bipsAndPauses
@@ -440,6 +474,10 @@ public class BipPauseCycle
     return res;
   }
 
+
+  private List<Integer> symbolsToRead;
+  private List<Integer> sizesToRead;
+
   /**
    * Выбираем по кругу от данной позиции, пока не наберём суммарную длину
    * элементов алфавита.
@@ -455,14 +493,11 @@ public class BipPauseCycle
    * @return считанный массив символов,  с указанием начала воспроизведения
    * в первом символе и того, сколько нужно записать в буфер
    */
-  private List<Integer> symbolsToRead;
-  private List<Integer> sizesToRead;
-
   public TempoLinear readTempoLinear(int totalLength)
   {
     TempoLinear result = new TempoLinear();
     result.startInFirst = position.offset;
-    result.pos = new Position(-1, 0);
+    //result.pos = new Position(-1, 0);
     symbolsToRead = new ArrayList<>();
     sizesToRead = new ArrayList<>();
 
@@ -473,16 +508,25 @@ public class BipPauseCycle
 
     while (toRead > 0)
     {
+      /* IS: Смысл того, что ниже, непонятен.
+      //Что представляет  позиция в линейном цикле? Что значит там счетчик цикла?
+      //Почему нужно делать это много раз? Ведь следующее значение не зависит от
+      //предыдущего?   Почему n не должно быть эластик? А если встретилась только
+      //она, то почему позиция будет (-1,0)?
+      // Поскольку это нигде не нужно, прячу.
+
       //элемент алфевита для выбираемой пары:
-      int note = cycle[position.n].a;
+      //int note = cycle[position.n].a;
       if (note != elasticSymbol)
       {
         result.pos.n = position.n;
         result.pos.offset = position.offset;
         result.pos.cycleCount = position.cycleCount;
       }
+      symbolsToRead.add(note);*/
 
-      symbolsToRead.add(note);
+      //элемент алфевита для выбираемой пары:
+      symbolsToRead.add(cycle[position.n].a);
       //сколько места осталось в данном элементе цикла:
       freeSpace = cycle[position.n].l - position.offset;
 
@@ -510,7 +554,7 @@ public class BipPauseCycle
         //Теперь переходим:
         if (position.n + 1 >= cycle.length)
         {
-          position.cycleCount++;
+          cycleCount++;
         }
         position.n = (position.n + 1) % cycle.length;
         position.offset = 0;

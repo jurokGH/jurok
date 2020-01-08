@@ -51,7 +51,7 @@ class SubbeatState extends State<SubbeatWidget>
       },
       child: Row(
         children: <Widget>[
-          Image.asset('images/OWL=.png',
+          Image.asset('images/eqowl.png',
             height: 50,
             fit: BoxFit.contain
           ),

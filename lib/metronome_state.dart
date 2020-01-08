@@ -16,19 +16,21 @@ class MetronomeState with ChangeNotifier
   int _activeSubbeat = 0;
 
 
-
   ///  start time of A first beat (in microseconds)
   int _timeOrg;
 
   ///Время, когда начинать играть (in microseconds)
-  int timeOfTheFirstBeat=(2<<53);
+  ///Пока не наступило - не анимируемся (еще не отыгран буфер тишины)
+  ///Используется лишь один раз
+  ///(может быть полезно для статистики).
+  int timeOfTheFirstBeat=(2<<53); //end of time
 
   //Tempo tempo;
 
   int beatsPerMinute;
 
   //AccentBeat melody; //IS: Why?
-  Position pos;
+  //Position pos;
 
   //DateTime _time0 = new DateTime.fromMillisecondsSinceEpoch(0);
   //Stopwatch _timer;
@@ -45,7 +47,7 @@ class MetronomeState with ChangeNotifier
   MetronomeState()
   {
     //tempo = new Tempo();
-    pos = new Position(-1, 0); //ToDo: (-1,0)?
+    //pos = new Position(-1, 0); //ToDo: (-1,0)?
     //_timer = new Stopwatch();
   }
 
@@ -76,7 +78,8 @@ class MetronomeState with ChangeNotifier
   void reset()
   {
     _activeBeat = _activeSubbeat = 0;
-    pos.reset();
+    //_activeBeat=-1; _activeSubbeat = 0;//IS: Test//ToDo
+    //pos.reset();
   }
 
   /* IS: Пока убрал
@@ -147,12 +150,37 @@ class MetronomeState with ChangeNotifier
     return changed;
   }
 */
+   /*
   void setTempo(int tempoBpm/*, int noteValue*/)
   {
     beatsPerMinute = tempoBpm;
     //tempo.denominator = noteValue;
 
   //  int _bars = 1;
+    //melody.cycle.setTempo(tempo, _bars);
+  }*/
+
+  /// Устанавливаем начальное время и BMP.
+  ///
+  /// !!!!Устанавливать только по согласованию с явой!!!!
+  /// Иначе разойдутся анимация и видео.
+  ///
+  /// Эти два параметра необходимы и достаточны для синхронизации
+  /// звука. Почему достаточны - понятно (можно не ссылаться на теорему Коши).
+  ///
+  /// Важно! - Почему они необходимы?
+  /// Мы не можем устанавливать темп независимо от начального времени.
+  /// Действительно, мы не знаем в принципе, сколько времени шли сообщения от флаттера к яве
+  /// и, что более существенно,  сколько времени доигрывалась мелодия в старом темпе -
+  ///  ей заполнен буфер  (это могут быть сотни миллисекунд).
+  ///
+  void sync(int initTime, int tempoBpm)
+  {
+    beatsPerMinute = tempoBpm;
+    _timeOrg=initTime;
+    //tempo.denominator = noteValue;
+
+    //  int _bars = 1;
     //melody.cycle.setTempo(tempo, _bars);
   }
 
