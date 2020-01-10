@@ -192,12 +192,16 @@ public class BipPauseCycle
    */
   int cycleCount;
 
-  public CyclePosition getPosition()
+  /*public CyclePosition getPosition()
   {
     return position;
-  }
+  }*/
 
-  final int numerator;
+  //final int numerator;
+
+  /**
+   * Сам цикл
+   */
   final Pair[] cycle;
 
   /**
@@ -205,10 +209,6 @@ public class BipPauseCycle
    */
   final double[] initElasticDurations;
 
-    /*
-     *
-     *  Общая длительность бипов. Вроде больше не нужна ни для чего.
-    final int totalNonElasticDuration;*/
 
   /**
    * Дробные части длин нечетных элементов цикла (пауз)
@@ -220,6 +220,11 @@ public class BipPauseCycle
    */
   double accumulatedError;
 
+  /**
+   * Отладочно-познавательное. Сколько скорректировали ошибок. Позволяет понять,
+   * насколько бы мы разошлись с реальным метрономом, если бы отказались
+   * от дробных частей (проблема простых делителей частоты, "BPM=121").
+   */
   public long totalErrorsCorrected;
 
   /**
@@ -270,6 +275,8 @@ public class BipPauseCycle
 
 
   /**
+   *
+   *
    * Это прообраз общей процедуры, определяющий максимальный темп по данной
    * звуковой схеме. Результат дробный, поэтому нужно его округлить
    * в "простой схеме" (когде нет свободного метра, а мы привязаны к музыкальной архаике).
@@ -278,8 +285,7 @@ public class BipPauseCycle
    * в музыкальной схеме и их доле в сумме со следующей паузой.
    * Совсем огрубляя: чем короче бипы - тем быстрее можно играть (естественно).
    *
-   *
-   * IS: New, 05.01.2019
+   *ToDo: а что всё это тут делает?
    *
    * @param beatsInCycle   сколько beats (с точни зрения BMP) в цикле
    * @return наибольший темп (BPM), который мы можем установить для цикла
@@ -292,6 +298,8 @@ public class BipPauseCycle
 
   /**
    * Каков будет темп при данной длительности цикла в сэмплах.
+   *
+   * ToDo: а что всё это тут делает?
    *
    * @param durationInFrames какую длительность в сэмплах переводим в tempo
    * @param denominator      какой у темпо знаменатель
@@ -306,6 +314,8 @@ public class BipPauseCycle
 
 
   /**
+   * ToDo: рудимент старого кода?
+   *
    * Это прообраз общей процедуры, определяющий максимальный темп по данной
    * звуковой схеме. Результат дробный, поэтому нужно его округлить
    * в "простой схеме" (когде нет свободного метра, а мы привязаны к музыкальной архаике).
@@ -392,7 +402,7 @@ public class BipPauseCycle
                        BipAndPause[] bipsAndPauses,
                        int numerator)
   {
-    this.numerator = numerator;
+    //this.numerator = numerator;
     this.elasticSymbol = elasticSymbol;
 
     int lengthMin = Math.min(symbols.length, bipsAndPauses.length);
@@ -477,6 +487,47 @@ public class BipPauseCycle
 
   private List<Integer> symbolsToRead;
   private List<Integer> sizesToRead;
+
+
+  /**
+   * Untested //ToDo
+   *
+   * Какая часть цикла сыграна, [0,1]
+   * @return
+   */
+  public double relativeDurationBeforePosition(){
+    if (duration==0) return 0;
+    return durationBeforePosition()/duration;
+  }
+
+
+  /**
+   *  Сколько уже было сыграно в цикле
+   *
+   *  Untested.//ToDo
+   */
+  public long durationBeforePosition(){
+    return (long)durationBeforePosition(position);
+  }
+
+  /**
+   * Untested //ToDo
+   *
+   * @param pos
+   * @return
+   */
+  private double durationBeforePosition(CyclePosition pos) {
+    double dur = 0.0;
+    for (int i = 0; i < pos.n; i++) {
+      dur += cycle[i].l;
+      if (i%2 ==1) { dur+= fractionParts[i/2];}      //Крохоборство. Но в очень длинном цикле (очень теоретически)
+      //может дать значимое расхождение. Борьба за точность
+      //порядка длина цикла x 20 мкс.
+    }
+    dur += pos.offset;
+    dur+=accumulatedError;//Ну совсем крохоборство. Просто чтобы было верно.
+    return  dur;
+  }
 
   /**
    * Выбираем по кругу от данной позиции, пока не наберём суммарную длину
@@ -575,13 +626,13 @@ public class BipPauseCycle
 
   final String tagForPrint = "TempoTest ";
 
-  public void print()
+    void print()
   {
     printFinal();
     printVariable();
   }
 
-  public void printFinal()
+    void printFinal()
   {
     System.out.println(tagForPrint + "CYCLE, final");
 
@@ -608,12 +659,12 @@ public class BipPauseCycle
 
   }
 
-  public void printPosition()
+    void printPosition()
   {
     System.out.printf(tagForPrint + "Position: number=%d, offset=%d \n", position.n, position.offset);
   }
 
-  public void printVariable()
+    void printVariable()
   {
     System.out.println(tagForPrint + "CYCLE, variable");
     System.out.printf(tagForPrint + "Position: number=%d, offset=%d \n", position.n, position.offset);

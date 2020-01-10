@@ -92,8 +92,66 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             //channel.invokeMethod("warm", msg.arg1);
             long toSend=metroAudio.timeOfVeryFirstBipMcs;
             channel.invokeMethod("warm", toSend);
-            System.out.printf("Time in Java of the very frst bip (mcs) %d",toSend);
-          }/*
+
+            //test
+            prevTime=toSend;
+           // Log.d("MsgTest", "Time in Java of the very frst bip (mcs):  "+                    prevTime.toString());
+            //System.out.printf("Time in Java of the very frst bip (mcs) %d",initTime);
+            //_cnt=0;
+          }
+          else if (msg.arg2 == -2)//IS: Посылаем начальные условия (и maxBpm)
+          {
+            Map<String, Object> args = new HashMap<>();
+            int bpm=msg.arg1; // metroAudio.getTempo();
+            args.put("bpm", bpm);//новая скорость
+            long time0=metroAudio.timeOfSomeFirstBipMcs;
+            args.put("nt", time0);//новое время
+            //ToDo: maxTempo - при изменении долей и схем
+            int maxTempo=(int)metroAudio.melody.getMaxTempo();
+            args.put("maxBpm", maxTempo);
+
+            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
+            args.put("dt", lastSampleToPlay);//Когда начинать играть с новой скоростью
+            channel.invokeMethod("Cauchy", args);
+
+
+
+            //test
+
+            Long timeNow=metroAudio.timeNowMcs;
+            Long latMs=(lastSampleToPlay-timeNow)/1000;
+            Long deltaTimeMcsFrst=(timeNow-time0)/1000;
+            Log.d("MsgTest", "time to last sample: "+latMs.toString());
+            Log.d("MsgTest", "time since first sample: "+deltaTimeMcsFrst.toString());
+
+
+
+
+           Long lost=metroAudio.totalLostFrames;
+          /*     System.out.printf("MsgTest: "+
+                            "Time now mCs mod 10^9 in Java (mCs) %d \n ",timeNow%1000000000);*/
+        //    System.out.printf("MsgTest d-from-frst in Java (mCs): %d,  Total lost: %d ",
+          //          (timeNow-time0),  lost);
+
+          }
+          else if (msg.arg2 == -3)//тест
+          {
+            if (!bFirstMessage){
+              bFirstMessage=true;
+            }
+            _cnt++;
+            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
+            Long latMs=(lastSampleToPlay-metroAudio.timeNowMcs)/1000;
+            Long deltaTimeMcsFrst=(metroAudio.timeNowMcs-metroAudio.timeOfSomeFirstBipMcs);
+            Integer cnt=msg.arg1;
+            //Log.wtf("MsgTest", "Cnt, delta time: "+                     cnt.toString()+" (" + cnt.toString()+") "+                    deltaTimeMcs.toString());
+          //   Log.wtf("MsgTest", "latency (ms): "+ latMs.toString());
+         //   if (deltaTimeMcs<=0) {
+             // System.out.printf("MsgTest; Time:  d-time: %d, d-from-frst %d \n", deltaTimeMcs, deltaTimeMcsFrst);
+          // }
+          }
+
+          /*
           else
           {
             //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
@@ -105,18 +163,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("cycle", msg.arg2);
             channel.invokeMethod("timeFrame", args);
           }*/
-          else//Посылаем начальные условия
-          {
-            Map<String, Object> args = new HashMap<>();
-            int bpm=metroAudio.getTempo();
-            args.put("bpm", bpm);
-            long time0=metroAudio.timeOfVeryFirstBipMcs;
-            args.put("time0", time0);//TODO WRONG TEMP
-            //ToDo: maxTempo - при изменении долей и схем
-            int maxTempo=(int)metroAudio.melody.getMaxTempo();
-            args.put("maxBpm", maxTempo);
-            channel.invokeMethod("Cauchy", args);
-          }
             /*
           {
             //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
@@ -131,7 +177,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("time", metroAudio.timeSync);
             channel.invokeMethod("sync", args);
           }*/
-          //IS: ToDo: Закооно ли то, что мы лазим в
+          //IS: ToDo: Законно ли то, что мы лазим в
           //другой поток за переменными? Точнее, что он обращается к тем переменным,
           //которые мы потом собираем тут? Не может ли
           //это блокировать его и вызвать потерянные сэмплы?
@@ -140,7 +186,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
           //и как он неделю мучился. Лох эдакий, понабрали по объявлениям...
         }
       }
+
+      //Some test vars //ToDo: убрать позже
+      boolean bFirstMessage=false;
+      Long prevTime;
+      int _cnt=0;
     };
+
 
     metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
       00,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
@@ -234,6 +286,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       beatMelody = new AccentedMelody(soundSсhemes.get(currentMusicScheme),
         nativeSampleRate, beat.beatCount, beat.subBeats);
+      //ToDo: так не надо; при изменении битов надо менять
+      //чуть мелодию, а не грузить её всю.
+
       //IS
       // Create new metronome beat setOfNotes
       int maxTempo = metroAudio.setMelody(beatMelody, _beatsPerMinute);
@@ -243,7 +298,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     {
       int tempoBpm = methodCall.argument("tempo");
       //int noteValue = methodCall.argument("note");//IS: Не нужно.
-      int maxTempo = setTempo(tempoBpm/*, noteValue*/);
+      int maxTempo = setTempoA(tempoBpm/*, noteValue*/);
       result.success(maxTempo);
     }
     else if (methodCall.method.equals("setVolume"))
@@ -274,7 +329,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       if (schemeIndex < soundSсhemes.size())
       {
         currentMusicScheme = schemeIndex;
-        result.success(1);
+
+        beatMelody = new AccentedMelody(soundSсhemes.get(currentMusicScheme),
+                nativeSampleRate, beat.beatCount, beat.subBeats);
+
+        //ToDo: Мы не заблокируем поток?
+
+        int maxTempo = metroAudio.setMelody(beatMelody, _beatsPerMinute);
+
+        result.success(maxTempo);
       }
       else
         result.success(0);
@@ -351,7 +414,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     if (metroAudio.state == MetroAudioProbnik.STATE_READY)
     {
       _beatsPerMinute = beatsPerMinute;
-      realTempo = metroAudio.play(beatsPerMinute);// + minimalTempoBPM);
+      realTempo = metroAudio.play(beatsPerMinute);
 
       //ToDo: TEST
     }
@@ -366,13 +429,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   }
 
   // Set new tempo rate
-  private int setTempo(int tempoBpm/*, int noteValue*/)
+  private int setTempoA(int tempoBpm/*, int noteValue*/)
   {
     int maxTempo = 0;
     //TODO if (!_tempo.equals(tempo))
     {
-      _beatsPerMinute = tempoBpm;
-      maxTempo = metroAudio.setTempo(tempoBpm);// + minimalTempoBPM);
+      //_beatsPerMinute = tempoBpm;//IS: TEST
+      maxTempo = metroAudio.setTempo(tempoBpm);
     }
     return maxTempo;
   }
@@ -382,6 +445,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   {
     soundSсhemes = new ArrayList<MusicScheme2Bips>();
 
+    Resources res = getResources();
+
+
+    soundSсhemes.add(
+            new MusicScheme2Bips("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
 
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
@@ -392,17 +462,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     );
     soundSсhemes.add(musicSсhemeTunable);
 
-    Resources res = getResources();
 
     soundSсhemes.add(
             new MusicScheme2Bips("Workspace-1", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
 
-    soundSсhemes.add(
-            new MusicScheme2Bips("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
-                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
-            ));
 
 
     soundSсhemes.add(

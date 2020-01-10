@@ -19,6 +19,7 @@ class BeatMetre
   /// notes.length - number of simple metres in metronome beat melody
   List<int> metres;
 
+
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
   List<int> accents;
@@ -115,9 +116,10 @@ class BeatMetre
   {
     double duration = _beatCount * 60.0 / beatsPerMinute;
     //Position pos = new Position(0, 0);
-    int cycle = time ~/ duration;
-    if (time < 0)
-      time = -time;//IS: ??//ToDo: я думаю, это отправляет нас в прошлое
+    //int cycle = time ~/ duration;
+    if (time < 0) {} //Такое может быть! Если latency большое, то легко.
+       //time = -time;//IS:  это неверно. Даёт забавный эффект  -
+    // если сделать к примеру размер большого буфера 300мс, то будем назад ехать:)
 
     //print('timePosition0 $duration');
 
@@ -134,4 +136,5 @@ class BeatMetre
 
     return [beat, subbeat];
   }
+
 }

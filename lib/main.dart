@@ -88,8 +88,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minNoteValue = 2;
   static const int maxNoteValue = 32;//IS: ???
 
-  static const int minTempo = 6;
-  static const int maxTempo = 5000; //ToDo: ask Java what is maximal speed according to the music scheme
+  static const int minTempo = 20;//ToDo: вернуть 6 (или 1?)
+  static const int maxTempo =2000; //ToDo: ask Java what is maximal speed according to the music scheme
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
@@ -131,9 +131,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //int _beatCount = 4;  // _metreBeats
   //int _subBeatCount = 1;
   /// Current playing beat
-  int _activeBeat = 0;
+  int _activeBeat = -1;
   /// Current playing subbeat of current beat
-  int _activeSubbeat = 0;
+  int _activeSubbeat = -1;
   /* /// Melody parameters
   double _quortaInMSec = 20;
   int _bars = 1;
@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   int _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  int _tempoBpm = 60;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
   int _tempoBpmMax = maxTempo;
   //MelodyMeter _melodyMeter;
@@ -221,7 +221,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _beat.beatCount = initBeatCount;
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.beatMetre = _beat;
-
+    _setMusicScheme(0);// ToDo: what if there are no schemes? Можно отсюда
+    //async вызывать?
     _playing = false;
   }
 
@@ -289,7 +290,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _beat.beatCount = beats;
       //_activeBeat %= _beat.beatCount;
       _activeBeat = _activeSubbeat = 0;
-      Provider.of<MetronomeState>(context, listen: false).reset();
+      Provider.of<MetronomeState>(context, listen: false).reset();//ToDo
       if (_playing)
         _setBeat();
       setState(() {});
@@ -309,7 +310,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
     _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
     _activeBeat = _activeSubbeat = 0;
-    Provider.of<MetronomeState>(context, listen: false).reset();
+    Provider.of<MetronomeState>(context, listen: false).reset();//ToDo
     if (_playing)
       _setBeat();
     else
@@ -322,7 +323,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO
     _beat.subBeats[id] = subCount;
     _activeBeat = _activeSubbeat = 0;
-    Provider.of<MetronomeState>(context, listen: false).reset();
+    Provider.of<MetronomeState>(context, listen: false).reset();//ToDo
     if (_playing)
       _setBeat();
     //VG0 setState(() {});
@@ -478,8 +479,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           onPressed: () {
             setState(() {
               _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
+              _setMusicScheme(_activeSoundScheme);
             });
-            _setMusicScheme(_activeSoundScheme);
+            //_setMusicScheme(_activeSoundScheme); IS: here or above??
 
             //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
             //Navigator.of(context).push(_createSettings());
@@ -852,9 +854,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //int warmupFrames = call.arguments;
       int initTime=call.arguments;
       print('Time in Flutter of stable time (mcs) $initTime');
-      state.start(initTime);
+      state.startAfterWarm(initTime,_tempoBpm);//ToDo: _tempoBpm уже должно быть задано раньше
       _start();
-    }/*
+    }
     else if (call.method == 'Cauchy')
       //IS:Устанавливаем время начала первого бипа и темп
       //Заодно (хотя это и неоптимально) сюда же я максимальную
@@ -863,8 +865,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //будут задержки, третий аргумент можно получать отдельно.
     {
       int bpmToSet = call.arguments['bpm'];
-      int timeOfFirstToSet = call.arguments['time0'];
-      state.sync(timeOfFirstToSet,bpmToSet);
+      int timeOfAFirstToSet = call.arguments['nt'];//новое время
+      int newSpeedStarts = call.arguments['dt'];//время, когда менять время
+      state.sync(timeOfAFirstToSet,bpmToSet,newSpeedStarts);
+
+      //test:
+      int timeNow=DateTime.now().microsecondsSinceEpoch;
+      int timeNowRem=timeNow%1000000000;
+
+      int dtime= (timeNow-timeOfAFirstToSet)~/1000;
+
+      print('MsgTest:  BPM in Flutter $bpmToSet\n');
+      //print('MsgTest:  Time now mCs mod 10^9  in Flutter $timeNowRem');
+      //print('MsgTest:  d-from-frst in Flutter $dtime\n');
+
       /*int newBPMMax=call.arguments['maxBpm'];
       if (_tempoBpmMax!=newBPMMax) {
         setState(() { _tempoBpmMax = newBPMMax; });
@@ -873,7 +887,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         setState(() {}); //IS: VS, Витя, это правильно так делать?
          */
       }*/
-    }*/
+    }
     /*
     else if (call.method == 'sync')
     {
@@ -943,7 +957,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else
       {
         setState(() {
-           //_tempoBpm = realTempo; //IS: TEST
+          state.startWarm();//IS: TEST
+           //_tempoBpm = realTempo;
         });
       }
     }
@@ -1018,7 +1033,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Send music tempo to Java sound player
   Future<void> _setTempo(int tempo) async
   {
-    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+   // MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     //state.setTempo(_tempoBpm/*, _noteValue*/);//IS: Почему сначала меняется tempo у состояния?
 
     //В любом случае, новый темп для анимации устанавливать рано -
@@ -1027,7 +1042,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //и, кроме того, не учтем, что изменилось время начального бипа
     //(то, которое мы бы имели, играя с данным темпом),
     //то у нас разойдутся звук и анимация
-    //(как наблюдаемые раньше  "путешествия в прошлое").
+    //("путешествия в прошлое").
     try
     {
       final Map<String, int> args =
@@ -1102,10 +1117,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     try
     {
-      final int result = await _channel.invokeMethod('setScheme', {'scheme': musicScheme});
-      if (result != 1) {
-        _infoMsg = 'Failed setting  music scheme, lay-la,la-la-la-lay-la-la...';
+      final int limitTempo = await _channel.invokeMethod('setScheme', {'scheme': musicScheme});
+      if (limitTempo <=0) {
+        _infoMsg = 'Failed setting  music scheme, lay-la,la-la-la-lay-lay-la-la-la...';
         print(_infoMsg);
+      }
+      else {
+        setState(() {
+          _tempoBpmMax = limitTempo;
+          if (_tempoBpm > _tempoBpmMax)
+            _tempoBpm = _tempoBpmMax;
+        });
       }
     } on PlatformException {
       _infoMsg = 'Exception: Failed setting  music scheme';

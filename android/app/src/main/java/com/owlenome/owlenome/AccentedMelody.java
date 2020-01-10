@@ -133,7 +133,8 @@ IS: Надо забыть код ниже (у нас нет сейчас пау�
   {
     int BPMtoSet = Math.min(
             (int) cycle.getMaximalTempo(_nativeSampleRate,nOfBeats),
-             beatsPerMinute);
+             beatsPerMinute
+    );
     //Utility utility = new Utility();
     //System.out.printAcc1("BPMtoSet ");
     //System.out.println(BPMtoSet);

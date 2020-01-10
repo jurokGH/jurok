@@ -13,21 +13,69 @@ class MetronomeState with ChangeNotifier
   /// Active BeatMetre (note)
   int _activeBeat = -1;
   /// Active subbeat
-  int _activeSubbeat = 0;
+  int _activeSubbeat = -1;
 
 
   ///  start time of A first beat (in microseconds)
   int _timeOrg;
 
-  ///Время, когда начинать играть (in microseconds)
+
+  ///Время, когда знаем время первого  звука (microseconds)
   ///Пока не наступило - не анимируемся (еще не отыгран буфер тишины)
   ///Используется лишь один раз
-  ///(может быть полезно для статистики).
+  ///(и может быть полезно для статистики).
   int timeOfTheFirstBeat=(2<<53); //end of time
 
   //Tempo tempo;
 
   int beatsPerMinute;
+
+
+  /// Помимо синхронизации начального времени, есть  следующая (небольшая, но забавная) проблема.
+  /**
+      При изменении скорости мы можем продолжить играть анимацию со старой, или перейти
+      сразу на новую скорость анимации. В обоих случаях мы какое-то время не знаем,
+      что реально происходит со звуком: мы получим ответ от явы, потратив, скажем, 20 мс
+      на обмен посланиями и плюс время,
+      пока Ява ждёт  в тесном цикле возможности изменить темп
+      (то есть время на запись числа сэмплов framesToWriteAtOnce в audio потоке).
+      На это время анимация разъедется со звуком из за разницы в скоростях.
+      Потом всё будет хорошо, и в принципе это не сильный баг
+      (если очень постараться, то можно добиться такого визуального эффекта,
+      когда будет "отскок" анимации - перерисовка  предыдущего состояния).
+      Как уменьшить время неопределнности?
+
+      Пусть:
+      b - время проигрывания  уже записанного в буфер
+      (большой буфер в нашем аудио потомке, сейчас 160мс);
+      fj - время на сообщение от флаттера к яве   (условно, 20 мс)
+      s - время ожидания в тесном потоке для изменения скорости аудио (ограничивается сверху упомянутой выше
+      константой framesToWriteAtOnce, эквивалентной сейчас 80 мс).
+
+
+      Если играем анимацию сразу с новой скоростью,
+      то суммарное время расхожения T будет порядка
+      b+jf+s
+      Поэтому T легко может превысить четверть секунды.
+
+      Если же играем анимацию со старой скоростью, то за счет того,
+      что в большом буфере всё будет играться с такой же еще какое-то время,
+      мы можем узнать от явы о том, когда именно начинается новая скорость
+      раньше, чем доиграется большой буфер!
+      А именно, мы будем знать ответ через
+      fj+s+jf,
+      где jf - время на сообщение от от явы к флаттеру   (условно, 20 мс).
+      Получаем: fj+s+jf<b.
+   */
+
+
+  ///Время, когда надо поменять скорость. Пока не наступило - не меняем.
+  int   timeToChangeTime;
+
+  bool bWaitingForNewBPM;
+
+  int newBPM;
+  int _newTimeOrg;
 
   //AccentBeat melody; //IS: Why?
   //Position pos;
@@ -46,18 +94,30 @@ class MetronomeState with ChangeNotifier
 
   MetronomeState()
   {
+    _activeBeat=-1; _activeSubbeat=-1;
     //tempo = new Tempo();
-    //pos = new Position(-1, 0); //ToDo: (-1,0)?
+    //pos = new Position(-1, 0);
     //_timer = new Stopwatch();
   }
 
-  void start(int initTime)
+  ///
+  /// Вызываем перед началом разогрева
+  /// До начала анимации - условно 100 - 500 мс
+  void startWarm(){
+    _activeBeat=-1; _activeSubbeat=-1;
+  }
+
+
+  ///Вызываем, когда разогрелись и точно знаем звучание первого бита.
+  ///Опережает на время большого буфера Явы начало анимации (условно, 100мс)
+  void startAfterWarm(int initTime, int bpm)
   {
      //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No(((
 
      timeOfTheFirstBeat=initTime;
      _timeOrg=initTime;
-
+     beatsPerMinute=bpm;
+     bWaitingForNewBPM=false;
 
     /*
     _timer.reset();
@@ -65,6 +125,36 @@ class MetronomeState with ChangeNotifier
     if (!_timer.isRunning)
       _timer.start();
      */
+  }
+
+
+  /// Устанавливаем время первого бита и BMP, и время, когда их менять.
+  ///
+  /// !!!!Устанавливать только после согласования с явой!!!!
+  /// Иначе разойдутся анимация и видео.
+  ///
+  /// Эти параметры необходимы и достаточны для синхронизации
+  /// звука.
+  ///
+  /// Важно! - Почему они необходимы?
+  /// Мы не можем устанавливать темп независимо от начального времени.
+  /// Действительно, мы не знаем в принципе, сколько времени шли сообщения от флаттера к яве,
+  /// и сколько ява будет ждать в тесном цикле.
+  /// Кроме того, существенное время будет доигрывалаться мелодия в старом темпе -
+  ///  ей заполнен буфер  (это могут быть сотни миллисекунд).
+  ///
+  /// Задача в том, что мы должны успеть из флаттера пообщаться с явой быстрее, чем отыграется
+  /// большой буфер. Послале яве запрос на новый темп, дождались, пока она там разберётся у себя,
+  /// и ответит нам, когда ждать первого звука, с которого всё играется с новой скоростью.
+  ///
+  ///
+  ///
+  void sync(int initTime, int newBpm, int timeToChangeTime)
+  {
+    bWaitingForNewBPM=true;
+    _newTimeOrg=initTime;
+    newBPM = newBpm;
+    this.timeToChangeTime=timeToChangeTime;
   }
 
   void stop()
@@ -77,8 +167,8 @@ class MetronomeState with ChangeNotifier
 
   void reset()
   {
-    _activeBeat = _activeSubbeat = 0;
-    //_activeBeat=-1; _activeSubbeat = 0;//IS: Test//ToDo
+    //_activeBeat = _activeSubbeat = 0;
+    _activeBeat=-1; _activeSubbeat = 0;//IS: Test//ToDo
     //pos.reset();
   }
 
@@ -106,18 +196,24 @@ class MetronomeState with ChangeNotifier
 
     int time = DateTime.now().microsecondsSinceEpoch;
 
-    if (time<timeOfTheFirstBeat) return changed;//звука пока нет
+    if (time<timeOfTheFirstBeat) return changed;//IS: звука пока нет. Пока просто молчим.
     //Нужно что-то поумнее придумать в этот период. Новости там пользователю
-    //предложить почитать или что еще...
+    //предложить почитать или что еще... Загрытые глаза спящих сов стали полуоткрыты?
+    //Совы вздрогнули?
+
+    if (bWaitingForNewBPM&&(time>=timeToChangeTime)){//пришло время жить с новой скоростью
+      bWaitingForNewBPM=false;
+      _timeOrg=_newTimeOrg;
+      beatsPerMinute=newBPM;
+    }
 
     double dt = 1e-6 * (time - _timeOrg);  // in seconds
-
-
 
     List<int> pair = beatMetre.timePosition(dt, beatsPerMinute);
     int curBeat = pair[0];
     int curSubbeat = pair[1];
-    
+
+
     if (curBeat != _activeBeat || curSubbeat != _activeSubbeat)
     {
       changed = true;
@@ -160,29 +256,6 @@ class MetronomeState with ChangeNotifier
     //melody.cycle.setTempo(tempo, _bars);
   }*/
 
-  /// Устанавливаем начальное время и BMP.
-  ///
-  /// !!!!Устанавливать только по согласованию с явой!!!!
-  /// Иначе разойдутся анимация и видео.
-  ///
-  /// Эти два параметра необходимы и достаточны для синхронизации
-  /// звука. Почему достаточны - понятно (можно не ссылаться на теорему Коши).
-  ///
-  /// Важно! - Почему они необходимы?
-  /// Мы не можем устанавливать темп независимо от начального времени.
-  /// Действительно, мы не знаем в принципе, сколько времени шли сообщения от флаттера к яве
-  /// и, что более существенно,  сколько времени доигрывалась мелодия в старом темпе -
-  ///  ей заполнен буфер  (это могут быть сотни миллисекунд).
-  ///
-  void sync(int initTime, int tempoBpm)
-  {
-    beatsPerMinute = tempoBpm;
-    _timeOrg=initTime;
-    //tempo.denominator = noteValue;
-
-    //  int _bars = 1;
-    //melody.cycle.setTempo(tempo, _bars);
-  }
 
   bool isActiveBeat(int id)
   {

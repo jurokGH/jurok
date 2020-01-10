@@ -99,6 +99,11 @@ public class MetroAudioProbnik
   int buffsPerHalf;
 
   /**
+   * Положение головки сразу после записи
+   */
+  int headJustAfterWrite;
+
+  /**
    * Начало работы. Не означает время старта метронома. Отладочное.
    * in nanoseconds
    */
@@ -135,7 +140,7 @@ public class MetroAudioProbnik
   //ToDo: TEST
   private boolean newTempo = false;
   //private Tempo _tempo;
-  private int _beatsPerMinute;//ToDo: убрать?
+  private int _BPMtoSet;//ToDo: убрать?
 
   boolean doPlay; //ToDo: логика состояния
 
@@ -153,7 +158,7 @@ public class MetroAudioProbnik
     //---
     if (beatsPerMinute < cMinTempoBpm)
       beatsPerMinute = cMinTempoBpm;
-    _beatsPerMinute = beatsPerMinute;
+    _BPMtoSet = beatsPerMinute;
     //----
 
     if (state == STATE_PLAYING)
@@ -164,14 +169,14 @@ public class MetroAudioProbnik
 
   int getTempo()
   {
-    return _task == null ? _beatsPerMinute : _task.realBPM;
+    return _task == null ? _BPMtoSet : _task.realBPM;
   }
 
   public int setTempo(int beatsPerMinute)
   {
     if (beatsPerMinute < cMinTempoBpm)
       beatsPerMinute = cMinTempoBpm;
-    _beatsPerMinute = beatsPerMinute;
+    _BPMtoSet = beatsPerMinute;
     if (state == STATE_PLAYING)
       newTempo = true;
 
@@ -206,7 +211,7 @@ public class MetroAudioProbnik
   public int play(int beatsPerMinute)
   {
     boolean res = true;
-    _beatsPerMinute = beatsPerMinute;
+    _BPMtoSet = beatsPerMinute;
 
     setState(STATE_STARTING);
     doPlay = true;
@@ -292,6 +297,9 @@ public class MetroAudioProbnik
 
   long timeOfStableStampDetected = 0;
   long timeOfVeryFirstBipMcs =(2<<53);
+  long timeOfSomeFirstBipMcs;
+  long timeOfLastSampleToPlay;//test
+  long timeNowMcs;//test
  // long timeSync = 0;
  // int cycleSync = 0;
 
@@ -317,6 +325,20 @@ public class MetroAudioProbnik
     */
   }
 
+
+  void messageTest(int cnt)
+  {
+
+    Message msg = handler.obtainMessage(state, cnt, -3);  //pos.offset);
+    handler.sendMessage(msg);
+  }
+
+  void newTempoToFlut(int bpm)
+  {
+    Message msg = handler.obtainMessage(state, bpm, -2);  //pos.offset);
+    handler.sendMessage(msg);
+  }
+
   void commandInvalidateIV()
   {
     //Message message = new Message(); //ToDo: где-то было сказано, что их нельзя
@@ -327,6 +349,8 @@ public class MetroAudioProbnik
     msg.arg2 = (int) ((totalWrittenFrames >> 32) & 0xFFFFFFFFL);
     handler.sendMessage(msg);
   }
+
+
 
   void sendMessage(int cycleCount, int index, int offset, long time)
   {
@@ -398,7 +422,7 @@ public class MetroAudioProbnik
     this.nativeBufferInFrames = nativeBufferInFrames;
 
     //_tempo = new Tempo(cTempoBpM, cNnoteValue);
-    _beatsPerMinute=cTempoBpM;
+    _BPMtoSet =cTempoBpM;
 
     this.handler = handler;
 
@@ -609,8 +633,8 @@ public class MetroAudioProbnik
       int toWrite = 0;
       BipPauseCycle.TempoLinear linear = melody.cycle.readTempoLinear(framesToWriteAtOnce);
       /*pos.n = linear.pos.n;
-      pos.offset = linear.pos.offset;*/
-      //pos.cycleCount = linear.pos.cycleCount;//Why???
+      pos.offset = linear.pos.offset;
+       pos.cycleCount = linear.pos.cycleCount; */
 
       for (int i = 0; i < linear.durations.length; i++)
       {
@@ -683,7 +707,7 @@ public class MetroAudioProbnik
     {
       boundNanoTimeToRealTime=new BoundNanoTimeToRealTime();
 
-      realBPM = melody.setTempo(_beatsPerMinute);
+      realBPM = melody.setTempo(_BPMtoSet);
 
       melody.cycle.reset();
 
@@ -759,9 +783,6 @@ public class MetroAudioProbnik
               warmingUp = false;  // Разогрелись!
               veryFirstStampTime = currentStamp.nanoTime;
               veryFirstStampFrame = currentStamp.framePosition;
-
-
-
 
               timeOfStableStampDetected = System.nanoTime();
 
@@ -863,34 +884,112 @@ public class MetroAudioProbnik
           written2 = audioTrack.write(halfOfBigBufferOfSilence, 0, silenceLengthInBytes)+
                   audioTrack.write(halfOfBigBufferOfSilence, 0, halfOfBigBufferOfSilence.length);*/
 
+          //byteBuffer.position(0);
+
+          //long writtenSamples = -1;
+          //Position pos = new Position(-1, 0);//ISH: ?
+          int toWrite = mBuffer.copy2buffer(melody/*, pos*/);//Но pos значит не нужен?
+/*
+          if (pos.n >= 0)
+          {
+            sendMessage(pos);
+            //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
+          }
+*/
+          //Пишем звук
+          written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
+            AudioTrack.WRITE_BLOCKING);
+
+          currentTime=System.nanoTime();
+          headJustAfterWrite = audioTrack.getPlaybackHeadPosition();
+          //Убрать все долгие nanoTime, работать с быстрыми (и стабильными?) фреймами?
+          //Не можем! Нам же сообщения еще слать...
+          totalLostFrames += (toWrite - written) / 2;
+          totalWrittenFrames += written / 2;
+
           boolean sync = newTempo || newMelody;
 
           if (newMelody)
           {
             System.out.printf("---------SetNewMelody------");
-            realBPM = melody.setTempo(_beatsPerMinute);//TODO Why??
+            //   realBPM = melody.setTempo(_BPMtoSet);//TODO Why??
 
-            melody.cycle.reset();//TODO: why?
+            // melody.cycle.reset();//TODO: why?
 
             cycle = melody.cycle;
             newMelody = false;
           }
           if (newTempo)
           {
-            System.out.printf("---------SetNewTempo------");
             //ToDo: Разобраться с переменными - какие в классе, какие в потоке
             if (!noMessages)
             {
               System.out.printf("---------NewTempo------");
               System.out.printf(String.format("Old length of cycle: %.3f\n", cycle.duration));
-              System.out.printf(String.format("BPMFromSeekBarVal: %d", _beatsPerMinute));
+              System.out.printf(String.format("BPMFromSeekBarVal: %d", _BPMtoSet));
               cycle.print();
             }
 
-            realBPM = melody.setTempo(_beatsPerMinute);
+
+            realBPM = melody.setTempo(_BPMtoSet);
+
+
+            //Аналогично определению timeOfVeryFirstBipMcs,
+            // определяем время игры последнего записанного звука
+            timeOfSomeFirstBipMcs=
+                    boundNanoTimeToRealTime.nanoToFlutterTime(currentTime)+//now
+                            staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
+                            samples2nanoSec(totalWrittenFrames-headJustAfterWrite)/1000;
+            //Теперь его надо уменьшить на то, что уже было сыграно в цикле
+            timeOfSomeFirstBipMcs-=
+                    samples2nanoSec(melody.cycle.durationBeforePosition())/1000;
+            /*
+            timeOfSomeFirstBipMcs=boundNanoTimeToRealTime.nanoToFlutterTime(currentTime+
+                    samples2nanoSec(
+                            staticLatencyInFrames + (totalWrittenFrames - headJustAfterWrite)-
+                    melody.cycle.durationBeforePosition()
+                    )
+                    );*/
+
+
+
+            //ToDo: 1. Опять же, надо следить, чтобы писалось достаточно большими порциями,
+            // кратными малым буферам (или хотя бы их половинам)
+            // - иначе может не обновиться параметр getPlaybackHeadPosition, и мы
+            // получим "пляски" при дергании темпа. Тут нужен баланс - слишком большой программный буфер
+            // означает долгое "доигрывание" звуков и большую latency, маленький может дать
+            // неравномерное считывание.  (Еще раз протестировать всё в весеннем комбайне.)
+            // Этот параметр вроде бы подобирается правильно - так, чтобы число
+            // записанных росло равномерно с числом отыгранных (сразу после записи);
+            // но проверялось это лишь для моего телефона.
+
+            //ToDo: 2. Возможно, нужно для страховки поставить заглушку на изменение темпа
+            // в несколько 10в миллисекунд, чтобы не флудить и не рисковать.
+
+            //ToDo: 3. В документации рекомендуется обновлять значение штампа иногда
+            // (раз в непонятно сколько времени, документация очень туманна на этот счет).
+            // Я пока не понимаю, как с этим быть. Только тесты на разном железе.
+
             newTempo = false;
             //tempo.beatsPerMinute = BPMfromSeekBar;
             //barrelOrgan.reSetAngles(cycle);
+
+
+
+            //test
+            timeOfLastSampleToPlay =boundNanoTimeToRealTime.nanoToFlutterTime(currentTime)+//now
+                    staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
+                    samples2nanoSec(totalWrittenFrames-headJustAfterWrite)/1000;
+            timeNowMcs= boundNanoTimeToRealTime.nanoToFlutterTime(currentTime);
+            messageTest(_cnt);
+            //todo: упростить - timeOfLastSampleToPlay определить через timeOfSomeFirstBipMcs
+            //<-test
+
+            newTempoToFlut(realBPM);//В яву, оттуда во флаттер
+            //IS: VS, Вить, сорри, с сообщениями у меня полный бардак. Что как передаётся - вообще как попало.
+            //
+            // ToDo.
+
 
             if (!noMessages)
             {
@@ -899,8 +998,10 @@ public class MetroAudioProbnik
             }
           }
 
-          if (sync) //IS: ??? //TODO
+          if (sync)
           {
+
+
             /*
             Position pos = melody.cycle.position;
             long timeNow = System.nanoTime();
@@ -921,26 +1022,6 @@ public class MetroAudioProbnik
 
              */
           }
-          //byteBuffer.position(0);
-
-          //long writtenSamples = -1;
-          //Position pos = new Position(-1, 0);//ISH: ???????
-          int toWrite = mBuffer.copy2buffer(melody/*, pos*/);//Но pos значит не нужен?
-/*
-          if (pos.n >= 0)
-          {
-            sendMessage(pos);
-            //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
-          }
-*/
-          //Пишем звук
-          //byteBuffer.position(0);
-          written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
-            AudioTrack.WRITE_BLOCKING);
-
-          int headJustAfterWrite = audioTrack.getPlaybackHeadPosition();
-          totalLostFrames += (toWrite - written) / 2;
-          totalWrittenFrames += written / 2;
 
           framesBeforeHeadToReallyPlay = staticLatencyInFrames + (totalWrittenFrames - headJustAfterWrite);
 
@@ -1146,7 +1227,7 @@ public class MetroAudioProbnik
    * Если noMessages=true - сообщения не будут собираться/печататься.
    * В противном случае указывает, что делать при разогреве.
    */
-  private boolean warmingUpMessages = true;
+  private boolean warmingUpMessages = false;
 
   public static final String logTagSoundTest = "SoundTest";
 
