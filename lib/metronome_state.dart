@@ -5,6 +5,16 @@ import 'beat_metre.dart';
 import 'tempo.dart';
 import 'AccentBeat.dart';
 
+class Cauchy{
+  ///время начального бита,  скорость,
+  /// и время, когда они должны быть применены.
+  ///Пока время не пришло - ничего не меняем.
+  int timeOrg;
+  int   bpm;
+  int   timesToChangeTime;
+  Cauchy(this.timeOrg,this.bpm,this.timesToChangeTime);
+}
+
 /// State of current metronome activity
 
 class MetronomeState with ChangeNotifier
@@ -69,13 +79,15 @@ class MetronomeState with ChangeNotifier
    */
 
 
-  ///Время, когда надо поменять скорость. Пока не наступило - не меняем.
-  int   timeToChangeTime;
+  ///Новые времена и нравы (скорости), и когда они применимы. Пока время не пришло - ничего не меняем.
+  List<Cauchy>   conditions;
 
-  bool bWaitingForNewBPM;
 
-  int newBPM;
-  int _newTimeOrg;
+
+  //bool bWaitingForNewBPM;
+
+
+
 
   //AccentBeat melody; //IS: Why?
   //Position pos;
@@ -105,6 +117,7 @@ class MetronomeState with ChangeNotifier
   /// До начала анимации - условно 100 - 500 мс
   void startWarm(){
     _activeBeat=-1; _activeSubbeat=-1;
+    conditions=new List<Cauchy>();
   }
 
 
@@ -112,12 +125,11 @@ class MetronomeState with ChangeNotifier
   ///Опережает на время большого буфера Явы начало анимации (условно, 100мс)
   void startAfterWarm(int initTime, int bpm)
   {
-     //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No(((
+     //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No((( Злой латенси еще...
 
      timeOfTheFirstBeat=initTime;
      _timeOrg=initTime;
      beatsPerMinute=bpm;
-     bWaitingForNewBPM=false;
 
     /*
     _timer.reset();
@@ -151,10 +163,32 @@ class MetronomeState with ChangeNotifier
   ///
   void sync(int initTime, int newBpm, int timeToChangeTime)
   {
+    Cauchy condition=new Cauchy(initTime,newBpm,timeToChangeTime);
+    conditions.add(condition);
+
+
+
+    /* ОДНОГО НАБОРА УСЛОВИЙ НЕ ХВАТИТ, если злой пользователь зажмет ручку скорости
     bWaitingForNewBPM=true;
     _newTimeOrg=initTime;
     newBPM = newBpm;
-    this.timeToChangeTime=timeToChangeTime;
+    this.timeToChangeTime=timeToChangeTime;*/
+
+    /*
+    //test
+    int l=conditions.length;
+    print('Sync length: $l');
+
+    String s='Sync delta times (from now) : ';
+    int prevTm=DateTime.now().microsecondsSinceEpoch;
+    for (int i = 0; i<conditions.length; i++){
+      int t=conditions[i].timesToChangeTime-prevTm;
+      prevTm=conditions[i].timesToChangeTime;
+      s+=t.toString()+'; ';
+    }
+    print(s);*/
+
+
   }
 
   void stop()
@@ -170,9 +204,10 @@ class MetronomeState with ChangeNotifier
     //_activeBeat = _activeSubbeat = 0;
     _activeBeat=-1; _activeSubbeat = 0;//IS: Test//ToDo
     //pos.reset();
+    //??? - нужно сюда? разобраться //todo
   }
 
-  /* IS: Пока убрал
+  /* IS: Старый синк
   /// Synchronize metronome state with current sound state from Java
   void sync(int index, double offset, int beat, int subbeat, int time)
   {
@@ -199,13 +234,31 @@ class MetronomeState with ChangeNotifier
     if (time<timeOfTheFirstBeat) return changed;//IS: звука пока нет. Пока просто молчим.
     //Нужно что-то поумнее придумать в этот период. Новости там пользователю
     //предложить почитать или что еще... Загрытые глаза спящих сов стали полуоткрыты?
-    //Совы вздрогнули?
+    //Совы вздрогнули?//ToDo
 
+    while ((conditions.length>0)&&(time>=conditions[0].timesToChangeTime))
+     {//пришло время жить с новой скоростью
+       _timeOrg=conditions.last.timeOrg;
+       beatsPerMinute=conditions.last.bpm;
+       conditions.removeAt(0);//IS:FiFo... Не знаю, как умно это сделать в dart
+
+       String s='Sync delta times (from now) : ';
+       int prevTm=DateTime.now().microsecondsSinceEpoch;
+       for (int i = 0; i<conditions.length; i++){
+         int t=conditions[i].timesToChangeTime-prevTm;
+         prevTm=conditions[i].timesToChangeTime;
+         s+=t.toString()+'; ';
+       }
+       print(s);
+     }
+     //Да, но может мы еще дальше можем
+
+/*
     if (bWaitingForNewBPM&&(time>=timeToChangeTime)){//пришло время жить с новой скоростью
       bWaitingForNewBPM=false;
       _timeOrg=_newTimeOrg;
       beatsPerMinute=newBPM;
-    }
+    }*/
 
     double dt = 1e-6 * (time - _timeOrg);  // in seconds
 

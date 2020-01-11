@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int maxBeatCount = 12;
   static const int maxSubBeatCount = 8;
   static const int minNoteValue = 2;
-  static const int maxNoteValue = 32;//IS: ???
+  static const int maxNoteValue = 32;//IS: 16?
 
   static const int minTempo = 20;//ToDo: вернуть 6 (или 1?)
   static const int maxTempo =2000; //ToDo: ask Java what is maximal speed according to the music scheme
@@ -166,7 +166,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
   int _activeSoundScheme = 0;//IS: Why?!
   int _soundSchemeCount = 4; //IS: Мы уже умеем всё это спраишивать у явы
-  List<String> _soundSchemes = ['Plain'];  //IS: Why?!
+  List<String> _soundSchemes = [''];  //IS: Why?!
 
 
   // true - redraw UI with Flutter's AnimationController at 60 fps
@@ -195,8 +195,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Query native hardware audio parameters
     //_getAudioParams();
 
-    //IS: If I comment this, nothing redraws.
-    //So what is the role of another controller?
+
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
@@ -221,8 +220,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _beat.beatCount = initBeatCount;
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.beatMetre = _beat;
-    _setMusicScheme(0);// ToDo: what if there are no schemes? Можно отсюда
-    //async вызывать?
+    //_setMusicScheme(0);// ToDo: what if there are no schemes?
     _playing = false;
   }
 
@@ -1050,6 +1048,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'tempo' : _tempoBpm,
         //'note' : _beat.beatCount,//_noteValue IS: Это ява не использует.
       };
+      //ToDo: Кажется, нам не нужно ниже переопределять мак. темп,
+      //ява сама пришлёт, когда установит
+      //_channel.invokeMethod('setTempo', args);
+
       final int limitTempo = await _channel.invokeMethod('setTempo', args);
       //assert(result == 1);
       if (limitTempo == 0)
@@ -1060,9 +1062,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else
       {
         setState(() {
-          _tempoBpmMax = limitTempo;
+          /*_tempoBpmMax = limitTempo;
           if (_tempoBpm > _tempoBpmMax)
-            _tempoBpm = _tempoBpmMax;
+            _tempoBpm = _tempoBpmMax;*/
         });
       }
     }
@@ -1148,7 +1150,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         _soundSchemeCount = _soundSchemes.length;
         if (_activeSoundScheme >= _soundSchemeCount)
           _activeSoundScheme = 0;
-        setState((){});
+        //setState((){});
       }
     } on PlatformException {
       _infoMsg = 'Exception: Failed getting music schemes';

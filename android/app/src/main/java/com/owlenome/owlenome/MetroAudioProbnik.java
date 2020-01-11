@@ -911,8 +911,8 @@ public class MetroAudioProbnik
 
           if (newMelody)
           {
-            System.out.printf("---------SetNewMelody------");
-            //   realBPM = melody.setTempo(_BPMtoSet);//TODO Why??
+            //System.out.printf("---------SetNewMelody------");
+            //   realBPM = melody.setTempo(_BPMtoSet);
 
             // melody.cycle.reset();//TODO: why?
 
@@ -936,12 +936,13 @@ public class MetroAudioProbnik
 
             //Аналогично определению timeOfVeryFirstBipMcs,
             // определяем время игры последнего записанного звука
-            timeOfSomeFirstBipMcs=
+            timeOfLastSampleToPlay=
                     boundNanoTimeToRealTime.nanoToFlutterTime(currentTime)+//now
                             staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
                             samples2nanoSec(totalWrittenFrames-headJustAfterWrite)/1000;
+
             //Теперь его надо уменьшить на то, что уже было сыграно в цикле
-            timeOfSomeFirstBipMcs-=
+            timeOfSomeFirstBipMcs=timeOfLastSampleToPlay-
                     samples2nanoSec(melody.cycle.durationBeforePosition())/1000;
             /*
             timeOfSomeFirstBipMcs=boundNanoTimeToRealTime.nanoToFlutterTime(currentTime+
@@ -976,6 +977,7 @@ public class MetroAudioProbnik
 
 
 
+            /*
             //test
             timeOfLastSampleToPlay =boundNanoTimeToRealTime.nanoToFlutterTime(currentTime)+//now
                     staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
@@ -983,7 +985,7 @@ public class MetroAudioProbnik
             timeNowMcs= boundNanoTimeToRealTime.nanoToFlutterTime(currentTime);
             messageTest(_cnt);
             //todo: упростить - timeOfLastSampleToPlay определить через timeOfSomeFirstBipMcs
-            //<-test
+            //<-test*/
 
             newTempoToFlut(realBPM);//В яву, оттуда во флаттер
             //IS: VS, Вить, сорри, с сообщениями у меня полный бардак. Что как передаётся - вообще как попало.

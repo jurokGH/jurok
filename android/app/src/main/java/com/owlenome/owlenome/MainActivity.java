@@ -106,12 +106,14 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("bpm", bpm);//новая скорость
             long time0=metroAudio.timeOfSomeFirstBipMcs;
             args.put("nt", time0);//новое время
+            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
+            args.put("dt", lastSampleToPlay);//Когда начинать играть с новой скоростью
+
             //ToDo: maxTempo - при изменении долей и схем
             int maxTempo=(int)metroAudio.melody.getMaxTempo();
             args.put("maxBpm", maxTempo);
 
-            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
-            args.put("dt", lastSampleToPlay);//Когда начинать играть с новой скоростью
+
             channel.invokeMethod("Cauchy", args);
 
 
@@ -195,7 +197,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
     metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
-      00,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
+      160,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
       // 160 - основной кандидат (8 моих буферов)
       handler);
 
