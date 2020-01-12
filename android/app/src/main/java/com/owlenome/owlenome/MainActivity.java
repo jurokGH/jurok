@@ -95,9 +95,20 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
             //test
             prevTime=toSend;
+            double prevRel=0;
            // Log.d("MsgTest", "Time in Java of the very frst bip (mcs):  "+                    prevTime.toString());
             //System.out.printf("Time in Java of the very frst bip (mcs) %d",initTime);
             //_cnt=0;
+            prevRel=0;
+            prevBeat =0;
+
+            for (int i=0; i<metroAudio.melody.cycle.cycle.length;i++){
+              Long dur=
+              metroAudio.samples2nanoSec(
+                      (long)metroAudio.melody.cycle.durationBeforePosition(i))/1000000;
+              Log.d("MsgTest",
+                      String.format("Before pos %d : %d", i, dur));
+            }
           }
           else if (msg.arg2 == -2)//IS: Посылаем начальные условия (и maxBpm)
           {
@@ -109,7 +120,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
             args.put("dt", lastSampleToPlay);//Когда начинать играть с новой скоростью
 
-            //ToDo: maxTempo - при изменении долей и схем
+            //ToDo: maxTempo - лишь при изменении долей и схем
             int maxTempo=(int)metroAudio.melody.getMaxTempo();
             args.put("maxBpm", maxTempo);
 
@@ -123,16 +134,36 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             Long timeNow=metroAudio.timeNowMcs;
             Long latMs=(lastSampleToPlay-timeNow)/1000;
             Long deltaTimeMcsFrst=(timeNow-time0)/1000;
-            Log.d("MsgTest", "time to last sample: "+latMs.toString());
-            Log.d("MsgTest", "time since first sample: "+deltaTimeMcsFrst.toString());
+            //Log.relPos("MsgTest", "time to last sample: "+latMs.toString());
+            //Log.relPos("MsgTest", "time since first sample: "+deltaTimeMcsFrst.toString());
+            Double relPos=metroAudio.melody.cycle.relativeDurationBeforePosition();
+            Double absPosition=relPos+metroAudio.melody.cycle.cycleCount;
 
+            Log.d("MsgTest", "rel and abs. pos: "+String.format ("%f", relPos)
+            +"; " +String.format ("%f", absPosition));
+            Log.d("MsgTest", "abs. pos, delta: "+//+String.format ("%f", relPos)+"; "
+                    String.format ("%f", absPosition)+"; "+
+                    String.format ("%f", absPosition-prevRel)+"; "
+            );
+            prevRel=absPosition;
 
+            Integer nOfBeats=metroAudio.melody.cycle.cycle.length/2;
+            Integer note=metroAudio.melody.cycle.position.n/2;
+            Integer totalBeat=nOfBeats*metroAudio.melody.cycle.cycleCount+note;
+            Integer deltaNote=totalBeat- prevBeat;
+            Integer cycleC=metroAudio.melody.cycle.cycleCount;
+            Log.d("MsgTest", "Cycle, note, totalNote, delta: \n"+
+                    cycleC.toString()+ "; "+
+                    //nOfBeats.toString()+ "; "+
+                    note.toString()+"; "+
+                    totalBeat.toString()+"; "+ deltaNote.toString());
+            prevBeat =totalBeat;
 
 
            Long lost=metroAudio.totalLostFrames;
           /*     System.out.printf("MsgTest: "+
-                            "Time now mCs mod 10^9 in Java (mCs) %d \n ",timeNow%1000000000);*/
-        //    System.out.printf("MsgTest d-from-frst in Java (mCs): %d,  Total lost: %d ",
+                            "Time now mCs mod 10^9 in Java (mCs) %relPos \n ",timeNow%1000000000);*/
+        //    System.out.printf("MsgTest relPos-from-frst in Java (mCs): %relPos,  Total lost: %relPos ",
           //          (timeNow-time0),  lost);
 
           }
@@ -192,13 +223,16 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       //Some test vars //ToDo: убрать позже
       boolean bFirstMessage=false;
       Long prevTime;
+      double prevRel;
+      int prevBeat;
       int _cnt=0;
     };
 
 
     metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
-      160,//TODO: TEST: 1200; //Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
-      // 160 - основной кандидат (8 моих буферов)
+      1000,//TODO: TEST: 1000; //00;
+            // 160 - основной кандидат (8 моих буферов)
+            // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
       handler);
 
     channel = new MethodChannel(getFlutterView(), SOUND_CHANNEL);

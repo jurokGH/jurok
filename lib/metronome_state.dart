@@ -238,8 +238,8 @@ class MetronomeState with ChangeNotifier
 
     while ((conditions.length>0)&&(time>=conditions[0].timesToChangeTime))
      {//пришло время жить с новой скоростью
-       _timeOrg=conditions.last.timeOrg;
-       beatsPerMinute=conditions.last.bpm;
+       _timeOrg=conditions[0].timeOrg;
+       beatsPerMinute=conditions[0].bpm;
        conditions.removeAt(0);//IS:FiFo... Не знаю, как умно это сделать в dart
 
        String s='Sync delta times (from now) : ';

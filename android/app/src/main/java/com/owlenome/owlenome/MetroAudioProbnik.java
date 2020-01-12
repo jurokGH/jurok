@@ -22,6 +22,7 @@ import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 
@@ -629,7 +630,7 @@ public class MetroAudioProbnik
       buffer.position(0);
       //long writtenSamples = -1;
 
-      //Тестим цикл. //ToDo: поправить written's!
+      //Тестим цикл. //ToDo: поправить written's!//Да вроде ок всё?
       int toWrite = 0;
       BipPauseCycle.TempoLinear linear = melody.cycle.readTempoLinear(framesToWriteAtOnce);
       /*pos.n = linear.pos.n;
@@ -661,7 +662,7 @@ public class MetroAudioProbnik
       //ToDo: то, что выше, нужно оформить как метод внутри setOfNotes
       if (!noMessages)
       {
-        linear.print();
+        //linear.print();
         melody.cycle.printPosition();
         System.out.printf("error, totalErrorsCorrected: %.3f, %d\n", melody.cycle.accumulatedError,
           melody.cycle.totalErrorsCorrected);
@@ -941,9 +942,18 @@ public class MetroAudioProbnik
                             staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
                             samples2nanoSec(totalWrittenFrames-headJustAfterWrite)/1000;
 
-            //Теперь его надо уменьшить на то, что уже было сыграно в цикле
+            //Теперь его надо уменьшить на время, нужное чтобы сыграть то, что для позиции
+            //в цикле - получаем время, которое было бы у первого бипа, если бы играли
+            //и раньше с новой скоростью.
             timeOfSomeFirstBipMcs=timeOfLastSampleToPlay-
                     samples2nanoSec(melody.cycle.durationBeforePosition())/1000;
+
+            //ToDo: убрать
+            Log.d("MsgTest","Before pos:"+
+                    String.format("%d",
+                            samples2nanoSec(melody.cycle.durationBeforePosition())/1000000));
+
+
             /*
             timeOfSomeFirstBipMcs=boundNanoTimeToRealTime.nanoToFlutterTime(currentTime+
                     samples2nanoSec(

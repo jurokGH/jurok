@@ -873,7 +873,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
       int dtime= (timeNow-timeOfAFirstToSet)~/1000;
 
-      print('MsgTest:  BPM in Flutter $bpmToSet\n');
+      //print('MsgTest:  BPM in Flutter $bpmToSet\n');
       //print('MsgTest:  Time now mCs mod 10^9  in Flutter $timeNowRem');
       //print('MsgTest:  d-from-frst in Flutter $dtime\n');
 
