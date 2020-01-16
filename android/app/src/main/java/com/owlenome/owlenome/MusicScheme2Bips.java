@@ -136,6 +136,7 @@ class MusicScheme2Bips {
 
 
 
+        /*
 
         //TODO: убрать!!! ПОЛИГОН
         for(int i=0; i<setOfWeakNotes.length;i++){
@@ -145,7 +146,7 @@ class MusicScheme2Bips {
         //TODO: убрать!!! ПОЛИГОН
         for(int i=0; i<setOfStrongNotes.length;i++){
             MelodyToolsPCM16.mixTMPPROBAPERA(setOfStrongNotes[i],setOfWeakNotes[0]);
-        }
+        }*/
     }
 
     //Из частот. ДОЛГАЯ!

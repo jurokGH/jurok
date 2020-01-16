@@ -123,22 +123,22 @@ class AccentedMelody
 
 
     //Вычисляем новую относительную позицию в цикле
-    double newPosition=0;
+    double newPositionRel=0;
     if (cycle!=null){
       if (oldCount> nOfBeats) {//уменьшилось число долей
         //Если число бит уменьшилось, нам надо будет переместить бегунок в первую ноту
         double beatDuration = cycle.duration / nOfBeats;
         //В новом цикле сместимся на это значение:
-        newPosition = (cycle.durationBeforePosition() % beatDuration)/cycle.duration;
+        newPositionRel = (cycle.durationBeforePosition() % beatDuration)/cycle.duration;
       }
       else {
-        newPosition = cycle.relativeDurationBeforePosition();
+        newPositionRel = cycle.relativeDurationBeforePosition()/nOfBeats*oldCount;
       }
     }
 
     cycle = new BipPauseCycle(symbols, elasticSymbol, _bipAndPauseSing, 1);
-    int i =(int)(newPosition*cycle.duration);
-    cycle.readTempoLinear(i);//ToDo: вешаем чайник; проматываем отыгранную длительность
+    int newPos =(int)(newPositionRel*cycle.duration);
+    cycle.readTempoLinear(newPos);//ToDo: вешаем чайник; проматываем отыгранную длительность
 
 
     //ToDo: IS: VS, should we remove (in release)  all this stuff like printAcc1 etc? Seems to create memory leak!

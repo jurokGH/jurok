@@ -719,9 +719,11 @@ public class MetroAudioProbnik
             if (newMelody) { melody=melodyToSet; newMelody=false; }
             boundNanoTimeToRealTime=new BoundNanoTimeToRealTime();
 
+            melody.cycle.reset();
+
             realBPM = melody.setTempo(_BPMtoSet);
 
-            melody.cycle.reset();
+
 
             //cycle = melody.cycle;
 
