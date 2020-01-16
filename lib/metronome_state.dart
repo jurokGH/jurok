@@ -107,6 +107,7 @@ class MetronomeState with ChangeNotifier
   MetronomeState()
   {
     _activeBeat=-1; _activeSubbeat=-1;
+    conditions=new List<Cauchy>();
     //tempo = new Tempo();
     //pos = new Position(-1, 0);
     //_timer = new Stopwatch();
@@ -125,11 +126,11 @@ class MetronomeState with ChangeNotifier
   ///Опережает на время большого буфера Явы начало анимации (условно, 100мс)
   void startAfterWarm(int initTime, int bpm)
   {
-     //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No((( Злой латенси еще...
+    //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No((( Злой латенси еще...
 
-     timeOfTheFirstBeat=initTime;
-     _timeOrg=initTime;
-     beatsPerMinute=bpm;
+    timeOfTheFirstBeat=initTime;
+    _timeOrg=initTime;
+    beatsPerMinute=bpm;
 
     /*
     _timer.reset();
@@ -140,7 +141,7 @@ class MetronomeState with ChangeNotifier
   }
 
 
-  /// Устанавливаем время первого бита и BMP, и время, когда их менять.
+  /// Устанавливаем время первого бита и BMP, и время, когда они вступают в силу менять.
   ///
   /// !!!!Устанавливать только после согласования с явой!!!!
   /// Иначе разойдутся анимация и видео.
@@ -233,27 +234,34 @@ class MetronomeState with ChangeNotifier
 
     if (time<timeOfTheFirstBeat) return changed;//IS: звука пока нет. Пока просто молчим.
     //Нужно что-то поумнее придумать в этот период. Новости там пользователю
-    //предложить почитать или что еще... Загрытые глаза спящих сов стали полуоткрыты?
+    //предложить почитать или что еще... Закрытые глаза спящих сов стали полуоткрыты?
     //Совы вздрогнули?//ToDo
 
     while ((conditions.length>0)&&(time>=conditions[0].timesToChangeTime))
-     {//пришло время жить с новой скоростью
-       _timeOrg=conditions[0].timeOrg;
-       beatsPerMinute=conditions[0].bpm;
-       conditions.removeAt(0);//IS:FiFo... Не знаю, как умно это сделать в dart
+    {//пришло время жить с новой скоростью
+      _timeOrg=conditions[0].timeOrg;
+      beatsPerMinute=conditions[0].bpm;
+      conditions.removeAt(0);//IS:FiFo... Не знаю, как умно это сделать в dart
 
-       String s='Sync delta times (from now) : ';
-       int prevTm=DateTime.now().microsecondsSinceEpoch;
-       for (int i = 0; i<conditions.length; i++){
-         int t=conditions[i].timesToChangeTime-prevTm;
-         prevTm=conditions[i].timesToChangeTime;
-         s+=t.toString()+'; ';
-       }
-       print(s);
-     }
-     //Да, но может мы еще дальше можем
+      String s='Sync delta times (from now) : ';
+      int prevTm=DateTime.now().microsecondsSinceEpoch;
+      for (int i = 0; i<conditions.length; i++){
+        int t=conditions[i].timesToChangeTime-prevTm;
+        prevTm=conditions[i].timesToChangeTime;
+        s+=t.toString()+'; ';
+      }
+      print(s);
+    }
+    //ToDo: Для теста.
+    // Ситуация, когда while сработал больше одного раза означает,
+    // что мы не успели получить данные от Явы вовремя, и
+    // какое-то время (от начального condition но now) рисовали анимацию
+    // по данным, отличных от тех, по которым игрался звук.
+    // Нужно при выборе значения буфера
+    // потестировать такие опоздания.
 
-/*
+/* // Первый вариант. Позволяет злому пользователю сделать небольшой рассинхрон,
+   // активно дергая ручку темпа.
     if (bWaitingForNewBPM&&(time>=timeToChangeTime)){//пришло время жить с новой скоростью
       bWaitingForNewBPM=false;
       _timeOrg=_newTimeOrg;
@@ -276,8 +284,8 @@ class MetronomeState with ChangeNotifier
     return changed;
   }
 
-   /* //IS:прикрыл, чтобы разобраться в коде.
-  /// Не используется?
+  /* //IS:прикрыл, чтобы разобраться в коде.
+  /// Не используется.
   bool updateCycle()
   {
     bool changed = false;
@@ -299,7 +307,7 @@ class MetronomeState with ChangeNotifier
     return changed;
   }
 */
-   /*
+  /*
   void setTempo(int tempoBpm/*, int noteValue*/)
   {
     beatsPerMinute = tempoBpm;

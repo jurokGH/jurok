@@ -490,7 +490,7 @@ public class BipPauseCycle
 
   /**
    *
-   * Какая часть цикла сыграна, [0,1]. Отладочное.
+   * Какая часть цикла сыграна, [0,1].
    * @return
    */
   public double relativeDurationBeforePosition(){
