@@ -224,7 +224,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     _getMusicSchemes();
 
-    _beat.beatCount = initBeatCount;
+    _beat.beatCount = initBeatCount;//ToDo: через просодию. Переписать для флаттера
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.beatMetre = _beat;
     _playing = false;
@@ -285,7 +285,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _start()
   {
     _playing = true;
-    _setBeat();
+    //_setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
     setState(() {});
   }
 
@@ -297,7 +297,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //_activeBeat %= _beat.beatCount;
       //_activeBeat = _activeSubbeat = 0;
      // Provider.of<MetronomeState>(context, listen: false).reset();
-      if (_playing)
+      //if (_playing)
         _setBeat();
       setState(() {});
     }
@@ -317,7 +317,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
     //_activeBeat = _activeSubbeat = 0;
     //Provider.of<MetronomeState>(context, listen: false).reset();
-    if (_playing)
+    //if (_playing)
       _setBeat();
     //else
     setState(() {});
@@ -329,7 +329,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _beat.subBeats[id] = subCount;
     //_activeBeat = _activeSubbeat = 0;
     //Provider.of<MetronomeState>(context, listen: false).reset();
-    if (_playing)
+    //if (_playing)
       _setBeat();
     setState(() {});
   }

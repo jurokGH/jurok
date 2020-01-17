@@ -166,25 +166,22 @@ class AccentedMelody
 
     //Вычисляем новую относительную позицию в цикле
     double newPositionRel=0;
-    double oldPositionRel=0;
     if (cycle!=null){//and hence, beatCount>0
       double beatDuration = cycle.duration / beatCount;
       int beatNow=(int)(cycle.durationBeforePosition()/beatDuration);
 
-      oldPositionRel=cycle.relativeDurationBeforePosition();
 
       if (beatNow> newBeatCount) {//надо будет переместить бегунок куда-то, если мы не попали в границы цикла.
-        //ToDo: Куда?
-        //double beatDuration = cycle.duration / beatCount;
-
+        //Требование: не должен сбиться общий ритм (представим, что все звуки долей одинаковы -
+        // изменение метра не должно быть различимо на слух.
         //Доигрываем  последний  бип
         double restInBeat=beatDuration-(cycle.durationBeforePosition() % beatDuration);
         newPositionRel=(1.0-restInBeat/cycle.duration)*beatCount/newBeatCount;
-        //ToDo : эксперимент
+        //Ещё варианты:
         // Варианты:
         // 1. ставит в первую долю с сохранением поддоли:
         // newPositionRel = (cycle.durationBeforePosition() % beatDuration)/cycle.duration;
-        // 2. 0
+        // 2. 0 - плохо, основной темп собьётся
         // 3. остаток по модулю дины нового цикла;
         // 4.??
       }

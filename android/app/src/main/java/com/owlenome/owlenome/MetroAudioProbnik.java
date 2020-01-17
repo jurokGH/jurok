@@ -181,10 +181,7 @@ public class MetroAudioProbnik
         //bNewBeats = true;
     }
 
-    int getTempo()
-    {
-        return _task == null ? _BPMtoSet : _task.realBPM;
-    }
+    //int getTempo()    {        return _task == null ? _BPMtoSet : _task.realBPM;    }
 
     public void  setTempo(int beatsPerMinute)
     {
@@ -688,7 +685,7 @@ public class MetroAudioProbnik
 
         //BipPauseCycle cycle;
         //BipPauseCycle.TempoLinear linear;
-        int realBPM;
+        //int realBPM;
 
         int _cnt;
 
@@ -723,7 +720,8 @@ public class MetroAudioProbnik
 
             melody.cycle.reset();
 
-            realBPM = melody.setTempo(_BPMtoSet);
+            melody.setTempo(_BPMtoSet);
+            //ToDo: сейчас в melody tempo всегда реальный. Untested.
 
 
 
@@ -954,7 +952,7 @@ public class MetroAudioProbnik
                             melody.cycle.print();
                         }
 
-                        realBPM = melody.setTempo(_BPMtoSet);
+                        melody.setTempo(_BPMtoSet);
 
                         //Аналогично определению timeOfVeryFirstBipMcs,
                         // определяем время игры последнего записанного звука
@@ -1012,16 +1010,16 @@ public class MetroAudioProbnik
             //todo: упростить - timeOfLastSampleToPlay определить через timeOfSomeFirstBipMcs
             //<-test*/
 
-                        newTempoToFlut(realBPM);//В яву, оттуда во флаттер
+                        newTempoToFlut((int)melody.tempo);//В яву, оттуда во флаттер
                         //IS: VS, Вить, сорри, с сообщениями у меня полный бардак. Что как передаётся - вообще как попало.
                         //
                         // ToDo.
 
-
+                        /*
                         if (!noMessages) {
                             System.out.printf("New BPM, new length of cycle: %d, %.3f\n", realBPM, melody.cycle.duration);
                             melody.cycle.print();
-                        }
+                        }*/
                     }
 
                      /*if (sync) {
@@ -1083,7 +1081,7 @@ public class MetroAudioProbnik
 
             if (audioTrack != null)
             {
-                audioTrack.flush();
+                audioTrack.flush();//ToDo: fadeOut
                 audioTrack.stop();
                 audioTrack.release();
             }
