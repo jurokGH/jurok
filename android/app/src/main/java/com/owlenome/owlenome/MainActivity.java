@@ -80,8 +80,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     initSoundSchemes();
 
 
-
-
     // Receive messages from audio playing thread
     Handler handler = new Handler(Looper.getMainLooper())
     {

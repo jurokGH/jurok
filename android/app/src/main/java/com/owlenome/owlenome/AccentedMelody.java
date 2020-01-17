@@ -16,19 +16,47 @@ class AccentedMelody
 
   BipAndPause[] _bipAndPauseSing;
   private int _sampleRate;
-  public BipPauseCycle cycle;
+  public BipPauseCycle cycle=null;
+  private  BipPauseCycle newCycle=null;
+
+  /**
+   * Установленная скорость цикла
+   */
+  double tempo;
+
+  private final static  double defaultTempo =123.0;
 
 
-  // Number of beats
-  int nOfBeats=0;
+
+  /**
+   *Number of beats in cycle
+   */
+   private int beatCount=0;
+
+  /**
+   *  Number of beats in newCycle
+   */
+  private int newBeatCount;
+
 
 
   MusicScheme2Bips musicScheme;
 
 
   public AccentedMelody(
+          MusicScheme2Bips musicScheme, int sampleRate,
+          BeatMetre beats
+          // Number of nOfBeats
+          //int nOfBeats,
+          //int[] accents,
+          //List<Integer> subBeats
+  ){
+    this(musicScheme, sampleRate, beats, defaultTempo);
+  }
+
+  public AccentedMelody(
                     MusicScheme2Bips musicScheme, int sampleRate,
-                    BeatMetre beats
+                    BeatMetre beats, double tempo
                     // Number of nOfBeats
                     //int nOfBeats,
                     //int[] accents,
@@ -41,27 +69,23 @@ class AccentedMelody
 
     _sampleRate =sampleRate;
 
-    setBeats(beats);
+    this.tempo=tempo;
+
+    prepareNewCycle(beats);
+
+    setNewCycle();
   }
 
-
   /**
-   * Переустанавливает биты.
-   * Позиция не поменяется, если число бипов выросло,
-   * и съедет на начальный бип в той же поддоле.
-   *
-   * Сразу после этого следует переустановить tempo.
-   *
+   *  Готовим новый цикл (чтобы потом его можно было подменить в аудиоцикле).
+   *  Возвращает максимальную скорость нового цикла.
    */
-  public void setBeats(BeatMetre beats){
+  public double prepareNewCycle(BeatMetre beats){
+    if(beats.beatCount<=0) return -1.0;
+    //ToDo  IS: VS, не знаю, что принято
+    // делать в таких ситуациях - выйти, или ждать, пока само на 0 поделит с исключением?
 
-    if(beats.beatCount==0) return; //IS: VS, не знаю, что принято
-    //делать в таких ситуациях - выйти, или ждать, пока само на 0 поделит с исключением?
 
-
-    int oldCount=nOfBeats;
-
-    nOfBeats=beats.beatCount;
 
 //    //ToDo Понадобится, когда будем делать ноты с паузами:)
 //     Нужно для несжимаемой паузы - то есть молчащего бипа.
@@ -81,7 +105,7 @@ class AccentedMelody
     //Тут живёт особая философия, и делать это можно по-разному.
     //ToDo:   пробовать  по-разному и слушать.
     //ToDo: отправить это в дарт
-    byte accents[]=GeneralProsody.getAccents1(nOfBeats,false); //false - чтобы распевней
+    byte accents[]=GeneralProsody.getAccents1(beats.beatCount,false); //false - чтобы распевней
 
 
 
@@ -105,7 +129,7 @@ class AccentedMelody
 
     _bipAndPauseSing = new BipAndPause[totalSubBeats];
     int k = 0;
-    for (int i = 0; i < nOfBeats; i++) {
+    for (int i = 0; i < beats.beatCount; i++) {
       byte weakAccents[] = GeneralProsody.getAccents1(beats.subBeats.get(i), false);
       for (int j = 0; j < beats.subBeats.get(i); j++, k++) {
         if (j == 0) {//сильная доля
@@ -121,25 +145,60 @@ class AccentedMelody
       }
     }
 
+    newCycle = new BipPauseCycle(symbols, elasticSymbol, _bipAndPauseSing, 1);
+
+    newBeatCount= beats.beatCount;
+
+    return newCycle.getMaximalTempo(_sampleRate, newBeatCount);
+  }
+
+  /**
+   *
+   * Переустанавливает биты.
+   * Позиция не поменяется, если число бипов выросло,
+   * и съедет на начальный бип в той же поддоле.
+   *
+   */
+  public void setNewCycle(){
+
+    if (newCycle==null) return;//ToDo ?
+
 
     //Вычисляем новую относительную позицию в цикле
     double newPositionRel=0;
-    if (cycle!=null){
-      if (oldCount> nOfBeats) {//уменьшилось число долей
-        //Если число бит уменьшилось, нам надо будет переместить бегунок в первую ноту
-        double beatDuration = cycle.duration / nOfBeats;
-        //В новом цикле сместимся на это значение:
-        newPositionRel = (cycle.durationBeforePosition() % beatDuration)/cycle.duration;
+    double oldPositionRel=0;
+    if (cycle!=null){//and hence, beatCount>0
+      double beatDuration = cycle.duration / beatCount;
+      int beatNow=(int)(cycle.durationBeforePosition()/beatDuration);
+
+      oldPositionRel=cycle.relativeDurationBeforePosition();
+
+      if (beatNow> newBeatCount) {//надо будет переместить бегунок куда-то, если мы не попали в границы цикла.
+        //ToDo: Куда?
+        //double beatDuration = cycle.duration / beatCount;
+
+        //Доигрываем  последний  бип
+        double restInBeat=beatDuration-(cycle.durationBeforePosition() % beatDuration);
+        newPositionRel=(1.0-restInBeat/cycle.duration)*beatCount/newBeatCount;
+        //ToDo : эксперимент
+        // Варианты:
+        // 1. ставит в первую долю с сохранением поддоли:
+        // newPositionRel = (cycle.durationBeforePosition() % beatDuration)/cycle.duration;
+        // 2. 0
+        // 3. остаток по модулю дины нового цикла;
+        // 4.??
       }
-      else {
-        newPositionRel = cycle.relativeDurationBeforePosition()/nOfBeats*oldCount;
-      }
+      else {//Позиция (бит, подбит) не должна поменяться
+        newPositionRel = cycle.relativeDurationBeforePosition()*beatCount/newBeatCount; }
     }
 
-    cycle = new BipPauseCycle(symbols, elasticSymbol, _bipAndPauseSing, 1);
+
+    cycle = newCycle;
+    beatCount=newBeatCount;
+    tempo=setTempo(beatCount);
+
     int newPos =(int)(newPositionRel*cycle.duration);
     cycle.readTempoLinear(newPos);//ToDo: вешаем чайник; проматываем отыгранную длительность
-
 
     //ToDo: IS: VS, should we remove (in release)  all this stuff like printAcc1 etc? Seems to create memory leak!
     //System.out.printf("AccentedMelody %d %d \n", nOfBeats, totalSubBeats);
@@ -151,7 +210,7 @@ class AccentedMelody
 
   public double getMaxTempo()
   {
-    return cycle.getMaximalTempo(_sampleRate, nOfBeats);
+    return cycle.getMaximalTempo(_sampleRate, beatCount);
   }
 
   /**
@@ -159,18 +218,20 @@ class AccentedMelody
    * @param beatsPerMinute что хотим
    * @return что получилось
    */
-  public int setTempo(int beatsPerMinute)
+  public int setTempo(int beatsPerMinute) //ToDo: нелогично, что это int.
   {
     int BPMtoSet = Math.min(
-            (int) cycle.getMaximalTempo(_sampleRate,nOfBeats),
+            (int) cycle.getMaximalTempo(_sampleRate,beatCount),
              beatsPerMinute
     );
     //Utility utility = new Utility();
     //System.out.printAcc1("BPMtoSet ");
     //System.out.println(BPMtoSet);
     cycle.setNewDuration(
-            Utility.beatsDurationInSamples(_sampleRate,nOfBeats,
+            Utility.beatsDurationInSamples(_sampleRate,beatCount,
                     BPMtoSet));
+
+    tempo=BPMtoSet;
     return BPMtoSet;
   }
 
@@ -259,8 +320,11 @@ class Utility
    * возможная длина.
    * @return длительность в сэмплах данного числа битов при данном tempo (BMP) и частоте
    */
-  final static double beatsDurationInSamples(int nativeSampleRate, int nOfBeats, int BPM) {
-    //VG Note value (denominator) changes actual beat tempoTmpTmpTmp
+  final static double beatsDurationInSamples(int nativeSampleRate, int nOfBeats, int BPM)
+  { //ToDo: нелогично, что BPM - это int. Кажется, это не зачем ни нужно, просто я глупость
+    // впопыхах написал
+
+    //VG Note value (denominator) changes actual beat tempo
     //int totalBeatsPerCycle = bars * tempoTmpTmpTmp.denominator;
     double samplesPerBeat = nativeSampleRate * 60.0 / BPM;
     return samplesPerBeat * nOfBeats;
@@ -277,15 +341,15 @@ class Utility
    * <p>
    * (В случае простого метронома bars=1.)
    *
-   * @param tempoTmpTmpTmp музыкальный темп
+   * @param t музыкальный темп
    * @return какова должна быть длительность цикла при данном tempoTmpTmpTmp.
    */
 // in seconds //IS: IN SAMPLES
-  final static private double tempoToCycleDurationObsolete(Tempo tempoTmpTmpTmp, int bars, int nativeSampleRate)
+  final static private double tempoToCycleDurationObsolete(Tempo t, int bars, int nativeSampleRate)
   {
     //VG Note value (denominator) changes actual beat tempoTmpTmpTmp
-    int totalBeatsPerCycle = bars * tempoTmpTmpTmp.denominator;
-    double samplesPerBeat = nativeSampleRate * 60.0 / tempoTmpTmpTmp.beatsPerMinute;
+    int totalBeatsPerCycle = bars * t.denominator;
+    double samplesPerBeat = nativeSampleRate * 60.0 / t.beatsPerMinute;
 
     return samplesPerBeat * totalBeatsPerCycle;
   }

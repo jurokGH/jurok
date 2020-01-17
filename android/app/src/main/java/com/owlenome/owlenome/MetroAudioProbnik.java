@@ -138,10 +138,10 @@ public class MetroAudioProbnik
     //BeatMetre beatsToSet;
     //BipAndPause _bipAndPauseSing;
     boolean newMelody = false;
-    //boolean bNewBeats = false;
+    boolean bNewBeats = false;
 
     //ToDo: TEST
-    private boolean newTempo = false;
+    private boolean bNewTempo = false;
     //private Tempo _tempo;
     private int _BPMtoSet;//ToDo: убрать?
 
@@ -168,11 +168,13 @@ public class MetroAudioProbnik
 
     public double reSetBeats(BeatMetre beats)
     {
+        double newCycleMaxBPM= melody.prepareNewCycle(beats);
 
-        melody.setBeats(beats);//Опасное место! А вдруг он занят?
-         newTempo= true;
+        //melody.setBeats(beats);//Опасное место! А вдруг он занят?
+        bNewBeats = true;
+         bNewTempo = true;
 
-        return melody.getMaxTempo();
+        return newCycleMaxBPM;
 
 
         //beatsToSet=beats;
@@ -190,7 +192,7 @@ public class MetroAudioProbnik
             beatsPerMinute = cMinTempoBpm;
         _BPMtoSet = beatsPerMinute;
         if (state == STATE_PLAYING)//Зачем?
-            newTempo = true;
+            bNewTempo = true;
 
      //   return melody != null ? (int) melody.getMaxTempo() : 0;
     }
@@ -920,7 +922,7 @@ public class MetroAudioProbnik
                     totalLostFrames += (toWrite - written) / 2;
                     totalWrittenFrames += written / 2;
 
-                    //boolean sync = newTempo || newMelody;
+                    //boolean sync = bNewTempo || newMelody;
 
                     if (newMelody) {
                         //System.out.printf("---------SetNewMelody------");
@@ -935,15 +937,15 @@ public class MetroAudioProbnik
                         melody = melodyToSet;
 
                         newMelody = false;
-                        newTempo = true;//чтобы проверить максимальный темп
+                        bNewTempo = true;//чтобы проверить максимальный темп
                     }
-                    /*if (bNewBeats){
-                        //melody.reSetBeats(beatsToSet);
+                    if (bNewBeats){
+                        melody.setNewCycle();
 
                         bNewBeats = false;
-                        newTempo = true;
-                    }*/
-                    if (newTempo) {
+                        bNewTempo = true;
+                    }
+                    if (bNewTempo) {
                         //ToDo: Разобраться с переменными - какие в классе, какие в потоке
                         if (!noMessages) {
                             System.out.printf("---------NewTempo------");
@@ -996,7 +998,7 @@ public class MetroAudioProbnik
                         // (раз в непонятно сколько времени, документация очень туманна на этот счет).
                         // Я пока не понимаю, как с этим быть. Только тесты на разном железе.
 
-                        newTempo = false;
+                        bNewTempo = false;
                         //tempo.beatsPerMinute = BPMfromSeekBar;
                         //barrelOrgan.reSetAngles(cycle);
 
