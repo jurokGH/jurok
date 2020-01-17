@@ -242,7 +242,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
     metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
-            0,//TODO: TEST: 1000; //00;
+            160,//TODO: TEST: 1000; //00;
             // 160 - основной кандидат (8 моих буферов)
             // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
             handler);
@@ -347,19 +347,14 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
       if (beatMelody!=null){
-        double newMaxTempo=metroAudio.reSetBeats(beatRecieved); //ToDo: Untested
-        result.success((int)newMaxTempo);//ToDo:  это вроде ок. Untested
+        double newMaxTempo=metroAudio.reSetBeats(beatRecieved);
+        result.success((int)newMaxTempo);
       }
       else {result.success(-1);//
       //В первый раз получили beat,
       //  мелодии пока нет, ограничений - тоже
       }
 
-      //IS
-      // Create new metronome beat setOfNotes
-      /*
-      int maxTempo = metroAudio.setMelody(beatMelody, _beatsPerMinute);
-      result.success(maxTempo);//todo: tmp*/
     }
     else if (methodCall.method.equals("setTempo"))
     {

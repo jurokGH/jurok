@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
 public class MetroAudioProbnik
 {
     // Initial constants
-    private final static int cTempoBpM = 60;
+    //private final static int cTempoBpM = 60; // Определяется в accentedMelody по defaultTempo
     private final static int cNnoteValue = 4;
     private final static int cMinTempoBpm = 4;//20;
 
@@ -172,7 +172,6 @@ public class MetroAudioProbnik
 
         //melody.setBeats(beats);//Опасное место! А вдруг он занят?
         bNewBeats = true;
-         bNewTempo = true;
 
         return newCycleMaxBPM;
 
@@ -250,7 +249,7 @@ public class MetroAudioProbnik
             setState(STATE_STOPPING);
         doPlay = false;
 
-        dPrintAll();
+        //dPrintAll();
     }
 
     /**
@@ -433,7 +432,7 @@ public class MetroAudioProbnik
         this.nativeBufferInFrames = nativeBufferInFrames;
 
         //_tempo = new Tempo(cTempoBpM, cNnoteValue);
-        _BPMtoSet =cTempoBpM;
+        //_BPMtoSet =cTempoBpM;
 
         this.handler = handler;
 
@@ -665,6 +664,7 @@ public class MetroAudioProbnik
                     //sendMessage(writtenSamples);
                 }
                 toWrite += linear.durations[i] * 2;
+
             }
             buffer.position(0);
 
@@ -681,6 +681,7 @@ public class MetroAudioProbnik
 
     class MetroRunnable implements Runnable
     {
+
         MelodyBuffer mBuffer;
 
         //BipPauseCycle cycle;
@@ -711,18 +712,136 @@ public class MetroAudioProbnik
                             (_cnt % Math.pow(10, Math.ceil(Math.log10(_cnt + 1)) - 1) == 0));  // много будем писать - много придётся читать
         }
 
-        @Override
-        public void run()
-        {
+        /**
+         * Анализирует значения флагов - нового времени, мелодии или ритма
+         */
+        void analizeConditions(){
+            if (newMelody) {
+                //System.out.printf("---------SetNewMelody------");
+                //   realBPM = melody.setTempo(_BPMtoSet);
 
-            if (newMelody) { melody=melodyToSet; newMelody=false; }
-            boundNanoTimeToRealTime=new BoundNanoTimeToRealTime();
+                //Устанавливаем позицию в новой мелодии пропорционально отыгранному в старой
+                //ToDo: даст щелчки; по уму все переустановки нужно будет сделать
+                // в copy2buffer после окончания записи звука
+                double l = melody.cycle.relativeDurationBeforePosition();
+                int i = (int) (l * melodyToSet.cycle.duration);
+                melodyToSet.cycle.readTempoLinear(i);//ToDo: вешаем чайник; проматываем отыгранную длительность
+                _BPMtoSet=(int)melody.tempo;
+
+                melody = melodyToSet;
+
+
+                newMelody = false;
+                bNewTempo = true;//чтобы проверить максимальный темп
+            }
+            if (bNewBeats) {
+                _BPMtoSet=(int)melody.tempo;
+
+                melody.setNewCycle();
+
+
+                bNewBeats = false;
+                bNewTempo = true;
+            }
+            if (bNewTempo) {
+                //ToDo: Разобраться с переменными - какие в классе, какие в потоке
+                if (!noMessages) {
+                    System.out.printf("---------NewTempo------");
+                    System.out.printf(String.format("Old length of cycle: %.3f\n", melody.cycle.duration));
+                    System.out.printf(String.format("BPMFromSeekBarVal: %d", _BPMtoSet));
+                    melody.cycle.print();
+                }
+
+                melody.setTempo(_BPMtoSet);
+
+                //Аналогично определению timeOfVeryFirstBipMcs,
+                // определяем время игры последнего записанного звука
+                timeOfLastSampleToPlay =
+                        boundNanoTimeToRealTime.nanoToFlutterTime(currentTime) +//now
+                                staticLatencyInMcs + //время от проигрывания сэмпла головкой до его звука
+                                samples2nanoSec(totalWrittenFrames - headJustAfterWrite) / 1000;
+
+                //Теперь его надо уменьшить на время, нужное чтобы сыграть то, что для позиции
+                //в цикле - получаем время, которое было бы у первого бипа, если бы играли
+                //и раньше с новой скоростью.
+                timeOfSomeFirstBipMcs = timeOfLastSampleToPlay -
+                        samples2nanoSec(melody.cycle.durationBeforePosition()) / 1000;
+
+
+
+
+            /*
+                     timeOfSomeFirstBipMcs=boundNanoTimeToRealTime.nanoToFlutterTime(currentTime+
+                    samples2nanoSec(
+                            staticLatencyInFrames + (totalWrittenFrames - headJustAfterWrite)-
+                    melody.cycle.durationBeforePosition()
+                    )
+                    );*/
+
+
+                //ToDo: 1. Опять же, надо следить, чтобы писалось достаточно большими порциями,
+                // кратными малым буферам (или хотя бы их половинам)
+                // - иначе может не обновиться параметр getPlaybackHeadPosition, и мы
+                // получим "пляски" при дергании темпа. Тут нужен баланс - слишком большой программный буфер
+                // означает долгое "доигрывание" звуков и большую latency, маленький может дать
+                // неравномерное считывание.  (Еще раз протестировать всё в весеннем комбайне.)
+                // Этот параметр вроде бы подобирается правильно - так, чтобы число
+                // записанных росло равномерно с числом отыгранных (сразу после записи);
+                // но проверялось это лишь для моего телефона.
+
+                //ToDo: 2. Возможно, нужно для страховки поставить заглушку на изменение темпа
+                // в несколько 10в миллисекунд, чтобы не флудить и не рисковать.
+
+                //ToDo: 3. В документации рекомендуется обновлять значение штампа иногда
+                // (раз в непонятно сколько времени, документация очень туманна на этот счет).
+                // Я пока не понимаю, как с этим быть. Только тесты на разном железе.
+
+                bNewTempo = false;
+                //tempo.beatsPerMinute = BPMfromSeekBar;
+                //barrelOrgan.reSetAngles(cycle);
+
+            /*
+            //test
+            timeOfLastSampleToPlay =boundNanoTimeToRealTime.nanoToFlutterTime(currentTime)+//now
+                    staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
+                    samples2nanoSec(totalWrittenFrames-headJustAfterWrite)/1000;
+            timeNowMcs= boundNanoTimeToRealTime.nanoToFlutterTime(currentTime);
+            messageTest(_cnt);
+            //todo: упростить - timeOfLastSampleToPlay определить через timeOfSomeFirstBipMcs
+            //<-test*/
+
+                newTempoToFlut((int) melody.tempo);//В яву, оттуда во флаттер
+                //IS: VS, Вить, сорри, с сообщениями у меня полный бардак. Что как передаётся - вообще как попало.
+                //
+                // ToDo.
+
+                        /*
+                        if (!noMessages) {
+                            System.out.printf("New BPM, new length of cycle: %d, %.3f\n", realBPM, melody.cycle.duration);
+                            melody.cycle.print();
+                        }*/
+            }
+        }
+
+
+
+        @Override
+        public void run() {
+
+            if (newMelody) {
+                melody = melodyToSet;
+                newMelody = false;
+            }
+            //ToDo: продумать:
+            //analizeConditions();
+
+
+            boundNanoTimeToRealTime = new BoundNanoTimeToRealTime();
 
             melody.cycle.reset();
 
             melody.setTempo(_BPMtoSet);
             //ToDo: сейчас в melody tempo всегда реальный. Untested.
-
 
 
             //cycle = melody.cycle;
@@ -760,10 +879,8 @@ public class MetroAudioProbnik
             //byte[] silenceToWrite = melodyTools.getSilence(framesToWriteAtOnce);
 
             while (doPlay && audioTrack != null &&
-                    audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING)
-            {
-                if (warmingUp)
-                {
+                    audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+                if (warmingUp) {
                     //пишем  один маленький буфер тишины
                     //ToDo: Кажется, это не позволяет сэкономить сильно -
                     //для стабилизации stamp нужно скормить еще несколько малых буферов (согласно экспериментам 24.02.19)
@@ -773,8 +890,7 @@ public class MetroAudioProbnik
                     totalLostFrames += (mBuffer.smallBufferOfSilence.length - written) / 2;
                     totalWrittenFrames = totalWarmUpFrames;
 
-                    if (conditionToPrint())
-                    {
+                    if (conditionToPrint()) {
                         if (mBuffer.smallBufferOfSilence.length > written)
                             laterLog("!!!LOST LOST LOST!!!");
                         laterLog("---- WarmingUp: " + Integer.toString(_cnt));
@@ -790,10 +906,8 @@ public class MetroAudioProbnik
                     //Сравниваем sampleRate, полученный исходя из данных двух stamps,
                     //с настоящей частотой. Если они достаточно близки (что определяется константой
                     //SAMPLE_RATE_INTENDED_ACCURACY и функцией audioIsStable), то разогрелись
-                    if (audioTrack.getTimestamp(currentStamp))
-                    {
-                        if (audioIsStable(prevStamp, currentStamp))
-                        {
+                    if (audioTrack.getTimestamp(currentStamp)) {
+                        if (audioIsStable(prevStamp, currentStamp)) {
                             warmingUp = false;  // Разогрелись!
                             veryFirstStampTime = currentStamp.nanoTime;
                             veryFirstStampFrame = currentStamp.framePosition;
@@ -805,7 +919,7 @@ public class MetroAudioProbnik
                             Long playHeadTimeOfVeryFirstStamp = timeOfStableStampDetected - // исходим из того, что играется уже равномерно
                                     samples2nanoSec(audioTrack.getPlaybackHeadPosition() - veryFirstStampFrame);
                             staticLatencyInFrames = nanoSec2samples(veryFirstStampTime - playHeadTimeOfVeryFirstStamp);
-                            staticLatencyInMs = (long) ((veryFirstStampTime-playHeadTimeOfVeryFirstStamp) * 1e-6);
+                            staticLatencyInMs = (long) ((veryFirstStampTime - playHeadTimeOfVeryFirstStamp) * 1e-6);
                             //!!! В старом коде staticLatencyInMs была отрицательная
 
 
@@ -820,7 +934,7 @@ public class MetroAudioProbnik
                             //избежать гипотетических неприятностей (если малый буфер близок к большому,
                             //но очень велик, не будет ли большая неточность? хотя наверное такого быть не должно).
 
-                            staticLatencyInMcs = (long) ((veryFirstStampTime-playHeadTimeOfVeryFirstStamp) * 1e-3);
+                            staticLatencyInMcs = (long) ((veryFirstStampTime - playHeadTimeOfVeryFirstStamp) * 1e-3);
 
                             //IS Ниже самый важный шаг:
                             //Первое слагаемое - это просто время (только нужно правильно переводить
@@ -836,10 +950,10 @@ public class MetroAudioProbnik
                             // случае их не терять.
                             //TODO: DC; третье слагаемое тут должно быть 0 и вписано для общности,
                             //чтобы в общем случае не запутаться.
-                            timeOfVeryFirstBipMcs=
-                                    boundNanoTimeToRealTime.nanoToFlutterTime(timeOfStableStampDetected)+//now
-                                            staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
-                                            samples2nanoSec(totalWrittenFrames-audioTrack.getPlaybackHeadPosition())/1000;
+                            timeOfVeryFirstBipMcs =
+                                    boundNanoTimeToRealTime.nanoToFlutterTime(timeOfStableStampDetected) +//now
+                                            staticLatencyInMcs + //время от проигрывания сэмпла головкой до его звука
+                                            samples2nanoSec(totalWrittenFrames - audioTrack.getPlaybackHeadPosition()) / 1000;
                             //и сколько у нас от записанного до считываемого головкой сейчас; в данном случае это
                             //должно быть 0.
 
@@ -847,8 +961,7 @@ public class MetroAudioProbnik
 
                             _cnt = -1;
 
-                            if (!noMessages)
-                            {
+                            if (!noMessages) {
                                 laterLog("\t-----------Audio is stable-----------");
                                 laterLog("\tWarming up statistics");
                                 laterLog("\ttotalWarmUpFrames: " + Long.toString(totalWarmUpFrames));
@@ -885,8 +998,7 @@ public class MetroAudioProbnik
             _cnt = -1;
           }
           */
-                }
-                else {
+                } else {
                     //Кажется, что write "разблокируется" только в случаях, кратных половине большого буфера.
                     //При этом, кажется, что эта половина еще и сама должна быть четной, иначе начинаются скачки
                     //При этом, если очень короткое время (<100мс, например) на весь большой буфер,
@@ -913,6 +1025,9 @@ public class MetroAudioProbnik
                     written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
                             AudioTrack.WRITE_BLOCKING);
 
+                    analizeConditions();//ToDo:
+                    // Более правильно анализировать новые данные внутри буфера
+
                     currentTime = System.nanoTime();
                     headJustAfterWrite = audioTrack.getPlaybackHeadPosition();
                     //Убрать все долгие nanoTime, работать с быстрыми (и стабильными?) фреймами?
@@ -922,105 +1037,7 @@ public class MetroAudioProbnik
 
                     //boolean sync = bNewTempo || newMelody;
 
-                    if (newMelody) {
-                        //System.out.printf("---------SetNewMelody------");
-                        //   realBPM = melody.setTempo(_BPMtoSet);
 
-                        //Устанавливаем позицию в новой мелодии пропорционально отыгранному в старой
-                        //ToDo: даст щелчки; по уму все переустановки нужно будет сделать
-                        // в copy2buffer после окончания записи звука
-                        double l=melody.cycle.relativeDurationBeforePosition();
-                        int i =(int)(l*melodyToSet.cycle.duration);
-                        melodyToSet.cycle.readTempoLinear(i);//ToDo: вешаем чайник; проматываем отыгранную длительность
-                        melody = melodyToSet;
-
-                        newMelody = false;
-                        bNewTempo = true;//чтобы проверить максимальный темп
-                    }
-                    if (bNewBeats){
-                        melody.setNewCycle();
-
-                        bNewBeats = false;
-                        bNewTempo = true;
-                    }
-                    if (bNewTempo) {
-                        //ToDo: Разобраться с переменными - какие в классе, какие в потоке
-                        if (!noMessages) {
-                            System.out.printf("---------NewTempo------");
-                            System.out.printf(String.format("Old length of cycle: %.3f\n", melody.cycle.duration));
-                            System.out.printf(String.format("BPMFromSeekBarVal: %d", _BPMtoSet));
-                            melody.cycle.print();
-                        }
-
-                        melody.setTempo(_BPMtoSet);
-
-                        //Аналогично определению timeOfVeryFirstBipMcs,
-                        // определяем время игры последнего записанного звука
-                        timeOfLastSampleToPlay =
-                                boundNanoTimeToRealTime.nanoToFlutterTime(currentTime) +//now
-                                        staticLatencyInMcs + //время от проигрывания сэмпла головкой до его звука
-                                        samples2nanoSec(totalWrittenFrames - headJustAfterWrite) / 1000;
-
-                        //Теперь его надо уменьшить на время, нужное чтобы сыграть то, что для позиции
-                        //в цикле - получаем время, которое было бы у первого бипа, если бы играли
-                        //и раньше с новой скоростью.
-                        timeOfSomeFirstBipMcs = timeOfLastSampleToPlay -
-                                samples2nanoSec(melody.cycle.durationBeforePosition()) / 1000;
-
-
-
-
-            /*
-            timeOfSomeFirstBipMcs=boundNanoTimeToRealTime.nanoToFlutterTime(currentTime+
-                    samples2nanoSec(
-                            staticLatencyInFrames + (totalWrittenFrames - headJustAfterWrite)-
-                    melody.cycle.durationBeforePosition()
-                    )
-                    );*/
-
-
-                        //ToDo: 1. Опять же, надо следить, чтобы писалось достаточно большими порциями,
-                        // кратными малым буферам (или хотя бы их половинам)
-                        // - иначе может не обновиться параметр getPlaybackHeadPosition, и мы
-                        // получим "пляски" при дергании темпа. Тут нужен баланс - слишком большой программный буфер
-                        // означает долгое "доигрывание" звуков и большую latency, маленький может дать
-                        // неравномерное считывание.  (Еще раз протестировать всё в весеннем комбайне.)
-                        // Этот параметр вроде бы подобирается правильно - так, чтобы число
-                        // записанных росло равномерно с числом отыгранных (сразу после записи);
-                        // но проверялось это лишь для моего телефона.
-
-                        //ToDo: 2. Возможно, нужно для страховки поставить заглушку на изменение темпа
-                        // в несколько 10в миллисекунд, чтобы не флудить и не рисковать.
-
-                        //ToDo: 3. В документации рекомендуется обновлять значение штампа иногда
-                        // (раз в непонятно сколько времени, документация очень туманна на этот счет).
-                        // Я пока не понимаю, как с этим быть. Только тесты на разном железе.
-
-                        bNewTempo = false;
-                        //tempo.beatsPerMinute = BPMfromSeekBar;
-                        //barrelOrgan.reSetAngles(cycle);
-
-            /*
-            //test
-            timeOfLastSampleToPlay =boundNanoTimeToRealTime.nanoToFlutterTime(currentTime)+//now
-                    staticLatencyInMcs  + //время от проигрывания сэмпла головкой до его звука
-                    samples2nanoSec(totalWrittenFrames-headJustAfterWrite)/1000;
-            timeNowMcs= boundNanoTimeToRealTime.nanoToFlutterTime(currentTime);
-            messageTest(_cnt);
-            //todo: упростить - timeOfLastSampleToPlay определить через timeOfSomeFirstBipMcs
-            //<-test*/
-
-                        newTempoToFlut((int)melody.tempo);//В яву, оттуда во флаттер
-                        //IS: VS, Вить, сорри, с сообщениями у меня полный бардак. Что как передаётся - вообще как попало.
-                        //
-                        // ToDo.
-
-                        /*
-                        if (!noMessages) {
-                            System.out.printf("New BPM, new length of cycle: %d, %.3f\n", realBPM, melody.cycle.duration);
-                            melody.cycle.print();
-                        }*/
-                    }
 
                      /*if (sync) {
                          Position pos = melody.cycle.position;
@@ -1063,8 +1080,7 @@ public class MetroAudioProbnik
                 boolean stampIsGood = audioTrack.getTimestamp(currentStamp);
                 headPosInFrames = audioTrack.getPlaybackHeadPosition();
 
-                if (conditionToPrint())
-                {
+                if (conditionToPrint()) {
                     collectInfo(stampIsGood);
                 }
 
@@ -1079,8 +1095,7 @@ public class MetroAudioProbnik
             }
             // End of main work cycle
 
-            if (audioTrack != null)
-            {
+            if (audioTrack != null) {
                 audioTrack.flush();//ToDo: fadeOut
                 audioTrack.stop();
                 audioTrack.release();
@@ -1290,7 +1305,7 @@ public class MetroAudioProbnik
 }
 
 
-//IS: VS, Предлагаю удалить всё, что ниже. Это продублировано и устарело.
+//IS: VS, Предлагаю удалить всё, что ниже. Это продублировано (и устарело).
 /**
  * Пересчитываем  темпо (традиционный, дуракций) в длительность цикла в сэмплах,
  * исходя из того, сколько там bars (то есть, какова его длина в нотах)

@@ -192,7 +192,8 @@ class AccentedMelody
 
     cycle = newCycle;
     beatCount=newBeatCount;
-    tempo=setTempo(beatCount);
+    tempo=setTempo((int)tempo);
+    //ToDo: ПЕРЕДЕЛАТЬ setTempo,  зачем я сделал эту глупость с int?
 
     int newPos =(int)(newPositionRel*cycle.duration);
     cycle.readTempoLinear(newPos);//ToDo: вешаем чайник; проматываем отыгранную длительность
