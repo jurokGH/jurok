@@ -522,11 +522,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     Resources res = getResources();
 
 
-    soundSсhemes.add(
-            new MusicScheme2Bips("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
-                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
-            ));
-
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
     // эту схему, чтобы не плодить их.
@@ -535,6 +530,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
     );
     soundSсhemes.add(musicSсhemeTunable);
+
+    soundSсhemes.add(
+            new MusicScheme2Bips("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
 
 
     soundSсhemes.add(

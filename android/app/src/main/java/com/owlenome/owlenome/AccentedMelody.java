@@ -1,5 +1,7 @@
 package com.owlenome.owlenome;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,7 @@ class AccentedMelody
   byte[][] setOfNotes;
 
 
-  BipAndPause[] _bipAndPauseSing;
+
   private int _sampleRate;
   public BipPauseCycle cycle=null;
   private  BipPauseCycle newCycle=null;
@@ -126,7 +128,7 @@ class AccentedMelody
     //(totalLengthOfBeat / (beats.subBeats.get(i) * noteLength / 2)) > 1
 
 
-    _bipAndPauseSing = new BipAndPause[totalSubBeats];
+    BipAndPause[]  _bipAndPauseSing = new BipAndPause[totalSubBeats];
     int k = 0;
     for (int i = 0; i < beats.beatCount; i++) {
       byte weakAccents[] = GeneralProsody.getAccents1(beats.subBeats.get(i), false);
@@ -215,7 +217,9 @@ class AccentedMelody
    * @param beatsPerMinute что хотим
    * @return что получилось
    */
-  public int setTempo(int beatsPerMinute) //ToDo: нелогично, что это int.
+  public int setTempo(int beatsPerMinute)
+  //ToDo: нелогично, что это int.
+  // С другой стороны, в дарте у нас значения целочисленные...
   {
     int BPMtoSet = Math.min(
             (int) cycle.getMaximalTempo(_sampleRate,beatCount),
@@ -229,6 +233,7 @@ class AccentedMelody
                     BPMtoSet));
 
     tempo=BPMtoSet;
+    Log.d("Tempo",String.format(" now is %f",tempo));
     return BPMtoSet;
   }
 
