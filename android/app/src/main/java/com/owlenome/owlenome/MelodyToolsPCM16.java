@@ -1,5 +1,78 @@
 package com.owlenome.owlenome;
 
+
+
+class Utility
+{
+  /**
+   * Возвращает время игры бипа согласно штампу и номеру сэмла.
+   * Интерполирует через nativeSampleRate;
+   */
+  static public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
+  {
+    return stampTime + samples2nanoSec(frequency, frameToPlayN - stampFrame);
+  }
+
+  /**
+   * Определяем число samples в данном числе наносекунд.
+   */
+  final static public long nanoSec2samples(int frequency, long time)
+  {
+    return Math.round((double) time * frequency * 1e-9);
+  }
+
+  /**
+   * Определяем время в наносекундах из samples
+   */
+  final static  public long samples2nanoSec(int frequency, long samplesN)
+  {
+    return Math.round(1e9 * samplesN / frequency);
+  }
+
+  /**
+   * Пересчитываем  темпо (число нот в минуту BPM) в длительность цикла в сэмплах
+   * BipPauseCycle исходя из того, сколько там bars (то есть, какова его длина в нотах)
+   * и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
+   * возможная длина.
+   * @return длительность в сэмплах данного числа битов при данном tempo (BMP) и частоте
+   */
+  final static double beatsDurationInSamples(int nativeSampleRate, int nOfBeats, int BPM)
+  { //ToDo: нелогично, что BPM - это int. Кажется, это не зачем ни нужно, просто я глупость
+    // впопыхах написал
+
+    //VG Note value (denominator) changes actual beat tempo
+    //int totalBeatsPerCycle = bars * tempoTmpTmpTmp.denominator;
+    double samplesPerBeat = nativeSampleRate * 60.0 / BPM;
+    return samplesPerBeat * nOfBeats;
+  }
+
+  /*
+  /**
+   *
+   *  Больше не нужно
+   *
+   * Пересчитываем  темпо (традиционный, дуракций) в длительность цикла в сэмплах
+   * BipPauseCycle исходя из того, сколько там bars (то есть, какова его длина в нотах)
+   * и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
+   * возможная длина.
+   * <p>
+   * (В случае простого метронома bars=1.)
+   *
+   * @param t музыкальный темп
+   * @return какова должна быть длительность цикла при данном tempoTmpTmpTmp.
+   * /
+// in seconds //IS: IN SAMPLES
+  final static private double tempoToCycleDurationObsolete(Tempo t, int bars, int nativeSampleRate)
+  {
+    //VG Note value (denominator) changes actual beat tempoTmpTmpTmp
+    int totalBeatsPerCycle = bars * t.denominator;
+    double samplesPerBeat = nativeSampleRate * 60.0 / t.beatsPerMinute;
+
+    return samplesPerBeat * totalBeatsPerCycle;
+  }*/
+}
+
+
 /**
  * Синтез звуков для PCM16.
  * //TODO Make static what is possible

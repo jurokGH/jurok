@@ -63,7 +63,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
   // Sound schemes
   // Сюда собираем пары звуков.
-  List<MusicScheme2Bips> soundSсhemes;
+  List<MusicScheme2Bips> soundSсhemes;//ToDo
   MusicScheme2Bips musicSсhemeTunable;
   int currentMusicScheme = 0;
 
@@ -86,7 +86,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
       /**
        *  Отладочное. Если сделать true, то будет играться только звук.
-       *  (управления из флаттер кроме старт-стоп не будет).
+       *  (управления из флаттер кроме старт не будет).
        *  Используется для проверки нагрузки на процессор, создаваемой аудиопотоком.
        */
       boolean noGraphic=false;

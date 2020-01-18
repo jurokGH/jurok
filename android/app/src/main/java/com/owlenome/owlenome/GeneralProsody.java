@@ -1,6 +1,28 @@
 package com.owlenome.owlenome;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+// Same as beat_metre.dart::BeatMetre
+class BeatMetre
+{
+    int beatCount;
+    List<Integer> subBeats;
+    // Indices of accented beats in each simple metre (row)
+    List<Integer> accents; //ToDo
+
+    BeatMetre()
+    {
+        beatCount = 4;
+        subBeatCount = 1;
+        subBeats = new ArrayList<Integer>();
+        accents = new ArrayList<Integer>();
+        //accents.set(0, 0);
+    }
+
+    int subBeatCount;
+}
 
 
 //Пришло время расставить акценты!

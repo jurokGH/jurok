@@ -150,19 +150,13 @@ public class MetroAudioProbnik
     // Sound writer task
     MetroRunnable _task = null;
 
-    public void setMelody(AccentedMelody m)
-    {
-        melodyToSet=m;
-        newMelody = true;
-        /*
+    public void setMelody(AccentedMelody m) {
+        melodyToSet = m;
         if (state == STATE_READY) {
             melody = melodyToSet;
-        }
-        else{//Поменяем из плотного цикла или в конце run
-            //VS, это жутко опасное место, и у меня тут не слишком работает интуиция.
+        } else {//Поменяем из плотного цикла //TODO или в конце run!
             newMelody = true;
-        }*/
-
+        }
         //return (int) melody.getMaxTempo();
     }
 
@@ -677,7 +671,56 @@ public class MetroAudioProbnik
             }
             return toWrite;
         }
+
+
+        int copy2bufferMix(AccentedMelody melody)//ToDo
+        {
+            buffer.position(0);
+            //long writtenSamples = -1;
+
+            //Тестим цикл. //ToDo: поправить written's!//Да вроде ок всё?
+            int toWrite = 0;
+            BipPauseCycle.TempoLinear linear = melody.cycle.readTempoLinear(framesToWriteAtOnce);
+      /*pos.n = linear.pos.n;
+      pos.offset = linear.pos.offset;
+       pos.cycleCount = linear.pos.cycleCount; */
+
+            for (int i = 0; i < linear.durations.length; i++)
+            {
+                int offset = i == 0 ? linear.startInFirst * 2 : 0;
+                if (linear.symbols[i] == melody.cycle.elasticSymbol)
+                {
+                    buffer.put(silenceToWrite, 0,
+                            linear.durations[i] * 2);
+                }
+                else
+                {
+                    buffer.put(melody.setOfNotes[linear.symbols[i]],
+                            //melodyTest[linear.symbols[i]],
+                            offset,
+                            linear.durations[i] * 2);
+                    assert (offset == 0);
+                    //writtenSamples = totalWrittenFrames + toWrite / 2 + offset;
+                    //sendMessage(writtenSamples);
+                }
+                toWrite += linear.durations[i] * 2;
+
+            }
+            buffer.position(0);
+
+            if (!noMessages)
+            {
+                //linear.print();
+                melody.cycle.printPosition();
+                System.out.printf("error, totalErrorsCorrected: %.3f, %d\n", melody.cycle.accumulatedError,
+                        melody.cycle.totalErrorsCorrected);
+            }
+            return toWrite;
+        }
     }
+
+
+
 
     class MetroRunnable implements Runnable
     {
@@ -827,11 +870,11 @@ public class MetroAudioProbnik
 
         @Override
         public void run() {
-
+/*
             if (newMelody) {
                 melody = melodyToSet;
                 newMelody = false;
-            }
+            }*/
             //ToDo: продумать:
             //analizeConditions();
 
