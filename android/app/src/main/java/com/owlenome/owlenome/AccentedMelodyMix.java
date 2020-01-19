@@ -290,6 +290,7 @@ class AccentedMelodyMix
 
         //А теперь мы вытаскиваем  цикл поддолей, возможно обсекая звуки.
         //ToDo: оформить в BipAndPause как бескомпромисный аналог setNewDuration
+        //ToDo: не работает
         double beatDuration=cycle.duration/beatCount;
         int subPos=0;
         for (int i=0;i<beatCount;i++) {
@@ -312,15 +313,14 @@ class AccentedMelodyMix
             }
         }
         //ToDo: проверить, чтобы длины циклов совпадали!
-        cycleDriven.duration=cycle.duration;//ToDo: ЭТО БЕСПРЕДЕЛ УЖЕ, просто чтоб заработало
+        //cycleDriven.duration=cycle.duration;//ToDo: ЭТО БЕСПРЕДЕЛ УЖЕ, просто чтоб заработало
+        cycleDriven.reSetDuration(); cycleDriven.reset();
         cycleDriven.readTempoLinear((int)cycle.durationBeforePosition());
         //ToDo: fraction part, что ещё - всю логику перепроверить.
         // - уже ничего ен понимаю, просто запустить хочу....
 
 
 
-
-     //   POSITION !!!!!!!!!!!!!!!!!
 
         Log.d("Tempo",String.format(" Cycle dur: %f",cycle.duration));
         Log.d("Tempo",String.format(" Driven cycle dur:  %f",cycleDriven.duration));

@@ -474,6 +474,12 @@ public class BipPauseCycle
     cycleCount=0;
   }
 
+  void reSetDuration() {
+    duration = 0;
+    for (int i = 0; i < cycle.length / 2; i++)
+      duration += cycle[2 * i].l + cycle[2 * i + 1].l + fractionParts[i];
+  }
+
   /*
   /**
    * Кажется, конструктор, где кажлой ноте назначается свой символ.
