@@ -89,8 +89,7 @@ class AccentedMelody
 
 
 
-//    //ToDo Понадобится, когда будем делать ноты с паузами:)
-//     Нужно для несжимаемой паузы - то есть молчащего бипа.
+//    звуки тишины у нас есть в тесном цикле
 //    byte[] pause = melodyTools.getSilence(framesInQuorta * 2);
 
 
@@ -241,27 +240,8 @@ class AccentedMelody
 }
 
 
-// Same as beat_metre.dart::BeatMetre
-class BeatMetre
-{
-  int beatCount;
-  List<Integer> subBeats;
-  // Indices of accented beats in each simple metre (row)
-  List<Integer> accents; //ToDo
 
-  BeatMetre()
-  {
-    beatCount = 4;
-    subBeatCount = 1;
-    subBeats = new ArrayList<Integer>();
-    accents = new ArrayList<Integer>();
-    //accents.set(0, 0);
-  }
-
-  int subBeatCount;
-}
-
-
+/*
 //IS: Нам не нужно знать в яве ничего про знаменатели. Кроме того, они ужасно путают всё.
 //Больше не используется.
 class Tempo
@@ -274,7 +254,7 @@ class Tempo
    *
    * @param beatsPerMinute ударов в минуту
    * @param denominator    длительность удара (четвертая, шестнадцатая, etc)
-   */
+   * /
   public Tempo(int beatsPerMinute, int denominator)
   {
     this.beatsPerMinute = beatsPerMinute;
@@ -288,72 +268,4 @@ class Tempo
   }
 }
 
-
-class Utility
-{
-  /**
-   * Возвращает время игры бипа согласно штампу и номеру сэмла.
-   * Интерполирует через nativeSampleRate;
-   */
-  static public long samplePlayTime(int frequency, long frameToPlayN, long stampTime, long stampFrame)
-  {
-    return stampTime + samples2nanoSec(frequency, frameToPlayN - stampFrame);
-  }
-
-  /**
-   * Определяем число samples в данном числе наносекунд.
-   */
-  final static public long nanoSec2samples(int frequency, long time)
-  {
-    return Math.round((double) time * frequency * 1e-9);
-  }
-
-  /**
-   * Определяем время в наносекундах из samples
-   */
-  final static  public long samples2nanoSec(int frequency, long samplesN)
-  {
-    return Math.round(1e9 * samplesN / frequency);
-  }
-
-  /**
-   * Пересчитываем  темпо (число нот в минуту BPM) в длительность цикла в сэмплах
-   * BipPauseCycle исходя из того, сколько там bars (то есть, какова его длина в нотах)
-   * и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
-   * возможная длина.
-   * @return длительность в сэмплах данного числа битов при данном tempo (BMP) и частоте
-   */
-  final static double beatsDurationInSamples(int nativeSampleRate, int nOfBeats, int BPM)
-  { //ToDo: нелогично, что BPM - это int. Кажется, это не зачем ни нужно, просто я глупость
-    // впопыхах написал
-
-    //VG Note value (denominator) changes actual beat tempo
-    //int totalBeatsPerCycle = bars * tempoTmpTmpTmp.denominator;
-    double samplesPerBeat = nativeSampleRate * 60.0 / BPM;
-    return samplesPerBeat * nOfBeats;
-  }
-
-  /**
-   *
-   *  Больше не нужно
-   *
-   * Пересчитываем  темпо (традиционный, дуракций) в длительность цикла в сэмплах
-   * BipPauseCycle исходя из того, сколько там bars (то есть, какова его длина в нотах)
-   * и частоты (то есть, длительности одного сэмпла). Может быть больше, чем
-   * возможная длина.
-   * <p>
-   * (В случае простого метронома bars=1.)
-   *
-   * @param t музыкальный темп
-   * @return какова должна быть длительность цикла при данном tempoTmpTmpTmp.
-   */
-// in seconds //IS: IN SAMPLES
-  final static private double tempoToCycleDurationObsolete(Tempo t, int bars, int nativeSampleRate)
-  {
-    //VG Note value (denominator) changes actual beat tempoTmpTmpTmp
-    int totalBeatsPerCycle = bars * t.denominator;
-    double samplesPerBeat = nativeSampleRate * 60.0 / t.beatsPerMinute;
-
-    return samplesPerBeat * totalBeatsPerCycle;
-  }
-}
+ */
