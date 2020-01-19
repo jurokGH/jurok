@@ -17,7 +17,7 @@ class BipAndPause
 
   public double duration()
   {
-    return (1 + pauseFactor) * bipDuration;
+    return (1.0 + pauseFactor) * bipDuration;
   }
 }
 

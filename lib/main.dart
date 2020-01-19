@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   int _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 500;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  int _tempoBpm = 121;//500;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
   ///Переменная, ограничивающся максимальную скорость при данной музыкальной схеме и
   ///метре
@@ -514,15 +514,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       //onPressed: () {
       onTap: () {
+        _tempoBpm += delta;
+        if (_tempoBpm < minTempo)
+          _tempoBpm = minTempo;
+        if (_tempoBpm > _tempoBpmMax)
+          _tempoBpm = _tempoBpmMax;
         if (_playing)
           _setTempo(_tempoBpm); //IS: Не уверен, в какой последовательности посылать
         //в яву и обновлять виджет
         setState(() {
-          _tempoBpm += delta;
-          if (_tempoBpm < minTempo)
-            _tempoBpm = minTempo;
-          if (_tempoBpm > _tempoBpmMax)
-            _tempoBpm = _tempoBpmMax;
         });
       },
     );
