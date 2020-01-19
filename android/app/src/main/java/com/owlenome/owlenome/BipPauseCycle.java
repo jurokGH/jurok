@@ -211,6 +211,13 @@ public class BipPauseCycle
 
 
   /**
+   *  Начальные значения длины для длин четных элементов (звуков).
+   *  Внутри класса не меняются.  Untested.
+   */
+  final int[] initBipsDurations;
+
+
+  /**
    * Дробные части длин нечетных элементов цикла (пауз)
    */
   double[] fractionParts;
@@ -408,6 +415,8 @@ public class BipPauseCycle
     initElasticDurations = new double[lengthMin * numerator];
     fractionParts = new double[lengthMin * numerator];
 
+    initBipsDurations =new int[lengthMin * numerator];
+
     double dur;
     for (int j = 0; j < numerator; j++)
     {
@@ -422,6 +431,8 @@ public class BipPauseCycle
         // тогда нужно следить за отрицательными погрешностями.
         fractionParts[i + pref] = dur % 1;
         initElasticDurations[i + pref] = dur;
+
+        initBipsDurations[i + pref] = bipsAndPauses[i].bipDuration;
       }
     }
 

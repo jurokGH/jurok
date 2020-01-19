@@ -170,9 +170,10 @@ class MusicSchemeMix {
         strongBeat= WavResources.getSoundFromResID(res,strongFileIndex,nativeSampleRate);
     }
 
+    /*
     //Из двух готовых звуков - может, это самое прекрасное, что можно придумать? Быстрая:)
     private  void loadFromBytes(byte[] weakBeat, byte[] strongBeat )
-    {        this.strongBeat=strongBeat; this.weakBeat=weakBeat;    }
+    {        this.strongBeat=strongBeat; this.weakBeat=weakBeat;  //ОПАСНО. Не надо так  }*/
 
 
 

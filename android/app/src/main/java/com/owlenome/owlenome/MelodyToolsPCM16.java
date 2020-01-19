@@ -263,6 +263,27 @@ public class MelodyToolsPCM16
       }
     }
 
+    /**
+     * !!!Только по рецепту!!!
+     *
+     * Сумма двух звуков. К первому сэмплу примиксовываем второй
+     * !!! БЕЗ !!!
+     * деления пополам
+     *
+     * UNTESTED.
+     *
+     **/
+  public static void mixNOTNormalized(byte[] samples1, byte[] samples2){
+    int lngsShort=Math.min(samples1.length,samples2.length)/2;
+    for(int i=0;i<lngsShort;i++){
+      int newSample1=  (samples1[2*i+1]<<8)|(0xFF&samples1[2*i]);
+      int newSample2=  (samples2[2*i+1]<<8)|(0xFF&samples2[2*i]);
+      int newSample=(newSample1+newSample2)/2;//!!!!! //TODO: УБРАТЬ /2
+      samples1[2 * i] = (byte) (newSample & 0x00ff);
+      samples1[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
+    }
+  }
+
 
 
     //Проще генерировать ноты по полутонам, или по октавам и именам...

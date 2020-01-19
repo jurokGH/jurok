@@ -30,15 +30,20 @@ class BeatMetre
 
   BeatMetre()
   {
-    _beatCount = 4;
+    //_beatCount = 4;
+    _beatCount = initSubBeats.length;
     _subBeatCount = 1;
-    subBeats = new List<int>.filled(_beatCount, 1, growable: true);
+   // subBeats = new List<int>.filled(_beatCount, 1, growable: true);
+    subBeats=initSubBeats;
     metres = new List<int>.filled(1, _beatCount, growable: true);
+    //ToDo: просодия тут
     accents = new List<int>.filled(1, 0, growable: true);
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
+
+  final List<int> initSubBeats= [2,2,4,2,4,2,6,1];//,4,4];
 
   ///TODO For now
   int get accent => accents.length > 0 ? accents[0] : 0;

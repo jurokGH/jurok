@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  static const int initBeatCount = 4;
+  //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = 2;
   static const int maxBeatCount = 12;
   static const int maxSubBeatCount = 8;
@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   int _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 121;//500;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  int _tempoBpm = 220;//500;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
   ///Переменная, ограничивающся максимальную скорость при данной музыкальной схеме и
   ///метре
@@ -224,7 +224,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     _getMusicSchemes();
 
-    _beat.beatCount = initBeatCount;//ToDo: через просодию. Переписать для флаттера
+   // _beat.beatCount = initBeatCount;//ToDo: через просодию. Переписать для флаттера
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.beatMetre = _beat;
     _playing = false;

@@ -23,7 +23,6 @@ import android.content.res.Resources;
 //https://github.com/flutter/flutter-intellij/issues/3136
 //https://github.com/flutter/flutter/wiki/Upgrading-pre-1.12-Android-projects
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +47,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
   int nativeSampleRate = 0;
   int nativeBuffer;
-  int latencyUntested; //ToDo
+  //int latencyUntested;
   // Previous tempo value to compare with a new one
   //Tempo _tempo  = new Tempo(1, 1);
   //int _beatsPerMinute = 1;
@@ -58,13 +57,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
    * на ту мелодию, которая отправлена в metroAudio для
    * установки. Это не значит, что она играется прямо сейчас.
    */
-  AccentedMelody beatMelody = null;
-  MetroAudioProbnik metroAudio;
+  AccentedMelodyMix beatMelody = null;
+  MetroAudioMix metroAudio;
 
   // Sound schemes
   // Сюда собираем пары звуков.
-  List<MusicScheme2Bips> soundSсhemes;//ToDo
-  MusicScheme2Bips musicSсhemeTunable;
+  List<MusicSchemeMix> soundSсhemes;//ToDo
+  MusicSchemeMix musicSсhemeTunable;
   int currentMusicScheme = 0;
 
   BeatMetre beatRecieved=null;
@@ -96,7 +95,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       {
         if (noGraphic) return;
         //int whtmsg.what & 0x3
-        if (msg.what == MetroAudioProbnik.STATE_PLAYING)
+        if (msg.what == MetroAudioMix.STATE_PLAYING)
         {
           if (msg.arg2 == -1)
           {
@@ -241,7 +240,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     };
 
 
-    metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
+    metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
             160,//TODO: TEST: 1000; //00;
             // 160 - основной кандидат (8 моих буферов)
             // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
@@ -379,7 +378,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         Map<String, Object> reply = new HashMap<>();
         reply.put("nativeSampleRate", nativeSampleRate);
         reply.put("nativeBuffer", nativeBuffer);
-        reply.put("latencyUntested", latencyUntested);
+        //reply.put("latencyUntested", latencyUntested);
         result.success(reply);
       }
       else
@@ -404,7 +403,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
         //AccentedMelody melody=new AccentedMelody(soundSсhemes.get(currentMusicScheme),
           //      nativeSampleRate, beatRecieved.beatCount, beatRecieved.subBeats);
-        AccentedMelody melody=new AccentedMelody(soundSсhemes.get(currentMusicScheme),
+        AccentedMelodyMix melody=new AccentedMelodyMix(soundSсhemes.get(currentMusicScheme),
               nativeSampleRate, beatRecieved);
         metroAudio.setMelody(melody);
         beatMelody=melody;
@@ -446,6 +445,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       if (nativeBuffer == 0)
         nativeBuffer = nativeSampleRate / 50;
 
+      /*
       //ToDo: незаконно
       try
       {
@@ -460,20 +460,20 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
          * DO NOT UNHIDE. The existing approach for doing A/V sync has too many problems. We need
          * a better solution.
          * @hide
-         */
+         * /
 
         //Еще подход (не проверял, отсюда: https://developer.amazon.com/docs/fire-tv/audio-video-synchronization.html#section1-2
         //Method m = android.media.AudioTrack.class.getMethod("getLatency", (Class < ? > []) null);
         //long bufferSizeUs = isOutputPcm ? framesToDurationUs(bufferSize / outputPcmFrameSize) : C.TIME_UNSET;
         //int audioLatencyUs = (Integer) getLatencyMethod.invoke(audioTrack, (Object[]) null) * 1000L - bufferSi
 
-        Log.d(MetroAudioProbnik.logTagSoundTest, "Latency (from the Method, uuu), ms: " + Integer.toString(latencyUntested));
+        Log.d(MetroAudioMix.logTagSoundTest, "Latency (from the Method, uuu), ms: " + Integer.toString(latencyUntested));
       }
       catch (Exception e)
       {
         latencyUntested = 100;
-        Log.d(MetroAudioProbnik.logTagSoundTest, "Latency (uneducated guess), ms: " + Integer.toString(latencyUntested));
-      }
+        Log.d(MetroAudioMix.logTagSoundTest, "Latency (uneducated guess), ms: " + Integer.toString(latencyUntested));
+      }*/
     }
   }
 
@@ -482,7 +482,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   {
     //int realTempo = 0;
     //_onStartStopBn(tempo);
-    if (metroAudio.state == MetroAudioProbnik.STATE_READY)
+    if (metroAudio.state == MetroAudioMix.STATE_READY)
     {
       //_beatsPerMinute = beatsPerMinute;
       metroAudio.play(beatsPerMinute);
@@ -517,22 +517,28 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   // Тут определяем музыкальные схемы
   private void initSoundSchemes()
   {
-    soundSсhemes = new ArrayList<MusicScheme2Bips>();
+    soundSсhemes = new ArrayList<MusicSchemeMix>();
 
     Resources res = getResources();
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Drums-1", res, R.raw.drum_accent_mono, R.raw.drum,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
 
 
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
     // эту схему, чтобы не плодить их.
-    musicSсhemeTunable = new MusicScheme2Bips("Bips-A4C5",
+    musicSсhemeTunable = new MusicSchemeMix("Bips-A4C5",
             440, 25, 523.25, 30,
             GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
     );
     soundSсhemes.add(musicSсhemeTunable);
 
     soundSсhemes.add(
-            new MusicScheme2Bips("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+            new MusicSchemeMix("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
 
@@ -540,24 +546,20 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
     soundSсhemes.add(
-            new MusicScheme2Bips("Workspace-1", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
+            new MusicSchemeMix("Workspace-1", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
 
 
 
     soundSсhemes.add(
-            new MusicScheme2Bips("WoodblockCabasa-1",
+            new MusicSchemeMix("WoodblockCabasa-1",
                     res, R.raw.woodblock_short1, R.raw.cabasa1,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             )
     );
     soundSсhemes.add(
-            new MusicScheme2Bips("Drums-1", res, R.raw.drum_accent_mono, R.raw.drum,
-                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
-            ));
-    soundSсhemes.add(
-            new MusicScheme2Bips("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
+            new MusicSchemeMix("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
     /*soundSсhemes.add(

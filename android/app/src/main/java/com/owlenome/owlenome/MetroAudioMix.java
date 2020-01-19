@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
 ///
 ///Время между бипами про 240 bpm;16-е доли - 1/16 секунды. Сюда должен поместиться бип и тишина
 
-public class MetroAudioProbnik
+public class MetroAudioMix
 {
     // Initial constants
     //private final static int cTempoBpM = 60; // Определяется в accentedMelody по defaultTempo
@@ -133,8 +133,8 @@ public class MetroAudioProbnik
     //ByteBuffer byteBuffer;
     MelodyBuffer melodyBuffer;
 
-    AccentedMelody melody=null;
-    AccentedMelody melodyToSet;
+    AccentedMelodyMix melody=null;
+    AccentedMelodyMix melodyToSet;
     //BeatMetre beatsToSet;
     //BipAndPause _bipAndPauseSing;
     boolean newMelody = false;
@@ -150,7 +150,7 @@ public class MetroAudioProbnik
     // Sound writer task
     MetroRunnable _task = null;
 
-    public void setMelody(AccentedMelody m) {
+    public void setMelody(AccentedMelodyMix m) {
         melodyToSet = m;
         if (state == STATE_READY) {
             melody = melodyToSet;
@@ -415,9 +415,9 @@ public class MetroAudioProbnik
      * bigBuffInMs - желаемое время на весь буфер.
      * ToDo:.....
      */
-    public MetroAudioProbnik(int nativeSampleRate, int nativeBufferInFrames,
-                             double bigBuffInMs,
-                             Handler handler)
+    public MetroAudioMix(int nativeSampleRate, int nativeBufferInFrames,
+                         double bigBuffInMs,
+                         Handler handler)
     //Bitmap bitmap,
     //Canvas cvOut,
     //RectF oval)
@@ -607,7 +607,9 @@ public class MetroAudioProbnik
         // Середина большого буфера.
         private final int framesToWriteAtOnce;
 
-        ByteBuffer buffer;
+        ByteBuffer buffer, bufferDriven;
+        ByteBuffer bufferOut;//три буфера - избыточно?
+
         byte[] silenceToWrite;
 
         MelodyBuffer(int nativeSampleRate, int nativeBufferInFrames, int framesToWriteAtOnce)
@@ -622,6 +624,8 @@ public class MetroAudioProbnik
             halfOfBigBufferOfSilence = melodyTools.getSilence(framesToWriteAtOnce);
 
             buffer = ByteBuffer.allocate(framesToWriteAtOnce * 2);
+            bufferDriven = ByteBuffer.allocate(framesToWriteAtOnce * 2);
+            bufferOut = ByteBuffer.allocate(framesToWriteAtOnce * 2);
 
             //ToDo: взять более пристойный способ. Например, buffer.Allocate делает всё нулями
             silenceToWrite = melodyTools.getSilence(framesToWriteAtOnce);
@@ -672,30 +676,49 @@ public class MetroAudioProbnik
             return toWrite;
         }
 
+        /**
+         *   Копируем в буфер цикл
+         */
+        int copy2bufferMix(){
+            int toWrite= copy2bufferAux(melody.cycle,buffer);
+            copy2bufferAux(melody.cycleDriven, bufferDriven);
 
-        int copy2bufferMix(AccentedMelody melody)//ToDo
-        {
+            //MIX
+            MelodyToolsPCM16.mixNOTNormalized(
+             buffer.array(),bufferDriven.array()
+              );
             buffer.position(0);
+
+
+            /*bufferOut.position(0);
+            bufferOut.put( .....
+            bufferOut.position(0);*/
+
+            return toWrite;
+        }
+
+
+        int copy2bufferAux(BipPauseCycle cycle, ByteBuffer buff)//ToDo
+        {
+            buff.position(0);
             //long writtenSamples = -1;
 
             //Тестим цикл. //ToDo: поправить written's!//Да вроде ок всё?
             int toWrite = 0;
-            BipPauseCycle.TempoLinear linear = melody.cycle.readTempoLinear(framesToWriteAtOnce);
-      /*pos.n = linear.pos.n;
-      pos.offset = linear.pos.offset;
-       pos.cycleCount = linear.pos.cycleCount; */
+            BipPauseCycle.TempoLinear linear = cycle.readTempoLinear(framesToWriteAtOnce);
+
 
             for (int i = 0; i < linear.durations.length; i++)
             {
                 int offset = i == 0 ? linear.startInFirst * 2 : 0;
-                if (linear.symbols[i] == melody.cycle.elasticSymbol)
+                if (linear.symbols[i] == cycle.elasticSymbol)
                 {
-                    buffer.put(silenceToWrite, 0,
+                    buff.put(silenceToWrite, 0,
                             linear.durations[i] * 2);
                 }
                 else
                 {
-                    buffer.put(melody.setOfNotes[linear.symbols[i]],
+                    buff.put(melody.setOfNotes[linear.symbols[i]],
                             //melodyTest[linear.symbols[i]],
                             offset,
                             linear.durations[i] * 2);
@@ -706,15 +729,8 @@ public class MetroAudioProbnik
                 toWrite += linear.durations[i] * 2;
 
             }
-            buffer.position(0);
+            buff.position(0);
 
-            if (!noMessages)
-            {
-                //linear.print();
-                melody.cycle.printPosition();
-                System.out.printf("error, totalErrorsCorrected: %.3f, %d\n", melody.cycle.accumulatedError,
-                        melody.cycle.totalErrorsCorrected);
-            }
             return toWrite;
         }
     }
@@ -1045,25 +1061,19 @@ public class MetroAudioProbnik
                     //Кажется, что write "разблокируется" только в случаях, кратных половине большого буфера.
                     //При этом, кажется, что эта половина еще и сама должна быть четной, иначе начинаются скачки
                     //При этом, если очень короткое время (<100мс, например) на весь большой буфер,
-                    //тоже начинаются неровности (может быть, это связано с низким приоритетом процесса?)
+                    //тоже начинаются неровности (может быть, это связано с низким приоритетом процесса? -нет, скорее всего)
                     //ToDo: отследить "входящий телефонный звонок"
-          /*written1 = audioTrack.write(melodyOld[_cnt % melodyOld.length], 0, bipLengthInBytes);
-          //остаток - тишина
-          written2 = audioTrack.write(halfOfBigBufferOfSilence, 0, silenceLengthInBytes)+
-                  audioTrack.write(halfOfBigBufferOfSilence, 0, halfOfBigBufferOfSilence.length);*/
+
+                     /*written1 = audioTrack.write(melodyOld[_cnt % melodyOld.length], 0, bipLengthInBytes);
+                    //остаток - тишина
+                      written2 = audioTrack.write(halfOfBigBufferOfSilence, 0, silenceLengthInBytes)+
+                     audioTrack.write(halfOfBigBufferOfSilence, 0, halfOfBigBufferOfSilence.length);*/
 
                     //byteBuffer.position(0);
 
                     //long writtenSamples = -1;
-                    //Position pos = new Position(-1, 0);//ISH: ?
-                    int toWrite = mBuffer.copy2buffer(melody/*, pos*/);//Но pos значит не нужен?
-/*
-          if (pos.n >= 0)
-          {
-            sendMessage(pos);
-            //System.out.printf("FramesBeforeHeadToReallyPlay %d - %d\n", pos.n / 2, pos.cycleCount);
-          }
-*/
+                    int toWrite = mBuffer.copy2bufferMix();
+
                     //Пишем звук
                     written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
                             AudioTrack.WRITE_BLOCKING);
