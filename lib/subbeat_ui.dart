@@ -56,14 +56,14 @@ class SubbeatState extends State<SubbeatWidget>
             opacity: 0.55,
             child:
             Image.asset('images/owl2-3.png',
-              height: 80,
+              height: 70,
               fit: BoxFit.contain
             ),
           ),
           //BoxDecoration
           SizedBox(
             //aspectRatio: 0.5,
-            height: 80,
+            height: 70,
             width: 60,
             child: Padding(
               padding: const EdgeInsets.only(right: 10, bottom: 10),

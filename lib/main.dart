@@ -919,7 +919,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Widget cupWheelTempo = new SizedBox(
       //fit: BoxFit.fill,
       width: 0.2 * _sizeCtrls.width, //80,
-      height: 0.4 * _sizeCtrls.height, //100,
+      height: 0.35 * _sizeCtrls.height, //100,
       child: picker,
     );
 
@@ -985,7 +985,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             IconButton(
-              iconSize: 40,
+              iconSize: 36,
               //padding: EdgeInsets.all(_padding.dx),
               icon: Icon(Icons.library_music,),
               color: _cWhiteColor,
@@ -1001,7 +1001,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             //padding: EdgeInsets.only(right: _padding.dx),
             ///widget Settings
             IconButton(
-              iconSize: 40,
+              iconSize: 36,
               //padding: EdgeInsets.all(_padding.dx),
               icon: Icon(
                 _mute ? Icons.volume_off : Icons.volume_up,
