@@ -121,45 +121,59 @@ class AccentedMelodyMix
         //Тут живёт особая философия, и делать это можно по-разному.
         //ToDo:   пробовать  по-разному и слушать.
         //ToDo: отправить это в дарт
-        byte accents[]=GeneralProsody.getAccents1(beats.beatCount,false); //false - чтобы распевней
+        byte accents[]=GeneralProsody.getAccents(beats.beatCount,false); //false - чтобы распевней
 
 
 
-        //Ноты. Сначала сильные, потом слабые
-        setOfNotes = new byte[musicScheme.setOfStrongNotes.length+musicScheme.setOfWeakNotes.length][];
-        for(int i=0;i<musicScheme.setOfStrongNotes.length;i++){
-            setOfNotes[i]=musicScheme.setOfStrongNotes[i];    }
-        for(int i=0;i<musicScheme.setOfWeakNotes.length;i++){
-            setOfNotes[i+musicScheme.setOfStrongNotes.length]=musicScheme.setOfWeakNotes[i]; }
+        //Ноты. Сначала доли, потом поддоли
+        setOfNotes = new byte[musicScheme.setOfNotes.length+musicScheme.setOfSubNotes.length][];
+        for(int i = 0; i<musicScheme.setOfNotes.length; i++){
+            setOfNotes[i]=musicScheme.setOfNotes[i];    }
+        for(int i = 0; i<musicScheme.setOfSubNotes.length; i++){
+            setOfNotes[i+musicScheme.setOfNotes.length]=musicScheme.setOfSubNotes[i]; }
 
 
         int[] symbols = new int[beats.beatCount];
         int[] symbolsDriven = new int[totalSubBeats];
 
 
-        double totalLengthOfBeat=(musicScheme.weakBeat.length+musicScheme.strongBeat.length+2)*maxSubBeatCount;
+        double totalLengthOfBeat=(musicScheme.beatSound.length+musicScheme.subBeatSound.length+2)*maxSubBeatCount;
         //ToDo:DoubleCheck
         //Это какой-то странноватый способ... Нужно
         //найти число,   удовлетворяющее для всех i неравенству
         //(totalLengthOfBeat / (beats.subBeats.get(i) * noteLength / 2)) > 1
 
 
+        int weakestAccent=0;
+        for(int i=0; i<accents.length; i++)
+        {if (weakestAccent<accents[i]) weakestAccent=accents[i];}
+
+
         BipAndPause[] _bipAndPauseMainSing = new BipAndPause[beats.beatCount];
         for (int i = 0; i < beats.beatCount; i++) {
-            symbols[i] = accents[i];
+            if ((musicScheme.beatAccentationType ==
+                    GeneralProsody.AccentationType.Agogic) &&
+                    (accents[i] == weakestAccent)) {//самая слаба доля (максимум) пусть будет
+                // самым сильным слабым звуком
+                symbols[i] = musicScheme.setOfNotes.length; //ToDo: тут этому не место по логике вещей
+            } else {
+                symbols[i] = accents[i];
+            }
             int noteLength = setOfNotes[symbols[i]].length;
-            _bipAndPauseMainSing[i]=new BipAndPause(
+            _bipAndPauseMainSing[i] = new BipAndPause(
                     noteLength / 2,
                     (totalLengthOfBeat / (noteLength / 2)) - 1
             );
         }
 
+
+
         BipAndPause[] _bipAndPauseSubSing = new BipAndPause[totalSubBeats];
         int k = 0;
         for (int i = 0; i < beats.beatCount; i++) {
-            byte weakAccents[] = GeneralProsody.getAccents1(beats.subBeats.get(i), false);
+            byte subBeatAccents[] = GeneralProsody.getAccents(beats.subBeats.get(i), false);
             for (int j = 0; j < beats.subBeats.get(i); j++, k++) {
-                symbolsDriven[k] = musicScheme.setOfStrongNotes.length + weakAccents[j];
+                symbolsDriven[k] = musicScheme.setOfNotes.length + subBeatAccents[j];
                 int noteLength = setOfNotes[symbolsDriven[k]].length;
                 _bipAndPauseSubSing[k] = new BipAndPause(
                         noteLength / 2,
@@ -175,12 +189,12 @@ class AccentedMelodyMix
         /* //ToDo:delete
         int k = 0;
         for (int i = 0; i < beats.beatCount; i++) {
-            byte weakAccents[] = GeneralProsody.getAccents1(beats.subBeats.get(i), false);
+            byte weakAccents[] = GeneralProsody.getAccents(beats.subBeats.get(i), false);
             for (int j = 0; j < beats.subBeats.get(i); j++, k++) {
                 if (j == 0) {//сильная доля
                     symbols[k] = accents[i];
                 } else {
-                    symbols[k] = musicScheme.setOfStrongNotes.length + weakAccents[j];
+                    symbols[k] = musicScheme.setOfNotes.length + weakAccents[j];
                 }
                 int noteLength = setOfNotes[symbols[k]].length;
                 _bipAndPauseSing[k] = new BipAndPause(

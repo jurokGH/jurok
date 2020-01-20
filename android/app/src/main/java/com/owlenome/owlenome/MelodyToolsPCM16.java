@@ -278,7 +278,7 @@ public class MelodyToolsPCM16
     for(int i=0;i<lngsShort;i++){
       int newSample1=  (samples1[2*i+1]<<8)|(0xFF&samples1[2*i]);
       int newSample2=  (samples2[2*i+1]<<8)|(0xFF&samples2[2*i]);
-      int newSample=(newSample1+newSample2)/2;//!!!!! //TODO: УБРАТЬ /2
+      int newSample=(newSample1+newSample2);//!!!!! //TODO: УБРАТЬ /2
       samples1[2 * i] = (byte) (newSample & 0x00ff);
       samples1[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
     }

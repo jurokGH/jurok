@@ -631,50 +631,6 @@ public class MetroAudioMix
             silenceToWrite = melodyTools.getSilence(framesToWriteAtOnce);
         }
 
-        int copy2buffer(AccentedMelody melody/*, Position pos*/)
-        {
-            buffer.position(0);
-            //long writtenSamples = -1;
-
-            //Тестим цикл. //ToDo: поправить written's!//Да вроде ок всё?
-            int toWrite = 0;
-            BipPauseCycle.TempoLinear linear = melody.cycle.readTempoLinear(framesToWriteAtOnce);
-      /*pos.n = linear.pos.n;
-      pos.offset = linear.pos.offset;
-       pos.cycleCount = linear.pos.cycleCount; */
-
-            for (int i = 0; i < linear.durations.length; i++)
-            {
-                int offset = i == 0 ? linear.startInFirst * 2 : 0;
-                if (linear.symbols[i] == melody.cycle.elasticSymbol)
-                {
-                    buffer.put(silenceToWrite, 0,
-                            linear.durations[i] * 2);
-                }
-                else
-                {
-                    buffer.put(melody.setOfNotes[linear.symbols[i]],
-                            //melodyTest[linear.symbols[i]],
-                            offset,
-                            linear.durations[i] * 2);
-                    assert (offset == 0);
-                    //writtenSamples = totalWrittenFrames + toWrite / 2 + offset;
-                    //sendMessage(writtenSamples);
-                }
-                toWrite += linear.durations[i] * 2;
-
-            }
-            buffer.position(0);
-
-            if (!noMessages)
-            {
-                //linear.print();
-                melody.cycle.printPosition();
-                System.out.printf("error, totalErrorsCorrected: %.3f, %d\n", melody.cycle.accumulatedError,
-                        melody.cycle.totalErrorsCorrected);
-            }
-            return toWrite;
-        }
 
         /**
          *   Копируем в буфер цикл
@@ -683,7 +639,7 @@ public class MetroAudioMix
             int toWrite= copy2bufferAux(melody.cycle,buffer);
             copy2bufferAux(melody.cycleDriven, bufferDriven);
 
-            //MIX
+            //MIX //ToDo:             mixNOTNormalized
             MelodyToolsPCM16.mixNOTNormalized(
              buffer.array(),bufferDriven.array()
               );

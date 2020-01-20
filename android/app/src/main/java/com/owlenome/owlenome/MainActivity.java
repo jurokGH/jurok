@@ -300,7 +300,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         /*
         // меняем параметры musicSсhemeTunable
 
-        beat.beatFreq = 0.001 * config.get(3);
+        beat.subBeatFreq = 0.001 * config.get(3);
         beat.beatDuration = config.get(4);
         beat.accentFreq = 0.001 * config.get(5);
         beat.accentDuration = config.get(6);*/
@@ -522,33 +522,105 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     Resources res = getResources();
 
     soundSсhemes.add(
-            new MusicSchemeMix("Drums-1", res, R.raw.drum_accent_mono, R.raw.drum,
+            new MusicSchemeMix("ShortDrums-1Ag", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+    soundSсhemes.add(
+            new MusicSchemeMix("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
 
 
 
-    //Старые добрые бипы
-    // ToDo: при настройке звуков из flutter, можно менять именно
-    // эту схему, чтобы не плодить их.
-    musicSсhemeTunable = new MusicSchemeMix("Bips-A4C5",
-            440, 25, 523.25, 30,
-            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
-    );
-    soundSсhemes.add(musicSсhemeTunable);
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Workspace-2Agogic", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
 
     soundSсhemes.add(
             new MusicSchemeMix("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
 
+    soundSсhemes.add(
+            new MusicSchemeMix("Drums-1-Agogic", res, R.raw.drum, R.raw.drum_accent_mono,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Drums-1", res, R.raw.drum, R.raw.drum_accent_mono,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Owls-1", res, R.raw.owl_long, R.raw.owl_short,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
 
 
 
+
+
+    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
+            440, 15, 440, 15,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+    ));
+
+    /*
+    soundSсhemes.add( new MusicSchemeMix("ExtraShortAg",
+            440, 15, 440, 15,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic
+    ));*/
+
+    //Старые добрые бипы
+    // ToDo: при настройке звуков из flutter, можно менять именно
+    // эту схему, чтобы не плодить их.
+    musicSсhemeTunable = new MusicSchemeMix("Bips-A4C5",
+            523.25, 30,440, 30,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+    );
+    soundSсhemes.add(musicSсhemeTunable);
+
+    /*
+    soundSсhemes.add(
+            musicSсhemeTunable = new MusicSchemeMix("Bips-agog",
+                    523.25, 30,440, 25,
+                    GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic
+            )
+    );*/
+
+    soundSсhemes.add(
+            new MusicSchemeMix("WoodblockCabasa-1",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
+    soundSсhemes.add(
+            new MusicSchemeMix("WoodblockCabasa-AGOG",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
+
+
+    /* //Шлак.
     soundSсhemes.add(
             new MusicSchemeMix("Workspace-1", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             ));
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Workspace-1Ag", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));*/
 
 
 
@@ -558,10 +630,14 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
                     GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
             )
     );
+
     soundSсhemes.add(
-            new MusicSchemeMix("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
-                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
-            ));
+            new MusicSchemeMix("WoodblockCabasa-Ag",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
     /*soundSсhemes.add(
             new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
                     R.raw.drum_accent,R.raw.drum)
