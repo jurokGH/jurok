@@ -10,6 +10,7 @@ class OwlWidget extends StatefulWidget
 {
   final int id;
   final bool accent;
+  final int nAccent;
   final bool active;
   final int activeSubbeat;
   int subbeatCount;
@@ -20,11 +21,14 @@ class OwlWidget extends StatefulWidget
   //final double width;
 
   final ValueChanged2<int, int> onTap;
+  final ValueChanged2<int, int> onNoteTap;
 
   OwlWidget({
     @required this.id,
     @required this.onTap,
+    @required this.onNoteTap,
     @required this.accent,
+    @required this.nAccent,
     @required this.active,
     @required this.denominator,
     @required this.activeSubbeat,
@@ -118,12 +122,20 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     final int activeSubbeat0 = activeHash & 0xFFFF;
     //final bool active = widget.id == activeBeat;
 
+/*
     int indexImage = active ? 3 : 0;
     if (active && widget.subbeatCount > 1)
     {
       indexImage = activeSubbeat % widget.subbeatCount + 1;
       if (indexImage > 4) //TODO
         indexImage = 1 + indexImage % 4;
+    }
+*/
+
+    int indexImage = 2 * (widget.nAccent + 1);
+    if (active)
+    {
+      indexImage++;
     }
 
     //print('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
@@ -132,34 +144,35 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     //if (active != widget.active)
       //print('!Owl:active $active ${widget.active}');
 
-    return GestureDetector(
-          onTap: () {
-            setState(() {
-              widget.subbeatCount++;
-              //subbeatCount++;
-              if (widget.subbeatCount > maxSubCount)
-              {
+    return
+          //TODO 1 vs 2 RepaintBoundary in Column
+          RepaintBoundary(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+//              RepaintBoundary(child:
+            GestureDetector(
+            onTap: () {
+              setState(() {
+                widget.subbeatCount++;
+                //subbeatCount++;
+                if (widget.subbeatCount > maxSubCount)
+                {
                 //TODO
                 widget.subbeatCount = 1;
                 //subbeatCount = 1;
-              }
-            });
-            //Provider.of<MetronomeState>(context, listen: false)
+                }
+              });
+              //Provider.of<MetronomeState>(context, listen: false)
               //.setActiveState(widget.id, widget.subbeatCount);
-            widget.onTap(widget.id, widget.subbeatCount);
-          },
-          //TODO 1 vs 2 RepaintBoundary in Column
-          child: RepaintBoundary(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-//              RepaintBoundary(child:
-              AspectRatio( // This gives size to NoteWidget
-                aspectRatio: 1,
+              widget.onNoteTap(widget.id, widget.subbeatCount);
+            },
+            child: AspectRatio( // This gives size to NoteWidget
+                aspectRatio: 1.2,//3.5 / 3,
                 //width: 0.9 * widget.width,
                 //height: 0.9 * widget.width,
                 child: Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: 0),
                   child: NoteWidget(
                     subDiv: widget.subbeatCount,
                     denominator: widget.denominator * widget.subbeatCount,
@@ -171,15 +184,33 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   )
                  )
               ),
+              ),
 
 //              RepaintBoundary(child:
               //TODO SizedBox(
                 //width: widget.width,
                 //height: widget.width * 668 / 546,
                 //child:
-              widget.images[indexImage]
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  //widget.subbeatCount++;
+                  //subbeatCount++;
+                  if (widget.subbeatCount > maxSubCount)
+                  {
+                    //TODO
+                    widget.subbeatCount = 1;
+                    //subbeatCount = 1;
+                  }
+                });
+                //Provider.of<MetronomeState>(context, listen: false)
+                //.setActiveState(widget.id, widget.subbeatCount);
+                widget.onTap(widget.id, widget.subbeatCount);
+              },
+              child: widget.images[indexImage]
+            ),
           ])
-        ));
+        );
   }
 }
 

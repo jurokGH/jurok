@@ -6,7 +6,22 @@ import 'metronome_state.dart';
 import 'owl_widget.dart';
 import 'beat_metre.dart';
 
+import 'dart:ui' as ui;
+import 'dart:async';
+
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
+
+Future<ui.Image> _loadImage(String imgName)
+{
+  Completer<ui.Image> completer = new Completer<ui.Image>();
+  new AssetImage(imgName).resolve(new ImageConfiguration())
+    .addListener(new ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        completer.complete(info.image);
+      }
+    ));
+  return completer.future;
+}
 
 List<int> beatRowsList(int beatCount)
 {
@@ -41,15 +56,16 @@ int maxValue(List<int> list)
 class _OwlLayout extends MultiChildLayoutDelegate
 {
   /// Maximum owl size over size when there are 4 owls in row
-  static final double maxCoef4 = 1.0;
-  static final double minPaddingX = 10;
+  static final double maxCoef4 = 0;//1.5;
+  //static final double minPaddingX = 10;
 
   final int count;
   //final Size childSize;
   //final double width;
   final double aspect;
-  final Size padding = new Size(10, 10);
+  final Size padding = new Size(10, 0);
 
+  /// _layout[i] - number of Owls in each i-th row
   List<int> _layout;
 
   _OwlLayout({@required this.count, @required this.aspect,
@@ -66,17 +82,22 @@ class _OwlLayout extends MultiChildLayoutDelegate
     double x0, y0;
     x0 = y0 = 0;
 
+    // Grid: xCount x yCount
     int xCount = maxValue(_layout);
     int yCount = _layout.length;
 
     // Size is (0, 0) if display does not show (e.g. locked)
     double w = size.width > 0 ? (size.width - padding.width * (xCount - 1)) / xCount : 0;
     double h = size.height > 0 ? (size.height - padding.height * (yCount - 1)) / yCount : 0;
-    // Width of 4 owls in row
+
+    // Width of 4 owls in row if constrained by width
     double width4 = (size.width - padding.width * 3) / 4;
-    double width4h = (size.height - padding.height) / (4 * aspect);
+    // Width of 4 owls in row if constrained by height
+    double width4h = (size.height - padding.height ) / (4 * aspect);
+    width4h = size.height / aspect;
     // Choose minimum of 2 widths
     double maxWidth = width4 > width4h ? width4h : width4;
+    // Max owl width
     maxWidth *= maxCoef4;
 
     double dy;
@@ -98,10 +119,10 @@ class _OwlLayout extends MultiChildLayoutDelegate
     //print('maxWidth123 $maxWidth - $w - $h');
     //TODO
     // Limit owl size by maxCoef4 coefficient
-    if (w > maxWidth)
+    if (maxCoef4 > 0  && w > maxWidth)
     {
-      //w = maxWidth;
-      //h = aspect * maxWidth;
+      w = maxWidth;
+      h = aspect * maxWidth;
     }
     print('calcImageSize $size - $w - $h');
 
@@ -203,13 +224,17 @@ class OwlGrid extends StatefulWidget
   final int activeBeat;
   final int activeSubbeat;
   final bool playing;
+  final List<int> accents;
 
   final ValueChanged2<int, int> onChanged;
+  final ValueChanged<int> onCountChanged;
+  final ValueChanged<int> onAccentChanged;
 
   OwlGrid({@required this.beat, this.noteValue,
+    this.accents,
     this.activeBeat, this.activeSubbeat,
     this.playing = false,
-    this.onChanged,
+    this.onChanged, this.onCountChanged, this.onAccentChanged
     //this.width,
     });
 
@@ -223,8 +248,10 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   int _period = 60000; //IS: А не мало? VG: Он повторяется: _controller.repeat
   //duration: new Duration(days: 3653)
 
-  List<List<Image>> _images;
+  //List<List<Image>> _images;
+  List<Image> _images;
   Size _imageSize = Size.zero;
+  Size _imageSize0 = Size.zero;
 
   //int subCount;
   //int subCur;
@@ -263,6 +290,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       duration: new Duration(milliseconds: _period),
     );
     //TODO ..addListener(onTimer);
+
+    Future<ui.Image> futImage = _loadImage('images/owl1-0.png');
+    futImage.then((ui.Image image) => _imageSize0 = new Size(image.width.toDouble(), image.height.toDouble()));
 
     //VG Попробую ответить здесь, хотя такая переписка мне как серпом по яйцу.
     //VG IS: Илья, как ты видишь выше, я пробовал вариант, о котором ты говоришь.
@@ -306,14 +336,16 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
     _imageSize = size;
     //AssetImage
-    _images = new List<List<Image>>(2);
-    for (int i = 0; i < 2; i++)
+    //_images = new List<List<Image>>(2);
+    _images = new List<Image>(10);
+    int i0 = 0;
+    for (int i = 0; i < 5; i++)
     {
-      List<Image> il = new List<Image>(5);
-      _images[i] = il;
+      //List<Image> il = new List<Image>(5);
+      //_images[i] = il;
       int k = i + 1;
-      for (int j = 0; j < 5; j++)
-        il[j] = new Image.asset('images/owl$k-$j.png',
+      for (int j = 0; j < 2; j++, i0++)
+        _images[i0] = new Image.asset('images/owl$i-$j.png',
           width: size.width,
           //height: size.height,
           fit: BoxFit.contain,
@@ -331,8 +363,8 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   {
     print('precacheImages');
     for (int i = 0; i < _images.length; i++)
-      for (int j = 0; j < _images[i].length; j++)
-        precacheImage(_images[i][j].image, context);
+      //for (int j = 0; j < _images.length; j++)
+        precacheImage(_images[i].image, context);
   }
 
   @override
@@ -347,9 +379,13 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     if (widthSquare == 0)
       return Container();
 
+    double aspect = _imageSize0.width > 0 ? _imageSize0.height / _imageSize0.width : 306.0 / 250.0;
+    aspect *= 1.8;  // for NoteWidget
+
     _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
-      aspect: 2 * 668 / 546,
+      aspect: aspect
+      //1.75 * 306 / 250 //2 * 668 / 546,
     );
 
     Size imageSize = layout.calcImageSize(size);
@@ -367,16 +403,23 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       for (int j = 0; j < beatRows[i]; j++, k++)
       {
         bool accent = k == 0;
+        int nAccent = widget.accents[k];
         OwlWidget w = new OwlWidget(
           id: k,
           accent: accent,
+          nAccent: nAccent,
           active: k == widget.activeBeat,
           activeSubbeat: k == widget.activeBeat ? widget.activeSubbeat : -1,
           subbeatCount: widget.beat.subBeats[k],
           denominator: widget.noteValue,
           animation: _controller.view,
-          images: new List<Image>.unmodifiable(_images[accent ? 0 : 1]),
+          images: new List<Image>.unmodifiable(_images),//[accent ? 0 : 1]),
           onTap: (int id, int subCount) {
+            //assert(id < widget.beat.subBeats.length);
+            //widget.beat.subBeats[id] = subCount;
+            widget.onAccentChanged(id);
+          },
+          onNoteTap: (int id, int subCount) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
             widget.onChanged(id, subCount);
@@ -393,9 +436,25 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     //TODO
     //return Consumer<MetronomeState>(
       //builder: (BuildContext context, MetronomeState metronome, Widget child) {
-        return CustomMultiChildLayout(
-          children: wOwls,
-          delegate: layout,
+        return GestureDetector(
+          //onHorizontalDragStart,
+          //onHorizontalDragUpdate: (DragUpdateDetails details) {},
+          //onHorizontalDragEnd,
+          //onHorizontalDragCancel,
+          onTap: () {
+            print('onTaponTaponTap');
+            //print(count);
+
+            widget.onCountChanged(widget.beat.beatCount + 1);
+            //setState(() {});
+            //Provider.of<MetronomeState>(context, listen: false)
+            //.setActiveState(widget.id, widget.subbeatCount);
+            //widget.onTap(widget.id, widget.subbeatCount);
+          },
+          child: CustomMultiChildLayout(
+            children: wOwls,
+            delegate: layout,
+          )
         );
       //}
     //);
