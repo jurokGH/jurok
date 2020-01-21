@@ -44,7 +44,7 @@ class OwlWidget extends StatefulWidget
 class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlWidget>
 {
   static final bool drawSubOwls = false;
-  static final int maxSubCount = 8;
+  static final int maxSubCount = 4;
 
   int _counter;
 
@@ -135,7 +135,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     int indexImage = 2 * (widget.nAccent + 1);
     if (active)
     {
-      indexImage++;
+      //indexImage++;
+      indexImage += activeSubbeat % 2;
     }
 
     //print('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');

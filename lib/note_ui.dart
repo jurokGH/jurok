@@ -289,12 +289,13 @@ class NotePainter extends CustomPainter {
       canvas.save();
       canvas.translate(centerHead.dx, centerHead.dy);
 
-      final double heightAccent2 = 2;
+      final double heightAccent2 = 2.5;
       if (accents != null && accents.length > 0)
       for (int i = 0; i < accents[0]; i++)
       {
-        final Offset offL = rcGrad.bottomLeft.translate(0, 2.5 * heightAccent2 * i);
-        final Offset offR = rcGrad.bottomRight.translate(0, 2.5 * heightAccent2 * i);
+        final Rect rc = rcGrad;
+        final Offset offL = rc.bottomLeft.translate(0, 2.5 * heightAccent2 * i).translate(2, 0);
+        final Offset offR = rc.bottomRight.translate(0, 2.5 * heightAccent2 * i).translate(-2, 0);
         canvas.drawLine(offL, offR + Offset(0, heightAccent2), _paintStem);
         canvas.drawLine(offL + Offset(0, 2 * heightAccent2), offR + Offset(0, heightAccent2), _paintStem);
       }
