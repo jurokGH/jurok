@@ -37,7 +37,7 @@ class BeatMetre
     subBeats=initSubBeats;
     metres = new List<int>.filled(1, _beatCount, growable: true);
     //ToDo: просодия тут
-    accents = new List<int>.filled(1, 0, growable: true);
+    accents = new List<int>.filled(initSubBeats.length, 0, growable: true);
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
