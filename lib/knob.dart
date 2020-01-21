@@ -52,8 +52,10 @@ class KnobState extends State<Knob>
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
     double distanceToAngle = (widget.max - widget.min);
 
-    double normalisedValue = (widget.value - widget.min)/(widget.max - widget.min);
+    double clippedValue = min(max(widget.value, widget.min), min(widget.limit, widget.max));
+    double normalisedValue = (clippedValue - widget.min)/(widget.max - widget.min);
     double angle = (minAngle + normalisedValue * sweepAngle) * 2 * pi / 360;
+
     return Center(
       child: Container(
         width: size,

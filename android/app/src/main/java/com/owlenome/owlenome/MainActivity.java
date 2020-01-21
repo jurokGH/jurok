@@ -1,7 +1,7 @@
 package com.owlenome.owlenome;
 
 import android.content.Context;
-import android.content.res.Resources;
+
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,7 +10,19 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import java.lang.reflect.Method;
+
+import android.content.res.Resources;
+
+//import  android.R; //Test: for raw
+//import  android.R.raw; //Test: for raw
+//import  com.owlenome.owlenome.R; //Test: for raw
+//import  com.owlenome.owlenome.R.raw;
+//IS: Ничего не помогло  проекту, открытому во флаттере,
+//увидеть R корректно. Всё работает, но подчеркивает красным поля R
+//VS, вот что по этому поводу я нашел, но понять там ничего не смог, может, ты сможешь понять?
+//https://github.com/flutter/flutter-intellij/issues/3136
+//https://github.com/flutter/flutter/wiki/Upgrading-pre-1.12-Android-projects
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,24 +34,7 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugins.GeneratedPluginRegistrant;
 
 
-// Same as beat_metre.dart::BeatMetre
-class BeatMetre
-{
-  int beatCount;
-  int subBeatCount;
-  List<Integer> subBeats;
-  // Indices of accented beats in each simple metre (row)
-  List<Integer> accents; //ToDo
 
-  BeatMetre()
-  {
-    beatCount = 4;
-    subBeatCount = 1;
-    subBeats = new ArrayList<Integer>();
-    accents = new ArrayList<Integer>();
-    //accents.set(0, 0);
-  }
-}
 
 
 
@@ -52,18 +47,26 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
   int nativeSampleRate = 0;
   int nativeBuffer;
-  int latencyUntested; //ToDo
+  //int latencyUntested;
   // Previous tempo value to compare with a new one
-  Tempo _tempo = new Tempo(1, 1);
+  //Tempo _tempo  = new Tempo(1, 1);
+  //int _beatsPerMinute = 1;
   // Beat setOfNotes
-  AccentedMelody beatMelody = null;
-  MetroAudioProbnik metroAudio;
+  /**
+   * Тонкое место. Переменная beatMelody ссылкается
+   * на ту мелодию, которая отправлена в metroAudio для
+   * установки. Это не значит, что она играется прямо сейчас.
+   */
+  AccentedMelodyMix beatMelody = null;
+  MetroAudioMix metroAudio;
 
   // Sound schemes
   // Сюда собираем пары звуков.
-  List<MusicScheme2Bips> soundSсhemes;
-  MusicScheme2Bips musicSсhemeTunable;
+  List<MusicSchemeMix> soundSсhemes;//ToDo
+  MusicSchemeMix musicSсhemeTunable;
   int currentMusicScheme = 0;
+
+  BeatMetre beatRecieved=null;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -75,21 +78,122 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     initSoundSchemes();
 
+
     // Receive messages from audio playing thread
     Handler handler = new Handler(Looper.getMainLooper())
     {
+
+      /**
+       *  Отладочное. Если сделать true, то будет играться только звук.
+       *  (управления из флаттер кроме старт не будет).
+       *  Используется для проверки нагрузки на процессор, создаваемой аудиопотоком.
+       */
+      boolean noGraphic=false;
+
       @Override
       public void handleMessage(Message msg)
       {
+        if (noGraphic) return;
         //int whtmsg.what & 0x3
-        if (msg.what == MetroAudioProbnik.STATE_PLAYING)
+        if (msg.what == MetroAudioMix.STATE_PLAYING)
         {
           if (msg.arg2 == -1)
           {
             //STATE_STARTING
             System.out.println("WARMEDUP");
-            channel.invokeMethod("warm", msg.arg1);
-          }/*
+            //channel.invokeMethod("warm", msg.arg1);
+            long toSend=metroAudio.timeOfVeryFirstBipMcs;
+            channel.invokeMethod("warm", toSend);
+
+            /*
+            //test
+            prevTime=toSend;
+            double prevRel=0;
+            // Log.d("MsgTest", "Time in Java of the very frst bip (mcs):  "+                    prevTime.toString());
+            //System.out.printf("Time in Java of the very frst bip (mcs) %d",initTime);
+            //_cnt=0;
+            prevRel=0;
+            prevBeat =0;
+
+            for (int i=0; i<metroAudio.melody.cycle.cycle.length;i++){
+              Long dur=
+                      metroAudio.samples2nanoSec(
+                              (long)metroAudio.melody.cycle.durationBeforePosition(i))/1000000;
+              Log.d("MsgTest",
+                      String.format("Before pos %d : %d", i, dur));
+            }*/
+          }
+          else if (msg.arg2 == -2)//IS: Посылаем начальные условия
+          {
+            Map<String, Object> args = new HashMap<>();
+            int bpm=msg.arg1; // metroAudio.getTempo();
+            args.put("bpm", bpm);//новая скорость
+            long time0=metroAudio.timeOfSomeFirstBipMcs;
+            args.put("nt", time0);//новое время
+            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
+            args.put("dt", lastSampleToPlay);//Когда начинать играть с новой скоростью
+
+            channel.invokeMethod("Cauchy", args);
+
+            //test
+            Long lost=metroAudio.totalLostFrames;
+            if(lost>0)//ToDo: нужно громко заявить
+                 Log.d("MsgTest", String.format("Lost samples: %d",  lost));
+
+            /*
+            //test
+
+            Long timeNow=metroAudio.timeNowMcs;
+            Long latMs=(lastSampleToPlay-timeNow)/1000;
+            Long deltaTimeMcsFrst=(timeNow-time0)/1000;
+            //Log.relPos("MsgTest", "time to last sample: "+latMs.toString());
+            //Log.relPos("MsgTest", "time since first sample: "+deltaTimeMcsFrst.toString());
+            Double relPos=metroAudio.melody.cycle.relativeDurationBeforePosition();
+            Double absPosition=relPos+metroAudio.melody.cycle.cycleCount;
+
+            Log.d("MsgTest", "rel and abs. pos: "+String.format ("%f", relPos)
+                    +"; " +String.format ("%f", absPosition));
+            Log.d("MsgTest", "abs. pos, delta: "+//+String.format ("%f", relPos)+"; "
+                    String.format ("%f", absPosition)+"; "+
+                    String.format ("%f", absPosition-prevRel)+"; "
+            );
+            prevRel=absPosition;
+
+            Integer nOfBeats=metroAudio.melody.cycle.cycle.length/2;
+            Integer note=metroAudio.melody.cycle.position.n/2;
+            Integer totalBeat=nOfBeats*metroAudio.melody.cycle.cycleCount+note;
+            Integer deltaNote=totalBeat- prevBeat;
+            Integer cycleC=metroAudio.melody.cycle.cycleCount;
+            Log.d("MsgTest", "Cycle, note, totalNote, delta: \n"+
+                    cycleC.toString()+ "; "+
+                    //nOfBeats.toString()+ "; "+
+                    note.toString()+"; "+
+                    totalBeat.toString()+"; "+ deltaNote.toString());
+            prevBeat =totalBeat;*/
+
+
+
+
+          }
+          /*
+          else if (msg.arg2 == -3)//тест
+          {
+            if (!bFirstMessage){
+              bFirstMessage=true;
+            }
+            _cnt++;
+            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
+            Long latMs=(lastSampleToPlay-metroAudio.timeNowMcs)/1000;
+            Long deltaTimeMcsFrst=(metroAudio.timeNowMcs-metroAudio.timeOfSomeFirstBipMcs);
+            Integer cnt=msg.arg1;
+            //Log.wtf("MsgTest", "Cnt, delta time: "+                     cnt.toString()+" (" + cnt.toString()+") "+                    deltaTimeMcs.toString());
+            //   Log.wtf("MsgTest", "latency (ms): "+ latMs.toString());
+            //   if (deltaTimeMcs<=0) {
+            // System.out.printf("MsgTest; Time:  d-time: %d, d-from-frst %d \n", deltaTimeMcs, deltaTimeMcsFrst);
+            // }
+          }*/
+
+          /*
           else
           {
             //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
@@ -101,7 +205,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("cycle", msg.arg2);
             channel.invokeMethod("timeFrame", args);
           }*/
-          else
+            /*
           {
             //long totalWrittenFrames = (((long) msg.arg2) << 32) + (long) msg.arg1;
             //channel.invokeMethod("timeFrame", totalWrittenFrames);
@@ -114,19 +218,40 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             args.put("cycle", metroAudio.cycleSync);
             args.put("time", metroAudio.timeSync);
             channel.invokeMethod("sync", args);
-          }
+          }*/
+          //IS:
+          // ToDo: Законно ли то, что мы лазим в
+          // другой поток за переменными? Точнее, что он обращается к тем переменным,
+          // которые мы потом собираем тут? Не может ли
+          // это блокировать его и вызвать потерянные сэмплы?
+          // Я натыкался на статью или видео одного из гугловых звуковых гуру,
+          // который рассказывал кошмары о том, как у него из-за print в потоке такое случалось
+          // и как он неделю мучился. Лох эдакий, понабрали по объявлениям...
         }
       }
+
+      /*
+      //Some test vars
+      boolean bFirstMessage=false;
+      Long prevTime;
+      double prevRel;
+      int prevBeat;
+      int _cnt=0;*/
     };
 
-    metroAudio = new MetroAudioProbnik(nativeSampleRate, nativeBuffer,
-      120, //1000.0/8 --- 240;16,; 1280 - 64 буфера;
-      // 160 - основной кандидат (8 моих буферов)
-      handler);
+
+    metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
+            160,//TODO: TEST: 1000; //00;
+            // 160 - основной кандидат (8 моих буферов)
+            // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
+            handler);
 
     channel = new MethodChannel(getFlutterView(), SOUND_CHANNEL);
     channel.setMethodCallHandler(this);
+    //IS:  А в какой плсдедовательности запускаются эта процедура и
+    //  init во флаттере?
   }
+
 
   @Override
   public void onMethodCall(MethodCall methodCall, MethodChannel.Result result)
@@ -135,44 +260,47 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     {
       result.notImplemented();
       return;
-    }
+    }//IS: Why? We cannot use this anyway
 
-    BeatMetre beat = new BeatMetre();
+
+    //BeatMetre beat = new BeatMetre();
 
     if (methodCall.method.equals("start"))
     {
-      _tempo.beatsPerMinute = methodCall.argument("tempo");
-      _tempo.denominator = methodCall.argument("note");
+      int _beatsPerMinute = methodCall.argument("tempo");
+      //_tempo.denominator = methodCall.argument("note");
 
-      int realTempo = 0;
+      //int realTempo = 0;
       if (beatMelody != null)
-        realTempo = start(_tempo);
+         start(_beatsPerMinute);
       //List<Map<Double, Integer> a = new HashMap<>
-      result.success(realTempo);
+      result.success(1);
     }
     else if (methodCall.method.equals("setBeat"))
     {
+
+      beatRecieved = new BeatMetre();
       //IS:
       // Get beat parameters from Flutter
-   //   BeatMetre beat = new BeatMetre();
+      //   BeatMetre beat = new BeatMetre();
 
       List<Integer> config = methodCall.argument("config");
       if (config.size() >= 3)
       {
-        beat.beatCount = config.get(0);
-        beat.subBeatCount = config.get(1);
+        beatRecieved.beatCount = config.get(0);
+        beatRecieved.subBeatCount = config.get(1);
         int schemeIndex = config.get(2);
         if (schemeIndex < soundSсhemes.size())
           currentMusicScheme = schemeIndex;
-        _tempo.beatsPerMinute = config.get(3);
-        _tempo.denominator = config.get(4);
+        //_beatsPerMinute = config.get(3);
+        //_tempo.denominator = config.get(4);
       }
       if (config.size() >= 7)
       {
         /*
-        //ToDo: меняем параметры musicSсhemeTunable
+        // меняем параметры musicSсhemeTunable
 
-        beat.beatFreq = 0.001 * config.get(3);
+        beat.subBeatFreq = 0.001 * config.get(3);
         beat.beatDuration = config.get(4);
         beat.accentFreq = 0.001 * config.get(5);
         beat.accentDuration = config.get(6);*/
@@ -180,25 +308,25 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       if (config.size() >= 10)
       {
         //bars = config.get(7);
-       // numerator = config.get(8);
+        // numerator = config.get(8);
         //quortaDuration = config.get(9);
       }
 
       //IS: VG Hack!!!
-     // numerator = 1;
+      // numerator = 1;
 
       List<Integer> subBeats = methodCall.argument("subBeats");
       if (subBeats.size() > 0)
       {
-        assert (beat.subBeatCount == subBeats.size());
-        beat.subBeats = new ArrayList<Integer>(subBeats);
+        assert (beatRecieved.subBeatCount == subBeats.size());
+        beatRecieved.subBeats = new ArrayList<Integer>(subBeats);
       }
       else
       {
-        beat.subBeats = new ArrayList<Integer>();
-        assert (beat.subBeats.size() == beat.beatCount);
-        for (int i = 0; i < beat.beatCount; i++)
-          beat.subBeats.add(beat.subBeatCount);
+        beatRecieved.subBeats = new ArrayList<Integer>();
+        assert (beatRecieved.subBeats.size() == beatRecieved.beatCount);
+        for (int i = 0; i < beatRecieved.beatCount; i++)
+          beatRecieved.subBeats.add(beatRecieved.subBeatCount);
       }
 
       //>>>>>> IS!
@@ -206,22 +334,35 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       List<Integer> accents = methodCall.argument("accents");
       if (accents.size() > 0)
       {
-        beat.accents = new ArrayList<Integer>(accents);
+        beatRecieved.accents = new ArrayList<Integer>(accents);
       }
 
+      /*
       beatMelody = new AccentedMelody(soundSсhemes.get(currentMusicScheme),
-        nativeSampleRate, beat.beatCount, beat.subBeats);
-      //IS
-      // Create new metronome beat setOfNotes
-      int maxTempo = metroAudio.setMelody(beatMelody, _tempo);
-      result.success(maxTempo);
+              nativeSampleRate, beat.beatCount, beat.subBeats);
+       */
+      //так не надо; при изменении битов надо менять
+      //чуть мелодию, а не грузить её всю.
+
+
+      if (beatMelody!=null){
+        double newMaxTempo=metroAudio.reSetBeats(beatRecieved);
+        result.success((int)newMaxTempo);
+      }
+      else {result.success(-1);//
+      //В первый раз получили beat,
+      //  мелодии пока нет, ограничений - тоже
+      }
+
     }
     else if (methodCall.method.equals("setTempo"))
     {
       int tempoBpm = methodCall.argument("tempo");
-      int noteValue = methodCall.argument("note");
-      int maxTempo = setTempo(tempoBpm, noteValue);
-      result.success(maxTempo);
+      //int noteValue = methodCall.argument("note");//IS: Не нужно.
+      //int maxTempo = setTempoA(tempoBpm/*, noteValue*/);
+      metroAudio.setTempo(tempoBpm);
+      //result.success(maxTempo);
+      result.success(1);
     }
     else if (methodCall.method.equals("setVolume"))
     {
@@ -233,11 +374,11 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     else if (methodCall.method.equals("getAudioParams"))
     {
       if (nativeSampleRate > 0)
-      {
+      {//ToDo: больше не нужно
         Map<String, Object> reply = new HashMap<>();
         reply.put("nativeSampleRate", nativeSampleRate);
         reply.put("nativeBuffer", nativeBuffer);
-        reply.put("latencyUntested", latencyUntested);
+        //reply.put("latencyUntested", latencyUntested);
         result.success(reply);
       }
       else
@@ -251,7 +392,22 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       if (schemeIndex < soundSсhemes.size())
       {
         currentMusicScheme = schemeIndex;
-        result.success(1);
+
+
+        /*beatMelody = new AccentedMelody(soundSсhemes.get(currentMusicScheme),
+                nativeSampleRate, beat.beatCount, beat.subBeats);
+         */
+
+        //ToDo: тут я исхожу из того, что flutter пришлёт сначала beat,
+        // а потом melody. Так делать конечно нельзя...
+
+        //AccentedMelody melody=new AccentedMelody(soundSсhemes.get(currentMusicScheme),
+          //      nativeSampleRate, beatRecieved.beatCount, beatRecieved.subBeats);
+        AccentedMelodyMix melody=new AccentedMelodyMix(soundSсhemes.get(currentMusicScheme),
+              nativeSampleRate, beatRecieved);
+        metroAudio.setMelody(melody);
+        beatMelody=melody;
+        result.success((int)beatMelody.getMaxTempo());
       }
       else
         result.success(0);
@@ -289,6 +445,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       if (nativeBuffer == 0)
         nativeBuffer = nativeSampleRate / 50;
 
+      /*
       //ToDo: незаконно
       try
       {
@@ -303,81 +460,190 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
          * DO NOT UNHIDE. The existing approach for doing A/V sync has too many problems. We need
          * a better solution.
          * @hide
-         */
+         * /
 
         //Еще подход (не проверял, отсюда: https://developer.amazon.com/docs/fire-tv/audio-video-synchronization.html#section1-2
         //Method m = android.media.AudioTrack.class.getMethod("getLatency", (Class < ? > []) null);
         //long bufferSizeUs = isOutputPcm ? framesToDurationUs(bufferSize / outputPcmFrameSize) : C.TIME_UNSET;
         //int audioLatencyUs = (Integer) getLatencyMethod.invoke(audioTrack, (Object[]) null) * 1000L - bufferSi
 
-        Log.d(MetroAudioProbnik.logTagSoundTest, "Latency (from the Method, uuu), ms: " + Integer.toString(latencyUntested));
+        Log.d(MetroAudioMix.logTagSoundTest, "Latency (from the Method, uuu), ms: " + Integer.toString(latencyUntested));
       }
       catch (Exception e)
       {
         latencyUntested = 100;
-        Log.d(MetroAudioProbnik.logTagSoundTest, "Latency (uneducated guess), ms: " + Integer.toString(latencyUntested));
-      }
+        Log.d(MetroAudioMix.logTagSoundTest, "Latency (uneducated guess), ms: " + Integer.toString(latencyUntested));
+      }*/
     }
   }
 
   // Start/stop with given tempo rate
-  private int start(Tempo tempo)
+  private void start(int beatsPerMinute)
   {
-    int realTempo = 0;
+    //int realTempo = 0;
     //_onStartStopBn(tempo);
-    if (metroAudio.state == MetroAudioProbnik.STATE_READY)
+    if (metroAudio.state == MetroAudioMix.STATE_READY)
     {
-      _tempo = tempo;
-      realTempo = metroAudio.play(tempo);// + minimalTempoBPM);
+      //_beatsPerMinute = beatsPerMinute;
+      metroAudio.play(beatsPerMinute);
+      //realTempo = metroAudio.play(beatsPerMinute);
 
       //ToDo: TEST
     }
     else
     {
       metroAudio.stop();
-      realTempo = metroAudio.getTempo();
+      //  realTempo = metroAudio.getTempo();
     }
 
     //if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-    return realTempo;
+
+    //return realTempo;
   }
 
+  /*
   // Set new tempo rate
-  private int setTempo(int tempoBpm, int noteValue)
+  private int setTempoA(int tempoBpm/*, int noteValue* /)
   {
     int maxTempo = 0;
-    Tempo tempo = new Tempo(tempoBpm, noteValue);
     //TODO if (!_tempo.equals(tempo))
     {
-      _tempo = tempo;
-      maxTempo = metroAudio.setTempo(tempo);// + minimalTempoBPM);
+      //_beatsPerMinute = tempoBpm;//IS: TEST
+      maxTempo = metroAudio.setTempo(tempoBpm);
     }
     return maxTempo;
-  }
+  }*/
 
   // Тут определяем музыкальные схемы
   private void initSoundSchemes()
   {
-    soundSсhemes = new ArrayList<MusicScheme2Bips>();
+    soundSсhemes = new ArrayList<MusicSchemeMix>();
+
+    Resources res = getResources();
+
+    soundSсhemes.add(
+            new MusicSchemeMix("ShortDrums-1Ag", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+    soundSсhemes.add(
+            new MusicSchemeMix("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Workspace-2Agogic", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Workspace-2", res, R.raw.bassandtumb280, R.raw.pedal_hihat_weak120,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Drums-1-Agogic", res, R.raw.drum, R.raw.drum_accent_mono,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Drums-1", res, R.raw.drum, R.raw.drum_accent_mono,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Owls-1", res, R.raw.owl_long, R.raw.owl_short,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+
+
+
+
+    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
+            440, 15, 440, 15,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+    ));
+
+    /*
+    soundSсhemes.add( new MusicSchemeMix("ExtraShortAg",
+            440, 15, 440, 15,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic
+    ));*/
 
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
     // эту схему, чтобы не плодить их.
-    musicSсhemeTunable = new MusicScheme2Bips("Bips-A4C5",
-      440, 25, 523.25, 35);
+    musicSсhemeTunable = new MusicSchemeMix("Bips-A4C5",
+            523.25, 30,440, 30,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+    );
     soundSсhemes.add(musicSсhemeTunable);
 
-    Resources res = getResources();
+    /*
     soundSсhemes.add(
-      new MusicScheme2Bips("Drums-1", res, R.raw.drum_accent_mono, R.raw.drum));
+            musicSсhemeTunable = new MusicSchemeMix("Bips-agog",
+                    523.25, 30,440, 25,
+                    GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic
+            )
+    );*/
+
     soundSсhemes.add(
-      new MusicScheme2Bips("WoodblockCabasa-1", res, R.raw.woodblock_short1, R.raw.cabasa1));
+            new MusicSchemeMix("WoodblockCabasa-1",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
     soundSсhemes.add(
-      new MusicScheme2Bips("ShortDrums-1", res, R.raw.short_drum_accent, R.raw.short_drum1));
+            new MusicSchemeMix("WoodblockCabasa-AGOG",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
+
+
+    /* //Шлак.
+    soundSсhemes.add(
+            new MusicSchemeMix("Workspace-1", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            ));
+
+    soundSсhemes.add(
+            new MusicSchemeMix("Workspace-1Ag", res, R.raw.bassandtumb60, R.raw.pedal_hihat_weak60,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            ));*/
+
+
+
+    soundSсhemes.add(
+            new MusicSchemeMix("WoodblockCabasa-1",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
+    soundSсhemes.add(
+            new MusicSchemeMix("WoodblockCabasa-Ag",
+                    res, R.raw.woodblock_short1, R.raw.cabasa1,
+                    GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic
+            )
+    );
+
     /*soundSсhemes.add(
             new MusicScheme2Bips("SomeUglyShortSeikoPirateDONOTUSE", res,
                     R.raw.drum_accent,R.raw.drum)
     ); //Где-то потерялся один из звуков, ну и нафиг не нужна эта схема.
     */
+
+
   }
 }
