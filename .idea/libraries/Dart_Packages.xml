@@ -198,6 +198,13 @@
             </list>
           </value>
         </entry>
+        <entry key="wheel_chooser">
+          <value>
+            <list>
+              <option value="$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/wheel_chooser-0.1.0/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="xml">
           <value>
             <list>
@@ -233,6 +240,7 @@
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/test_api-0.2.11/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/typed_data-1.1.6/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/vector_math-2.0.8/lib" />
+      <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/wheel_chooser-0.1.0/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/xml-3.5.0/lib" />
       <root url="file://$FLUTTER_HOME$/bin/cache/pkg/sky_engine/lib" />
       <root url="file://$FLUTTER_HOME$/packages/flutter/lib" />

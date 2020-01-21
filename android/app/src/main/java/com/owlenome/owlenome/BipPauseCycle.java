@@ -3,6 +3,7 @@ package com.owlenome.owlenome;
 import java.util.ArrayList;
 import java.util.List;
 
+
 class BipAndPause
 {
   int bipDuration;
@@ -16,7 +17,7 @@ class BipAndPause
 
   public double duration()
   {
-    return (1 + pauseFactor) * bipDuration;
+    return (1.0 + pauseFactor) * bipDuration;
   }
 }
 
@@ -28,7 +29,6 @@ class BipAndPause
  * <p>
  * Длительность паузы после bipsLengths[i] равна d[i]* bipsLengths[i]
  * <p>
- * //ToDo: убрать.
  * class TempoScheme{
  * BipAndPause[] lengths;
  * int totalLength;
@@ -84,7 +84,9 @@ public class BipPauseCycle
     Integer[] durations;
     int startInFirst;
 
-    Position pos;
+    //Position pos; //IS: Зачем может быть нужна позиция в этом списке?
+
+
 
     /**
      * Контрольная. Вернёт считанную суммарную длину. Она всегда должна равняться
@@ -118,15 +120,15 @@ public class BipPauseCycle
      * (который и представляет TempoLinear)
      * погрешность составит порядка symbols.length/2 сэмплов.
      *
-     * Привер: частота 44100, размер буфера 1024,
+     * Пример: частота 44100, размер буфера 1024,
      * желаемое время на размер буфера 160мс. Получится (при округлении
      * до целого числа буферов на половину большого буфера) порядка 186 мс
      * на цикл.  При максимальной скорости 240 и 16х долях имеем
      * погрешность <1 фрейма за 62.5 мс, то есть не более трёх за итерацию записи в буфер.
      * Это порядка 0.07 мс. Можно не парится и не распределять, и прицепить к первой
      * тишине.
-     * //ToDo:
-     * больше не нужна, реализвана прямо при выгрузке. Храним из-за прекрасного
+     *
+     * Больше не нужна, реализвана прямо при выгрузке. Храним из-за обширного
      *  комментария.
      */
     private double compensate(double addMe)
@@ -144,6 +146,7 @@ public class BipPauseCycle
     }
 
 
+    /*
     public void print()
     {
       System.out.println(tagForPrint + "------LINEAR------");
@@ -164,18 +167,41 @@ public class BipPauseCycle
         lengthesS += l.toString() + " ";
       }
       System.out.printf(tagForPrint + "durations: " + lengthesS + "\n");
-    }
+    }*/
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  Position position;
 
-  public Position getPosition()
+  /**
+   * Представляет позицию в цикле:
+   *  n - номер элемента цикла, offset - смещение.
+   */
+  public class CyclePosition {
+    public int n;
+    public int offset;
+    public CyclePosition (int n, int offset){this.n=n; this.offset=offset;}
+  }
+
+  /**
+   * Позиция в нашем цикле, меняющаяся при считывании через TempoLinear
+   */
+  CyclePosition position;
+
+  /**
+   * UNTESTED
+   * сколько раз прошли по кругу, считывая из массива TempoLinear;
+   */
+  int cycleCount;
+
+  /*public CyclePosition getPosition()
   {
     return position;
-  }
+  }*/
 
-  final int numerator;
+  //final int numerator;
+
+  /**
+   * Сам цикл
+   */
   final Pair[] cycle;
 
   /**
@@ -183,10 +209,13 @@ public class BipPauseCycle
    */
   final double[] initElasticDurations;
 
-    /*
-     *
-     *  Общая длительность бипов. Вроде больше не нужна ни для чего.
-    final int totalNonElasticDuration;*/
+
+  /**
+   *  Начальные значения длины для длин четных элементов (звуков).
+   *  Внутри класса не меняются.  Untested.
+   */
+  final int[] initBipsDurations;
+
 
   /**
    * Дробные части длин нечетных элементов цикла (пауз)
@@ -198,6 +227,11 @@ public class BipPauseCycle
    */
   double accumulatedError;
 
+  /**
+   * Отладочно-познавательное. Сколько скорректировали ошибок. Позволяет понять,
+   * насколько бы мы разошлись с реальным метрономом, если бы отказались
+   * от дробных частей (проблема простых делителей частоты, "BPM=121").
+   */
   public long totalErrorsCorrected;
 
   /**
@@ -228,9 +262,51 @@ public class BipPauseCycle
    */
   final double leastDilationRatio;
 
+
+
   /**
    * Каков будет темп при данной длительности цикла в сэмплах. Зависит от bars и
    * частоты.
+   *
+   * IS: New, 05.01.2019
+   *
+   * @param durationInFrames какую длительность в сэмплах переводим в tempo
+   * @param beatsInCycle   сколько битов в цикле
+   * @return ударов, соответствующим denominator, в минуту при данной длине цикла
+   */
+  public double cycleDurationToBeatsPM(int frequency, double durationInFrames, int beatsInCycle)
+  {
+    double durInMins = durationInFrames / (frequency * 60.0);
+    return ((double) beatsInCycle) / durInMins;
+  }
+
+
+  /**
+   *
+   *
+   * Это прообраз общей процедуры, определяющий максимальный темп по данной
+   * звуковой схеме. Результат дробный, поэтому нужно его округлить
+   * в "простой схеме" (когде нет свободного метра, а мы привязаны к музыкальной архаике).
+   * Напонмю, что максимальная скорость (наименьшая длительность цикла) зависят от ужимаемых
+   * elastic's и предшествующих несжимаемых звуков. Иными словами, она зависит от кратчайших бипов
+   * в музыкальной схеме и их доле в сумме со следующей паузой.
+   * Совсем огрубляя: чем короче бипы - тем быстрее можно играть (естественно).
+   *
+   *ToDo: а что всё это тут делает? Это я впопыхах сюда напихал, видимо...
+   *
+   * @param beatsInCycle   сколько beats (с точни зрения BMP) в цикле
+   * @return наибольший темп (BPM), который мы можем установить для цикла
+   */
+  public double getMaximalTempo(int frequency, int beatsInCycle)
+  {
+    return cycleDurationToBeatsPM(frequency, leastDuration, beatsInCycle);
+  }
+
+
+  /**
+   * Каков будет темп при данной длительности цикла в сэмплах.
+   *
+   * ToDo: а что всё это тут делает?
    *
    * @param durationInFrames какую длительность в сэмплах переводим в tempo
    * @param denominator      какой у темпо знаменатель
@@ -243,7 +319,10 @@ public class BipPauseCycle
     return ((double) totalBeatsPerCycle) / durInMins;
   }
 
+
   /**
+   * ToDo: рудимент старого кода?
+   *
    * Это прообраз общей процедуры, определяющий максимальный темп по данной
    * звуковой схеме. Результат дробный, поэтому нужно его округлить
    * в "простой схеме" (когде нет свободного метра, а мы привязаны к музыкальной архаике).
@@ -252,7 +331,8 @@ public class BipPauseCycle
    * в музыкальной схеме и их доле в сумме со следующей паузой.
    * Совсем огрубляя: чем короче бипы - тем быстрее можно играть (естественно).
    *
-   * @param denominator в чем исчисляется ритм (4,8,16)
+   * @param denominator значения нот в чем исчисляется ритм (4,8,16)
+   * @param bars скольно тактов в цикле
    * @return наибольший темп, который мы можем установить для цикла при данном знаменателе
    */
   public double getMaximalTempo(int frequency, int bars, int denominator)
@@ -264,14 +344,19 @@ public class BipPauseCycle
    * Элементы цикла на нечетных местах меняют длину.
    * Если позиция указывает на такой элемент, то она меняется
    * внутри отрезка [начало bip, конец bip+silence] так,
-   * чтобы отношение сыгранного к оставшемуся не поменялось.
+   * чтобы отношение сыгранного к оставшемуся не поменялось
+   * (это не всегда возможно, если скорость игры увеличилась - в этом случае
+   * переходим в нулевую позицию тишины)
    * Звуки же мы всегда доигрыаем до конца, иначе будут щелчки.
+   *
+   * Таким образом, мы не всегда сохранаяем отношение relativeDurationBeforePosition.
+   * Тем не менее, позиция не меняется.
+   *
    *
    * @param newDuration Новая длительность. В силу арифметических причин ограничена снизу leastDuration.
    *                    Будет установлена (с определенной точностью), если не меньше  leastDuration+1.
    */
-  public void setNewDuration(double newDuration)
-  {
+  public void setNewDuration(double newDuration) {
     accumulatedError = 0;
 
     // Математически верно так:  //VG ???
@@ -286,18 +371,14 @@ public class BipPauseCycle
     double ratio = newDuration / initDuration;
     double dur;
     int prevL;
-    for (int i = 0; i < cycle.length / 2; i++)
-    {
+    for (int i = 0; i < cycle.length / 2; i++) {
       prevL = cycle[2 * i].l;
       dur = (initElasticDurations[i] + prevL) * ratio - prevL;
       cycle[2 * i + 1].l = (int) dur;
       fractionParts[i] = dur % 1;
-
-      System.out.println(String.format("%d --- %d", i, cycle[2 * i + 1].l));
     }
     ratio = newDuration / duration;
-    if (position.n % 2 == 1)
-    {
+    if (position.n % 2 == 1) {
       prevL = cycle[position.n - 1].l;
       position.offset = (int) Math.max((position.offset + prevL) * ratio - prevL, 0);
     }
@@ -306,10 +387,8 @@ public class BipPauseCycle
     for (int i = 0; i < cycle.length / 2; i++)
       duration += cycle[2 * i].l + cycle[2 * i + 1].l + fractionParts[i];
 
-    System.out.print("setNewDuration ");
-    System.out.println(newDuration);
-    System.out.println(duration);
   }
+
 
   /**
    * Создаём цикл из последовательности букв и длин
@@ -328,13 +407,15 @@ public class BipPauseCycle
                        BipAndPause[] bipsAndPauses,
                        int numerator)
   {
-    this.numerator = numerator;
+    //this.numerator = numerator;
     this.elasticSymbol = elasticSymbol;
 
     int lengthMin = Math.min(symbols.length, bipsAndPauses.length);
     cycle = new Pair[lengthMin * 2 * numerator];
     initElasticDurations = new double[lengthMin * numerator];
     fractionParts = new double[lengthMin * numerator];
+
+    initBipsDurations =new int[lengthMin * numerator];
 
     double dur;
     for (int j = 0; j < numerator; j++)
@@ -350,10 +431,14 @@ public class BipPauseCycle
         // тогда нужно следить за отрицательными погрешностями.
         fractionParts[i + pref] = dur % 1;
         initElasticDurations[i + pref] = dur;
+
+        initBipsDurations[i + pref] = bipsAndPauses[i].bipDuration;
       }
     }
 
-    position = new Position(0, 0);
+
+    position = new CyclePosition(0, 0);
+    cycleCount=0;
 
     //Определяем точную длительность.
     duration = 0.0;
@@ -382,15 +467,30 @@ public class BipPauseCycle
   }
 
   /**
-   * Конструктор для длинной мелодии
-   * //ToDo: рассказть, почему и  как
+   *  Обнуляем счетчик и позицию
+   */
+  void reset(){
+    position = new CyclePosition(0, 0);
+    cycleCount=0;
+  }
+
+  void reSetDuration() {
+    duration = 0;
+    for (int i = 0; i < cycle.length / 2; i++)
+      duration += cycle[2 * i].l + cycle[2 * i + 1].l + fractionParts[i];
+  }
+
+  /*
+  /**
+   * Кажется, конструктор, где кажлой ноте назначается свой символ.
+   *
    * @param bipsAndPauses
    * @param numerator
-   */
+   * /
   public BipPauseCycle(BipAndPause[] bipsAndPauses, int numerator)
   {
     this(diagonal(bipsAndPauses.length), bipsAndPauses.length, bipsAndPauses, numerator);
-  }
+  }*/
 
   static int[] diagonal(int length)
   {
@@ -398,6 +498,59 @@ public class BipPauseCycle
     for (int i = 0; i < res.length; i++)
       res[i] = i;
     return res;
+  }
+
+
+  private List<Integer> symbolsToRead;
+  private List<Integer> sizesToRead;
+
+
+  /**
+   *
+   * Какая часть цикла сыграна, [0,1].
+   * @return
+   */
+  public double relativeDurationBeforePosition(){
+    if (duration==0) return 0;
+    return durationBeforePosition()/duration;
+  }
+
+  /**
+   * Для отладки
+   * @param n элемент цикла
+   * @return
+   */
+  public long durationBeforePosition(int n){
+    CyclePosition pos=new CyclePosition(n,0);
+    return (long)durationBeforePosition(pos);
+  }
+
+
+  /**
+   *  Сколько уже было сыграно в цикле
+   *
+   */
+  public long durationBeforePosition(){
+    return (long)durationBeforePosition(position);
+  }
+
+  /**
+   *
+   * @param pos
+   * @return
+   */
+   double durationBeforePosition(CyclePosition pos) {
+    double dur = 0.0;
+    for (int i = 0; i < pos.n; i++) {
+      dur += cycle[i].l;
+      if (i%2 ==1) { dur+= fractionParts[i/2];}      //Крохоборство.
+      // Но в очень длинном цикле (очень теоретически)
+      //может дать значимое расхождение. Борьба за точность
+      //порядка длина цикла/2 x 20 мкс.
+    }
+    dur += pos.offset;
+    dur+=accumulatedError;//Ну совсем крохоборство. Просто чтобы было верно.
+    return  dur;
   }
 
   /**
@@ -415,14 +568,11 @@ public class BipPauseCycle
    * @return считанный массив символов,  с указанием начала воспроизведения
    * в первом символе и того, сколько нужно записать в буфер
    */
-  private List<Integer> symbolsToRead;
-  private List<Integer> sizesToRead;
-
   public TempoLinear readTempoLinear(int totalLength)
   {
     TempoLinear result = new TempoLinear();
     result.startInFirst = position.offset;
-    result.pos = new Position(-1, 0);
+    //result.pos = new Position(-1, 0);
     symbolsToRead = new ArrayList<>();
     sizesToRead = new ArrayList<>();
 
@@ -433,16 +583,25 @@ public class BipPauseCycle
 
     while (toRead > 0)
     {
+      /* IS: Смысл того, что ниже, непонятен.
+      //Что представляет  позиция в линейном цикле? Что значит там счетчик цикла?
+      //Почему нужно делать это много раз? Ведь следующее значение не зависит от
+      //предыдущего?   Почему n не должно быть эластик? А если встретилась только
+      //она, то почему позиция будет (-1,0)?
+      // Поскольку это нигде не нужно, прячу.
+
       //элемент алфевита для выбираемой пары:
-      int note = cycle[position.n].a;
+      //int note = cycle[position.n].a;
       if (note != elasticSymbol)
       {
         result.pos.n = position.n;
         result.pos.offset = position.offset;
         result.pos.cycleCount = position.cycleCount;
       }
+      symbolsToRead.add(note);*/
 
-      symbolsToRead.add(note);
+      //элемент алфевита для выбираемой пары:
+      symbolsToRead.add(cycle[position.n].a);
       //сколько места осталось в данном элементе цикла:
       freeSpace = cycle[position.n].l - position.offset;
 
@@ -470,7 +629,7 @@ public class BipPauseCycle
         //Теперь переходим:
         if (position.n + 1 >= cycle.length)
         {
-          position.cycleCount++;
+          cycleCount++;
         }
         position.n = (position.n + 1) % cycle.length;
         position.offset = 0;
@@ -491,13 +650,13 @@ public class BipPauseCycle
 
   final String tagForPrint = "TempoTest ";
 
-  public void print()
+    void print()
   {
     printFinal();
     printVariable();
   }
 
-  public void printFinal()
+    void printFinal()
   {
     System.out.println(tagForPrint + "CYCLE, final");
 
@@ -524,12 +683,12 @@ public class BipPauseCycle
 
   }
 
-  public void printPosition()
+    void printPosition()
   {
     System.out.printf(tagForPrint + "Position: number=%d, offset=%d \n", position.n, position.offset);
   }
 
-  public void printVariable()
+    void printVariable()
   {
     System.out.println(tagForPrint + "CYCLE, variable");
     System.out.printf(tagForPrint + "Position: number=%d, offset=%d \n", position.n, position.offset);

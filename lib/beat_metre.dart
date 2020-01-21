@@ -19,6 +19,7 @@ class BeatMetre
   /// notes.length - number of simple metres in metronome beat melody
   List<int> metres;
 
+
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
   List<int> accents;
@@ -29,15 +30,23 @@ class BeatMetre
 
   BeatMetre()
   {
-    _beatCount = 4;
+    //_beatCount = 4;
+    _beatCount = initSubBeats.length;
     _subBeatCount = 1;
-    subBeats = new List<int>.filled(_beatCount, 1, growable: true);
+   // subBeats = new List<int>.filled(_beatCount, 1, growable: true);
+    subBeats=initSubBeats;
     metres = new List<int>.filled(1, _beatCount, growable: true);
+    //ToDo: просодия тут
     accents = new List<int>.filled(1, 0, growable: true);
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
+
+// final List<int> initSubBeats= [2,2,4,2,4,2,6,1];//Fancy
+  final List<int> initSubBeats= [2,2,4,2,4,2];//Fancy
+ // final List<int> initSubBeats=[1,1,1,1,1,1,1,1,1,1,1,1];
+  //   final List<int> initSubBeats=[1,1,1,1];
 
   ///TODO For now
   int get accent => accents.length > 0 ? accents[0] : 0;
@@ -111,13 +120,14 @@ class BeatMetre
   }
 
   /// time - time from begin in seconds
-  List<int> timePosition(double time, Tempo tempo)
+  List<int> timePosition(double time, int beatsPerMinute)
   {
-    double duration = _beatCount * 60.0 / tempo.beatsPerMinute;
+    double duration = _beatCount * 60.0 / beatsPerMinute;
     //Position pos = new Position(0, 0);
-    int cycle = time ~/ duration;
-    if (time < 0)
-      time = -time;
+    //int cycle = time ~/ duration;
+    if (time < 0) {} //Такое может быть! Если latency большое, то легко.
+       //time = -time;//IS:  это неверно. Даёт забавный эффект  -
+    // если сделать к примеру размер большого буфера 300мс, то будем назад ехать:)
 
     //print('timePosition0 $duration');
 
@@ -134,4 +144,5 @@ class BeatMetre
 
     return [beat, subbeat];
   }
+
 }

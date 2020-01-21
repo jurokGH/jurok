@@ -2,6 +2,7 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'tempo_ui.dart';
 
 typedef OnPressedCallback = void Function();
 
@@ -52,8 +53,10 @@ class KnobState extends State<Knob>
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
     double distanceToAngle = (widget.max - widget.min);
 
-    double normalisedValue = (widget.value - widget.min)/(widget.max - widget.min);
+    double clippedValue = min(max(widget.value, widget.min), min(widget.limit, widget.max));
+    double normalisedValue = (clippedValue - widget.min)/(widget.max - widget.min);
     double angle = (minAngle + normalisedValue * sweepAngle) * 2 * pi / 360;
+
     return Center(
       child: Container(
         width: size,
@@ -116,7 +119,7 @@ class KnobState extends State<Knob>
                 angle: angle,
                 child: ClipOval(
                   child: Container(
-                    color: widget.color,
+    //                color: widget.color,
                     child: Image.asset('images/TempoKnob.png',
                       height: size,
                       fit: BoxFit.cover
@@ -128,12 +131,13 @@ class KnobState extends State<Knob>
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(pressed ? Icons.pause : Icons.play_arrow,
-                    size: 0.5 * size,
-                    color: widget.color,
-                  ),
+  //                Icon(pressed ? Icons.pause : Icons.play_arrow,
+   //                 size: 0.53 * size,
+  //                  color: widget.color,
+   //               ),
                   Text(widget.value.toInt().toString(),
-                    style: widget.textStyle
+                    style: TextStyle(color: Colors.white ,
+                    fontSize:  26),
                   ),
                 ]
               )

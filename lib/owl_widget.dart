@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +6,8 @@ import 'metronome_state.dart';
 import 'note_ui.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
+
+double grad2rad(double x) => x * pi / 180;
 
 class OwlWidget extends StatefulWidget
 {
@@ -41,6 +44,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 {
   static final bool drawSubOwls = false;
   static final int maxSubCount = 8;
+  //TODO: static final List<int> basicSetOfSubBeats= [1,2,4,3];
 
   int _counter;
 
@@ -51,11 +55,36 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   int activeHash;
   Animation<double> _controller;
 
+  AnimationController _animController;
+  Animation<double> _animRot;
+  Animation<double> _animRot1;
+  Animation<double> _animRot2;
+  Animation<double> _animScale;
+  Animation<double> _animScale1;
+
+  int _period = 200;
+  double _angle = 0;
+  double _scale = 1;
+  static final double _angleMax = 10;
+  static final double _scaleMax = 1.1;
+
   OwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
 
   void onRedraw()
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+
+
+    //IS:  We need //todo
+    // something before we can play very first bip.
+    //Usually, there is some dozens of ms to skip after the warmedUp event -
+    // we need to skip the hole silent buffer.
+    // (warming up itself is also
+    // could be like 100-400 ms, but it should be treated somewhere else). Todo.
+
+    //Temporary solution: do nothing
+    //if (DateTime.now().microsecondsSinceEpoch<state.timeOfTheFirstBeat) return;
+
     state.update();
     int hash = state.getBeatState(widget.id);
     //print('AnimationController ${widget.id} $_counter $hash');
@@ -96,17 +125,63 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     )
     ..addListener(onRedraw);
 */
+    _animController = new AnimationController(
+      vsync: this,
+      duration: new Duration(milliseconds: _period),
+    )
+    ..addStatusListener((AnimationStatus status) {
+      if (status == AnimationStatus.completed)
+        _animController.reset();
+    });
+
+    _animRot = new Tween<double>(begin: 0, end: grad2rad(_angleMax))
+      .animate(CurvedAnimation(curve: Interval(0, 0.25, curve: Curves.linear), parent: _animController))
+    ..addListener((){
+      if (_animController.value < 0.25)
+      setState((){
+        _angle = _animRot.value;
+      });
+    });
+    _animRot1 = new Tween<double>(begin: grad2rad(_angleMax), end: -grad2rad(_angleMax))
+      .animate(CurvedAnimation(curve: Interval(0.25, 0.75, curve: Curves.linear), parent: _animController))
+      ..addListener((){
+        if (_animController.value >= 0.25 && _animController.value < 0.75)
+          setState((){
+            _angle = _animRot1.value;
+          });
+      });
+    _animRot2 = new Tween<double>(begin: -grad2rad(_angleMax), end: 0)
+      .animate(CurvedAnimation(curve: Interval(0.75, 1.0, curve: Curves.linear), parent: _animController))
+      ..addListener((){
+        if (_animController.value >= 0.75)
+          setState((){
+            _angle = _animRot2.value;
+          });
+      });
+
+    _animScale = new Tween<double>(begin: 1.0, end: _scaleMax)
+      .animate(CurvedAnimation(curve: Interval(0, 0.5, curve: Curves.linear), parent: _animController))
+      ..addListener((){
+        if (_animController.value < 0.5)
+          setState((){
+            _scale = _animScale.value;
+          });
+      });
+    _animScale1 = new Tween<double>(begin: _scaleMax, end: 1)
+      .animate(CurvedAnimation(curve: Interval(0.5, 1.0, curve: Curves.linear), parent: _animController))
+      ..addListener((){
+        if (_animController.value >= 0.5)
+          setState((){
+            _scale = _animScale1.value;
+          });
+      });
 
     _controller.addListener(onRedraw);
-
-    //_controller.reset();
-    //_controller.forward();
   }
 
   @override
   void dispose()
   {
-    //_controller0.dispose();
     _controller.removeListener(onRedraw);
     super.dispose();
   }
@@ -131,17 +206,17 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       //print('!Owl:subbeatCount ${widget.subbeatCount}');
     //if (active != widget.active)
       //print('!Owl:active $active ${widget.active}');
-
     return GestureDetector(
           onTap: () {
             setState(() {
+              _animController.forward();//.orCancel;
               widget.subbeatCount++;
               //subbeatCount++;
               if (widget.subbeatCount > maxSubCount)
               {
                 //TODO
                 widget.subbeatCount = 1;
-                //subbeatCount = 1;
+                  //subbeatCount = 1;
               }
             });
             //Provider.of<MetronomeState>(context, listen: false)
@@ -164,7 +239,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                     subDiv: widget.subbeatCount,
                     denominator: widget.denominator * widget.subbeatCount,
                     active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.explosion,
+                    activeNoteType: ActiveNoteType.stemFixed,
                     colorPast: Colors.white,
                     colorNow: Colors.red,
                     colorFuture: Colors.white,
@@ -177,7 +252,17 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 //width: widget.width,
                 //height: widget.width * 668 / 546,
                 //child:
-              widget.images[indexImage]
+            Transform.rotate(
+              alignment: Alignment.bottomCenter,
+              angle: _angle,
+              child:
+                Transform.scale(
+                  alignment: Alignment.bottomCenter,
+                  scale: _scale,
+                  child:
+                    widget.images[indexImage]
+              )
+            )
           ])
         ));
   }

@@ -1,6 +1,30 @@
 package com.owlenome.owlenome;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+// Same as beat_metre.dart::BeatMetre
+class BeatMetre
+{
+    int beatCount;
+    List<Integer> subBeats;
+    // Indices of accented beats in each simple metre (row)
+    List<Integer> accents; //ToDo
+
+    BeatMetre()
+    {
+        beatCount = 4;
+        subBeatCount = 1;
+        subBeats = new ArrayList<Integer>();
+        accents = new ArrayList<Integer>();
+        //accents.set(0, 0);
+    }
+
+    int subBeatCount;
+}
+
+
 //Пришло время расставить акценты!
 //Содержит набор быстрых простеньких процедур (на 19.12.19 - набор состоит из одной),
 // расставляющих акценты для данного числа
@@ -17,19 +41,12 @@ package com.owlenome.owlenome;
 
 public class GeneralProsody {
 
-
-    /**
-     * По акценту, приходящемуся на долю и числу её поддолей
-     * возвращаем массив акцентов поддолей
-     * Индекс 1 значит, что мы находимся в филосовском поиске
-     */
-    private int[] subAccents1(int acc, int nOfSubbeats)
-    {
-        //ToDo: under consturtion; perhaps, redundand.
-
-        int[] res=new int[nOfSubbeats]; return res;
-
+    enum AccentationType{
+        Dynamic,
+        Agogic
     }
+
+
 
 
 
@@ -59,7 +76,7 @@ public class GeneralProsody {
      *
      *
      */
-    public static byte[] getAccents1(int nOfEqualNotes, boolean pivoVodochka){
+    public static byte[] getAccents(int nOfEqualNotes, boolean pivoVodochka){
         if (nOfEqualNotes==0) return new byte[0];
         if  (nOfEqualNotes==1) return new byte[] {0};
 
@@ -76,7 +93,7 @@ public class GeneralProsody {
         //Делим на два равных
         if (nOfEqualNotes%2==0) {
             int middle=nOfEqualNotes/2;
-            byte[] leftArray= getAccents1(middle,pivoVodochka);
+            byte[] leftArray= getAccents(middle,pivoVodochka);
             for (int i=0; i<middle; i++)
                     { res[i]=(byte)(leftArray[i]+1);//лишняя операция при i=0;
                         res[i+middle]=(byte)(leftArray[i]+1);}
@@ -88,8 +105,8 @@ public class GeneralProsody {
         if (nOfEqualNotes%3!=0) {
             int middle=nOfEqualNotes/2;
             if (!pivoVodochka) middle++;//vodochka-pivo
-            byte[] leftArray= getAccents1(middle,pivoVodochka);
-            byte[] rightArray= getAccents1(nOfEqualNotes-middle,pivoVodochka);
+            byte[] leftArray= getAccents(middle,pivoVodochka);
+            byte[] rightArray= getAccents(nOfEqualNotes-middle,pivoVodochka);
             res[0]=leftArray[0];
             for (int i=1; i<middle; i++)
             { res[i]=(byte)(leftArray[i]+1);}
@@ -99,7 +116,7 @@ public class GeneralProsody {
         }
 
         int third=nOfEqualNotes/3;
-        byte[] leftArray= getAccents1(third,pivoVodochka);
+        byte[] leftArray= getAccents(third,pivoVodochka);
         for (int i=0; i<third; i++)
         { res[i]=(byte)(leftArray[i]+1);//лишняя операция при i=0;
             res[i+third]=(byte)(leftArray[i]+1);
@@ -120,8 +137,110 @@ public class GeneralProsody {
         //делить число долей на 3, а не на 2. Или же стараться приблизится к трёхдольному
         //размеру в нерегулярных случаях, а не к двудольному.
         //Тут начинается Римский-Корсаков и могут получится очень любопытные звучания.
-
+        //Мы же пока на этом заканчиваем.
     }
+
+
+    //Возвращает последовательность звуков по данному, где акценты расставлены
+    //с помощью изменения громкости. 0-й акцент - самый сильный.
+
+    /**
+     *
+     * @param initSound
+     * @param nOfAccents
+     * @param dynamic динамический коэффициент акцента
+     * @return
+     */
+    public static  byte[][] dynamicAccents(byte[] initSound, int nOfAccents, double dynamic){
+        byte[][] sounds=new byte[nOfAccents][];
+        for(int acnt=0;acnt<sounds.length;acnt++) {
+            sounds[acnt] =
+                    MelodyToolsPCM16.changeVolume(initSound,
+                            accentToVolumeFactor(acnt, dynamic));
+
+
+            /*//TODO: Полигон. УБРАТЬ
+            MelodyToolsPCM16 TmpTools=new MelodyToolsPCM16(48000);
+            double[] tmp=TmpTools.doubleFrom16BitPCM(sounds[acnt]);
+            sounds[acnt]=TmpTools.doubleTo16BitPCM(tmp);*/
+
+        }
+
+        return  sounds;
+    }
+
+
+
+    //Складываем пробно так, чтобы можно было бипы миксовать.
+    //Пока - деля пополам!
+    //Первый, сильный звук - длинный!
+    public static  byte[][] agogicAccentsNormalized(byte[] longSound, byte[] shortSound,
+                                          int nOfAccents){
+
+        //byte[][] sounds=new byte[nOfAccents][];
+
+
+        double[] longSndD=MelodyToolsPCM16.doubleFrom16BitPCM(longSound);//ToDo: переделать -
+        double[] shortSndD=MelodyToolsPCM16.doubleFrom16BitPCM(longSound);// лень было по битам разбирать
+        double maxAmp=0;
+        for (int i=0; i<shortSndD.length; i++){
+            double amp= Math.abs( longSndD[i]*strongMultiplier+shortSndD[i]);
+            if (amp>maxAmp) maxAmp=amp;
+        }
+        double normalization=1.0;
+        if (maxAmp!=0) normalization=1.0/maxAmp;//ToDo: то есть громкость можем и увеличить... ну ок.
+
+        byte[] longNormalized = MelodyToolsPCM16.changeVolume(longSound,normalization*strongMultiplier);
+        byte[] shortNormalized=MelodyToolsPCM16.changeVolume(shortSound,normalization);
+
+        //ToDo - чтобы не нормализовать /2 в потоке
+        //byte[] subsubSound=        MelodyToolsPCM16.changeVolume(shortSound,
+                //accentToVolumeFactor(1, subBeatDynamic);
+
+        //Создаем сильные просодированные, складываем с фиксированной  слабой, и меняем звук.
+        byte[][] sounds =GeneralProsody.dynamicAccents(longNormalized,
+                nOfAccents,GeneralProsody.beatDynamic);
+        for (int i=0; i<sounds.length; i++) {
+            MelodyToolsPCM16.mixNOTNormalized(sounds[i],shortNormalized);
+        }
+        return  sounds;
+    }
+
+    //Ниже этой громкости звук не уменьшится
+    final static  double leastVolume=0.0;
+
+    /**
+     * на что делим, уменьшая акцент нот
+     * Sibelius: 1.5; плохо выделяет
+     */
+    final static double beatDynamic =2;
+
+    /**
+     * на что делим, уменьшая акцент поднот
+     * (Sibelius: 1.5; плохо выделяет)
+     */
+    final static double subBeatDynamic =1.5;
+
+
+    //Untested. Не докнца понято
+    final static double strongMultiplier=3;//todo: в константы
+
+
+    /**
+     * Возвращает множитель громкости по акценту с учетом коэффициента
+     * динамики.
+     * @param accent Натуральное, 0 -> 1;
+     * @return Коэффициент уменьшения громкости
+     */
+    private  static double accentToVolumeFactor(int accent, double dynamic){
+
+        double den=1.0;
+        for (int i=0;i<accent;i++){den=dynamic*den;}
+
+
+        return (1.0-leastVolume)/den+leastVolume;
+    }
+
 
 
 
@@ -130,7 +249,7 @@ public class GeneralProsody {
 
     public static void printAcc1(int n, boolean b){
 
-        byte[] acc=getAccents1(n, b);
+        byte[] acc=getAccents(n, b);
         System.out.printf("%d:  ", n);
         for(int i=0;i<acc.length;i++)
         {

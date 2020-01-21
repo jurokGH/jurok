@@ -1,6 +1,6 @@
 package com.owlenome.owlenome;
 
-// Представляет позицию в цикле:
+// Представляет позицию со счетчиком
 // n - номер элемента цикла, offset - смещение.
 
 public class Position
@@ -18,7 +18,7 @@ public class Position
 
   void reset()
   {
-    offset = n = 0; //Без этого - как пауза!!!
+    offset = n = 0;
     cycleCount = 0;
   }
 }
