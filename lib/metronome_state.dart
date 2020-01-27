@@ -5,14 +5,16 @@ import 'beat_metre.dart';
 import 'tempo.dart';
 import 'AccentBeat.dart';
 
-class Cauchy{
+class Cauchy
+{
   ///время начального бита,  скорость,
   /// и время, когда они должны быть применены.
   ///Пока время не пришло - ничего не меняем.
   int timeOrg;
-  int   bpm;
-  int   timesToChangeTime;
-  Cauchy(this.timeOrg,this.bpm,this.timesToChangeTime);
+  int bpm;
+  int timesToChangeTime;
+
+  Cauchy(this.timeOrg, this.bpm, this.timesToChangeTime);
 }
 
 /// State of current metronome activity
@@ -81,13 +83,7 @@ class MetronomeState with ChangeNotifier
 
   ///Новые времена и нравы (скорости), и когда они применимы. Пока время не пришло - ничего не меняем.
   List<Cauchy>   conditions;
-
-
-
   //bool bWaitingForNewBPM;
-
-
-
 
   //AccentBeat melody; //IS: Why?
   //Position pos;
@@ -106,8 +102,8 @@ class MetronomeState with ChangeNotifier
 
   MetronomeState()
   {
-    _activeBeat=-1; _activeSubbeat=-1;
-    conditions=new List<Cauchy>();
+    _activeBeat = -1; _activeSubbeat=-1;
+    conditions = new List<Cauchy>();
     //tempo = new Tempo();
     //pos = new Position(-1, 0);
     //_timer = new Stopwatch();
@@ -116,9 +112,11 @@ class MetronomeState with ChangeNotifier
   ///
   /// Вызываем перед началом разогрева
   /// До начала анимации - условно 100 - 500 мс
-  void startWarm(){
-    _activeBeat=-1; _activeSubbeat=-1;
-    conditions=new List<Cauchy>();
+  void startWarm()
+  {
+    _activeBeat = -1;
+    _activeSubbeat = -1;
+    conditions = new List<Cauchy>();
   }
 
 
@@ -192,14 +190,14 @@ class MetronomeState with ChangeNotifier
 
   }
 
+  /*
   void stop()
   {
-/*
     if (_timer.isRunning)
       _timer.stop();
-*/
   }
-
+*/
+/*
   void reset()
   {
     //_activeBeat = _activeSubbeat = 0;
@@ -207,7 +205,7 @@ class MetronomeState with ChangeNotifier
     //pos.reset();
     //??? - нужно сюда? разобраться //todo
   }
-
+*/
   /* IS: Старый синк
   /// Synchronize metronome state with current sound state from Java
   void sync(int index, double offset, int beat, int subbeat, int time)
@@ -243,7 +241,7 @@ class MetronomeState with ChangeNotifier
       beatsPerMinute=conditions[0].bpm;
       conditions.removeAt(0);//IS:FiFo... Не знаю, как умно это сделать в dart
 
-      String s='Sync delta times (from now) : ';
+      String s='SYNC UPDATE: Delta times (from now) : ';
       int prevTm=DateTime.now().microsecondsSinceEpoch;
       for (int i = 0; i<conditions.length; i++){
         int t=conditions[i].timesToChangeTime-prevTm;
@@ -280,6 +278,7 @@ class MetronomeState with ChangeNotifier
       changed = true;
       _activeBeat = curBeat;
       _activeSubbeat = curSubbeat;
+      debugPrint('Active (beat, subbeat): $_activeBeat - $activeSubbeat');
     }
     return changed;
   }

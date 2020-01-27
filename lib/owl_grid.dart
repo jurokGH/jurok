@@ -5,23 +5,9 @@ import 'package:provider/provider.dart';
 import 'metronome_state.dart';
 import 'owl_widget.dart';
 import 'beat_metre.dart';
-
-import 'dart:ui' as ui;
-import 'dart:async';
+import 'skin.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
-
-Future<ui.Image> _loadImage(String imgName)
-{
-  Completer<ui.Image> completer = new Completer<ui.Image>();
-  new AssetImage(imgName).resolve(new ImageConfiguration())
-    .addListener(new ImageStreamListener(
-      (ImageInfo info, bool synchronousCall) {
-        completer.complete(info.image);
-      }
-    ));
-  return completer.future;
-}
 
 List<int> beatRowsList(int beatCount)
 {
@@ -30,8 +16,8 @@ List<int> beatRowsList(int beatCount)
     beatRows[0] = beatCount;
   else if (beatCount <= 8)
   {
-    beatRows[1] = beatCount ~/ 2;
-    beatRows[0] = beatCount - beatRows[1];
+    beatRows[0] = beatCount ~/ 2;
+    beatRows[1] = beatCount - beatRows[0];
   }
   else if (beatCount <= 12)
   {
@@ -56,7 +42,7 @@ int maxValue(List<int> list)
 class _OwlLayout extends MultiChildLayoutDelegate
 {
   /// Maximum owl size over size when there are 4 owls in row
-  static final double maxCoef4 = 0;//1.5;
+  static final double maxCoef4 = 1.5;//1.5;
   //static final double minPaddingX = 10;
 
   final int count;
@@ -116,7 +102,6 @@ class _OwlLayout extends MultiChildLayoutDelegate
       dy = h + padding.height;
     }
 
-    //print('maxWidth123 $maxWidth - $w - $h');
     //TODO
     // Limit owl size by maxCoef4 coefficient
     if (maxCoef4 > 0  && w > maxWidth)
@@ -124,7 +109,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
       w = maxWidth;
       h = aspect * maxWidth;
     }
-    print('calcImageSize $size - $w - $h');
+    //debugPrint('calcImageSize $size - $w - $h');
 
     return new Size(w, h);
   }
@@ -133,7 +118,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
   void performLayout(Size size)
   {
     //assert(count == _layout.length);
-    print('performLayout $size');
+    //debugPrint('performLayout $size');
 
     double x0, y0;
     x0 = y0 = 0;
@@ -167,15 +152,15 @@ class _OwlLayout extends MultiChildLayoutDelegate
       dy = h + padding.height;
     }
 
-    print('Layout $maxWidth - $w - $h');
+    //debugPrint('Layout $maxWidth - $w - $h');
     //TODO
     // Limit owl size by maxCoef4 coefficient
-    if (w > maxWidth)
+    if (maxCoef4 > 0  && w > maxWidth)
     {
       //w = maxWidth;
       //h = aspect * maxWidth;
     }
-    //print('maxWidth123 $w - $h');
+    //debugPrint('maxWidth123 $w - $h');
 
     int k = 0;
     for (int i = 0; i < _layout.length; i++)
@@ -195,7 +180,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
         if (hasChild(k))  // Need it?
         {
           Size sz = layoutChild(k, BoxConstraints.tight(new Size(w, h)));
-          //print('performLayout $w - $h - $sz');
+          //debugPrint('performLayout $w - $h - $sz');
 
           double x = x0 + j * dx;
           Offset offset = new Offset(x, y);
@@ -217,8 +202,6 @@ class _OwlLayout extends MultiChildLayoutDelegate
 
 class OwlGrid extends StatefulWidget
 {
-//  /final double width;
-
   BeatMetre beat;
   final int noteValue;
   final int activeBeat;
@@ -248,27 +231,22 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   int _period = 60000; //IS: А не мало? VG: Он повторяется: _controller.repeat
   //duration: new Duration(days: 3653)
 
-  //List<List<Image>> _images;
-  List<Image> _images;
-  Size _imageSize = Size.zero;
-  Size _imageSize0 = Size.zero;
+  OwlSkin _skin;
 
   //int subCount;
   //int subCur;
   //bool active;
 
-  int _counter;
-
   OwlGridState()
   {
-    _imageSize = new Size(0, 0);
+    _skin = new OwlSkin();
   }
 
   void toggleAnimation()
   {
     if (widget.playing)
     {
-      print('toggleAnimation');
+      debugPrint('toggleAnimation');
       if (!_controller.isAnimating)
         _controller.repeat().orCancel;
     }
@@ -279,17 +257,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     }
   }
 
-
-  /*
-  ///IS: Временно убрал, чтобы разобраться
-  void onTimer()
-  {
-    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    state.update();
-  }*/
-
   @override
-  void initState() {
+  void initState()
+  {
     super.initState();
 
     _controller = new AnimationController(
@@ -298,36 +268,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     );
     //TODO ..addListener(onTimer);
 
-    Future<ui.Image> futImage = _loadImage('images/owl1-0.png');
-    futImage.then((ui.Image image) => _imageSize0 = new Size(image.width.toDouble(), image.height.toDouble()));
-
-    //VG Попробую ответить здесь, хотя такая переписка мне как серпом по яйцу.
-    //VG IS: Илья, как ты видишь выше, я пробовал вариант, о котором ты говоришь.
-    // При этом перерисовываются все совы-доли, т.к. во флаттере нет простой возможности
-    // сказать виджету снаружи, чтобы он перерисовал себя:
-    // нет возможности взять у виджета ссылку на его State.
-    // Весь этот ваш флюттер - какая-то недоделанная неудобная фигня, сделанная только с одной,
-    // богом ненавистной целью: поднять бабла.
-    //
-    // Сейчас сделано так что, каждый виджет-сова сама смотрит, надо ли именно её перерисовываться.
-    // Поэтому перерисовывается каждый раз (60 Hz) только 1-2 совы.
-    // 1-2 < 4 - вот ответ на твой вопрос.
-
-    //IS: Витя, я совсем не понимаю, как ты делаешь, но тем не менее у меня
-    // возник вопрос. Разве не должно быть что-то
-    //типа такого тут,  -
-    // widget.data._animationController.addListener(() {
-    //      if ([очень быстро проверяем, изменилось ли состояние]) this.setState(() {}); //надо рисовать
-    //    });
-    //- просто, чтобы не вызывать set state когда не нужно?
-    //Да, я понимаю, что совы/ноты там потом отлавливают свои изменения,
-    //но всё же получается, что мы 60 раз в секунду нагружаем всё систему
-    //лишней работой (может быть, и не большой, но лишней).
-    //Сорри, если я чего не понимаю.
-
-    //loadImages();
-
-    _counter = 0;
+    _skin.init();
   }
 
   @override
@@ -336,61 +277,33 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     super.dispose();
   }
 
-  void loadImages(Size size)
-  {
-    if (_imageSize == size)
-      return;
-
-    _imageSize = size;
-    //AssetImage
-    //_images = new List<List<Image>>(2);
-    _images = new List<Image>(10);
-    int i0 = 0;
-    for (int i = 0; i < 5; i++)
-    {
-      //List<Image> il = new List<Image>(5);
-      //_images[i] = il;
-      int k = i + 1;
-      for (int j = 0; j < 2; j++, i0++)
-        _images[i0] = new Image.asset('images/owl$i-$j.png',
-          width: size.width,
-          //height: size.height,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.medium, //TODO Choose right one
-          /// !!! To prevent flickering of first owls !!!
-          gaplessPlayback: true);
-    }
-    precacheImages(context, size);
-
-    print('loadImages $size');
-  }
-
-  /// Using precacheImages in didChangeDependencies as they suggested don't have any effect
-  void precacheImages(BuildContext context, Size size)
-  {
-    print('precacheImages');
-    for (int i = 0; i < _images.length; i++)
-      //for (int j = 0; j < _images.length; j++)
-        precacheImage(_images[i].image, context);
-  }
-
   @override
   Widget build(BuildContext context)
   {
+    Stopwatch timer = new Stopwatch();
+    timer.start();
 
+    int tm = DateTime.now().microsecondsSinceEpoch;
+    timer.stop();
+    int ticks = timer.elapsedTicks;
+    double sec = ticks / timer.frequency;
+    debugPrint('DateTime.now: $sec - ${timer.frequency}');
+    timer.start();
 
-    int tm= DateTime.now().microsecondsSinceEpoch;
+    //DateTime.now().microsecondsSinceEpoch;
+    //tm=DateTime.now().microsecondsSinceEpoch;
+    //debugPrint('DateTime now: $tm');
 
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
-    print('OwlGridState $size');
+    //debugPrint('OwlGridState $size');
     double widthSquare = size.width > size.height ? size.height : size.width;
     size = new Size.square(widthSquare);
 
     if (widthSquare == 0)
       return Container();
 
-    double aspect = _imageSize0.width > 0 ? _imageSize0.height / _imageSize0.width : 306.0 / 250.0;
+    double aspect = _skin.aspect;
     aspect *= 1.8;  // for NoteWidget
 
     _OwlLayout layout = new _OwlLayout(
@@ -401,11 +314,14 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
     Size imageSize = layout.calcImageSize(size);
     //TODO Test: Move loadImages to initState, but keep precacheImages here?
+    _skin.cacheImages(context, imageSize);
 
-
-    loadImages(imageSize);
+    timer.stop();
+    ticks = timer.elapsedTicks;
+    sec = ticks / timer.frequency;
+    debugPrint('ReLoading Images : $sec - ${timer.frequency}');
     tm=DateTime.now().microsecondsSinceEpoch-tm;
-    print('ReLoading Images etc in OwlGribBild in microseconds: $tm');
+    debugPrint('ReLoading Images etc in OwlGribBild in microseconds: $tm');
     //TODO
     // IS:  Кажется, то, что выше, можно не повротять, когда число сов не менялось
     // LoadImage занимает лишь лишник 10-15 мкс (20-25 вместе с долгой процедурой DateTime.now(),
@@ -435,8 +351,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           subbeatCount: widget.beat.subBeats[k],
           denominator: widget.noteValue,
           animation: _controller.view,
-          images: new List<Image>.unmodifiable(_images),//[accent ? 0 : 1]),
-          onTap: (int id, int subCount) {
+          images: _skin.images,//[accent ? 0 : 1]),
+          getImageIndex: _skin.getImageIndex,
+          onTap: (int id, int accent) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
             widget.onAccentChanged(id);
@@ -464,8 +381,8 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           //onHorizontalDragEnd,
           //onHorizontalDragCancel,
           onTap: () {
-            print('onTaponTaponTap');
-            //print(count);
+            debugPrint('onTaponTaponTap');
+            //debugPrint(count);
 
             widget.onCountChanged(widget.beat.beatCount + 1);
             //setState(() {});

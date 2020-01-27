@@ -58,9 +58,9 @@ class _NoteState extends State<NoteWidget> {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-          painter: NotePainter(widget.denominator, widget.subDiv, widget.accents, widget.active,
-            widget.colorPast, widget.colorNow,widget.colorFuture,widget.activeNoteType),
-        );
+      painter: NotePainter(widget.denominator, widget.subDiv, widget.accents, widget.active,
+        widget.colorPast, widget.colorNow,widget.colorFuture,widget.activeNoteType),
+    );
     //TODO Шаблон для рисования красивого флажка
      /* 
     return Stack(
@@ -257,7 +257,7 @@ class NotePainter extends CustomPainter {
 
   ///Рисуем одну четвертную/половинную нотку.
   /// isHallow - пустая внутри
-  void _drawNakedNote(Canvas canvas,
+  void _drawNakedNote(Canvas canvas, int sub,
       Offset centerHead, double radiusHead, double stemTop,
       Color color, bool isFilled) {
 
@@ -290,15 +290,15 @@ class NotePainter extends CustomPainter {
       canvas.translate(centerHead.dx, centerHead.dy);
 
       final double heightAccent2 = 2.5;
-      if (accents != null && accents.length > 0)
-      for (int i = 0; i < accents[0]; i++)
-      {
-        final Rect rc = rcGrad;
-        final Offset offL = rc.bottomLeft.translate(0, 2.5 * heightAccent2 * i).translate(2, 0);
-        final Offset offR = rc.bottomRight.translate(0, 2.5 * heightAccent2 * i).translate(-2, 0);
-        canvas.drawLine(offL, offR + Offset(0, heightAccent2), _paintStem);
-        canvas.drawLine(offL + Offset(0, 2 * heightAccent2), offR + Offset(0, heightAccent2), _paintStem);
-      }
+      if (accents != null && sub < accents.length)
+        for (int i = 0; i < accents[sub]; i++)
+        {
+          final Rect rc = rcGrad;
+          final Offset offL = rc.bottomLeft.translate(0, 2.5 * heightAccent2 * i).translate(2, 0);
+          final Offset offR = rc.bottomRight.translate(0, 2.5 * heightAccent2 * i).translate(-2, 0);
+          canvas.drawLine(offL, offR + Offset(0, heightAccent2), _paintStem);
+          canvas.drawLine(offL + Offset(0, 2 * heightAccent2), offR + Offset(0, heightAccent2), _paintStem);
+        }
 
       canvas.rotate(_headAngle);
       canvas.drawOval(rect, _paintFilledNote);
@@ -345,10 +345,9 @@ class NotePainter extends CustomPainter {
     if (sub < active) color = colorPast;
     if (sub == active) color = colorNow;
     if (sub > active) color = colorFuture;
-    _drawNakedNote(canvas,
+    _drawNakedNote(canvas, sub,
         new Offset(_noteCenterX(sub), _noteCenterY),
-        _radius, _flagsZoneTop, color, (_noteExponent > 1)
-    );
+        _radius, _flagsZoneTop, color, (_noteExponent > 1));
   }
 
   ///Обсчитываем сразу всякие углы, чтобы каждый раз этого не делать.
@@ -385,29 +384,30 @@ class NotePainter extends CustomPainter {
       if (i != active)
         _drawRegularFormNote(canvas, i);
 
-    if (active >= subDiv || active < 0)
-      return;
+    if (active >= 0 && active < subDiv)
+    {
 
-    ///Рисуем активную ноту
-    double activeCenterX = _noteCenterX(active);
-    double activeRadius = _radiusBig;
+      ///Рисуем активную ноту
+      double activeCenterX = _noteCenterX(active);
+      double activeRadius = _radiusBig;
 
-    switch (activeNoteType) {
-      case ActiveNoteType.headFixed:
-        break;
-      case ActiveNoteType.stemFixed:
-        activeCenterX -= _radiusBig - _radius;
-        break;
-      case ActiveNoteType.explosion:
-        activeRadius = _radius;
-        break;
-      default:
+      switch (activeNoteType) {
+        case ActiveNoteType.headFixed:
+          break;
+        case ActiveNoteType.stemFixed:
+          activeCenterX -= _radiusBig - _radius;
+          break;
+        case ActiveNoteType.explosion:
+          activeRadius = _radius;
+          break;
+        default:
+      }
+      _drawNakedNote(canvas, active,
+         new Offset(activeCenterX, _noteCenterY),
+         activeRadius, _flagsZoneTop, colorNow, _noteExponent > 1);
+      if (activeNoteType == ActiveNoteType.explosion)
+        _drawExplosion1(canvas);
     }
-    _drawNakedNote(canvas,
-       new Offset(activeCenterX, _noteCenterY),
-       activeRadius, _flagsZoneTop, colorNow, _noteExponent > 1);
-    if (activeNoteType == ActiveNoteType.explosion)
-      _drawExplosion1(canvas);
   }
 
   Path _curvedFlag(double height, double aspect)

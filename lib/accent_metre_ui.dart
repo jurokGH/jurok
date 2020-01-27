@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'note_ui.dart';
+import 'metre.dart';
+import 'prosody.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
@@ -7,32 +9,15 @@ class AccentMetreWidget extends StatefulWidget
 {
   final int beats;
   final int noteValue;
+  //final bool pivoVodochka;
   final List<int> accents;
   final Size size;
+  final ValueChanged2<int, int> onChanged;
 
   AccentMetreWidget({
-    this.beats, this.noteValue, this.accents, this.size
-  });
-  /*
-  final int minBeats;
-  final int maxBeats;
-  final int note;
-  final int minNote;
-  final int maxNote;
-  final double width;
-  final double height;
-  final Color color;
-  final TextStyle textStyle;
-
-  //final ValueChanged<int> onChanged;
-  final ValueChanged2<int, int> onChanged;
+    this.beats, this.noteValue, this.accents, this.size,
     @required this.onChanged,
-    this.minBeats = 1, this.maxBeats = 8,
-    this.minNote = 1, this.maxNote = 8,
-    this.width = 0, this.height = 0,
-    this.color = Colors.white,
-    @required this.textStyle});
-*/
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -42,39 +27,82 @@ class AccentMetreWidget extends StatefulWidget
 
 class AccentMetreState extends State<AccentMetreWidget>
 {
+  static List<Metre> _metreList =
+  [
+    Metre(2, 2),
+    Metre(3, 4),
+    Metre(4, 4),
+    Metre(6, 8),
+    Metre(9, 8),
+    Metre(12, 16),
+    Metre(5, 8),  // 3+2/8
+  ];
+  int _activeMetre = 0;
+
   AccentMetreState();
 
   @override
   Widget build(BuildContext context)
   {
+    final List<int> metres = Prosody.getSimpleMetres(widget.beats, true);//widget.pivoVodochka);
+    double width = widget.size.width / metres.length;
+    if (widget.beats <= 4)
+      width /= 2;
+
+    print(widget.accents);
     //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
     final List<Widget> notes = new List<Widget>();
-    for (int i = 0; i < widget.beats; i++)
+    int j = 0;  // Simple metre 1st note index
+    for (int i = 0; i < metres.length; i++)
     {
-      final List<int> accent = widget.accents != null ? new List<int>.filled(1, widget.accents[i]) : null;
+      final List<int> accents = widget.accents?.sublist(j, j + metres[i]);
+      print('widget.accents');
+      print(accents);
+      j += metres[i];
 
       Widget wix = new SizedBox(
-        width: widget.size.width / widget.beats,
+        width: width,
         height: widget.size.height,
         child:
-      NoteWidget(
-        subDiv: 1,
-        denominator: widget.noteValue,
-        active: -1,
-        activeNoteType: ActiveNoteType.explosion,
-        colorPast: Colors.white,
-        colorNow: Colors.red,
-        colorFuture: Colors.white,
-        accents: accent,
-      ),
+        NoteWidget(
+          subDiv: metres[i],
+          denominator: widget.noteValue,
+          active: -1,
+          colorPast: Colors.white,
+          colorNow: Colors.red,
+          colorFuture: Colors.white,
+          accents: accents,
+        ),
       );
       notes.add(wix);
     };
 
     // TODO: implement build
     return Container(
-      child: Wrap(
-      children: notes,
+      child: GestureDetector(
+        onTap: () {
+          _activeMetre = (_activeMetre + 1) % _metreList.length;
+          if (_activeMetre >= _metreList.length)
+            _activeMetre = 0;
+          widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
+        //setState(() {});
+        //Provider.of<MetronomeState>(context, listen: false)
+        //.setActiveState(widget.id, widget.subbeatCount);
+        //widget.onTap(widget.id, widget.subbeatCount);
+        },
+        onHorizontalDragEnd: (DragEndDetails details) {
+          int index = widget.beats + details.primaryVelocity.sign.toInt();
+          if (index < 0)
+            index = _metreList.length - 1;
+          if (index >= _metreList.length)
+            index = 0;
+          _activeMetre = index;
+          ;
+          widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
+        },
+        child: Wrap(
+        children: notes,
+      )
     ));
   }
 }

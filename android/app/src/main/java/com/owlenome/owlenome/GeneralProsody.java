@@ -10,14 +10,14 @@ class BeatMetre
     int beatCount;
     List<Integer> subBeats;
     // Indices of accented beats in each simple metre (row)
-    List<Integer> accents; //ToDo
+    byte accents[]; //ToDo
 
     BeatMetre()
     {
         beatCount = 4;
         subBeatCount = 1;
         subBeats = new ArrayList<Integer>();
-        accents = new ArrayList<Integer>();
+        accents = new byte[0];
         //accents.set(0, 0);
     }
 

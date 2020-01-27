@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'metre.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
@@ -30,19 +31,6 @@ class MetreWidget extends StatefulWidget
   @override
   State<StatefulWidget> createState() {
     return MetreState();
-  }
-}
-
-class Metre
-{
-  final int beats;
-  final int note;
-
-  Metre(this.beats, this.note);
-
-  String toString()
-  {
-    return beats.toString() + '/' + note.toString();
   }
 }
 
