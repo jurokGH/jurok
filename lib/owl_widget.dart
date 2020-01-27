@@ -163,9 +163,17 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
             GestureDetector(
             onTap: () {
               setState(() {
-                widget.subbeatCount++;
+                if (widget.subbeatCount == 1)
+                  widget.subbeatCount = 2;
+                else if (widget.subbeatCount == 2)
+                  widget.subbeatCount = 4;
+                else if (widget.subbeatCount == 3)
+                  widget.subbeatCount = 1;
+                else if (widget.subbeatCount == 4)
+                  widget.subbeatCount = 3;
+                //widget.subbeatCount++;
                 //subbeatCount++;
-                if (widget.subbeatCount > maxSubCount)
+                if (widget.subbeatCount > 4)
                 {
                   //TODO
                   widget.subbeatCount = 1;
