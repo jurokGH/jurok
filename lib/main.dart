@@ -1367,7 +1367,7 @@ class _HomePageState extends State<HomePage>
                       if (_playing) _setTempo(_tempoBpm);
                       setState(() {});
                     },
-                    diameter: 0.42 * _sizeCtrls.height,
+                    diameter: 0.43 * _sizeCtrls.height,
                     innerRadius: _innerRadius,
                     outerRadius: _outerRadius,
                     //image: imageOfHand,
