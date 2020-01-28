@@ -79,6 +79,13 @@
             </list>
           </value>
         </entry>
+        <entry key="flutter_xlider">
+          <value>
+            <list>
+              <option value="$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/flutter_xlider-3.0.1/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="image">
           <value>
             <list>
@@ -224,6 +231,7 @@
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/convert-2.1.1/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/crypto-2.1.3/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/cupertino_icons-0.1.3/lib" />
+      <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/flutter_xlider-3.0.1/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/image-2.1.4/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/matcher-0.12.6/lib" />
       <root url="file://$FLUTTER_HOME$/.pub-cache/hosted/pub.dartlang.org/meta-1.1.8/lib" />

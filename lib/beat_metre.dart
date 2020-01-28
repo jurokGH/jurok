@@ -44,9 +44,9 @@ class BeatMetre
   }
 
 // final List<int> initSubBeats = [2,2,4,2,4,2,6,1];//Fancy
-  static const List<int> _initSubBeats = [2, 2, 4, 2, 4, 2];//Fancy
+  //static const List<int> _initSubBeats = [2, 2, 4, 2, 4, 2];//Fancy
 // final List<int> _initSubBeats = [1,1,1,1,1,1,1,1,1,1,1,1];
-//   final List<int> _initSubBeats = [1,1,1,1];
+   final List<int> _initSubBeats = [1,1];
 
   ///TODO For now
   int get accent => accents.length > 0 ? accents[0] : 0;

@@ -35,7 +35,7 @@ public class MetroAudioMix
     // Initial constants
     //private final static int cTempoBpM = 60; // Определяется в accentedMelody по defaultTempo
     private final static int cNnoteValue = 4;
-    private final static int cMinTempoBpm = 4;//20;
+    private final static int cMinTempoBpm = 1;//20;
 
 
     /**

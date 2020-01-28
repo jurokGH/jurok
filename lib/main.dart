@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
 import 'package:flutter_xlider/flutter_xlider.dart';
 
+import 'KnobTuned.dart';
 import 'arrow.dart';
 import 'metronome_state.dart';
 import 'beat_metre.dart';
@@ -44,7 +45,7 @@ final double _cCtrlOpacity = 0;
 
 final Color _cWhiteColor = Colors.white;
 
-final bool usePlayButton = false;
+final bool usePlayButton = true;
 ///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
@@ -157,7 +158,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   int _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  int _tempoBpm = 60;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
   ///Переменная, ограничивающся максимальную скорость при данной музыкальной схеме и
   ///метре
@@ -204,9 +205,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   double _subbeatWidth = 60;
 
+
+  //IS: my knob constants
+  double _sensitivity = 3.5;
+  double _innerRadius = 0.01;
+  double _outerRadius = 2;
+  //double _knobSize = 150;
+  static const double initKnobAngle = 1;
+
+
+  KnobValue _knobValue;
+
   @override
   void initState() {
     super.initState();
+
+    _knobValue = KnobValue(
+      absoluteAngle: initKnobAngle,
+      value: _tempoBpm.toDouble(),
+      tapAngle: null,
+      //deltaAngle:0,
+    );
+
 
     // Channel callback from hardware Java code
     _channel.setMethodCallHandler(_handleMsg);
@@ -265,6 +285,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     if (_playing)
     {
+
       _togglePlay();
       //_playing = !_playing;
       _playing = false;
@@ -273,6 +294,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (hideCtrls)
         _controller.reverse();
       /// Stops OwlGridState::AnimationController
+
+
       setState(() {});
     }
     else
@@ -300,12 +323,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _start()
   {
     _playing = true;
+
+
     //_setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
+    _setTempo(_tempoBpm);//Test
     setState(() {});
   }
 
   void onMetreChanged(int beats, int note)
   {
+    _setBeat();
+    setState(() {});
+
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
@@ -314,16 +343,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
      // Provider.of<MetronomeState>(context, listen: false).reset();
       //if (_playing)
         _setBeat();
-      setState(() {});
+      //
     }
-    if (_noteValue != note)
+    /*if (_noteValue != note)
     {
       /*_noteValue = note;
       if (_playing)
         _setTempo(note);*
       else*/
        setState(() {});
-    }
+    }*/
+    setState(() {});
   }
 
   void onSubbeatChanged(int subbeatCount)
@@ -514,13 +544,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             String sNote = value;
             int note = int.parse(sNote);
             onMetreChanged(_beat.beatCount, note);
-            /*
-            if (_noteValue != note)
+            /*if (_noteValue != note)
             {
               _noteValue = note;
-              if (_playing)
+              /*if (_playing)
                 _setTempo(note);
-              else
+              else*/
                 setState(() {});
             }*/
           },
@@ -970,6 +999,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //Padding( padding: EdgeInsets.zero, child:
       children: <Widget>[
         //_buildPlate(TempoWidget(
+    /*//ToDo: спрятал отладочно
         Padding(
           padding: EdgeInsets.only(bottom: 0),
           child:
@@ -981,12 +1011,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 _tempoBpm = tempo;
               if (_playing)
                 _setTempo(tempo);
-              else
+              //else
                 setState(() {});
               debugPrint('onSelectedItemChanged - minTempo');
               debugPrint(_tempoBpm.toString());
             }
-          )),
+          )),*/
       ]
     );
 
@@ -1008,7 +1038,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //_tempoList.setTempo(_tempoBpm);
         if (_playing)
           _setTempo(_tempoBpm);
-        else
+        //else
           setState(() {});
       },
       itemBuilder: (BuildContext context, int index) =>
@@ -1030,13 +1060,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     int childCount,
 */
     );
+
+
       ///widget Tempo knob control
     Widget knobTempo = new Knob(
       value: _tempoBpm.toDouble(),
       min: minTempo.toDouble(),
       max: maxTempo.toDouble(),
       limit: maxTempo.toDouble(),//_tempoBpmMax.toDouble(),
-      size: 0.5 * _sizeCtrls.height,
+      size: 0.4 * _sizeCtrls.height,
       debug: true,
       color: Colors.white.withOpacity(0.8),
       //color: _textColor.withOpacity(0.5),
@@ -1332,7 +1364,35 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
 */
 
-            knobTempo,
+ Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  tempoIndicator(),
+                  KnobTuned(
+                    knobValue: _knobValue,
+                    //ToDo: reset if tempo changed in other widgets
+                    minValue: minTempo.toDouble(),
+                    maxValue: _tempoBpmMax.toDouble(),
+                    sensitivity: _sensitivity,
+                    //color: Colors.blue,
+                    onChanged: (KnobValue newVal) {
+                      _tempoBpm = newVal.value.round();
+                      _knobValue = newVal;
+                      if (_playing)
+                        _setTempo(_tempoBpm);
+                      setState(() {
+                      });
+                    },
+                    diameter: 0.4 * _sizeCtrls.height,
+                    innerRadius: _innerRadius,
+                    outerRadius: _outerRadius,
+                    //image: imageOfHand,
+                  ),
+                ],
+            ),
+
+
+            //knobTempo,
             //wheelTempo,
             //cupWheelTempo,
 
@@ -1404,7 +1464,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     ),
                     Positioned(
                       right: 0,
-                      width: 0.5 * _sizeCtrls.width,
+                      width: 0.4 * _sizeCtrls.width,
                       child: listTempo
                     ),
                 ]),
@@ -1421,6 +1481,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
     );
   }
+
+
+  Widget tempoIndicator() {
+    String s = '${_tempoBpm.toString()}';
+    Color col=Colors.green;
+    if (_tempoBpm >= _tempoBpmMax) {
+      //s += ' (MAX)';
+      col=Colors.amberAccent;
+    }
+    if (_tempoBpm <= minTempo) {
+      //s += ' (MIN)';
+      col=Colors.amberAccent;
+    }
+    return Text(s,
+      style: TextStyle(fontSize:  0.1 * _sizeCtrls.height, color: col),);
+  }
+
 
   /// <<<<<<<< Widget section
   /// /////////////////////////////////////////////////////////////////////////
@@ -1523,6 +1600,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return new Future.value('');
   }
 
+
+
+
   Future<void> _togglePlay() async
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
@@ -1536,7 +1616,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         'tempo': _tempoBpm,
         //'note': _beat.beatCount,//_noteValue,//IS: VS, Полагаю, beatCount тут - опечатка. В любом случае, это больше не нужно.
         //'quorta': _quortaInMSec.toInt(),
-        'numerator': _beat.beatCount,
+        //'numerator': _beat.beatCount,
       };
       final int res =  await _channel.invokeMethod('start', args);
       if (res == 0)

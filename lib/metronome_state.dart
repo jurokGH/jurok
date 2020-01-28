@@ -197,15 +197,15 @@ class MetronomeState with ChangeNotifier
       _timer.stop();
   }
 */
-/*
+
   void reset()
   {
     //_activeBeat = _activeSubbeat = 0;
-    _activeBeat=-1; _activeSubbeat = 0;//IS: Test//ToDo
+    _activeBeat=-1; _activeSubbeat = -1;//IS: Test//ToDo
     //pos.reset();
     //??? - нужно сюда? разобраться //todo
   }
-*/
+
   /* IS: Старый синк
   /// Synchronize metronome state with current sound state from Java
   void sync(int index, double offset, int beat, int subbeat, int time)

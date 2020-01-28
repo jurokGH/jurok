@@ -332,7 +332,7 @@ class AccentedMelodyMix
                 cycleDriven.fractionParts[subPos]=durOfSubBeat%1;
             }
         }
-        //ToDo: проверить, чтобы длины циклов совпадали!
+        //проверить, чтобы длины циклов совпадали!  - ок
         //cycleDriven.duration=cycle.duration;//ToDo: ЭТО БЕСПРЕДЕЛ УЖЕ, просто чтоб заработало
         cycleDriven.reSetDuration(); cycleDriven.reset();
         cycleDriven.readTempoLinear((int)cycle.durationBeforePosition());
@@ -344,7 +344,6 @@ class AccentedMelodyMix
 
         Log.d("Tempo",String.format(" Cycle dur: %f",cycle.duration));
         Log.d("Tempo",String.format(" Driven cycle dur:  %f",cycleDriven.duration));
-
 
         return BPMtoSet;
     }

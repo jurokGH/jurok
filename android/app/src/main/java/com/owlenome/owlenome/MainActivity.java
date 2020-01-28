@@ -534,6 +534,10 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
+    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
+            880, 15, 440, 15,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
+
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
     // эту схему, чтобы не плодить их.
@@ -543,9 +547,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     );
     soundSсhemes.add(musicSсhemeTunable);
 
-    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
-      440, 15, 440, 15,
-      GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
+
 
     soundSсhemes.add(new MusicSchemeMix("ShortDrums-1Ag", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
       GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));

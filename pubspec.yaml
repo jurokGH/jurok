@@ -61,6 +61,7 @@ flutter:
     - images/owl2-0.png
     - images/owl3-0.png
     - images/owl4-0.png
+    - images/knobToRotate.png
     #- images/owl1-2.png
     #- images/owl1-3.png
     #- images/owl1-4.png
