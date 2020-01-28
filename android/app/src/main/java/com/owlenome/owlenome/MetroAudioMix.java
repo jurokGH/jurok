@@ -35,7 +35,7 @@ public class MetroAudioMix
     // Initial constants
     //private final static int cTempoBpM = 60; // Определяется в accentedMelody по defaultTempo
     private final static int cNnoteValue = 4;
-    private final static int cMinTempoBpm = 4;//20;
+    private final static int cMinTempoBpm = 1;//20;
 
 
     /**
@@ -163,6 +163,8 @@ public class MetroAudioMix
     public double reSetBeats(BeatMetre beats)
     {
         double newCycleMaxBPM = melody.prepareNewCycle(beats);
+        //ToDo Что же, мы должны сыграть кусочек мелодии со старым beats?
+        // DC
 
         //melody.setBeats(beats);//Опасное место! А вдруг он занят?
         bNewBeats = true;
@@ -1034,15 +1036,16 @@ public class MetroAudioMix
                     written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
                             AudioTrack.WRITE_BLOCKING);
 
-                    analizeConditions();//ToDo:
-                    // Более правильно анализировать новые данные внутри буфера
-
                     currentTime = System.nanoTime();
                     headJustAfterWrite = audioTrack.getPlaybackHeadPosition();
                     //Убрать все долгие nanoTime, работать с быстрыми (и стабильными?) фреймами?
                     //Не можем! Нам же сообщения еще слать...
                     totalLostFrames += (toWrite - written) / 2;
                     totalWrittenFrames += written / 2;
+
+                    // Analize just taken time-frame parameters
+                    // Более правильно анализировать новые данные внутри буфера
+                    analizeConditions();//ToDo:
 
                     //boolean sync = bNewTempo || newMelody;
 

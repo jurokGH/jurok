@@ -130,8 +130,8 @@ class Prosody
       return [];
     else if (noteNumber < 4)
       return [noteNumber];
-    else if (noteNumber == 4 && level == 0)
-      return [4];
+//    else if (noteNumber == 4 && level == 0)
+//      return [4];
 
     //Делим на два равных
     if (noteNumber % 2 == 0)
