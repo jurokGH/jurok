@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minTempo = 1;//6
   ///Некий абсолютный максимум скорости. Больше него не ставим, даже если
   /// позволяет сочетание схемы и метра.
-  static const int maxTempo =5000;//10000
+  static const int maxTempo =1000;//10000
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
