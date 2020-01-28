@@ -163,6 +163,9 @@ public class MetroAudioMix
     public double reSetBeats(BeatMetre beats)
     {
         double newCycleMaxBPM = melody.prepareNewCycle(beats);
+        //ToDo Что же, мы должны сыграть кусочек мелодии со старым beats?
+        // DC
+
 
         //melody.setBeats(beats);//Опасное место! А вдруг он занят?
         bNewBeats = true;
@@ -184,7 +187,7 @@ public class MetroAudioMix
         if (state == STATE_PLAYING)//Зачем?
             bNewTempo = true;
 
-     //   return melody != null ? (int) melody.getMaxTempo() : 0;
+        //   return melody != null ? (int) melody.getMaxTempo() : 0;
     }
 
     // volume = [0..100]
@@ -233,7 +236,7 @@ public class MetroAudioMix
         new Thread(_task).start();
         //ToDo: сделать булевым, и если false - значит, мы не запустились
 
-       //  double maxTempo = melody.getMaxTempo();
+        //  double maxTempo = melody.getMaxTempo();
         // return res ? (int) (beatsPerMinute >= maxTempo ? maxTempo : beatsPerMinute) : 0;
     }
 
@@ -641,8 +644,8 @@ public class MetroAudioMix
 
             //MIX //ToDo:             mixNOTNormalized
             MelodyToolsPCM16.mixNOTNormalized(
-             buffer.array(),bufferDriven.array()
-              );
+                    buffer.array(),bufferDriven.array()
+            );
             buffer.position(0);
 
 
@@ -1034,8 +1037,7 @@ public class MetroAudioMix
                     written = audioTrack.write(mBuffer.buffer, mBuffer.framesToWriteAtOnce * 2,
                             AudioTrack.WRITE_BLOCKING);
 
-                    analizeConditions();//ToDo:
-                    // Более правильно анализировать новые данные внутри буфера
+
 
                     currentTime = System.nanoTime();
                     headJustAfterWrite = audioTrack.getPlaybackHeadPosition();
@@ -1043,6 +1045,9 @@ public class MetroAudioMix
                     //Не можем! Нам же сообщения еще слать...
                     totalLostFrames += (toWrite - written) / 2;
                     totalWrittenFrames += written / 2;
+
+                    analizeConditions();
+                    // Более правильно анализировать новые данные внутри буфера
 
                     //boolean sync = bNewTempo || newMelody;
 

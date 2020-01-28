@@ -14,7 +14,7 @@ class AccentedMelodyMix
     byte[][] setOfNotes;
 
 
-//    BipAndPause[] _bipAndPauseSing;
+    //    BipAndPause[] _bipAndPauseSing;
     private int _sampleRate;
 
     /**
@@ -120,9 +120,8 @@ class AccentedMelodyMix
         //Теперь расставляем акценты.
         //Тут живёт особая философия, и делать это можно по-разному.
         //ToDo:   пробовать  по-разному и слушать.
-        //ToDo: отправить это в дарт
         byte accents[] = beats.accents;
-          //GeneralProsody.getAccents(beats.beatCount,false); //false - чтобы распевней
+        //GeneralProsody.getAccents(beats.beatCount,false); //false - чтобы распевней
 
         //Ноты. Сначала доли, потом поддоли
         setOfNotes = new byte[musicScheme.setOfNotes.length+musicScheme.setOfSubNotes.length][];
@@ -143,7 +142,7 @@ class AccentedMelodyMix
         //(totalLengthOfBeat / (beats.subBeats.get(i) * noteLength / 2)) > 1
 
 
-        int weakestAccent = 0;
+        int weakestAccent = 0;//ToDo: тут точно живёт глюк. Ну почти точно.
         for (int i = 0; i < accents.length; i++)
         {
             if (weakestAccent < accents[i])
@@ -154,7 +153,7 @@ class AccentedMelodyMix
         for (int i = 0; i < beats.beatCount; i++)
         {
             if (musicScheme.beatAccentationType == GeneralProsody.AccentationType.Agogic &&
-                accents[i] == weakestAccent)
+                    accents[i] == weakestAccent)
             {
                 //самая слаба доля (максимум) пусть будет
                 // самым сильным слабым звуком
@@ -166,8 +165,8 @@ class AccentedMelodyMix
             }
             int noteLength = setOfNotes[symbols[i]].length;
             _bipAndPauseMainSing[i] = new BipAndPause(
-              noteLength / 2,
-              (totalLengthOfBeat / (noteLength / 2)) - 1
+                    noteLength / 2,
+                    (totalLengthOfBeat / (noteLength / 2)) - 1
             );
         }
 
@@ -188,6 +187,7 @@ class AccentedMelodyMix
                 {//начало доли
                     symbolsDriven[k] = elasticSymbol; //Можно и иначе.//ToDo: эксперимент
                 }
+                //ToDo: не устарело ли то, что выше?  - теперь же свободный метр
             }
         }
 
@@ -225,7 +225,7 @@ class AccentedMelodyMix
 
     /**
      *
-     * Переустанавливает биты.
+     * Переустанавливает бипы.
      * Позиция не поменяется, если число бипов выросло,
      * и съедет на начальный бип в той же поддоле.
      *
@@ -271,7 +271,7 @@ class AccentedMelodyMix
 
         int newPos =(int)(newPositionRel*cycle.duration);
         cycle.readTempoLinear(newPos);//ToDo: вешаем чайник; проматываем отыгранную длительность
-        cycleDriven.readTempoLinear(newPos);
+        cycleDriven.readTempoLinear(newPos); // ...и еще раз
 
     }
 
@@ -310,7 +310,6 @@ class AccentedMelodyMix
 
         //А теперь мы вытаскиваем  цикл поддолей, возможно обсекая звуки.
         //ToDo: оформить в BipAndPause как бескомпромисный аналог setNewDuration
-        //ToDo: не работает
         double beatDuration=cycle.duration/beatCount;
         int subPos=0;
         for (int i=0;i<beatCount;i++) {
@@ -333,11 +332,9 @@ class AccentedMelodyMix
             }
         }
         //проверить, чтобы длины циклов совпадали!  - ок
-        //cycleDriven.duration=cycle.duration;//ToDo: ЭТО БЕСПРЕДЕЛ УЖЕ, просто чтоб заработало
         cycleDriven.reSetDuration(); cycleDriven.reset();
         cycleDriven.readTempoLinear((int)cycle.durationBeforePosition());
         //ToDo: fraction part, что ещё - всю логику перепроверить.
-        // - уже ничего ен понимаю, просто запустить хочу....
 
 
 
