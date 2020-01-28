@@ -23,8 +23,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-
   provider: ^3.2.0
+  wheel_chooser: ^0.1.0
+  flutter_xlider: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -44,26 +45,37 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - images/TempoKnob.png
+    - images/Backg-1.jpg
     - images/Backg-Up-1.jpg
-    - images/Backg-Up-1.png
     - images/Backg-Dn-1.jpg
-    # - images/Backg-Dn-2.png
-    - images/Backg-Up-2.jpg
-    - images/Backg-Dn-2.jpg
-    - images/eqowl.png
+    - images/Backg-Up-1.png
+    - images/Backg-Dn-1.png
+    - images/owl0-0.png
+    - images/owl0-1.png
     - images/owl1-0.png
     - images/owl1-1.png
     - images/owl1-2.png
     - images/owl1-3.png
     - images/owl1-4.png
     - images/owl2-0.png
-    - images/owl2-1.png
-    - images/owl2-2.png
-    - images/owl2-3.png
-    - images/owl2-4.png
-    - images/Metre.png
-    - images/TempoKnob.png
-    - images/Ad-1.png
+    - images/owl3-0.png
+    - images/owl4-0.png
+    #- images/owl1-2.png
+    #- images/owl1-3.png
+    #- images/owl1-4.png
+    ##- images/owl2-0.png
+    ##- images/owl2-1.png
+    #- images/owl2-2.png
+    ##- images/owl2-3.png
+    #- images/owl2-4.png
+    ##- images/owl3-0.png
+    ##- images/owl3-1.png
+    ##- images/owl4-0.png
+    ##- images/owl4-1.png
+    ##- images/Metre.png
+    ##- images/Ad-1.png
+    ##- images/Backg-1.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

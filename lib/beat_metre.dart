@@ -1,5 +1,6 @@
 import 'dart:core';
 import 'tempo.dart';
+import 'prosody.dart';
 
 /// Metronome beat melody configuration
 /// Represents rhythm
@@ -19,10 +20,10 @@ class BeatMetre
   /// notes.length - number of simple metres in metronome beat melody
   List<int> metres;
 
-
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
   List<int> accents;
+  bool pivoVodochka = false;  // false - чтобы распевней
 
   /// notes[i] - i-th notes (bips)
   /// notes[i][j] - musical char of j-th subdivision of i-th note (bip)
@@ -30,23 +31,22 @@ class BeatMetre
 
   BeatMetre()
   {
-    //_beatCount = 4;
-    _beatCount = initSubBeats.length;
+    subBeats = new List<int>.from(_initSubBeats, growable: true);
+    _beatCount = subBeats.length;
     _subBeatCount = 1;
-   // subBeats = new List<int>.filled(_beatCount, 1, growable: true);
-    subBeats=initSubBeats;
     metres = new List<int>.filled(1, _beatCount, growable: true);
     //ToDo: просодия тут
-    accents = new List<int>.filled(1, 0, growable: true);
+    //accents = new List<int>.filled(_initSubBeats.length, 0, growable: true);
+    accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
 
-// final List<int> initSubBeats= [2,2,4,2,4,2,6,1];//Fancy
-  final List<int> initSubBeats= [2,2,4,2,4,2];//Fancy
- // final List<int> initSubBeats=[1,1,1,1,1,1,1,1,1,1,1,1];
-  //   final List<int> initSubBeats=[1,1,1,1];
+// final List<int> initSubBeats = [2,2,4,2,4,2,6,1];//Fancy
+  static const List<int> _initSubBeats = [2, 2, 4, 2, 4, 2];//Fancy
+// final List<int> _initSubBeats = [1,1,1,1,1,1,1,1,1,1,1,1];
+//   final List<int> _initSubBeats = [1,1,1,1];
 
   ///TODO For now
   int get accent => accents.length > 0 ? accents[0] : 0;
@@ -61,6 +61,13 @@ class BeatMetre
       for (int i = _beatCount; i < subBeats.length; i++)
         subBeats[i] = _subBeatCount;
       _beatCount = count;
+/*TODO
+      List<int> newAccents = new List<int>.filled(count, 0, growable: true);
+      for (int i = 0; i < _beatCount && i < accents.length; i++)
+        newAccents[i] = accents[i];
+      accents = newAccents;
+*/
+      accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
     }
   }
 
@@ -144,5 +151,4 @@ class BeatMetre
 
     return [beat, subbeat];
   }
-
 }

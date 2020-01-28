@@ -21,6 +21,8 @@ class NoteWidget extends StatefulWidget {
   ///number of subdivisions, numerator
   final int subDiv;
 
+  final List<int> accents;
+
   /// Note duration, denominator
   /// 2 <= note <= 64
   final int denominator;
@@ -37,15 +39,16 @@ class NoteWidget extends StatefulWidget {
 
   final ActiveNoteType activeNoteType;
 
-  NoteWidget(
-      {this.subDiv,
-      this.denominator,
-      this.active,
-      this.colorPast = Colors.blue,
-      this.colorNow = Colors.pink,
-      this.colorFuture = Colors.black,
-      this.activeNoteType
-      });
+  NoteWidget({
+    this.subDiv,
+    this.accents,
+    this.denominator,
+    this.active,
+    this.colorPast = Colors.blue,
+    this.colorNow = Colors.pink,
+    this.colorFuture = Colors.black,
+    this.activeNoteType
+  });
 
   @override
   _NoteState createState() => _NoteState();
@@ -55,11 +58,11 @@ class _NoteState extends State<NoteWidget> {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-          painter: NotePainter(widget.denominator, widget.subDiv, widget.active,
-            widget.colorPast, widget.colorNow,widget.colorFuture,widget.activeNoteType),
-        );
+      painter: NotePainter(widget.denominator, widget.subDiv, widget.accents, widget.active,
+        widget.colorPast, widget.colorNow,widget.colorFuture,widget.activeNoteType),
+    );
     //TODO Шаблон для рисования красивого флажка
-    /*
+     /* 
     return Stack(
       children: [
       Image.asset('images/32nd_note.svg.png'),
@@ -68,7 +71,7 @@ class _NoteState extends State<NoteWidget> {
           widget.colorPast, widget.colorNow,widget.colorFuture,widget.activeNoteType),
       )
     ]);
-    */
+     */
   }
 }
 
@@ -83,6 +86,8 @@ class NotePainter extends CustomPainter {
   /// DO NOT CONFUSE WITH NUMERATOR of musical signature
   /// 0 < subDiv
   final int subDiv;
+
+  final List<int> accents;
 
   /// Active subdivision
   /// 0 < active <= subDiv
@@ -147,7 +152,7 @@ class NotePainter extends CustomPainter {
   final double _bigRadiusMultiplier = 1.4;
 
   ///Низ зоны флагов
-  final double _relFlagsZoneBottom = 0.5;
+  final double _relFlagsZoneBottom = 0.4;//0.4 //VG
 
   ///!!! СЛОЖНОЕ МЕСТО... Непонятно: ширина штиля и пространство
   ///медлу ними должны ли масштабироваться? Пока принято решение, что да.
@@ -158,10 +163,10 @@ class NotePainter extends CustomPainter {
   ///между ними сжимаются. Из зоны не вылезаем. Играем 1/256 смело!!!
 
   /// несжатая толщина флага относительно высоты
-  final double _relWidthFlag = 0.06;
+  final double _relWidthFlag = 0.04;//0.06 //VG
 
   /// несжатое пространство между флагами относительно высоты
-  final double _relSpaceBetweenFlag = 0.04;
+  final double _relSpaceBetweenFlag = 0.03;//0.04 //VG
 
   /// Относительная высота простого флага сравнительно с высотой штиля
   final double _relFlagHeight = 0.6;
@@ -190,15 +195,15 @@ class NotePainter extends CustomPainter {
   ///
 
   ///Толщина линий вокруг активной ноты
-  final double _explosionLineWidth = 2;
+  final double _explosionLineWidth = 3;
 
   ///Число линий взрыва
-  final int _numberOfExplosionLines = 12;
+  final int _numberOfExplosionLines = 16;
 
   final Color colorExplosion = Colors.redAccent;
 
   ///Зазор линии взрыва от ноты
-  final double _startLineMultiplier = 1.2;
+  final double _startLineMultiplier = 1.4;
 
   ///[<---- ОБЛАСТЬ ДЕЙСТВИЯ ЮРИКА.   ]
 
@@ -247,12 +252,12 @@ class NotePainter extends CustomPainter {
   ///TODO:
   ///Часть констант должна вычисляться один раз
   ///И наоборот, я не понимаю, почему значение active должно быть final
-  NotePainter([this.denominator, this.subDiv, this.active,
+  NotePainter([this.denominator, this.subDiv, this.accents, this.active,
     this.colorPast, this.colorNow, this.colorFuture, this.activeNoteType]);
 
   ///Рисуем одну четвертную/половинную нотку.
   /// isHallow - пустая внутри
-  void _drawNakedNote(Canvas canvas,
+  void _drawNakedNote(Canvas canvas, int sub,
       Offset centerHead, double radiusHead, double stemTop,
       Color color, bool isFilled) {
 
@@ -283,6 +288,18 @@ class NotePainter extends CustomPainter {
       // Draw head
       canvas.save();
       canvas.translate(centerHead.dx, centerHead.dy);
+
+      final double heightAccent2 = 2.5;
+      if (accents != null && sub < accents.length)
+        for (int i = 0; i < accents[sub]; i++)
+        {
+          final Rect rc = rcGrad;
+          final Offset offL = rc.bottomLeft.translate(0, 2.5 * heightAccent2 * i).translate(2, 0);
+          final Offset offR = rc.bottomRight.translate(0, 2.5 * heightAccent2 * i).translate(-2, 0);
+          canvas.drawLine(offL, offR + Offset(0, heightAccent2), _paintStem);
+          canvas.drawLine(offL + Offset(0, 2 * heightAccent2), offR + Offset(0, heightAccent2), _paintStem);
+        }
+
       canvas.rotate(_headAngle);
       canvas.drawOval(rect, _paintFilledNote);
       canvas.restore();
@@ -291,7 +308,7 @@ class NotePainter extends CustomPainter {
     {
       ///Hollow
       _paintHallowNote.color = color;
-      //canvas.drawCircle(centerHead, radiusHead-0.5*_widthHollowHeadBoundary, _paintCircle);
+      //canvas.drawCircle(centerHead, radiusHead-0.5 * _widthHollowHeadBoundary, _paintCircle);
 
       Path pathInner = new Path()
         ..addOval(
@@ -328,10 +345,9 @@ class NotePainter extends CustomPainter {
     if (sub < active) color = colorPast;
     if (sub == active) color = colorNow;
     if (sub > active) color = colorFuture;
-    _drawNakedNote(canvas,
+    _drawNakedNote(canvas, sub,
         new Offset(_noteCenterX(sub), _noteCenterY),
-        _radius, _flagsZoneTop, color, (_noteExponent > 1)
-    );
+        _radius, _flagsZoneTop, color, (_noteExponent > 1));
   }
 
   ///Обсчитываем сразу всякие углы, чтобы каждый раз этого не делать.
@@ -339,15 +355,15 @@ class NotePainter extends CustomPainter {
     _explosionCoordinates1 = new List<Offset>(_numberOfExplosionLines);
     _explosionCoordinates2 = new List<Offset>(_numberOfExplosionLines);
     if (_numberOfExplosionLines<1) return;
-    double rot = pi*2/_numberOfExplosionLines;
+    double rot = pi * 2/_numberOfExplosionLines;
     for(int i = 0; i<_numberOfExplosionLines; i++){
-      double angle = rot*i;
+      double angle = rot * i;
       double s = sin(angle); double c = cos(angle);
       _explosionCoordinates1[i] = new Offset(
-        c*_radius*_startLineMultiplier,s*_radius*_startLineMultiplier
+        c * _radius * _startLineMultiplier,s * _radius * _startLineMultiplier
       );
       _explosionCoordinates2[i] = new Offset(
-          c*_radiusBig*_startLineMultiplier,s*_radiusBig*_startLineMultiplier
+          c * _radiusBig * _startLineMultiplier,s * _radiusBig * _startLineMultiplier
       );
     }
   }
@@ -368,29 +384,30 @@ class NotePainter extends CustomPainter {
       if (i != active)
         _drawRegularFormNote(canvas, i);
 
-    if (active >= subDiv || active < 0)
-      return;
+    if (active >= 0 && active < subDiv)
+    {
 
-    ///Рисуем активную ноту
-    double activeCenterX = _noteCenterX(active);
-    double activeRadius = _radiusBig;
+      ///Рисуем активную ноту
+      double activeCenterX = _noteCenterX(active);
+      double activeRadius = _radiusBig;
 
-    switch (activeNoteType) {
-      case ActiveNoteType.headFixed:
-        break;
-      case ActiveNoteType.stemFixed:
-        activeCenterX -= _radiusBig - _radius;
-        break;
-      case ActiveNoteType.explosion:
-        activeRadius = _radius;
-        break;
-      default:
+      switch (activeNoteType) {
+        case ActiveNoteType.headFixed:
+          break;
+        case ActiveNoteType.stemFixed:
+          activeCenterX -= _radiusBig - _radius;
+          break;
+        case ActiveNoteType.explosion:
+          activeRadius = _radius;
+          break;
+        default:
+      }
+      _drawNakedNote(canvas, active,
+         new Offset(activeCenterX, _noteCenterY),
+         activeRadius, _flagsZoneTop, colorNow, _noteExponent > 1);
+      if (activeNoteType == ActiveNoteType.explosion)
+        _drawExplosion1(canvas);
     }
-    _drawNakedNote(canvas,
-       new Offset(activeCenterX, _noteCenterY),
-       activeRadius, _flagsZoneTop, colorNow, _noteExponent > 1);
-    if (activeNoteType == ActiveNoteType.explosion)
-      _drawExplosion1(canvas);
   }
 
   Path _curvedFlag(double height, double aspect)
@@ -447,7 +464,7 @@ class NotePainter extends CustomPainter {
         {rad = _radiusBig;} else {rad = _radius;}
     right += rad;
 
-    double y = _flagsZoneBottom+_flagWidth*0.5;
+    double y = _flagsZoneBottom+_flagWidth * 0.5;
 
     for(int i = 0;i<_nmbOfFlags;i++) {
       Offset off = new Offset(left, y);
@@ -459,7 +476,7 @@ class NotePainter extends CustomPainter {
   /// X-координата центра поддоли
   double _noteCenterX(int subDivN){
     return _safeX+
-        (subDivN+1)*((size.width- (_safeX+_safeX))/(subDiv+1));
+        (subDivN+1) * ((size.width- (_safeX+_safeX))/(subDiv+1));
   }
 
   _init()
@@ -482,26 +499,25 @@ class NotePainter extends CustomPainter {
     ///Геометрия
     ///
 
-    _radius = size.height*_relRadius;
-    _radiusBig = _radius*_bigRadiusMultiplier;
+    _radius = size.height * _relRadius;
+    _radiusBig = _radius * _bigRadiusMultiplier;
     _noteCenterY = size.height-_radiusBig;
 
-    double claimedSpaceForFlags =
-        max(0,_nmbOfFlags-1)*(_relSpaceBetweenFlag+_relWidthFlag);
+    double claimedSpaceForFlags = max(0, _nmbOfFlags - 1) * (_relSpaceBetweenFlag + _relWidthFlag);
     double presentSpaceForFlags = _relFlagsZoneBottom - (_relNumberHeight + _relSpaceBelowNumber);
     _flagsRatio = 1;
     if (claimedSpaceForFlags > presentSpaceForFlags)
       _flagsRatio = presentSpaceForFlags / claimedSpaceForFlags;
 
-    _flagsZoneBottom = _relFlagsZoneBottom*size.height;
+    _flagsZoneBottom = _relFlagsZoneBottom * size.height;
 
     ///Определяем реальную высоту, где кончатся флаги (и ноты)
     double relFlagTop = max(_relNumberHeight + _relSpaceBelowNumber,
       _relFlagsZoneBottom - claimedSpaceForFlags);
-    _flagsZoneTop = relFlagTop*size.height;
+    _flagsZoneTop = relFlagTop * size.height;
 
-    _flagWidth = _relWidthFlag*_flagsRatio*size.height;
-    _deltaHforFlag = _relSpaceBetweenFlag*_flagsRatio*size.height;
+    _flagWidth = _relWidthFlag * _flagsRatio * size.height;
+    _deltaHforFlag = _relSpaceBetweenFlag * _flagsRatio * size.height;
 
     ///Стили рисования нот, штилей, флагов и т.п.
 
@@ -562,7 +578,7 @@ class NotePainter extends CustomPainter {
     if (!_isPowerOf2) {
         Offset off = new Offset(size.width * 0.5,
           _flagsZoneTop-
-              _relSpaceBelowNumber*size.height
+              _relSpaceBelowNumber * size.height
               -size.height * _relNumberHeight * 0.5);
 
         //canvas.drawCircle(off, size.height * _relNumberHeight * 0.5, _paintHallowNote);
@@ -574,7 +590,7 @@ class NotePainter extends CustomPainter {
         TextPainter tp = new TextPainter(text: span,
             textDirection: TextDirection.ltr);
         tp.layout();
-        tp.paint(canvas,off.translate(tp.width*0.25, -tp.height*0.5));
+        tp.paint(canvas,off.translate(tp.width * 0.25, -tp.height * 0.5));
       }
 
     ///ToDo: отладка, убрать

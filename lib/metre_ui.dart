@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'metre.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
@@ -30,19 +31,6 @@ class MetreWidget extends StatefulWidget
   @override
   State<StatefulWidget> createState() {
     return MetreState();
-  }
-}
-
-class Metre
-{
-  final int beats;
-  final int note;
-
-  Metre(this.beats, this.note);
-
-  String toString()
-  {
-    return beats.toString() + '/' + note.toString();
   }
 }
 
@@ -81,12 +69,6 @@ class MetreState extends State<MetreWidget>
     Container(
       width: 80,
       //height: 100,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('images/Metre.png'),
-          fit: BoxFit.contain,
-        )
-      ),
       //Padding(
       //  padding: const EdgeInsets.all(8.0),
 
@@ -98,7 +80,7 @@ class MetreState extends State<MetreWidget>
           widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
         },
         onTapDown:  _storePosition,
-        onLongPress: _showMenu,
+        //onLongPress: _showMenu,
         onVerticalDragEnd: (DragEndDetails details) {
           _iMetre -= details.primaryVelocity.sign.toInt();
           if (_iMetre >= _metreList.length)
@@ -133,7 +115,7 @@ class MetreState extends State<MetreWidget>
                     beats = widget.minBeats;
                   widget.onChanged(beats, widget.note);
                 },
-                onLongPress: _showMenu,
+                //onLongPress: _showMenu,
                 onTap: () {
                   int beats = widget.beats >= widget.maxBeats ?
                     widget.minBeats : widget.beats + 1;
@@ -183,7 +165,7 @@ class MetreState extends State<MetreWidget>
                     note = widget.minNote;
                   widget.onChanged(widget.beats, note);
                 },
-                onLongPress: _showMenu,
+                //onLongPress: _showMenu,
                 onTap: () {
                   int note = widget.note >= widget.maxNote ?
                     widget.minNote : 2 * widget.note;

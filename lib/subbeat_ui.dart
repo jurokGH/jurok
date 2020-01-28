@@ -49,22 +49,57 @@ class SubbeatState extends State<SubbeatWidget>
         setState(() {});
         widget.onChanged(subbeatCount);
       },
-      child: Row(
+      child: Stack(
+        alignment: AlignmentDirectional.center,
         children: <Widget>[
-          Image.asset('images/eqowl.png',
-            height: 50,
+          Opacity(
+            opacity: 0.55,
+            child:
+            Image.asset('images/owl1-1.png',
+              height: 70,
+              fit: BoxFit.contain
+            ),
+          ),
+          //BoxDecoration
+          SizedBox(
+            //aspectRatio: 0.5,
+            height: 70,
+            width: 60,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 10, bottom: 10),
+              child:
+              NoteWidget(
+                subDiv: widget.subbeatCount,
+                denominator: widget.noteValue * widget.subbeatCount,
+                active: -1,
+                colorPast: widget.color,
+                colorNow: widget.color,
+                colorFuture: widget.color,
+              )
+            ),
+          ),
+        ]
+      )
+/*      child: Row(
+        children: <Widget>[
+          Opacity(
+            opacity: 0.5,
+          child:
+          Image.asset('images/owl2-3.png',
+            height: 60,
             fit: BoxFit.contain
           ),
-          //        Padding(
-//            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-//            child: Text('=', style: widget.textStyle.copyWith(color: widget.color))
-//          ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+            child: Text('=', style: widget.textStyle.copyWith(color: widget.color))
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
             child: SizedBox(
               //aspectRatio: 0.5,
-              height: 50,
-              width: 50,
+              height: 60,
+              width: 60,
               child: NoteWidget(
                 subDiv: widget.subbeatCount,
                 denominator: widget.noteValue * widget.subbeatCount,
@@ -76,7 +111,7 @@ class SubbeatState extends State<SubbeatWidget>
             )
           ),
         ]
-      )
+      )*/
     );
   }
 }

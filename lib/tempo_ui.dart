@@ -53,12 +53,12 @@ class TempoState extends State<TempoWidget>
     TempoDef('andante', 76, 108),
     TempoDef('andantino', 80, 108),
     //TempoDef('con moto', 100, ,  //?
-    TempoDef('marcia moderato', 83, 85),
-    TempoDef('andante moderato', 92, 112),
+    TempoDef('marcia mod', 83, 85),  //moderato
+    TempoDef('andante mod', 92, 112),  //moderato
     TempoDef('moderato', 108, 120),
     TempoDef('allegretto', 112, 120),
 
-    TempoDef('allegro moderato', 116, 120),
+    TempoDef('allegro mod', 116, 120),  //moderato
     TempoDef('allegro', 120, 156),
 
     TempoDef('vivace', 156, 176),
@@ -154,8 +154,7 @@ class TempoState extends State<TempoWidget>
         widget.onChanged(tempoList[_index].tempo);
       },
       child: Text(txt,
-        style: TextStyle(color: Colors.white ,
-            fontSize:  12),
+        style: widget.textStyle
       )
     );
   }

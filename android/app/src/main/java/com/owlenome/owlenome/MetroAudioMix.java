@@ -162,7 +162,7 @@ public class MetroAudioMix
 
     public double reSetBeats(BeatMetre beats)
     {
-        double newCycleMaxBPM= melody.prepareNewCycle(beats);
+        double newCycleMaxBPM = melody.prepareNewCycle(beats);
 
         //melody.setBeats(beats);//Опасное место! А вдруг он занят?
         bNewBeats = true;

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,12 +6,13 @@ import 'note_ui.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
-double grad2rad(double x) => x * pi / 180;
+typedef ImageIndexCallback = int Function(int accent, int subbeat, int subbeatCount);
 
 class OwlWidget extends StatefulWidget
 {
   final int id;
   final bool accent;
+  final int nAccent;
   final bool active;
   final int activeSubbeat;
   int subbeatCount;
@@ -23,11 +23,16 @@ class OwlWidget extends StatefulWidget
   //final double width;
 
   final ValueChanged2<int, int> onTap;
+  final ValueChanged2<int, int> onNoteTap;
+  final ImageIndexCallback getImageIndex;
 
   OwlWidget({
     @required this.id,
     @required this.onTap,
+    @required this.onNoteTap,
+    @required this.getImageIndex,
     @required this.accent,
+    @required this.nAccent,
     @required this.active,
     @required this.denominator,
     @required this.activeSubbeat,
@@ -44,7 +49,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 {
   static final bool drawSubOwls = false;
   static final int maxSubCount = 8;
-  //TODO: static final List<int> basicSetOfSubBeats= [1,2,4,3];
 
   int _counter;
 
@@ -55,54 +59,32 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   int activeHash;
   Animation<double> _controller;
 
-  AnimationController _animController;
-  Animation<double> _animRot;
-  Animation<double> _animRot1;
-  Animation<double> _animRot2;
-  Animation<double> _animScale;
-  Animation<double> _animScale1;
-
-  int _period = 200;
-  double _angle = 0;
-  double _scale = 1;
-  static final double _angleMax = 10;
-  static final double _scaleMax = 1.1;
+  double _dragStart = 0;
+  double maxDragX = 50;
 
   OwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
 
   void onRedraw()
   {
     final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-
-
-    //IS:  We need //todo
-    // something before we can play very first bip.
-    //Usually, there is some dozens of ms to skip after the warmedUp event -
-    // we need to skip the hole silent buffer.
-    // (warming up itself is also
-    // could be like 100-400 ms, but it should be treated somewhere else). Todo.
-
-    //Temporary solution: do nothing
-    //if (DateTime.now().microsecondsSinceEpoch<state.timeOfTheFirstBeat) return;
-
     state.update();
     int hash = state.getBeatState(widget.id);
-    //print('AnimationController ${widget.id} $_counter $hash');
+    //debugPrint('AnimationController ${widget.id} $_counter $hash');
     _counter++;
 
     bool newActive = state.isActiveBeat(widget.id);
     int newActiveSubbeat = state.getActiveSubbeat(widget.id);
     //if (hash != activeHash)
     if (active != newActive || activeSubbeat != newActiveSubbeat)
-      //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
-      {
-        print('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
+    //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
+    {
+      //debugPrint('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
 
-        setState((){
-          activeHash = hash;
-          active = newActive;
-          activeSubbeat = newActiveSubbeat;
-        });
+      setState((){
+        activeHash = hash;
+        active = newActive;
+        activeSubbeat = newActiveSubbeat;
+      });
     }
   }
 
@@ -111,77 +93,27 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   {
     super.initState();
 
-    activeHash = 100;
-    //subCount = 1;
-    _counter = 0;
-
 /*TODO Someone can check if several running AnimationController are better than 1
     AnimationController _controller0;
     int _period = 60000;
-
     _controller0 = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
     )
     ..addListener(onRedraw);
+    //_controller0.forward();
 */
-    _animController = new AnimationController(
-      vsync: this,
-      duration: new Duration(milliseconds: _period),
-    )
-    ..addStatusListener((AnimationStatus status) {
-      if (status == AnimationStatus.completed)
-        _animController.reset();
-    });
 
-    _animRot = new Tween<double>(begin: 0, end: grad2rad(_angleMax))
-      .animate(CurvedAnimation(curve: Interval(0, 0.25, curve: Curves.linear), parent: _animController))
-    ..addListener((){
-      if (_animController.value < 0.25)
-      setState((){
-        _angle = _animRot.value;
-      });
-    });
-    _animRot1 = new Tween<double>(begin: grad2rad(_angleMax), end: -grad2rad(_angleMax))
-      .animate(CurvedAnimation(curve: Interval(0.25, 0.75, curve: Curves.linear), parent: _animController))
-      ..addListener((){
-        if (_animController.value >= 0.25 && _animController.value < 0.75)
-          setState((){
-            _angle = _animRot1.value;
-          });
-      });
-    _animRot2 = new Tween<double>(begin: -grad2rad(_angleMax), end: 0)
-      .animate(CurvedAnimation(curve: Interval(0.75, 1.0, curve: Curves.linear), parent: _animController))
-      ..addListener((){
-        if (_animController.value >= 0.75)
-          setState((){
-            _angle = _animRot2.value;
-          });
-      });
-
-    _animScale = new Tween<double>(begin: 1.0, end: _scaleMax)
-      .animate(CurvedAnimation(curve: Interval(0, 0.5, curve: Curves.linear), parent: _animController))
-      ..addListener((){
-        if (_animController.value < 0.5)
-          setState((){
-            _scale = _animScale.value;
-          });
-      });
-    _animScale1 = new Tween<double>(begin: _scaleMax, end: 1)
-      .animate(CurvedAnimation(curve: Interval(0.5, 1.0, curve: Curves.linear), parent: _animController))
-      ..addListener((){
-        if (_animController.value >= 0.5)
-          setState((){
-            _scale = _animScale1.value;
-          });
-      });
-
+    activeHash = 100;
+    //subCount = 1;
+    _counter = 0;
     _controller.addListener(onRedraw);
   }
 
   @override
   void dispose()
   {
+    //_controller0.dispose();
     _controller.removeListener(onRedraw);
     super.dispose();
   }
@@ -193,6 +125,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     final int activeSubbeat0 = activeHash & 0xFFFF;
     //final bool active = widget.id == activeBeat;
 
+/*
     int indexImage = active ? 3 : 0;
     if (active && widget.subbeatCount > 1)
     {
@@ -200,51 +133,97 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       if (indexImage > 4) //TODO
         indexImage = 1 + indexImage % 4;
     }
+*/
 
-    //print('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
+    int indexImage = widget.getImageIndex(widget.nAccent, activeSubbeat, widget.subbeatCount);
+
+    maxDragX = widget.images[indexImage].width / 4;
+/*
+    int indexImage = 2 * (widget.nAccent + 1);
+    if (active)
+    {
+      //indexImage++;
+      indexImage += activeSubbeat % 2;
+    }
+*/
+
+    //debugPrint('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
     //if (subbeatCount != widget.subbeatCount)
-      //print('!Owl:subbeatCount ${widget.subbeatCount}');
+      //debugPrint('!Owl:subbeatCount ${widget.subbeatCount}');
     //if (active != widget.active)
-      //print('!Owl:active $active ${widget.active}');
-    return GestureDetector(
-          onTap: () {
-            setState(() {
-              _animController.forward();//.orCancel;
-              widget.subbeatCount++;
-              //subbeatCount++;
-              if (widget.subbeatCount > maxSubCount)
-              {
-                //TODO
-                widget.subbeatCount = 1;
-                  //subbeatCount = 1;
-              }
-            });
-            //Provider.of<MetronomeState>(context, listen: false)
-              //.setActiveState(widget.id, widget.subbeatCount);
-            widget.onTap(widget.id, widget.subbeatCount);
-          },
+      //debugPrint('!Owl:active $active ${widget.active}');
+
+    return
           //TODO 1 vs 2 RepaintBoundary in Column
-          child: RepaintBoundary(
+          RepaintBoundary(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
 //              RepaintBoundary(child:
-              AspectRatio( // This gives size to NoteWidget
-                aspectRatio: 1,
+            GestureDetector(
+            onTap: () {
+              setState(() {
+                if (widget.subbeatCount == 1)
+                  widget.subbeatCount = 2;
+                else if (widget.subbeatCount == 2)
+                  widget.subbeatCount = 4;
+                else if (widget.subbeatCount == 3)
+                  widget.subbeatCount = 1;
+                else if (widget.subbeatCount == 4)
+                  widget.subbeatCount = 3;
+                //widget.subbeatCount++;
+                //subbeatCount++;
+                if (widget.subbeatCount > 4)
+                {
+                  //TODO
+                  widget.subbeatCount = 1;
+                  //subbeatCount = 1;
+                }
+              });
+              //Provider.of<MetronomeState>(context, listen: false)
+              //.setActiveState(widget.id, widget.subbeatCount);
+              widget.onNoteTap(widget.id, widget.subbeatCount);
+            },
+            onHorizontalDragStart: (DragStartDetails details) {
+              _dragStart = details.localPosition.dx;
+            },
+            onHorizontalDragUpdate: (DragUpdateDetails details) {
+              double delta = details.localPosition.dx - _dragStart;
+              int step = (maxSubCount * delta) ~/ maxDragX;
+              step = delta ~/ maxDragX;
+              if (step != 0)
+              {
+                _dragStart = details.localPosition.dx;
+                int subbeatCount = widget.subbeatCount + step;
+                //debugPrint('onHorizontalDragStart - $_dragStart - $delta - $step - $subbeatCount');
+                if (subbeatCount < 1)
+                  subbeatCount = 1;
+                if (subbeatCount > maxSubCount)
+                  subbeatCount = maxSubCount;
+
+                setState(() {
+                  widget.subbeatCount = subbeatCount;
+                });
+                widget.onNoteTap(widget.id, widget.subbeatCount);
+              }
+            },
+            child: AspectRatio( // This gives size to NoteWidget
+                aspectRatio: 1.2,//3.5 / 3,
                 //width: 0.9 * widget.width,
                 //height: 0.9 * widget.width,
                 child: Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: 0),
                   child: NoteWidget(
                     subDiv: widget.subbeatCount,
                     denominator: widget.denominator * widget.subbeatCount,
                     active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.stemFixed,
+                    activeNoteType: ActiveNoteType.explosion,
                     colorPast: Colors.white,
                     colorNow: Colors.red,
                     colorFuture: Colors.white,
                   )
                  )
+              ),
               ),
 
 //              RepaintBoundary(child:
@@ -252,19 +231,16 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 //width: widget.width,
                 //height: widget.width * 668 / 546,
                 //child:
-            Transform.rotate(
-              alignment: Alignment.bottomCenter,
-              angle: _angle,
-              child:
-                Transform.scale(
-                  alignment: Alignment.bottomCenter,
-                  scale: _scale,
-                  child:
-                    widget.images[indexImage]
-              )
-            )
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  widget.onTap(widget.id, widget.nAccent);
+                });
+              },
+              child: widget.images[indexImage]
+            ),
           ])
-        ));
+        );
   }
 }
 
@@ -280,7 +256,7 @@ class OwlPainter extends CustomPainter
 
 @override
   void paint(Canvas canvas, Size size) {
-    print('paint $id - $size');
+    debugPrint('paint $id - $size');
 
     Paint paint = new Paint()
       ..color = active ? Colors.red : Colors.blue;
@@ -291,7 +267,7 @@ class OwlPainter extends CustomPainter
   @override
   bool shouldRepaint(OwlPainter oldDelegate) {
     // TODO: implement shouldRepaint
-    print('shouldRepaint $id - $active - ${oldDelegate.active}');
+    debugPrint('shouldRepaint $id - $active - ${oldDelegate.active}');
     return oldDelegate.active != active;
   }
 
