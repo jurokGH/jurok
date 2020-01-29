@@ -6,9 +6,9 @@ import 'package:owlenome/accent_metre_ui.dart';
 import 'package:owlenome/prosody.dart';
 import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
-import 'package:flutter_xlider/flutter_xlider.dart';
-
+//import 'package:flutter_xlider/flutter_xlider.dart';
 import 'KnobTuned.dart';
+
 import 'arrow.dart';
 import 'metronome_state.dart';
 import 'beat_metre.dart';
@@ -42,7 +42,6 @@ final double _cCtrlOpacity = 0;
 final Color _cWhiteColor = Colors.white;
 
 final bool usePlayButton = true;
-
 ///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
@@ -106,7 +105,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
-    MethodChannel('samples.flutter.io/owlenome');
+  MethodChannel('samples.flutter.io/owlenome');
 
   ///>>>>>> JG!
   /// UI parameters
@@ -155,7 +154,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _bars = 1;
   //int _numerator = 1;*/
 
-  int _volume = 100;
+  double _volume = 100;
   bool _mute = false;
   int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
@@ -213,16 +212,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   KnobValue _knobValue;
 
-
   _HomePageState()
   {
     //_getMusicSchemes();  //VG WTF???!!!
   }
 
-
   @override
   void initState() {
+
+
     super.initState();
+
 
     _knobValue = KnobValue(
       absoluteAngle: initKnobAngle,
@@ -265,7 +265,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _playing = false;
     _setBeat();
 
-    //TODO Remove//ISH: Careful!
+    //TODO Remove
     _setMusicScheme(_activeSoundScheme);
     //debugPrint('!!!!!!!_setMusicSchemes_getMusicSchemes');
   }
@@ -320,11 +320,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   // Start animation of graphics
-  void _start() {
-    ///Кажется, вся нужная информация явой уже запасена.
-    ///Передавать что-то при старт, кроме факта старта не
-    ///кажется нужным. Но это недопроверено формально... Todo.
-
+  void _start()
+  {
     _playing = true;
     //_setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
     setState(() {});
@@ -337,9 +334,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _beat.beatCount = beats;
       //_activeBeat %= _beat.beatCount;
       //_activeBeat = _activeSubbeat = 0;
-     // Provider.of<MetronomeState>(context, listen: false).reset();
+      // Provider.of<MetronomeState>(context, listen: false).reset();
       //if (_playing)
-        _setBeat();
+      _setBeat();
       setState(() {});
     }
     if (_noteValue != note)
@@ -348,7 +345,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (_playing)
         _setTempo(note);*
       else*/
-       setState(() {});
+      setState(() {});
     }
   }
 
@@ -359,7 +356,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_activeBeat = _activeSubbeat = 0;
     //Provider.of<MetronomeState>(context, listen: false).reset();
     //if (_playing)
-      _setBeat();
+    _setBeat();
     //else
     setState(() {});
   }
@@ -371,7 +368,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_activeBeat = _activeSubbeat = 0;
     //Provider.of<MetronomeState>(context, listen: false).reset();
     //if (_playing)
-      _setBeat();
+    _setBeat();
     setState(() {});
   }
 
@@ -407,40 +404,40 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       return Container();
     else
       return Scaffold(
-      key: _scaffoldKey,  // for showSnackBar to run
-      backgroundColor: Colors.deepPurple, //Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
-      //appBar: AppBar(title: Text(widget.title),),
-      body: SafeArea(
-        child: OrientationBuilder(
-          builder: (context, orientation) {
-            final bool portrait = orientation == Orientation.portrait;
+        key: _scaffoldKey,  // for showSnackBar to run
+        backgroundColor: Colors.deepPurple, //Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
+        //appBar: AppBar(title: Text(widget.title),),
+        body: SafeArea(
+            child: OrientationBuilder(
+                builder: (context, orientation) {
+                  final bool portrait = orientation == Orientation.portrait;
 
-            /// Owl square and controls
-            final List<Widget> innerUI = <Widget>[
-              _buildOwlenome(portrait, false),
-              _buildControls(portrait)
-            ];
+                  /// Owl square and controls
+                  final List<Widget> innerUI = <Widget>[
+                    _buildOwlenome(portrait, false),
+                    _buildControls(portrait)
+                  ];
 
-            return portrait ?
-              // Vertical/portrait
-              Container(
-                decoration: BoxDecoration(
-                   image: DecorationImage(
-                    image: AssetImage('images/Backg-1.jpg'),
-                   fit: BoxFit.cover
-                   )
-                ),
-                child:
-              Column(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start)
-              ) :
-              // Horizontal/landscape
-              Row(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start);
-          }
-        )
-      ),
-    );
+                  return portrait ?
+                  // Vertical/portrait
+                  Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: AssetImage('images/Backg-1.jpg'),
+                              fit: BoxFit.cover
+                          )
+                      ),
+                      child:
+                      Column(children: innerUI,
+                          mainAxisAlignment: MainAxisAlignment.start)
+                  ) :
+                  // Horizontal/landscape
+                  Row(children: innerUI,
+                      mainAxisAlignment: MainAxisAlignment.start);
+                }
+            )
+        ),
+      );
   }
 
   ///widget Plate under controls
@@ -463,107 +460,107 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildMetre(TextStyle textStyle)
   {
     return _buildPlate(
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [Color(0x40202020), Colors.deepPurple[600]])
-            ),
-            width: 0.18 * _sizeCtrls.width,
-            height: 0.13 * _sizeCtrls.height,
-            child: WheelChooser.integer(
-            selectTextStyle: Theme.of(context).textTheme.title
-              .copyWith(color: _cWhiteColor, fontSize: 20, fontWeight: FontWeight.bold, height: 1),
-            unSelectTextStyle: Theme.of(context).textTheme.title
-              .copyWith(color: Colors.white70, fontSize: 16, height: 1),
-            magnification: 1,
-            //itemSize: 48,
-            //perspective: 0.01,
-            //listWidth: 100,
-            squeeze: 1.6,
-            horizontal: true,
-            minValue: minBeatCount,
-            maxValue: maxBeatCount,
-            initValue: _beat.beatCount,
-            step: 1,
-            onValueChanged: (dynamic value) {
-              int beats = value;
-              if (_beat.beatCount != beats)
-              {
-                _beat.beatCount = beats;
-                //_activeBeat %= _beat.beatCount;
-                _activeBeat = _activeSubbeat = 0;
-                //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-                //TODO if (_playing)
-                  _setBeat();
-                setState(() {});
-              }
-            },
-          ),
-        ),
+        Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Color(0x40202020), Colors.deepPurple[600]])
+                ),
+                width: 0.18 * _sizeCtrls.width,
+                height: 0.13 * _sizeCtrls.height,
+                child: WheelChooser.integer(
+                  selectTextStyle: Theme.of(context).textTheme.title
+                      .copyWith(color: _cWhiteColor, fontSize: 20, fontWeight: FontWeight.bold, height: 1),
+                  unSelectTextStyle: Theme.of(context).textTheme.title
+                      .copyWith(color: Colors.white70, fontSize: 16, height: 1),
+                  magnification: 1,
+                  //itemSize: 48,
+                  //perspective: 0.01,
+                  //listWidth: 100,
+                  squeeze: 1.6,
+                  horizontal: true,
+                  minValue: minBeatCount,
+                  maxValue: maxBeatCount,
+                  initValue: _beat.beatCount,
+                  step: 1,
+                  onValueChanged: (dynamic value) {
+                    int beats = value;
+                    if (_beat.beatCount != beats)
+                    {
+                      _beat.beatCount = beats;
+                      //_activeBeat %= _beat.beatCount;
+                      _activeBeat = _activeSubbeat = 0;
+                      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+                      //TODO if (_playing)
+                      _setBeat();
+                      setState(() {});
+                    }
+                  },
+                ),
+              ),
 
-      Container(
-        //width: 0.3 * _sizeCtrls.height,
-        height: 4,
-      ),
+              Container(
+                //width: 0.3 * _sizeCtrls.height,
+                height: 4,
+              ),
 
-      Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [Color(0x40202020), Colors.deepPurple[600]])
-        ),
-        width: 0.18 * _sizeCtrls.width,
-        height: 0.12 * _sizeCtrls.height,
-        child: WheelChooser(
-          selectTextStyle: Theme.of(context).textTheme.title
-            .copyWith(color: _cWhiteColor, fontSize: 16, fontWeight: FontWeight.bold, height: 1),
-          unSelectTextStyle: Theme.of(context).textTheme.title
-            .copyWith(color: Colors.white70, fontSize: 16, height: 1),
-          magnification: 1,
-          //itemSize: 48,
-          //perspective: 0.01,
-          //listWidth: 100,
-          squeeze: 1.6,
-          horizontal: true,
-          datas: ['2', '4', '8', '16'],
-          startPosition: 1,
-          onValueChanged: (dynamic value) {
-            String sNote = value;
-            int note = int.parse(sNote);
-            if (_noteValue != note)
-            {
-              _noteValue = note;
-              if (_playing)
-                _setTempo(note);
-              else
-                setState(() {});
-            }
-          },
-        ),
-      ),
-        ]
-      )
+              Container(
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Color(0x40202020), Colors.deepPurple[600]])
+                ),
+                width: 0.18 * _sizeCtrls.width,
+                height: 0.12 * _sizeCtrls.height,
+                child: WheelChooser(
+                  selectTextStyle: Theme.of(context).textTheme.title
+                      .copyWith(color: _cWhiteColor, fontSize: 16, fontWeight: FontWeight.bold, height: 1),
+                  unSelectTextStyle: Theme.of(context).textTheme.title
+                      .copyWith(color: Colors.white70, fontSize: 16, height: 1),
+                  magnification: 1,
+                  //itemSize: 48,
+                  //perspective: 0.01,
+                  //listWidth: 100,
+                  squeeze: 1.6,
+                  horizontal: true,
+                  datas: ['2', '4', '8', '16'],
+                  startPosition: 1,
+                  onValueChanged: (dynamic value) {
+                    String sNote = value;
+                    int note = int.parse(sNote);
+                    if (_noteValue != note)
+                    {
+                      _noteValue = note;
+                      if (_playing)
+                        _setTempo(note);
+                      else
+                        setState(() {});
+                    }
+                  },
+                ),
+              ),
+            ]
+        )
     );
 
     return _buildPlate(
-      MetreWidget(
-        beats: _beat.beatCount,
-        minBeats: minBeatCount,
-        maxBeats: maxBeatCount,
-        note: _noteValue,
-        minNote: minNoteValue,
-        maxNote: maxNoteValue,
-        color: _primaryColor,
-        textStyle: textStyle,
-        onChanged: onMetreChanged
-      )
+        MetreWidget(
+            beats: _beat.beatCount,
+            minBeats: minBeatCount,
+            maxBeats: maxBeatCount,
+            note: _noteValue,
+            minNote: minNoteValue,
+            maxNote: maxNoteValue,
+            color: _primaryColor,
+            textStyle: textStyle,
+            onChanged: onMetreChanged
+        )
     );
   }
 
@@ -571,7 +568,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildSubbeat(TextStyle textStyle)
   {
     return Center(child:
-      _buildPlate(
+    _buildPlate(
       SubbeatWidget(
         subbeatCount: _beat.subBeatCount,
         noteValue: _noteValue,
@@ -676,12 +673,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             count = maxBeatCount;
           onMetreChanged(count, _noteValue);
         }
-      );
+    );
 
     //VG TODO
     final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ?
-      10 : 0;
-      //0.03 * _widthSquare : 0;
+    10 : 0;
+    //0.03 * _widthSquare : 0;
     final double paddingY = 0;//_beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
 
     return GestureDetector(
@@ -699,12 +696,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //widget.onTap(widget.id, widget.subbeatCount);
       },
 */
-      child: Container(
-        width: _sideSquare,
-        height: _sideSquare,
-        padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
-          EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
-        ///widget Background
+        child: Container(
+            width: _sideSquare,
+            height: _sideSquare,
+            padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
+            EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
+            ///widget Background
 /*
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -717,8 +714,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
          // )
         ),
 */
-        child: wixOwls
-      )
+            child: wixOwls
+        )
     );
   }
 
@@ -735,22 +732,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     ///widget Metre row
     final Widget rowMetre = new Padding(
-      padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ///widget Metre
-          //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
-          _buildMetre(_textStyle),
+        padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ///widget Metre
+              //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
+              _buildMetre(_textStyle),
 /*
           SizedBox(
             width: 0.3 * (_sizeCtrls.width - 2 * _padding.dx),
             child: _buildMetre(_textStyle)
           ),
 */
-          //),
-          //Placeholder(),
+              //),
+              //Placeholder(),
 /*
           portrait ?
           TimerWidget(
@@ -764,50 +761,50 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           :
           Container(width: 0, height: 0),
 */
-          SizedBox(
-            width: 10,
-            height: 0.25 * _sizeCtrls.height,
-            child:
-          ArrowWidget(
-            direction: ArrowDirection.left,
-            color: Colors.white.withOpacity(0.8),
-            //color: Colors.deepPurpleAccent.withOpacity(0.75),
-          ),
-          ),
-          ///widget Subbeat widget
-          Flexible(child:
-            Center(child:
+              SizedBox(
+                width: 10,
+                height: 0.25 * _sizeCtrls.height,
+                child:
+                ArrowWidget(
+                  direction: ArrowDirection.left,
+                  color: Colors.white.withOpacity(0.8),
+                  //color: Colors.deepPurpleAccent.withOpacity(0.75),
+                ),
+              ),
+              ///widget Subbeat widget
+              Flexible(child:
+              Center(child:
               Padding(
                 padding: EdgeInsets.only(bottom: 20),
                 child:
-              AccentMetreWidget(
-                beats: _beat.beatCount,
-                noteValue: _noteValue,
-                accents: _beat.accents,
-                pivoVodochka: _beat.pivoVodochka, //?
-                size: Size(0.56 * _sizeCtrls.width - 20, 0.22 * _sizeCtrls.height),
-                onChanged: onMetreChanged,
-                onOptionChanged: (bool pivoVodochka) {
-                  _beat.pivoVodochka = pivoVodochka;
-                  setState(() {});
-                },
+                AccentMetreWidget(
+                  beats: _beat.beatCount,
+                  noteValue: _noteValue,
+                  accents: _beat.accents,
+                  pivoVodochka: _beat.pivoVodochka, //?
+                  size: Size(0.56 * _sizeCtrls.width - 20, 0.22 * _sizeCtrls.height),
+                  onChanged: onMetreChanged,
+                  onOptionChanged: (bool pivoVodochka) {
+                    _beat.pivoVodochka = pivoVodochka;
+                    setState(() {});
+                  },
+                ),
               ),
               ),
-            ),
-          ),
-          SizedBox(
-            width: 10,
-            height: 0.25 * _sizeCtrls.height,
-            child:
-          ArrowWidget(
-            direction: ArrowDirection.right,
-            color: Colors.white.withOpacity(0.8),
-            //color: Colors.deepPurpleAccent.withOpacity(0.75),
-          ),
-          ),
+              ),
+              SizedBox(
+                width: 10,
+                height: 0.25 * _sizeCtrls.height,
+                child:
+                ArrowWidget(
+                  direction: ArrowDirection.right,
+                  color: Colors.white.withOpacity(0.8),
+                  //color: Colors.deepPurpleAccent.withOpacity(0.75),
+                ),
+              ),
 
-          _buildSubbeat(_textStyle),
-          //AspectRatio(aspectRatio: 6,
+              _buildSubbeat(_textStyle),
+              //AspectRatio(aspectRatio: 6,
 /*
               subDiv: 8,
               denominator: 4 * 8,
@@ -834,35 +831,35 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 //              child:
 //            _buildSubbeat(_textStyle),
 //            )
-          //)
-        ])
-      );
+              //)
+            ])
+    );
     children.add(rowMetre);
 
     ///widget Tempo list
     final Widget listTempo = new Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      //Padding( padding: EdgeInsets.zero, child:
-      children: <Widget>[
-        //_buildPlate(TempoWidget(
-        Padding(
-          padding: EdgeInsets.only(bottom: 0),
-          child:
-          TempoWidget(
-            tempo: _tempoBpm,
-            textStyle: _textStyle,
-            onChanged: (int tempo) {
-              if (_tempoBpm != tempo)
-                _tempoBpm = tempo;
-              if (_playing)
-                _setTempo(tempo);
-              else
-                setState(() {});
-              debugPrint('onSelectedItemChanged - minTempo');
-              debugPrint(_tempoBpm.toString());
-            }
-          )),
-      ]
+        mainAxisAlignment: MainAxisAlignment.center,
+        //Padding( padding: EdgeInsets.zero, child:
+        children: <Widget>[
+          //_buildPlate(TempoWidget(
+          Padding(
+              padding: EdgeInsets.only(bottom: 0),
+              child:
+              TempoWidget(
+                  tempo: _tempoBpm,
+                  textStyle: _textStyle,
+                  onChanged: (int tempo) {
+                    if (_tempoBpm != tempo)
+                      _tempoBpm = tempo;
+                    if (_playing)
+                      _setTempo(tempo);
+                    else
+                      setState(() {});
+                    debugPrint('onSelectedItemChanged - minTempo');
+                    debugPrint(_tempoBpm.toString());
+                  }
+              )),
+        ]
     );
 
     final ScrollController scrollCtrl = new FixedExtentScrollController(initialItem: _tempoBpm - minTempo);
@@ -887,9 +884,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           setState(() {});
       },
       itemBuilder: (BuildContext context, int index) =>
-        Text((index + minTempo).toString(),
-          style: TextStyle(color: _cWhiteColor, fontSize: 36, height: 1)
-        ),
+          Text((index + minTempo).toString(),
+              style: TextStyle(color: _cWhiteColor, fontSize: 36, height: 1)
+          ),
       childCount: maxTempo - minTempo + 1,
       /*
     this.diameterRatio = _kDefaultDiameterRatio,
@@ -905,7 +902,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     int childCount,
 */
     );
-      ///widget Tempo knob control
+
+    ///widget Tempo knob control
     Widget knobTempo = new Knob(
       value: _tempoBpm.toDouble(),
       min: minTempo.toDouble(),
@@ -929,40 +927,44 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
     );
 
+
+
+
+
     Widget wheelTempo =
-      new Container(
+    new Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Color(0x40202020), Colors.deepPurple[600]])
+            gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color(0x40202020), Colors.deepPurple[600]])
         ),
         width: 0.2 * _sizeCtrls.width, //80,
         height: 0.35 * _sizeCtrls.height, //100,
-      child: WheelChooser.integer(
-        selectTextStyle: Theme.of(context).textTheme.display1
-          .copyWith(color: _cWhiteColor, fontSize: 24, fontWeight: FontWeight.bold, height: 1),
-        unSelectTextStyle: Theme.of(context).textTheme.display1
-          .copyWith(color: Colors.white70, fontSize: 24, height: 1),
-        magnification: 1,
-        itemSize: 48,
-        //perspective: 0.01,
-        //listWidth: 100,
-        squeeze: 1,
-        horizontal: false,
-        minValue: minTempo,
-        maxValue: maxTempo,
-        initValue: _tempoBpm,
-        step: 1,
-        onValueChanged: (dynamic value) {
-          _tempoBpm = value.round();
-          //_tempoList.setTempo(_tempoBpm);
-          if (_playing)
-            _setTempo(_tempoBpm);
-          //else
-          setState(() {});
-        },
-      )
+        child: WheelChooser.integer(
+          selectTextStyle: Theme.of(context).textTheme.display1
+              .copyWith(color: _cWhiteColor, fontSize: 24, fontWeight: FontWeight.bold, height: 1),
+          unSelectTextStyle: Theme.of(context).textTheme.display1
+              .copyWith(color: Colors.white70, fontSize: 24, height: 1),
+          magnification: 1,
+          itemSize: 48,
+          //perspective: 0.01,
+          //listWidth: 100,
+          squeeze: 1,
+          horizontal: false,
+          minValue: minTempo,
+          maxValue: maxTempo,
+          initValue: _tempoBpm,
+          step: 1,
+          onValueChanged: (dynamic value) {
+            _tempoBpm = value.round();
+            //_tempoList.setTempo(_tempoBpm);
+            if (_playing)
+              _setTempo(_tempoBpm);
+            //else
+            setState(() {});
+          },
+        )
     );
 
     Widget cupWheelTempo = new SizedBox(
@@ -973,15 +975,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 
     if (false)
-    children.add(Row(
-      mainAxisAlignment: portrait ?
-      MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-      //crossAxisAlignment: CrossAxisAlignment.end,
-      //mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        wheelTempo,
-      ]
-    ));
+      children.add(Row(
+          mainAxisAlignment: portrait ?
+          MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
+          //crossAxisAlignment: CrossAxisAlignment.end,
+          //mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            wheelTempo,
+          ]
+      ));
 
 /*
     children.add(Row(
@@ -1006,24 +1008,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     ));
 */
     Widget tempo = Text(_tempoBpm.toString(),
-      style: Theme.of(context).textTheme.display3
-        .copyWith(color: _cWhiteColor, fontSize: 48, height: 1));
+        style: Theme.of(context).textTheme.display3
+            .copyWith(color: _cWhiteColor, fontSize: 48, height: 1));
 
-    //InkWell
     Widget btnPlay = new MaterialButton(
-      minWidth: 0.25 * _sizeCtrls.width,
-      //iconSize: 0.4 * _sizeCtrls.height,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(width: 2, color: _cWhiteColor)
-      ),
-      //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-      padding: EdgeInsets.all(8),//_padding.dx),
-      child: tempo,
-      //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
-      color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
-      enableFeedback: false,
-      onPressed: _play
+        minWidth: 0.25 * _sizeCtrls.width,
+        //iconSize: 0.4 * _sizeCtrls.height,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(width: 2, color: _cWhiteColor)
+        ),
+        //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+        padding: EdgeInsets.all(8),//_padding.dx),
+        child: tempo,
+        //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
+        color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+        enableFeedback: false,
+        onPressed: _play
     );
 /*
     Widget btnPlay = new IconButton(
@@ -1031,14 +1032,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       padding: EdgeInsets.all(0),//_padding.dx),
       icon: tempo,
       //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
-    Widget btnPlay = new InkWell(
-        onTap: _play,
-        enableFeedback: !_playing,
-        child: Icon(
-          _playing ? Icons.pause_circle_outline : Icons.play_circle_outline,
       color: _cWhiteColor, //portrait ? _accentColor : _primaryColor,
+      enableFeedback: false,
       onPressed: _play
     );
+*/
 
     Widget buttons =
 //    Column(
@@ -1057,36 +1055,36 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ]
         ),
 */
-        //Expanded(child:
-        Row(
-  //      mainAxisAlignment: portrait ?
-  //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-          //mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            MaterialButton(
-              //iconSize: 40,
-              //padding: EdgeInsets.all(_padding.dx),
-              //icon: Icon(Icons.check_box_outline_blank,),
-              child: Text((_activeSoundScheme + 1).toString(),
+    //Expanded(child:
+    Row(
+      //      mainAxisAlignment: portrait ?
+      //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
+      //mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          MaterialButton(
+            //iconSize: 40,
+            //padding: EdgeInsets.all(_padding.dx),
+            //icon: Icon(Icons.check_box_outline_blank,),
+            child: Text((_activeSoundScheme + 1).toString(),
                 style: TextStyle(fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: _cWhiteColor
+                    fontWeight: FontWeight.bold,
+                    color: _cWhiteColor
                 )
-              ),
-              shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-              padding: EdgeInsets.all(4),
-              textTheme: ButtonTextTheme.primary,
-              //color: _cWhiteColor,
-              //tooltip: _soundSchemes[_activeSoundScheme],
-              enableFeedback: !_playing,
-              onPressed: () {
-                _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
-                _setMusicScheme(_activeSoundScheme);
-                setState(() {}); //TODO move to _setMusicScheme?
-              },
             ),
+            shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+            padding: EdgeInsets.all(4),
+            textTheme: ButtonTextTheme.primary,
+            //color: _cWhiteColor,
+            //tooltip: _soundSchemes[_activeSoundScheme],
+            enableFeedback: !_playing,
+            onPressed: () {
+              _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
+              _setMusicScheme(_activeSoundScheme);
+              setState(() {}); //TODO move to _setMusicScheme?
+            },
+          ),
 
           ///widget Settings
           IconButton(
@@ -1147,20 +1145,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ]),
 */
 
-            //Flexible(child:
-            //padding: EdgeInsets.only(right: _padding.dx),
-            ///widget Settings
-            ///widget Volume
-            //_buildVolume(),
-          ]
-        );
+          //Flexible(child:
+          //padding: EdgeInsets.only(right: _padding.dx),
+          ///widget Settings
+          ///widget Volume
+          //_buildVolume(),
+        ]
+    );
 
     // On app startup: _soundSchemes == null
     final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
-      _soundSchemes[_activeSoundScheme] : '';
+    _soundSchemes[_activeSoundScheme] : '';
 
     List<Widget> rowButtons = <Widget>[
-        Stack(
+      Stack(
           alignment: AlignmentDirectional.center,
           children: <Widget>[
             Align(
@@ -1206,8 +1204,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
             ),
           ]
-        )
-      ];
+      )
+    ];
 
 /*
     children.add(
@@ -1232,9 +1230,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       children: <Widget>[
         //listTempo,
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
 /*
             SizedBox(
               width: 20,
@@ -1264,6 +1262,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
 */
 
+              //knobTempo,
+
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -1288,29 +1288,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ),
                 ],
               ),
-
-              //knobTempo,
               //wheelTempo,
               //cupWheelTempo,
 
               Container(
-              width: (usePlayButton ? 0.1 : 0.3) * _sizeCtrls.width,
+                width: (usePlayButton ? 0.1 : 0.3) * _sizeCtrls.width,
                 //width: 0.025 * _sizeCtrls.width,
               ),
-            usePlayButton ?
+              usePlayButton ?
               //Center(child: tempo)
               btnPlay
-              :
-            Container()
+                  :
+              Container()
 
-          ]
+            ]
         ),
-              usePlayButton ? btnPlay : Container()
-            ]),
       ],
     );
 
-  //children.addAll(rowButtons);
+    //children.addAll(rowButtons);
 /*
     children.add(
         SlideTransition(
@@ -1345,33 +1341,33 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         height: _sizeCtrls.height - 24,
 
         child: Stack(
-          alignment: Alignment.bottomCenter
-          ,
-          //fit: StackFit.passthrough,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                rowMetre,
-                Stack(
+            alignment: Alignment.bottomCenter
+            ,
+            //fit: StackFit.passthrough,
+            children: <Widget>[
+              Column(
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        rowTempo,
-                        //wixTempoWheel,
-                        //wixKnob,
-                      ]
-                    ),
-                    Positioned(
-                      right: 0,
-                      width: 0.5 * _sizeCtrls.width,
-                      child: listTempo
-                    ),
-                ]),
-              ]
-            ),
-            buttons,
-          ]
+                    rowMetre,
+                    Stack(
+                        children: <Widget>[
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                rowTempo,
+                                //wixTempoWheel,
+                                //wixKnob,
+                              ]
+                          ),
+                          Positioned(
+                              right: 0,
+                              width: 0.5 * _sizeCtrls.width,
+                              child: listTempo
+                          ),
+                        ]),
+                  ]
+              ),
+              buttons,
+            ]
         ),
 /*
         child: Column(
@@ -1379,7 +1375,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           children: children,
         )
 */
-    );
+      );
   }
 
   /// <<<<<<<< Widget section
@@ -1767,7 +1763,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _showSettings(BuildContext context) async
   {
     final int animationType = await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => SettingsWidget(animationType: _animationType)));
+        MaterialPageRoute(builder: (context) => SettingsWidget(animationType: _animationType)));
     //Navigator.of(context).push(_createSettings());
     print('animationType');
     print(animationType);
@@ -1793,7 +1789,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
    */
   }
 }
-
 
 ///VG: Don't delete
 /*
