@@ -380,6 +380,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() {});
   }
 
+
+
+  Widget tempoIndicator() {
+    String s = '${_tempoBpm.toString()}';
+    Color col = Colors.green;
+    if (_tempoBpm >= _tempoBpmMax) {
+      //s += ' (MAX)';
+      col = Colors.amberAccent;
+    }
+    if (_tempoBpm <= minTempo) {
+      //s += ' (MIN)';
+      col = Colors.amberAccent;
+    }
+    return Text(
+      s,
+      style: TextStyle(fontSize: 0.1 * _sizeCtrls.height, color: col),
+    );
+  }
+
   /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
   ///
