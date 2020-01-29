@@ -7,6 +7,13 @@ import 'prosody.dart';
 
 class BeatMetre
 {
+  static const List<int> _initSubBeats = [
+    2, 2, 4, 2, 4, 2,  // Fancy
+    //2,2,4,2,4,2,6,1,
+    //1,1,1,1,1,1,1,1,1,1,1,1
+    1,1,1,1
+  ];
+
   /// Number of beats
   int _beatCount;
   /// Number of subbeats if they are the same for all beats
@@ -38,15 +45,28 @@ class BeatMetre
     //ToDo: просодия тут
     //accents = new List<int>.filled(_initSubBeats.length, 0, growable: true);
     accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
+    accents[0] = -1;
+    subBeats[0] = 1;
+
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
 
-// final List<int> initSubBeats = [2,2,4,2,4,2,6,1];//Fancy
-  static const List<int> _initSubBeats = [2, 2, 4, 2, 4, 2];//Fancy
-// final List<int> _initSubBeats = [1,1,1,1,1,1,1,1,1,1,1,1];
-//   final List<int> _initSubBeats = [1,1,1,1];
+  //TODO Change to var?
+  int get maxAccent =>  _beatCount > 3 ? 3 : _beatCount - 1;
+
+  void accentUp(int beat)
+  {
+    assert(0 <= beat && beat < _beatCount);
+
+    if (beat < _beatCount)
+    {
+      accents[beat]++;
+      if (accents[beat] > maxAccent)
+        accents[beat] = -1;
+    }
+  }
 
   ///TODO For now
   int get accent => accents.length > 0 ? accents[0] : 0;

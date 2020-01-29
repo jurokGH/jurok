@@ -39,8 +39,8 @@ class OwlWidget extends StatefulWidget
     @required this.activeSubbeat,
     @required this.subbeatCount,
     @required this.animation,
-    @required this.images}):
-    assert(subbeatCount > 0);
+    @required this.images});
+  //:assert(subbeatCount > 0);
 
   @override
   OwlState createState() => OwlState(active, activeSubbeat, animation);
@@ -122,8 +122,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   @override
   Widget build(BuildContext context)
   {
-    final int beat0 = activeHash >> 16;
-    final int activeSubbeat0 = activeHash & 0xFFFF;
+//    final int beat0 = activeHash >> 16;
+//    final int activeSubbeat0 = activeHash & 0xFFFF;
     //final bool active = widget.id == activeBeat;
 
 /*
@@ -156,10 +156,10 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
     return
           //TODO 1 vs 2 RepaintBoundary in Column
-          RepaintBoundary(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
+      RepaintBoundary(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
 //              RepaintBoundary(child:
             GestureDetector(
             onTap: () {

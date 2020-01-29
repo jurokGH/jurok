@@ -20,6 +20,7 @@ class Knob extends StatefulWidget
   final double outerRadius;
   final Color color;
   final TextStyle textStyle;
+  final bool showIcon;
   final bool debug;
 
   final ValueChanged<double> onChanged;
@@ -34,6 +35,7 @@ class Knob extends StatefulWidget
     this.buttonRadius = 0.4,
     this.outerRadius = 0.8,
     this.color = Colors.blue,
+    this.showIcon = true,
     this.debug = false,
     @required this.textStyle,
     @required this.onChanged, @required this.onPressed});
@@ -205,6 +207,11 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               tap = false;
             }
           },
+          onTapCancel: () {
+            setState(() {
+              tap = false;
+            });
+          },
           onPanDown: (DragDownDetails details) {
             details.globalPosition;
           },
@@ -306,7 +313,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             final double v0 = 1;
             print('onPanEnd ${velocity.toString()} - $v');
 
-            _prevPos = null;
+            setState(() {
+              _prevPos = null;
+            });
 
             _time = (v * 1000) ~/ v0;
             if (_controller.isAnimating)
@@ -320,6 +329,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             //widget.onChanged(_value);
           },
           onPanCancel: () {
+            setState(() {
+              _prevPos = null;
+            });
           },
           /*
         onHorizontalDragUpdate: (DragUpdateDetails details) {
@@ -338,7 +350,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                 angle: angle,
                 child: ClipOval(
                   child: Container(
-                    color: Colors.deepPurpleAccent.withOpacity(0.7), //widget.color,
+                    color: Colors.deepPurple.withOpacity(0.7), //widget.color,
                     child: Image.asset('images/TempoKnob.png',
                       height: size,
                       fit: BoxFit.cover
@@ -350,10 +362,11 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               CustomPaint(
                 painter: KnobPainter(widget.outerRadius, widget.buttonRadius,
                   _prevPos, widget.scaleCount,
-                  Colors.red, Colors.purple, Colors.orange, widget.debug),
+                  Colors.purpleAccent, Colors.purple.withOpacity(0.25), Colors.blueAccent, widget.debug),
                 size: Size(size, size),
               ),
 
+              widget.showIcon ?
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -366,6 +379,10 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                   ),
                 ]
               )
+                :
+              Text(widget.value.toInt().toString(),
+                style: widget.textStyle
+              ),
             ]
           ),
         ),
@@ -444,7 +461,7 @@ class KnobPainter extends CustomPainter
         Offset off = new Offset(pos.dx, -pos.dy);
         Rect rc = new Rect.fromCircle(center: center + off, radius: radiusSpot);
         final Shader gradient = new RadialGradient(
-          colors: <Color>[colorHit, colorHit.withOpacity(0.2)],
+          colors: <Color>[colorHit, colorHit.withOpacity(0.0)],
         ).createShader(rc);
         final Paint paintHit = new Paint()
           ..style = PaintingStyle.fill

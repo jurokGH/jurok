@@ -13,16 +13,17 @@ class AccentMetreWidget extends StatefulWidget
   final List<int> accents;
   final Size size;
   final ValueChanged2<int, int> onChanged;
+  final ValueChanged<bool> onOptionChanged;
 
   AccentMetreWidget({
-    this.beats, this.noteValue, this.accents, this.size, this.pivoVodochka = true,
+    this.beats, this.noteValue, this.accents, this.pivoVodochka = true,
+    this.size,
     @required this.onChanged,
+    @required this.onOptionChanged,
   });
 
   @override
-  State<StatefulWidget> createState() {
-    return AccentMetreState();
-  }
+  State<StatefulWidget> createState() => AccentMetreState();
 }
 
 class AccentMetreState extends State<AccentMetreWidget>
@@ -45,9 +46,14 @@ class AccentMetreState extends State<AccentMetreWidget>
   Widget build(BuildContext context)
   {
     final List<int> metres = Prosody.getSimpleMetres(widget.beats, widget.pivoVodochka);
+
     double width = widget.size.width / metres.length;
-    if (widget.beats <= 4)
+    if (widget.beats == 2)
+      width /= 3;
+    else if (widget.beats == 3)
       width /= 2;
+    else if (widget.beats == 4)
+      width /= 1.5;
 
     print(widget.accents);
     //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
@@ -97,12 +103,11 @@ class AccentMetreState extends State<AccentMetreWidget>
           if (index >= _metreList.length)
             index = 0;
           _activeMetre = index;
-          ;
           widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
         },
         onVerticalDragEnd: (DragEndDetails details) {
-          bool pivoVodochka = !widget.pivoVodochka;
-          //widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
+          widget.onOptionChanged(!widget.pivoVodochka);
+          //setState(() {});
         },
         child: Wrap(
         children: notes,
