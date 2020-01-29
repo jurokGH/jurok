@@ -45,8 +45,8 @@ class BeatMetre
     //ToDo: просодия тут
     //accents = new List<int>.filled(_initSubBeats.length, 0, growable: true);
     accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
-    accents[0] = -1;
-    subBeats[0] = 1;
+    //accents[0] = -1;
+    //subBeats[0] = 1;
 
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
