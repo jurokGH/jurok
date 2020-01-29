@@ -14,6 +14,8 @@ class BeatMetre
     1,1,1,1
   ];
 
+  //ToDo: fancy Bolero
+
   /// Number of beats
   int _beatCount;
   /// Number of subbeats if they are the same for all beats
