@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'note_ui.dart';
+import 'prosody.dart';
 
 class SubbeatWidget extends StatefulWidget
 {
@@ -27,25 +28,12 @@ class SubbeatState extends State<SubbeatWidget>
 {
   SubbeatState();
 
-  /// Loop through subdivision list: 1, 2, 4, 3
-  int nextSubbeat(int subBeat)
-  {
-    subBeat++;
-    if (subBeat == 3)
-      subBeat = 4;
-    else if (subBeat == 4)
-      subBeat = 1;
-    else if (subBeat >= 5)
-      subBeat = 3;
-    return subBeat;
-  }
-
   @override
   Widget build(BuildContext context)
   {
     return GestureDetector(
       onTap: () {
-        int subbeatCount = nextSubbeat(widget.subbeatCount);
+        int subbeatCount = Subbeat.next(widget.subbeatCount);
         setState(() {});
         widget.onChanged(subbeatCount);
       },

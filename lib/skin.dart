@@ -16,13 +16,15 @@ Future<ui.Image> _loadImage(String imgName)
 
 class OwlSkin
 {
-  final kindCount = 5;  // == accentCount + 1
-  final frameCount = 5;  // == subbeatCount
+  final int kindCount = 5;  // == accentCount + 1
+  final int frameCount = 5;  // == subbeatCount
   //List<List<Image>> _images;
   List<Image> _images;
   Size _imageSize = Size.zero;
   Size _imageSize0 = Size.zero;
   double aspect = 1;
+
+  int animationType = 0;
 
   OwlSkin();
 
@@ -45,14 +47,34 @@ class OwlSkin
       if (subbeat >= 0)  // Select image with active owl
       {
         subbeat = subbeat % subbeatCount;
-        if (subbeatCount <= 2)
-          indexImage += subbeat > 0 ? 4 : 1;
+
+        if (animationType == 0)
+          indexImage += subbeat % 3 + 1;
+        else if (animationType == 1)
+        {
+          subbeat = subbeat % 4;
+          if (subbeat == 0 || subbeat == 2)
+            indexImage += 1;
+          else if (subbeat == 1)
+            indexImage += 2;
+          else if (subbeat == 3)
+            indexImage += 3;
+        }
+        else if (animationType == 2)
+          indexImage += subbeat % 2 == 0 ? 2 : 3;
+        else if (animationType == 3)
+          indexImage += subbeat % 2 == 0 ? 1 : 4;
         else
         {
-          indexImage += subbeat % 3 + 1;
+          if (subbeatCount <= 2)
+            indexImage += subbeat == 1 ? 4 : 1;
+          else
+            indexImage += subbeat % 3 + 1;
         }
       }
     }
+    else
+      indexImage = 0;
     return indexImage;
   }
 
@@ -75,11 +97,10 @@ class OwlSkin
     {
       //List<Image> il = new List<Image>(5);
       //_images[i] = il;
-      int i1 = i < 2 ? i : 1;
       int jCount = i == 0 ? 2 : frameCount;
       for (int j = 0; j < jCount; j++, iImage++)
       {
-        _images[iImage] = new Image.asset('images/owl$i1-$j.png',
+        _images[iImage] = new Image.asset('images/owl$i-$j.png',
           width: size.width,
           //height: size.height,
           fit: BoxFit.contain,

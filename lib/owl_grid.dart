@@ -208,6 +208,7 @@ class OwlGrid extends StatefulWidget
   final int activeSubbeat;
   final bool playing;
   final List<int> accents;
+  final int animationType;
 
   final ValueChanged2<int, int> onChanged;
   final ValueChanged<int> onCountChanged;
@@ -217,7 +218,8 @@ class OwlGrid extends StatefulWidget
     this.accents,
     this.activeBeat, this.activeSubbeat,
     this.playing = false,
-    this.onChanged, this.onCountChanged, this.onAccentChanged
+    this.onChanged, this.onCountChanged, this.onAccentChanged,
+    this.animationType = 0,
     //this.width,
     });
 
@@ -280,6 +282,8 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   @override
   Widget build(BuildContext context)
   {
+    _skin.animationType = widget.animationType;
+
     Stopwatch timer = new Stopwatch();
     timer.start();
 

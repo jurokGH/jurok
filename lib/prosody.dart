@@ -1,6 +1,24 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
+class Subbeat
+{
+  static const int maxSubbeatCount = 8;
+
+  /// Loop through subdivision list: 1, 2, 4, 3
+  static int next(int subBeat)
+  {
+    subBeat++;
+    if (subBeat == 3)
+      subBeat = 4;
+    else if (subBeat == 4)
+      subBeat = 1;
+    else if (subBeat >= 5)
+      subBeat = 3;
+    return subBeat;
+  }
+}
+
 // Пришло время расставить акценты!
 // Содержит набор быстрых простеньких процедур (на 19.12.19 - набор состоит из одной),
 // расставляющих акценты для данного числа долей (или поддолей).

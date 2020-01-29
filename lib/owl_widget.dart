@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
 import 'note_ui.dart';
+import 'prosody.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
@@ -48,7 +49,7 @@ class OwlWidget extends StatefulWidget
 class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlWidget>
 {
   static final bool drawSubOwls = false;
-  static final int maxSubCount = 8;
+  //static final int maxSubCount = 8;
 
   int _counter;
 
@@ -163,22 +164,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
             GestureDetector(
             onTap: () {
               setState(() {
-                if (widget.subbeatCount == 1)
-                  widget.subbeatCount = 2;
-                else if (widget.subbeatCount == 2)
-                  widget.subbeatCount = 4;
-                else if (widget.subbeatCount == 3)
-                  widget.subbeatCount = 1;
-                else if (widget.subbeatCount == 4)
-                  widget.subbeatCount = 3;
-                //widget.subbeatCount++;
-                //subbeatCount++;
-                if (widget.subbeatCount > 4)
-                {
-                  //TODO
-                  widget.subbeatCount = 1;
-                  //subbeatCount = 1;
-                }
+                widget.subbeatCount = Subbeat.next(widget.subbeatCount);
               });
               //Provider.of<MetronomeState>(context, listen: false)
               //.setActiveState(widget.id, widget.subbeatCount);
@@ -189,7 +175,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
             },
             onHorizontalDragUpdate: (DragUpdateDetails details) {
               double delta = details.localPosition.dx - _dragStart;
-              int step = (maxSubCount * delta) ~/ maxDragX;
+              int step = (Subbeat.maxSubbeatCount * delta) ~/ maxDragX;
               step = delta ~/ maxDragX;
               if (step != 0)
               {
@@ -198,8 +184,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 //debugPrint('onHorizontalDragStart - $_dragStart - $delta - $step - $subbeatCount');
                 if (subbeatCount < 1)
                   subbeatCount = 1;
-                if (subbeatCount > maxSubCount)
-                  subbeatCount = maxSubCount;
+                if (subbeatCount > Subbeat.maxSubbeatCount)
+                  subbeatCount = Subbeat.maxSubbeatCount;
 
                 setState(() {
                   widget.subbeatCount = subbeatCount;

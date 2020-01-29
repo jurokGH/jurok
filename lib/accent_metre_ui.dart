@@ -9,13 +9,13 @@ class AccentMetreWidget extends StatefulWidget
 {
   final int beats;
   final int noteValue;
-  //final bool pivoVodochka;
+  final bool pivoVodochka;
   final List<int> accents;
   final Size size;
   final ValueChanged2<int, int> onChanged;
 
   AccentMetreWidget({
-    this.beats, this.noteValue, this.accents, this.size,
+    this.beats, this.noteValue, this.accents, this.size, this.pivoVodochka = true,
     @required this.onChanged,
   });
 
@@ -44,7 +44,7 @@ class AccentMetreState extends State<AccentMetreWidget>
   @override
   Widget build(BuildContext context)
   {
-    final List<int> metres = Prosody.getSimpleMetres(widget.beats, true);//widget.pivoVodochka);
+    final List<int> metres = Prosody.getSimpleMetres(widget.beats, widget.pivoVodochka);
     double width = widget.size.width / metres.length;
     if (widget.beats <= 4)
       width /= 2;
@@ -99,6 +99,10 @@ class AccentMetreState extends State<AccentMetreWidget>
           _activeMetre = index;
           ;
           widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
+        },
+        onVerticalDragEnd: (DragEndDetails details) {
+          bool pivoVodochka = !widget.pivoVodochka;
+          //widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
         },
         child: Wrap(
         children: notes,
