@@ -6,8 +6,9 @@ import 'package:owlenome/accent_metre_ui.dart';
 import 'package:owlenome/prosody.dart';
 import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
-//import 'package:flutter_xlider/flutter_xlider.dart';
+import 'package:flutter_xlider/flutter_xlider.dart';
 
+import 'KnobTuned.dart';
 import 'arrow.dart';
 import 'metronome_state.dart';
 import 'beat_metre.dart';
@@ -41,6 +42,7 @@ final double _cCtrlOpacity = 0;
 final Color _cWhiteColor = Colors.white;
 
 final bool usePlayButton = true;
+
 ///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
@@ -153,7 +155,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _bars = 1;
   //int _numerator = 1;*/
 
-  double _volume = 100;
+  int _volume = 100;
   bool _mute = false;
   int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
@@ -202,14 +204,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   double _subbeatWidth = 60;
 
+  //IS: my knob constants
+  double _sensitivity = 3.5;
+  double _innerRadius = 0.01;
+  double _outerRadius = 2;
+  //double _knobSize = 150;
+  static const double initKnobAngle = 1;
+
+  KnobValue _knobValue;
+
+
   _HomePageState()
   {
     //_getMusicSchemes();  //VG WTF???!!!
   }
 
+
   @override
   void initState() {
     super.initState();
+
+    _knobValue = KnobValue(
+      absoluteAngle: initKnobAngle,
+      value: _tempoBpm.toDouble(),
+      tapAngle: null,
+      //deltaAngle:0,
+    );
 
     // Channel callback from hardware Java code
     _channel.setMethodCallHandler(_handleMsg);
@@ -245,7 +265,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _playing = false;
     _setBeat();
 
-    //TODO Remove
+    //TODO Remove//ISH: Careful!
     _setMusicScheme(_activeSoundScheme);
     //debugPrint('!!!!!!!_setMusicSchemes_getMusicSchemes');
   }
@@ -300,8 +320,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   // Start animation of graphics
-  void _start()
-  {
+  void _start() {
+    ///Кажется, вся нужная информация явой уже запасена.
+    ///Передавать что-то при старт, кроме факта старта не
+    ///кажется нужным. Но это недопроверено формально... Todo.
+
     _playing = true;
     //_setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
     setState(() {});
@@ -882,7 +905,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     int childCount,
 */
     );
-
       ///widget Tempo knob control
     Widget knobTempo = new Knob(
       value: _tempoBpm.toDouble(),
@@ -987,6 +1009,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       style: Theme.of(context).textTheme.display3
         .copyWith(color: _cWhiteColor, fontSize: 48, height: 1));
 
+    //InkWell
     Widget btnPlay = new MaterialButton(
       minWidth: 0.25 * _sizeCtrls.width,
       //iconSize: 0.4 * _sizeCtrls.height,
@@ -1008,11 +1031,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       padding: EdgeInsets.all(0),//_padding.dx),
       icon: tempo,
       //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
+    Widget btnPlay = new InkWell(
+        onTap: _play,
+        enableFeedback: !_playing,
+        child: Icon(
+          _playing ? Icons.pause_circle_outline : Icons.play_circle_outline,
       color: _cWhiteColor, //portrait ? _accentColor : _primaryColor,
-      enableFeedback: false,
       onPressed: _play
     );
-*/
 
     Widget buttons =
 //    Column(
@@ -1238,14 +1264,39 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
 */
 
-            knobTempo,
-            //wheelTempo,
-            //cupWheelTempo,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  tempoIndicator(),
+                  KnobTuned(
+                    knobValue: _knobValue,
+                    //ToDo: reset if tempo changed in other widgets
+                    minValue: minTempo.toDouble(),
+                    maxValue: _tempoBpmMax.toDouble(),
+                    sensitivity: _sensitivity,
+                    //color: Colors.blue,
+                    onChanged: (KnobValue newVal) {
+                      _tempoBpm = newVal.value.round();
+                      _knobValue = newVal;
+                      if (_playing) _setTempo(_tempoBpm);
+                      setState(() {});
+                    },
+                    diameter: 0.43 * _sizeCtrls.height,
+                    innerRadius: _innerRadius,
+                    outerRadius: _outerRadius,
+                    //image: imageOfHand,
+                  ),
+                ],
+              ),
 
-            Container(
+              //knobTempo,
+              //wheelTempo,
+              //cupWheelTempo,
+
+              Container(
               width: (usePlayButton ? 0.1 : 0.3) * _sizeCtrls.width,
-              //width: 0.025 * _sizeCtrls.width,
-            ),
+                //width: 0.025 * _sizeCtrls.width,
+              ),
             usePlayButton ?
               //Center(child: tempo)
               btnPlay
@@ -1254,6 +1305,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
           ]
         ),
+              usePlayButton ? btnPlay : Container()
+            ]),
       ],
     );
 
@@ -1302,7 +1355,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 Stack(
                   children: <Widget>[
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         rowTempo,
                         //wixTempoWheel,
@@ -1740,6 +1793,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
    */
   }
 }
+
 
 ///VG: Don't delete
 /*
