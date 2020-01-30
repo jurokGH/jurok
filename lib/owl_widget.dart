@@ -203,7 +203,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                     subDiv: widget.subbeatCount,
                     denominator: widget.denominator * widget.subbeatCount,
                     active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.explosion,
+                    activeNoteType: ActiveNoteType.stemFixed,
                     colorPast: Colors.white,
                     colorNow: Colors.red,
                     colorFuture: Colors.white,

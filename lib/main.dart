@@ -230,10 +230,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   //IS: my knob constants
   double _sensitivity = 2;
-  double _innerRadius = 0.2;
-  double _outerRadius = 1.5;
+  double _innerRadius = 0.0001;
+  double _outerRadius = 2;
   //double _knobSize = 150;
-  static const double initKnobAngle = 1;
+  static const double initKnobAngle = 0;
 
   KnobValue _knobValue;
 
@@ -350,6 +350,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void onMetreChanged(int beats, int note)
   {
+    if (_beat.beatCount != beats) {
+      _beat.beatCount = beats;
+      _setBeat();
+    }
+    _noteValue = note;
+    setState(() {});
+    /*
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
@@ -358,7 +365,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
      // Provider.of<MetronomeState>(context, listen: false).reset();
       //if (_playing)
         _setBeat();
-      setState(() {});
     }
     if (_noteValue != note)
     {
@@ -367,7 +373,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         _setTempo(note);*
       else*/
        setState(() {});
-    }
+    }*/
   }
 
   void onSubbeatChanged(int subbeatCount)
@@ -563,7 +569,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               _noteValue = note;
               if (_playing)
                 _setTempo(note);
-              else
+              else //ToDo: нужно поменять ноты в строке размере
                 setState(() {});
             }
           },
