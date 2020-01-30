@@ -895,7 +895,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           TempoWidget(
             tempo: _tempoBpm,
             textStyle: Theme.of(context).textTheme.display1
-              .copyWith(color: _cWhiteColor, fontSize: 0.12 * _sizeCtrls.height, height: 1),
+              .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),
             onChanged: (int tempo) {
               if (_tempoBpm != tempo)
                 _tempoBpm = tempo;
@@ -1076,7 +1076,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       style: Theme.of(context).textTheme.display3
         .copyWith(
           color: ((_tempoBpm> minTempo)&&(_tempoBpm<_tempoBpmMax))?_cWhiteColor : Colors.amberAccent, //
-              fontSize: 0.16 * _sizeCtrls.height,
+              fontSize: 0.10 * _sizeCtrls.height,
           height: 1));
 
     Widget btnPlay = new MaterialButton(
