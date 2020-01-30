@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1066,7 +1067,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
     Widget tempo = Text(_tempoBpm.toString(),
       style: Theme.of(context).textTheme.display3
-        .copyWith(color: _cWhiteColor, fontSize: 0.16 * _sizeCtrls.height, height: 1));
+        .copyWith(
+          color: ((_tempoBpm> minTempo)&&(_tempoBpm<_tempoBpmMax))?_cWhiteColor : Colors.amberAccent, //
+              fontSize: 0.16 * _sizeCtrls.height,
+          height: 1));
 
     Widget btnPlay = new MaterialButton(
       minWidth: 0.25 * _sizeCtrls.width,
