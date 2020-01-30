@@ -1262,8 +1262,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     //children.add(Expanded(child: Container()));
 
-    if (_showAds)
-      children.add(_buildAds(portrait));
+    Widget ads = _showAds ? _buildAds(portrait) : new Container();
 
     // Fill up the remaining screen as the last widget in column/row
     return Expanded(
@@ -1285,10 +1284,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //child: IntrinsicHeight(
 
         child: Stack(
-          alignment: Alignment.bottomCenter
-          ,
+          alignment: Alignment.bottomCenter,
           //fit: StackFit.passthrough,
           children: <Widget>[
+            ads,
             Column(
               children: <Widget>[
                 rowMetre,

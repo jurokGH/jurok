@@ -146,7 +146,7 @@ class TempoState extends State<TempoWidget>
         widget.onChanged(tempoList[_index].tempo);
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        _index -= details.primaryVelocity.sign.toInt();
+        _index += details.primaryVelocity.sign.toInt();
         if (_index < 1)
           _index = tempoList.length - 1;
         if (_index >= tempoList.length)

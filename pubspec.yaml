@@ -74,7 +74,7 @@ flutter:
     - images/owl4-2.png
     - images/owl4-3.png
     - images/owl4-4.png
-    - images/knobToRotate.png
+    #- images/knobToRotate.png
     #- images/owl1-2.png
     #- images/owl1-3.png
     #- images/owl1-4.png
@@ -88,7 +88,7 @@ flutter:
     ##- images/owl4-0.png
     ##- images/owl4-1.png
     ##- images/Metre.png
-    ##- images/Ad-1.png
+    - images/Ad-1.png
     ##- images/Backg-1.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
