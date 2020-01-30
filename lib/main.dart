@@ -6,8 +6,8 @@ import 'package:owlenome/accent_metre_ui.dart';
 import 'package:owlenome/prosody.dart';
 import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
-import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
+import 'KnobTuned.dart';
 
 import 'arrow.dart';
 import 'metronome_state.dart';
@@ -42,7 +42,6 @@ final double _cCtrlOpacity = 0;
 final Color _cWhiteColor = Colors.white;
 
 final bool usePlayButton = true;
-final bool _debugDevices = false;
 ///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
@@ -50,35 +49,14 @@ final String _cAppTitle = "Owlenome";
 
 void main()
 {
-  if (_debugDevices)
-  {
-    return runApp(
-      DevicePreview(builder: (context) =>
-        ChangeNotifierProvider(
-          create: (_) => new MetronomeState(),
-          child: App()
-        )
-        //new App()
-      ),
-        //..devices.addAll();
-    );
-  }
-
-  return runApp(
-    ChangeNotifierProvider(
-      create: (_) => new MetronomeState(),
-      child: App()
-    )
-  );
+  return runApp(ChangeNotifierProvider(
+      create: (_) => new MetronomeState(), child: App()));
 }
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      locale: _debugDevices ? DevicePreview.of(context).locale : null,
-      builder: _debugDevices ? DevicePreview.appBuilder : null,
-
       title: _cAppName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -225,6 +203,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   double _subbeatWidth = 60;
 
+  //IS: my knob constants
+  double _sensitivity = 3.5;
+  double _innerRadius = 0.01;
+  double _outerRadius = 2;
+  //double _knobSize = 150;
+  static const double initKnobAngle = 1;
+
+  KnobValue _knobValue;
+
   _HomePageState()
   {
     //_getMusicSchemes();  //VG WTF???!!!
@@ -233,6 +220,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+
+
+    _knobValue = KnobValue(
+      absoluteAngle: initKnobAngle,
+      value: _tempoBpm.toDouble(),
+      tapAngle: null,
+      //deltaAngle:0,
+    );
 
     // Channel callback from hardware Java code
     _channel.setMethodCallHandler(_handleMsg);
@@ -1284,9 +1279,34 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
 */
 
-            knobTempo,
-            //wheelTempo,
-            //cupWheelTempo,
+              //knobTempo,
+
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  tempoIndicator(),
+                  KnobTuned(
+                    knobValue: _knobValue,
+                    //ToDo: reset if tempo changed in other widgets
+                    minValue: minTempo.toDouble(),
+                    maxValue: _tempoBpmMax.toDouble(),
+                    sensitivity: _sensitivity,
+                    //color: Colors.blue,
+                    onChanged: (KnobValue newVal) {
+                      _tempoBpm = newVal.value.round();
+                      _knobValue = newVal;
+                      if (_playing) _setTempo(_tempoBpm);
+                      setState(() {});
+                    },
+                    diameter: 0.43 * _sizeCtrls.height,
+                    innerRadius: _innerRadius,
+                    outerRadius: _outerRadius,
+                    //image: imageOfHand,
+                  ),
+                ],
+              ),
+              //wheelTempo,
+              //cupWheelTempo,
 
             Container(
               width: (usePlayButton ? 0.1 : 0.3) * _sizeCtrls.width,
