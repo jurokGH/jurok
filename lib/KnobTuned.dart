@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 
 ///Рисуем радиусы.
-const bool showRadii=false;
+const bool showRadii=true;
 
 class KnobValue {
   ///угол между пальцем и отрисованным изображением в момент нажатия

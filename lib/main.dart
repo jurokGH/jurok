@@ -229,9 +229,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _subbeatWidth = 60;
 
   //IS: my knob constants
-  double _sensitivity = 1.25;
-  double _innerRadius = 0.01;
-  double _outerRadius = 2;
+  double _sensitivity = 2;
+  double _innerRadius = 0.2;
+  double _outerRadius = 1.5;
   //double _knobSize = 150;
   static const double initKnobAngle = 1;
 
@@ -971,9 +971,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
     );
 
-    Widget knobTempoNew = new KnobTuned(
+    Widget knobTempoNew() {
+      _knobValue.value=_tempoBpm.toDouble();
+    return KnobTuned(
       knobValue: _knobValue,
-      //ToDo: reset if tempo changed in other widgets
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
       sensitivity: _sensitivity,
@@ -987,7 +988,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       diameter: 0.55 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
       outerRadius: _outerRadius,
-    );
+    );}
 
     Widget wheelTempo =
       new Container(
@@ -1329,7 +1330,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
 
             _useNewKnob ?
-              knobTempoNew
+              knobTempoNew()
             :
               knobTempo,
               //wheelTempo,
