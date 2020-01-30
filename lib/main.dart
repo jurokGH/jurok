@@ -401,7 +401,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     if (_textStyle == null)
       _textStyle = Theme.of(context).textTheme.display1
-          .copyWith(color: _textColor, fontSize: _textSize, height: 1);
+          .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
 
     if (_screenSize.width <= 0 || _screenSize.height <= 0)  //TODO
       return Container();
@@ -462,7 +462,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Metre
   Widget _buildMetre(TextStyle textStyle)
   {
-    return _buildPlate(
+    return //_buildPlate(
       Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -478,9 +478,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             height: 0.13 * _sizeCtrls.height,
             child: WheelChooser.integer(
             selectTextStyle: Theme.of(context).textTheme.title
-              .copyWith(color: _cWhiteColor, fontSize: 20, fontWeight: FontWeight.bold, height: 1),
+              .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//20
             unSelectTextStyle: Theme.of(context).textTheme.title
-              .copyWith(color: Colors.white70, fontSize: 16, height: 1),
+              .copyWith(color: Colors.white70, height: 1),//16
             magnification: 1,
             //itemSize: 48,
             //perspective: 0.01,
@@ -522,10 +522,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         width: 0.18 * _sizeCtrls.width,
         height: 0.12 * _sizeCtrls.height,
         child: WheelChooser(
-          selectTextStyle: Theme.of(context).textTheme.title
-            .copyWith(color: _cWhiteColor, fontSize: 16, fontWeight: FontWeight.bold, height: 1),
-          unSelectTextStyle: Theme.of(context).textTheme.title
-            .copyWith(color: Colors.white70, fontSize: 16, height: 1),
+          selectTextStyle: Theme.of(context).textTheme.subhead
+            .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//16
+          unSelectTextStyle: Theme.of(context).textTheme.subhead
+            .copyWith(color: Colors.white70, height: 1),//16
           magnification: 1,
           //itemSize: 48,
           //perspective: 0.01,
@@ -548,8 +548,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           },
         ),
       ),
-        ]
-      )
+      ]
     );
 
     return _buildPlate(
@@ -577,9 +576,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         noteValue: _noteValue,
         color: _textColor,
         textStyle: textStyle,
+        width: 0.18 * _sizeCtrls.width,
+        height: 0.24 * _sizeCtrls.height,
         onChanged: onSubbeatChanged,
       ),
-      padding: const Offset(8, 0),
+      //padding: const Offset(8, 0),
     ));
   }
 
@@ -740,6 +741,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Container(width: 0.05 * _sizeCtrls.width,),
+
           ///widget Metre
           //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
           _buildMetre(_textStyle),
@@ -749,6 +752,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             child: _buildMetre(_textStyle)
           ),
 */
+          Container(width: 0.03 * _sizeCtrls.width,),
+
           //),
           //Placeholder(),
 /*
@@ -765,8 +770,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           Container(width: 0, height: 0),
 */
           SizedBox(
-            width: 10,
-            height: 0.25 * _sizeCtrls.height,
+            width: 0.02 * _sizeCtrls.width,//10
+            height: 0.14 * _sizeCtrls.height,
             child:
           ArrowWidget(
             direction: ArrowDirection.left,
@@ -778,14 +783,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           Flexible(child:
             Center(child:
               Padding(
-                padding: EdgeInsets.only(bottom: 20),
+                padding: EdgeInsets.only(bottom: 0.06 * _sizeCtrls.height),//20
                 child:
               AccentMetreWidget(
                 beats: _beat.beatCount,
                 noteValue: _noteValue,
                 accents: _beat.accents,
                 pivoVodochka: _beat.pivoVodochka, //?
-                size: Size(0.56 * _sizeCtrls.width - 20, 0.22 * _sizeCtrls.height),
+                size: Size(0.45 * _sizeCtrls.width, 0.22 * _sizeCtrls.height),
                 onChanged: onMetreChanged,
                 onOptionChanged: (bool pivoVodochka) {
                   _beat.pivoVodochka = pivoVodochka;
@@ -796,8 +801,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
           ),
           SizedBox(
-            width: 10,
-            height: 0.25 * _sizeCtrls.height,
+            width: 0.02 * _sizeCtrls.width,
+            height: 0.14 * _sizeCtrls.height,
             child:
           ArrowWidget(
             direction: ArrowDirection.right,
@@ -806,7 +811,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           ),
 
-          _buildSubbeat(_textStyle),
+          Center(child:
+            //_buildPlate(
+            SubbeatWidget(
+              subbeatCount: _beat.subBeatCount,
+              noteValue: _noteValue,
+              color: _textColor,
+              textStyle: _textStyle,
+              width: 0.18 * _sizeCtrls.width,
+              height: 0.24 * _sizeCtrls.height,
+              onChanged: onSubbeatChanged,
+            ),
+            //padding: const Offset(8, 0),
+          ),
           //AspectRatio(aspectRatio: 6,
 /*
               subDiv: 8,
@@ -1008,7 +1025,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
     Widget tempo = Text(_tempoBpm.toString(),
       style: Theme.of(context).textTheme.display3
-        .copyWith(color: _cWhiteColor, fontSize: 48, height: 1));
+        .copyWith(color: _cWhiteColor, fontSize: 0.16 * _sizeCtrls.height, height: 1));
 
     Widget btnPlay = new MaterialButton(
       minWidth: 0.25 * _sizeCtrls.width,
@@ -1017,8 +1034,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(width: 2, color: _cWhiteColor)
       ),
-      //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       padding: EdgeInsets.all(8),//_padding.dx),
+/*
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      padding: EdgeInsets.all(18),//_padding.dx),
+*/
       child: tempo,
       //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
       color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
@@ -1067,13 +1087,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               //padding: EdgeInsets.all(_padding.dx),
               //icon: Icon(Icons.check_box_outline_blank,),
               child: Text((_activeSoundScheme + 1).toString(),
-                style: TextStyle(fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: _cWhiteColor
-                )
+                style:_textStyle.copyWith(fontWeight: FontWeight.bold,),
+//                TextStyle(fontSize: 28,
+//                  fontWeight: FontWeight.bold,
+//                  color: _cWhiteColor
+//                )
               ),
               shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-              padding: EdgeInsets.all(4),
+              //padding: EdgeInsets.all(0),
               textTheme: ButtonTextTheme.primary,
               //color: _cWhiteColor,
               //tooltip: _soundSchemes[_activeSoundScheme],
@@ -1087,8 +1108,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
           ///widget Settings
           IconButton(
-            iconSize: 32,
-            //padding: EdgeInsets.all(_padding.dx),
+            iconSize: 0.16 * _sizeCtrls.height,
+            padding: EdgeInsets.all(0),
             icon: Icon(Icons.settings,),
             color: _cWhiteColor.withOpacity(0.5),
             enableFeedback: !_playing,
@@ -1110,7 +1131,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               });
             },
 */
-            radius: 20,
+            radius: 0.08 * _sizeCtrls.height,
             height: 0.85 * _sizeCtrls.height,
             color: _cWhiteColor,
             enableFeedback: !_playing,

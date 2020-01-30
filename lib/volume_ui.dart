@@ -30,7 +30,7 @@ class VolumeButton extends StatefulWidget
 
   final int msec;
   final RolloutDirection direction;
-  final VoidCallback onLongPress;
+  //final VoidCallback onLongPress;
 
   VolumeButton({
     @required this.value,
@@ -38,7 +38,7 @@ class VolumeButton extends StatefulWidget
     this.max = 100,
     this.mute = false,
     @required this.onChanged,
-    @required this.onLongPress,
+    //@required this.onLongPress,
     this.radius,
     this.height,
     this.color = Colors.white,

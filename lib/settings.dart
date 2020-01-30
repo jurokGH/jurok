@@ -8,7 +8,7 @@ class SettingsWidget extends StatelessWidget
     'Голова набок через два',
     'Голова набок',
     'Прифигевшие',
-    'Какие-то ещё',
+    'Прифигевшие набок',
   ];
 
   SettingsWidget({
