@@ -97,7 +97,7 @@ class AccentMetreState extends State<AccentMetreWidget>
         //widget.onTap(widget.id, widget.subbeatCount);
         },
         onHorizontalDragEnd: (DragEndDetails details) {
-          int index = widget.beats + details.primaryVelocity.sign.toInt();
+          int index = _activeMetre + details.primaryVelocity.sign.toInt();
           if (index < 0)
             index = _metreList.length - 1;
           if (index >= _metreList.length)

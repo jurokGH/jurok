@@ -834,19 +834,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         Padding(
           padding: EdgeInsets.only(bottom: 0),
           child:
-          TempoWidget(
+          TempoWidget(//TODO Limit
             tempo: _tempoBpm,
             textStyle: Theme.of(context).textTheme.display1
               .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
             onChanged: (int tempo) {
               if (_tempoBpm != tempo)
+              {
                 _tempoBpm = tempo;
-              if (_playing)
-                _setTempo(tempo);
-              else
+                if (_playing)
+                  _setTempo(tempo);
                 setState(() {});
-              debugPrint('onSelectedItemChanged - minTempo');
-              debugPrint(_tempoBpm.toString());
+              }
             }
           )),
       ]
@@ -918,8 +917,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
     );
 
+    _knobValue..value = _tempoBpm.toDouble();
+    print('_knobValue.value');
+    print(_knobValue.value);
     Widget knobTempoNew = new KnobTuned(
-      knobValue: _knobValue..value = _tempoBpm.toDouble(),
+      knobValue: _knobValue,//..value = _tempoBpm.toDouble(),
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
       sensitivity: _sensitivity,
