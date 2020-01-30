@@ -477,9 +477,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             width: 0.18 * _sizeCtrls.width,
             height: 0.13 * _sizeCtrls.height,
             child: WheelChooser.integer(
-            selectTextStyle: Theme.of(context).textTheme.title
+            selectTextStyle: Theme.of(context).textTheme.subhead
               .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//20
-            unSelectTextStyle: Theme.of(context).textTheme.title
+            unSelectTextStyle: Theme.of(context).textTheme.subhead
               .copyWith(color: Colors.white70, height: 1),//16
             magnification: 1,
             //itemSize: 48,
@@ -867,7 +867,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child:
           TempoWidget(
             tempo: _tempoBpm,
-            textStyle: _textStyle,
+            textStyle: Theme.of(context).textTheme.display1
+              .copyWith(color: _cWhiteColor, height: 1),
             onChanged: (int tempo) {
               if (_tempoBpm != tempo)
                 _tempoBpm = tempo;
@@ -1032,7 +1033,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //iconSize: 0.4 * _sizeCtrls.height,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(width: 2, color: _cWhiteColor)
+        side: BorderSide(width: 2, color: Colors.purple.withOpacity(0.8)),
       ),
       padding: EdgeInsets.all(8),//_padding.dx),
 /*
@@ -1087,7 +1088,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               //padding: EdgeInsets.all(_padding.dx),
               //icon: Icon(Icons.check_box_outline_blank,),
               child: Text((_activeSoundScheme + 1).toString(),
-                style:_textStyle.copyWith(fontWeight: FontWeight.bold,),
+                style: Theme.of(context).textTheme.display1
+                  .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor),
 //                TextStyle(fontSize: 28,
 //                  fontWeight: FontWeight.bold,
 //                  color: _cWhiteColor
@@ -1108,7 +1110,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
           ///widget Settings
           IconButton(
-            iconSize: 0.16 * _sizeCtrls.height,
+            iconSize: 0.14 * _sizeCtrls.height,
             padding: EdgeInsets.all(0),
             icon: Icon(Icons.settings,),
             color: _cWhiteColor.withOpacity(0.5),

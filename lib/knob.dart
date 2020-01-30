@@ -379,10 +379,14 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                   ),
                 ]
               )
-                :
+              :
+              Container(),
+              widget.showIcon ?
               Text(widget.value.toInt().toString(),
                 style: widget.textStyle
-              ),
+              )
+              :
+              Container(),
             ]
           ),
         ),
