@@ -46,8 +46,8 @@ class Knob extends StatefulWidget
 
 class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 {
-  static const double minAngle = -160;
-  static const double maxAngle = 160;
+  static const double minAngle = -170;
+  static const double maxAngle = 170;
   static const double sweepAngle = maxAngle - minAngle;
   static const double innerRadius = 0.1;//0.25;
 
@@ -91,7 +91,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       angle1 += 360 * turn;
       double da = angle1 - _startAngle;
 
-      print('Knob $angle1 - $_startAngle - $da');
+      debugPrint('Knob $angle1 - $_startAngle - $da');
       //dda *= 180 / pi;
       //double changeInX = details.delta.dx;
       //double changeInValue = distanceToAngle * changeInX;
@@ -120,12 +120,12 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       // double newValue = _startValue - da * k;
       double clippedValue = min(max(newValue, widget.min), min(widget.limit, widget.max));
 
-      //print('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
+      //debugPrint('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
       if (clippedValue != widget.value)
       {
         _value = clippedValue;
 
-        print('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
+        debugPrint('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
 
         widget.onChanged(clippedValue);
       }
@@ -161,7 +161,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   @override
   Widget build(BuildContext context)
   {
-    print('Knob::build');
+    //debugPrint('Knob::build');
     double size = widget.size != null ? widget.size :
       MediaQuery.of(context).size.shortestSide; //TODO
 
@@ -178,7 +178,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
         height: size,
         child: GestureDetector(
           onTapDown: (TapDownDetails details) {
-            //debugPrint('onTapDown');
+            //debugdebugPrint('onTapDown');
             double radius = size / 2;
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
             tap = pos.distance <= (innerRadius * radius);
@@ -228,7 +228,8 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             _prevAngle = _startAngle;
             _prevTime = details.sourceTimeStamp;
             turn = 0;
-            print('onPanStart  ${_startPos.toString()} - ${details.globalPosition.toString()} - $_prevTime - $_startValue - $_startAngle - $radius0');
+
+            //debugPrint('onPanStart  ${_startPos.toString()} - ${details.globalPosition.toString()} - $_prevTime - $_startValue - $_startAngle - $radius0');
           },
           onPanUpdate: (DragUpdateDetails details)
           {
@@ -236,7 +237,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
             //Offset prev = cur - details.delta;
 
-            print('onPanUpdate ${pos.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - ${details.delta.dx} - ${details.delta.dy}');
+            //debugPrint('onPanUpdate ${pos.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - ${details.delta.dx} - ${details.delta.dy}');
 
             Duration t = details.sourceTimeStamp - _prevTime;
             if (details.sourceTimeStamp - _prevTime < Duration(milliseconds: 10))
@@ -256,7 +257,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               if (angle1 * _prevAngle < 0 && (angle1 - _prevAngle).abs() > 180)
               {
                 turn += _prevAngle > 0 ? 1  : -1;
-                print('Turnaround');
+                //debugPrint('Turnaround');
               }
               _prevAngle = angle1;
               _prevPos = pos;
@@ -264,7 +265,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               angle1 += 360 * turn;
               double da = angle1 - _startAngle;
 
-              print('Knob $angle1 - $_startAngle - $da');
+              //debugPrint('Knob $angle1 - $_startAngle - $da');
               //dda *= 180 / pi;
               //double changeInX = details.delta.dx;
               //double changeInValue = distanceToAngle * changeInX;
@@ -294,12 +295,12 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               double newValue = _startValue - da * k;
               double clippedValue = min(max(newValue, widget.min), min(widget.limit, widget.max));
 
-              //print('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
+              //debugPrint('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
               if (clippedValue != widget.value)
               {
                 _value = clippedValue;
 
-                print('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
+                //debugPrint('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
 
                 widget.onChanged(clippedValue);
               //if (pressed)
@@ -311,7 +312,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             Offset velocity = details.velocity.pixelsPerSecond;
             double v = velocity.distance;
             final double v0 = 1;
-            print('onPanEnd ${velocity.toString()} - $v');
+            //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
             setState(() {
               _prevPos = null;

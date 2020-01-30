@@ -266,7 +266,7 @@ class KnobTunedState extends State<KnobTuned> {
                       //                color: widget.color,
                       child: //Image.asset('images/knobToRotate.png',
                           //Image.asset('images/TempoKnobOld.png',
-                          Image.asset('images/knobToRotate.png',
+                          Image.asset('images/TempoKnob.png',
                               height: size, fit: BoxFit.cover))),
             ),
 

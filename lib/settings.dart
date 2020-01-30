@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class SettingsWidget extends StatelessWidget
 {
   final int animationType;
+  final bool useKnob;
   final List<String> animations = [
     'Голова набок через раз',
     'Голова набок через два',
@@ -12,11 +13,13 @@ class SettingsWidget extends StatelessWidget
   ];
 
   SettingsWidget({
-    this.animationType
+    this.animationType,
+    this.useKnob,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)
+  {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -29,10 +32,21 @@ class SettingsWidget extends StatelessWidget
             groupValue: animationType,
             onChanged: (int value) {
               //setState(() { _character = value; });
-              Navigator.pop(context, value);
+              final List<int> res = [value, useKnob ? 1 : 0];
+              Navigator.pop(context, res);
             },
           )
-        ),
+        )
+        ..add(
+          new SwitchListTile(
+            title: Text('Новый ручкан'),
+            value: useKnob,
+            onChanged: (bool value) {
+              //setState(() { _character = value; });
+              final List<int> res = [animationType, value ? 1 : 0];
+              Navigator.pop(context, res);
+            },
+        )),
 
 /*          CheckboxListTile(
             title: Text('Text'),

@@ -6,20 +6,21 @@ import 'package:owlenome/accent_metre_ui.dart';
 import 'package:owlenome/prosody.dart';
 import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
+import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
-import 'KnobTuned.dart';
 
 import 'arrow.dart';
 import 'metronome_state.dart';
 import 'beat_metre.dart';
 import 'beat_sound.dart';
 import 'owl_grid.dart';
-import 'knob.dart';
 import 'metre_ui.dart';
 import 'subbeat_ui.dart';
 import 'tempo_ui.dart';
 import 'volume_ui.dart';
 import 'settings.dart';
+import 'knob.dart';
+import 'KnobTuned.dart';
 import 'timer_ui.dart';
 import 'tempo.dart';
 
@@ -42,6 +43,7 @@ final double _cCtrlOpacity = 0;
 final Color _cWhiteColor = Colors.white;
 
 final bool usePlayButton = true;
+final bool _debugDevices = false;
 ///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
@@ -49,14 +51,35 @@ final String _cAppTitle = "Owlenome";
 
 void main()
 {
-  return runApp(ChangeNotifierProvider(
-      create: (_) => new MetronomeState(), child: App()));
+  if (_debugDevices)
+  {
+    return runApp(
+      DevicePreview(builder: (context) =>
+        ChangeNotifierProvider(
+          create: (_) => new MetronomeState(),
+          child: App()
+        )
+        //new App()
+      ),
+        //..devices.addAll();
+    );
+  }
+
+  return runApp(
+    ChangeNotifierProvider(
+      create: (_) => new MetronomeState(),
+      child: App()
+    )
+  );
 }
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      locale: _debugDevices ? DevicePreview.of(context).locale : null,
+      builder: _debugDevices ? DevicePreview.appBuilder : null,
+
       title: _cAppName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -91,6 +114,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
+  bool _useNewKnob = true;
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = 2;
   static const int maxBeatCount = 12;
@@ -204,7 +228,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _subbeatWidth = 60;
 
   //IS: my knob constants
-  double _sensitivity = 3.5;
+  double _sensitivity = 1.25;
   double _innerRadius = 0.01;
   double _outerRadius = 2;
   //double _knobSize = 150;
@@ -221,7 +245,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
 
-
     _knobValue = KnobValue(
       absoluteAngle: initKnobAngle,
       value: _tempoBpm.toDouble(),
@@ -233,7 +256,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _channel.setMethodCallHandler(_handleMsg);
     // Query native hardware audio parameters
     //_getAudioParams();
-
 
     _controller = new AnimationController(
       vsync: this,
@@ -778,14 +800,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           Flexible(child:
             Center(child:
               Padding(
-                padding: EdgeInsets.only(bottom: 0.06 * _sizeCtrls.height),//20
+                padding: EdgeInsets.only(bottom: 0.08 * _sizeCtrls.height),//20
                 child:
               AccentMetreWidget(
                 beats: _beat.beatCount,
                 noteValue: _noteValue,
                 accents: _beat.accents,
                 pivoVodochka: _beat.pivoVodochka, //?
-                size: Size(0.45 * _sizeCtrls.width, 0.22 * _sizeCtrls.height),
+                size: Size(0.45 * _sizeCtrls.width, 0.20 * _sizeCtrls.height),
                 onChanged: onMetreChanged,
                 onOptionChanged: (bool pivoVodochka) {
                   _beat.pivoVodochka = pivoVodochka;
@@ -863,7 +885,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           TempoWidget(
             tempo: _tempoBpm,
             textStyle: Theme.of(context).textTheme.display1
-              .copyWith(color: _cWhiteColor, height: 1),
+              .copyWith(color: _cWhiteColor, fontSize: 0.12 * _sizeCtrls.height, height: 1),
             onChanged: (int tempo) {
               if (_tempoBpm != tempo)
                 _tempoBpm = tempo;
@@ -926,13 +948,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       max: maxTempo.toDouble(),
       scaleCount: 12,
       limit: _tempoBpmMax.toDouble(),
+      buttonRadius: 0.1,
+      outerRadius: 0.8,
       size: 0.5 * _sizeCtrls.height,
       debug: true,
       showIcon: false,
       color: Colors.white.withOpacity(0.8),
       //color: _textColor.withOpacity(0.5),
       textStyle: _textStyle.copyWith(color: Colors.white),
-      onPressed: _play,
+      onPressed: () {},//_play,
       onChanged: (double value) {
         _tempoBpm = value.round();
         //_tempoList.setTempo(_tempoBpm);
@@ -941,6 +965,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //else
         setState(() {});
       },
+    );
+
+    Widget knobTempoNew = new KnobTuned(
+      knobValue: _knobValue,
+      //ToDo: reset if tempo changed in other widgets
+      minValue: minTempo.toDouble(),
+      maxValue: _tempoBpmMax.toDouble(),
+      sensitivity: _sensitivity,
+      onChanged: (KnobValue newVal) {
+        _tempoBpm = newVal.value.round();
+        _knobValue = newVal;
+        if (_playing)
+          _setTempo(_tempoBpm);
+        setState(() {});
+      },
+      diameter: 0.55 * _sizeCtrls.height,//0.43
+      innerRadius: _innerRadius,
+      outerRadius: _outerRadius,
     );
 
     Widget wheelTempo =
@@ -1279,32 +1321,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
 */
 
-              //knobTempo,
-
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  tempoIndicator(),
-                  KnobTuned(
-                    knobValue: _knobValue,
-                    //ToDo: reset if tempo changed in other widgets
-                    minValue: minTempo.toDouble(),
-                    maxValue: _tempoBpmMax.toDouble(),
-                    sensitivity: _sensitivity,
-                    //color: Colors.blue,
-                    onChanged: (KnobValue newVal) {
-                      _tempoBpm = newVal.value.round();
-                      _knobValue = newVal;
-                      if (_playing) _setTempo(_tempoBpm);
-                      setState(() {});
-                    },
-                    diameter: 0.43 * _sizeCtrls.height,
-                    innerRadius: _innerRadius,
-                    outerRadius: _outerRadius,
-                    //image: imageOfHand,
-                  ),
-                ],
-              ),
+            _useNewKnob ?
+              knobTempoNew
+            :
+              knobTempo,
               //wheelTempo,
               //cupWheelTempo,
 
@@ -1779,15 +1799,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // Settings boilerplate
   void _showSettings(BuildContext context) async
   {
-    final int animationType = await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => SettingsWidget(animationType: _animationType)));
+    final List<int> res = await Navigator.push(context,
+      MaterialPageRoute(builder: (context) => SettingsWidget(
+        animationType: _animationType,
+        useKnob: _useNewKnob,)));
     //Navigator.of(context).push(_createSettings());
-    print('animationType');
-    print(animationType);
-    setState(() {
-      if (animationType != null)
-        _animationType = animationType;
-    });
+      setState(() {
+        if (res != null)
+        {
+          _animationType = res[0];
+          _useNewKnob = res[1] != 0;
+        }
+      });
     /*
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => SettingsWidget(),

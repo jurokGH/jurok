@@ -278,7 +278,7 @@ class MetronomeState with ChangeNotifier
       changed = true;
       _activeBeat = curBeat;
       _activeSubbeat = curSubbeat;
-      debugPrint('Active (beat, subbeat): $_activeBeat - $activeSubbeat');
+      //debugPrint('Active (beat, subbeat): $_activeBeat - $activeSubbeat');
     }
     return changed;
   }
