@@ -207,12 +207,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Пение рокочущих сов
   ///ToDo: Сколько всего их, какие у них имена, иконки и может что еще -
   int _activeSoundScheme = 0;//IS: Why?!
-  int _soundSchemeCount = 4; //IS: Мы уже умеем всё это спраишивать у явы
-  List<String> _soundSchemes = [];  //IS: Why?!
+  List<String> _soundSchemes = [];
 
-
-  // true - redraw UI with Flutter's AnimationController at 60 fps
-  bool animate60fps = true;
   bool redraw = false;
   bool hideCtrls = false;
   AnimationController _controller;
@@ -223,27 +219,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _period = 1000;
   bool _playing;
 
-  // int _timeTick = 0;
-  // double prevTime = 0;
-
-  double _subbeatWidth = 60;
-
   //IS: my knob constants
   double _sensitivity = 2;
-  double _innerRadius = 0.0001;
+  double _innerRadius = 0.1;  //VG ??
   double _outerRadius = 2;
   //double _knobSize = 150;
   static const double initKnobAngle = 0;
 
   KnobValue _knobValue;
 
-  _HomePageState()
-  {
-    //_getMusicSchemes();  //VG WTF???!!!
-  }
+  _HomePageState();
 
   @override
-  void initState() {
+  void initState()
+  {
     super.initState();
 
     _knobValue = KnobValue(
@@ -267,20 +256,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _animationDown = new Tween<Offset>(begin: Offset.zero, end: const Offset(0, 3)).chain(CurveTween(curve: Curves.easeIn)).animate(_controller);
     //_animation = new Tween<double>(begin: 1, end: 0).animate(_controller);
     //_animation = new Tween<double> CurvedAnimation(parent: _controller, curve: Curves.linear);
-    /*
-    ..addListener(() {
-      if (redraw)
-        //setState((){
-          redraw = false;
-          //_time = _controller.value;
-        //});
-    });
-*/
+
     _getMusicSchemes();
 //    debugPrint('!!!!!!!!!!!!!_getMusicSchemes_getMusicSchemes');
 //    debugPrint('${_activeSoundScheme} - ${_soundSchemes.length}');
 
-    // _beat.beatCount = initBeatCount;//ToDo: через просодию. Переписать для флаттера
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     state.beatMetre = _beat;
     _playing = false;
@@ -288,7 +268,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     //TODO Remove
     _setMusicScheme(_activeSoundScheme);
-    //debugPrint('!!!!!!!_setMusicSchemes_getMusicSchemes');
   }
 
   @override
@@ -303,6 +282,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return _playing;
   }
 
+  // Start/Stop play handler
   void _play()
   {
     //_subbeatWidth = _subbeatWidth == 0 ? 60 : 0;
@@ -310,10 +290,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_playing)
     {
       _togglePlay();
-      //_playing = !_playing;
       _playing = false;
-      //if (animate60fps)
-      //_controller.stop(); //ToDo: исключение видимо где-то тут лезет
       if (hideCtrls)
         _controller.reverse();
       /// Stops OwlGridState::AnimationController
@@ -321,70 +298,39 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
     else
     {
-      //prevTime = 0;
-      //_timeTick = 0;
-      //TODO _timer.reset();
-
       if (hideCtrls)
         _controller.forward();
-
       _togglePlay();
+      //TODO setState(() {});
     }
-    //VG0 setState(() {});
-/*
-    _playing = !_playing;
-    if (_playing)
-      _controller.repeat();
-    else
-      _controller.stop();
-*/
   }
 
   // Start animation of graphics
   void _start()
   {
     _playing = true;
-    //_setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
+    //TODO _setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
     setState(() {});
   }
 
   void onMetreChanged(int beats, int note)
   {
-    if (_beat.beatCount != beats) {
-      _beat.beatCount = beats;
-      _setBeat();
-    }
-    _noteValue = note;
-    setState(() {});
-    /*
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
-      //_activeBeat %= _beat.beatCount;
-      //_activeBeat = _activeSubbeat = 0;
-     // Provider.of<MetronomeState>(context, listen: false).reset();
-      //if (_playing)
-        _setBeat();
+      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+      _setBeat();
     }
-    if (_noteValue != note)
-    {
-      /*_noteValue = note;
-      if (_playing)
-        _setTempo(note);*
-      else*/
-       setState(() {});
-    }*/
+    _noteValue = note;  // Does not affect sound
+    setState(() {});
   }
 
   void onSubbeatChanged(int subbeatCount)
   {
-    //_beat.subBeatCount = _beat.subBeatCount < maxSubBeatCount ? _beat.subBeatCount + 1 : 1;
+    //TODO
     _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
-    //_activeBeat = _activeSubbeat = 0;
-    //Provider.of<MetronomeState>(context, listen: false).reset();
-    //if (_playing)
-      _setBeat();
-    //else
+    //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+    _setBeat();
     setState(() {});
   }
 
@@ -392,10 +338,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     assert(id < _beat.subBeats.length);
     _beat.subBeats[id] = subCount;
-    //_activeBeat = _activeSubbeat = 0;
-    //Provider.of<MetronomeState>(context, listen: false).reset();
-    //if (_playing)
-      _setBeat();
+    //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+    _setBeat();
     setState(() {});
   }
 
@@ -418,12 +362,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
 
-    double tempAntiZebraFactor=0.99;
     if (_screenSize.width > _screenSize.height)
       _sizeCtrls = new Size(_screenSize.width - _sideSquare, _screenSize.height);
     else
-      _sizeCtrls = new Size(_screenSize.width,
-           tempAntiZebraFactor *(_screenSize.height - _sideSquare));
+      _sizeCtrls = new Size(_screenSize.width, _screenSize.height - _sideSquare);
     debugPrint('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
 
     if (_textStyle == null)
@@ -688,7 +630,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Widget wixOwls = OwlGrid(
         playing: _playing,
         beat: _beat,
-        activeBeat: _activeBeat,
+        activeBeat: _activeBeat,  //TODO Move to _beat??
         activeSubbeat: _activeSubbeat,
         noteValue: _noteValue,
         accents: _beat.accents,
@@ -895,7 +837,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           TempoWidget(
             tempo: _tempoBpm,
             textStyle: Theme.of(context).textTheme.display1
-              .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),
+              .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
             onChanged: (int tempo) {
               if (_tempoBpm != tempo)
                 _tempoBpm = tempo;
@@ -963,8 +905,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       size: 0.5 * _sizeCtrls.height,
       debug: true,
       showIcon: false,
-      color: Colors.white.withOpacity(0.8),
-      //color: _textColor.withOpacity(0.5),
+      color: _cWhiteColor.withOpacity(0.8),
       textStyle: _textStyle.copyWith(color: Colors.white),
       onPressed: () {},//_play,
       onChanged: (double value) {
@@ -977,10 +918,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
     );
 
-    Widget knobTempoNew() {
-      _knobValue.value=_tempoBpm.toDouble();
-    return KnobTuned(
-      knobValue: _knobValue,
+    Widget knobTempoNew = new KnobTuned(
+      knobValue: _knobValue..value = _tempoBpm.toDouble(),
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
       sensitivity: _sensitivity,
@@ -994,7 +933,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       diameter: 0.55 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
       outerRadius: _outerRadius,
-    );}
+    );
 
     Widget wheelTempo =
       new Container(
@@ -1075,7 +1014,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Widget tempo = Text(_tempoBpm.toString(),
       style: Theme.of(context).textTheme.display3
         .copyWith(
-          color: ((_tempoBpm> minTempo)&&(_tempoBpm<_tempoBpmMax))?_cWhiteColor : Colors.amberAccent, //
+          color: ((_tempoBpm> minTempo)&&(_tempoBpm<_tempoBpmMax))?_cWhiteColor : Colors.amberAccent, //TODO
               fontSize: 0.10 * _sizeCtrls.height,
           height: 1));
 
@@ -1109,7 +1048,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 */
 
-    Widget buttons =
+    // On app startup: _soundSchemes == null
+    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
+      _soundSchemes[_activeSoundScheme] : '';
+
+    Widget rowButtons =
 //    Column(
 //      mainAxisAlignment: MainAxisAlignment.spaceBetween,
 //      children: <Widget>[
@@ -1153,9 +1096,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               //tooltip: _soundSchemes[_activeSoundScheme],
               enableFeedback: !_playing,
               onPressed: () {
-                _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
-                _setMusicScheme(_activeSoundScheme);
-                setState(() {}); //TODO move to _setMusicScheme?
+                if (_soundSchemes != null && _soundSchemes.length > 0)
+                {
+                  _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemes.length;
+                  _setMusicScheme(_activeSoundScheme);
+                  setState(() {}); //TODO move to _setMusicScheme?
+                }
               },
             ),
 
@@ -1226,60 +1172,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ]
         );
 
-    // On app startup: _soundSchemes == null
-    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
-      _soundSchemes[_activeSoundScheme] : '';
-
-    List<Widget> rowButtons = <Widget>[
-        Stack(
-          alignment: AlignmentDirectional.center,
-          children: <Widget>[
-            Align(
-              alignment: Alignment.centerRight,
-              //padding: EdgeInsets.only(right: _padding.dx),
-              ///widget Settings
-              child: IconButton(
-                iconSize: 32,
-                //padding: EdgeInsets.all(_padding.dx),
-                icon: Icon(Icons.settings,),
-                color: _cWhiteColor,
-                onPressed: () {
-                  setState(() {
-                    _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
-                  });
-                  _setMusicScheme(_activeSoundScheme);
-
-                  //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
-                  //Navigator.of(context).push(_createSettings());
-                },
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              //padding: EdgeInsets.only(right: _padding.dx),
-              ///widget Settings
-              child: FlatButton(
-                child: Text(strScheme,
-                  style: _textStyle.copyWith(fontSize: 16),
-                ),
-                padding: EdgeInsets.all(2),
-                textTheme: ButtonTextTheme.primary,
-                color: _cWhiteColor,
-                onPressed: () {
-                  setState(() {
-                    _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
-                  });
-                  _setMusicScheme(_activeSoundScheme);
-
-                  //Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsWidget()));
-                  //Navigator.of(context).push(_createSettings());
-                },
-              ),
-            ),
-          ]
-        )
-      ];
-
 /*
     children.add(
       //Expanded(child:
@@ -1290,7 +1182,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             Center(child:
               cupWheelTempo,
             ),
-            buttons,
+            rowButtons,
           //wixTempoWheel,
           //wixKnob,
           ]
@@ -1336,7 +1228,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
 
             _useNewKnob ?
-              knobTempoNew()
+              knobTempoNew
             :
               knobTempo,
               //wheelTempo,
@@ -1357,8 +1249,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ],
     );
 
-  //children.addAll(rowButtons);
-/*
+    /*
     children.add(
         SlideTransition(
             position: _animationDown,
@@ -1373,8 +1264,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       children.add(_buildAds(portrait));
 
     // Fill up the remaining screen as the last widget in column/row
-    return //Expanded(child:
-      Container(
+    return Expanded(
+      //Container(
+//        width: _sizeCtrls.width,
+//        height: _sizeCtrls.height - 24,
         /// Background
 /*
         decoration: BoxDecoration(
@@ -1388,8 +1281,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //  padding: const EdgeInsets.all(8.0),
         //  child:
         //child: IntrinsicHeight(
-        width: _sizeCtrls.width,
-        height: _sizeCtrls.height - 24,
 
         child: Stack(
           alignment: Alignment.bottomCenter
@@ -1417,7 +1308,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 ]),
               ]
             ),
-            buttons,
+            rowButtons,
           ]
         ),
 /*
@@ -1438,16 +1329,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
 
-    if (call.method == 'newMaxTempo'){/*//Obsolete
-      int limitTempo=call.arguments;
-      if (limitTempo!=_tempoBpmMax)
-        setState(() {
-          _tempoBpmMax = limitTempo;
-          //if (_tempoBpm > _tempoBpmMax)
-          //  _tempoBpm = _tempoBpmMax;
-        });*/
-    }
-    else if  (call.method == 'warm')
+    if  (call.method == 'warm')
     {
       debugPrint('START-STABLE');
       //int warmupFrames = call.arguments;
@@ -1520,8 +1402,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _activeSubbeat = pair[1];
 
       //_timeTick++;
-      if (!animate60fps)
-        ;//VG0 setState(() {});
 
       //debugPrint('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
       //state.setActiveState(_activeBeat, _activeSubbeat);
@@ -1554,7 +1434,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else
       {
         setState(() {
-          state.startWarm();//IS: TEST
+          state.reset();//IS: TEST
           //_tempoBpm = realTempo;
         });
       }
@@ -1771,8 +1651,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           _soundSchemes.add(result[i]);
 
         bool doSet = _activeSoundScheme < 0;  // 1st run on app startup
-        _soundSchemeCount = _soundSchemes.length;
-        if (_activeSoundScheme >= _soundSchemeCount)
+        if (_activeSoundScheme >= _soundSchemes.length)
           _activeSoundScheme = 0;
 
 //TODO Need at 1st ? No, Include to getSchemes call
