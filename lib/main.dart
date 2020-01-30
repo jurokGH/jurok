@@ -6,6 +6,7 @@ import 'package:owlenome/accent_metre_ui.dart';
 import 'package:owlenome/prosody.dart';
 import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
+import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 
 import 'arrow.dart';
@@ -41,6 +42,7 @@ final double _cCtrlOpacity = 0;
 final Color _cWhiteColor = Colors.white;
 
 final bool usePlayButton = true;
+final bool _debugDevices = false;
 ///<<<<<< JG!
 
 final String _cAppName = "Owlenome";
@@ -48,14 +50,35 @@ final String _cAppTitle = "Owlenome";
 
 void main()
 {
-  return runApp(ChangeNotifierProvider(
-      create: (_) => new MetronomeState(), child: App()));
+  if (_debugDevices)
+  {
+    return runApp(
+      DevicePreview(builder: (context) =>
+        ChangeNotifierProvider(
+          create: (_) => new MetronomeState(),
+          child: App()
+        )
+        //new App()
+      ),
+        //..devices.addAll();
+    );
+  }
+
+  return runApp(
+    ChangeNotifierProvider(
+      create: (_) => new MetronomeState(),
+      child: App()
+    )
+  );
 }
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      locale: _debugDevices ? DevicePreview.of(context).locale : null,
+      builder: _debugDevices ? DevicePreview.appBuilder : null,
+
       title: _cAppName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
