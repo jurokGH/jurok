@@ -410,10 +410,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
+
+    double tempAntiZebraFactor=0.99;
     if (_screenSize.width > _screenSize.height)
       _sizeCtrls = new Size(_screenSize.width - _sideSquare, _screenSize.height);
     else
-      _sizeCtrls = new Size(_screenSize.width, _screenSize.height - _sideSquare);
+      _sizeCtrls = new Size(_screenSize.width,
+           tempAntiZebraFactor *(_screenSize.height - _sideSquare));
     debugPrint('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio}');
 
     if (_textStyle == null)
