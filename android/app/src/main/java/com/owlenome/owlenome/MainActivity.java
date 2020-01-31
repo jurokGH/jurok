@@ -531,8 +531,17 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   // Тут определяем музыкальные схемы
   private void initSoundSchemes()
   {
+
+
+
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
+
+    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Ag", res, R.raw.cucareculong, R.raw.cucarecushort,
+            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Dyn", res, R.raw.cucareculong, R.raw.cucarecushort,
+            GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add( new MusicSchemeMix("ExtraShort",
             880, 15, 440, 15,
