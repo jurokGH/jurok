@@ -181,7 +181,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   double _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  int _tempoBpm = 155;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
   //BipAndPouseCycle
   ///Переменная, ограничивающся максимальную скорость при данной музыкальной схеме и
   ///метре
