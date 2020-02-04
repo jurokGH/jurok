@@ -455,7 +455,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-                colors: [Color(0x40202020), Colors.deepPurple[600]])
+                colors: [Colors.white70, Colors.white70])
             ),
             width: 0.18 * _sizeCtrls.width,
             height: 0.16 * _sizeCtrls.height,
@@ -463,7 +463,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             selectTextStyle: Theme.of(context).textTheme.headline
               .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//20
             unSelectTextStyle: Theme.of(context).textTheme.subhead
-              .copyWith(color: Colors.white70, height: 1),//16
+              .copyWith(color: Colors.white, height: 1),//16
             magnification: 1,
             //itemSize: 48,
             //perspective: 0.01,
@@ -501,7 +501,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [Color(0x40202020), Colors.deepPurple[600]])
+            colors: [Colors.white70, Colors.white70])
         ),
         width: 0.18 * _sizeCtrls.width,
         height: 0.16 * _sizeCtrls.height,
