@@ -67,7 +67,7 @@ class KnobTuned extends StatefulWidget {
   final KnobValue knobValue;
 
   final ValueChanged<KnobValue> onChanged;
-//  final OnPressedCallback onPressed;
+  final TextStyle textStyle;
 
   final double sensitivity; //size/2*pi;
 
@@ -82,6 +82,7 @@ class KnobTuned extends StatefulWidget {
     @required this.sensitivity,
     @required this.innerRadius,
     @required this.outerRadius,
+    this.textStyle,
     //@required this.image
   });
 
@@ -304,6 +305,9 @@ class KnobTunedState extends State<KnobTuned> {
             ),
             //tempoIndicator(widget.knobValue.value.toInt(),
             //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
+            Text(widget.knobValue.value.toInt().toString(),
+              style: widget.textStyle,
+            )
           ]),
 
           /* Column(

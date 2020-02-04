@@ -781,9 +781,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
           Flexible(child:
       Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
 
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
           SizedBox(
             width: 0.02 * _sizeCtrls.width,//10
@@ -797,7 +800,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           ///widget Subbeat widget
           //Flexible(child:
-            Center(child:
               Container(
                 color: Colors.white70,
               child: Padding(
@@ -815,7 +817,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   setState(() {});
                 },
               ),
-              ),
             ),
          // ),
           ),
@@ -830,6 +831,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           ),
             ]),
+          //),
 
           listTempo,
           ]),
@@ -931,11 +933,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       limit: _tempoBpmMax.toDouble(),
       buttonRadius: 0.1,
       outerRadius: 0.8,
-      size: 0.6 * _sizeCtrls.height,
+      size: 0.65 * _sizeCtrls.height,
       debug: true,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
-      textStyle: _textStyle.copyWith(color: Colors.white),
+      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
       onPressed: () {},//_play,
       onChanged: (double value) {
         _tempoBpm = value.round();
@@ -965,6 +967,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       diameter: 0.65 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
       outerRadius: _outerRadius,
+      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
     );
 
     Widget wheelTempo =
@@ -1108,6 +1111,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
           //mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           //crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
             MaterialButton(
@@ -1138,12 +1142,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               },
             ),
 
+          Container(height: 0.1 * _sizeCtrls.height),
+
           ///widget Settings
           IconButton(
             iconSize: 0.14 * _sizeCtrls.height,
             padding: EdgeInsets.all(0),
             icon: Icon(Icons.settings,),
-            color: _cWhiteColor.withOpacity(0.5),
+            color: _cWhiteColor.withOpacity(0.8),
             enableFeedback: !_playing,
             onPressed: () {
               _showSettings(context);
