@@ -193,22 +193,38 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               }
             },
-            child: AspectRatio( // This gives size to NoteWidget
+            child:
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    boxShadow: [BoxShadow(
+                  color: Colors.deepPurple.withOpacity(0.7),
+                  offset: Offset.zero,
+                  blurRadius: 5.0,
+                  spreadRadius: 0.0,
+                    )],
+                  ),
+                  child:
+                  AspectRatio( // This gives size to NoteWidget
                 aspectRatio: 1.2,//3.5 / 3,
                 //width: 0.9 * widget.width,
                 //height: 0.9 * widget.width,
-                child: Padding(
+                child: Container(
+//                  decoration: BoxDecoration(
+//                    shadow:
+//                  ),
                   padding: EdgeInsets.only(bottom: 0),
                   child: NoteWidget(
                     subDiv: widget.subbeatCount,
                     denominator: widget.denominator * widget.subbeatCount,
                     active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.stemFixed,
+                    activeNoteType: ActiveNoteType.explosion,
                     colorPast: Colors.white,
                     colorNow: Colors.red,
                     colorFuture: Colors.white,
                   )
                  )
+              ),
               ),
               ),
 

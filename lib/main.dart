@@ -372,6 +372,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _textStyle = Theme.of(context).textTheme.display1
           .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
 
+/*
+    MediaQuery.of(context).removePadding(
+      removeTop: true,
+      removeLeft: true,
+      removeRight: true,
+    ).padding
+*/
+
     if (_screenSize.width <= 0 || _screenSize.height <= 0)  //TODO
       return Container();
     else
@@ -431,6 +439,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Metre
   Widget _buildMetre(TextStyle textStyle)
   {
+    int noteValuePos = 0;
+    for (int noteValue = _noteValue; noteValue > 2; noteValue ~/= 2)
+      noteValuePos++;
+    print('noteValuePos');
+    print(noteValuePos);
+
     return //_buildPlate(
       Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -444,9 +458,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 colors: [Color(0x40202020), Colors.deepPurple[600]])
             ),
             width: 0.18 * _sizeCtrls.width,
-            height: 0.13 * _sizeCtrls.height,
+            height: 0.16 * _sizeCtrls.height,
             child: WheelChooser.integer(
-            selectTextStyle: Theme.of(context).textTheme.subhead
+            selectTextStyle: Theme.of(context).textTheme.headline
               .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//20
             unSelectTextStyle: Theme.of(context).textTheme.subhead
               .copyWith(color: Colors.white70, height: 1),//16
@@ -459,6 +473,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             minValue: minBeatCount,
             maxValue: maxBeatCount,
             initValue: _beat.beatCount,
+            //start: _beat.beatCount - ,
             step: 1,
             onValueChanged: (dynamic value) {
               int beats = value;
@@ -489,9 +504,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             colors: [Color(0x40202020), Colors.deepPurple[600]])
         ),
         width: 0.18 * _sizeCtrls.width,
-        height: 0.12 * _sizeCtrls.height,
+        height: 0.16 * _sizeCtrls.height,
         child: WheelChooser(
-          selectTextStyle: Theme.of(context).textTheme.subhead
+          selectTextStyle: Theme.of(context).textTheme.headline
             .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//16
           unSelectTextStyle: Theme.of(context).textTheme.subhead
             .copyWith(color: Colors.white70, height: 1),//16
@@ -502,7 +517,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           squeeze: 1.6,
           horizontal: true,
           datas: ['2', '4', '8', '16'],
-          startPosition: 1,
+          startPosition: noteValuePos,
           onValueChanged: (dynamic value) {
             String sNote = value;
             int note = int.parse(sNote);
@@ -671,7 +686,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
       child: Container(
         width: _sideSquare,
-        height: _sideSquare,
+        height: 0.85 * _sideSquare,
         padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
           EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
         ///widget Background
@@ -703,12 +718,38 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
 
+    ///widget Tempo list
+    final Widget listTempo = new Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      //Padding( padding: EdgeInsets.zero, child:
+      children: <Widget>[
+        //_buildPlate(TempoWidget(
+        Padding(
+          padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
+          child:
+          TempoWidget(//TODO Limit
+            tempo: _tempoBpm,
+            textStyle: Theme.of(context).textTheme.display1
+              .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
+            onChanged: (int tempo) {
+              if (_tempoBpm != tempo)
+              {
+                _tempoBpm = tempo;
+                if (_playing)
+                  _setTempo(tempo);
+                setState(() {});
+              }
+            }
+          )),
+      ]
+    );
+
     ///widget Metre row
     final Widget rowMetre = new Padding(
       padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(width: 0.05 * _sizeCtrls.width,),
 
@@ -738,6 +779,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           :
           Container(width: 0, height: 0),
 */
+          Flexible(child:
+      Column(
+        children: <Widget>[
+
+          Row(
+            children: <Widget>[
           SizedBox(
             width: 0.02 * _sizeCtrls.width,//10
             height: 0.14 * _sizeCtrls.height,
@@ -749,17 +796,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           ),
           ///widget Subbeat widget
-          Flexible(child:
+          //Flexible(child:
             Center(child:
-              Padding(
-                padding: EdgeInsets.only(bottom: 0.08 * _sizeCtrls.height),//20
+              Container(
+                color: Colors.white70,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
                 child:
               AccentMetreWidget(
                 beats: _beat.beatCount,
                 noteValue: _noteValue,
                 accents: _beat.accents,
                 pivoVodochka: _beat.pivoVodochka, //?
-                size: Size(0.45 * _sizeCtrls.width, 0.20 * _sizeCtrls.height),
+                size: Size(0.5 * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
                 onChanged: onMetreChanged,
                 onOptionChanged: (bool pivoVodochka) {
                   _beat.pivoVodochka = pivoVodochka;
@@ -768,6 +817,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               ),
             ),
+         // ),
           ),
           SizedBox(
             width: 0.02 * _sizeCtrls.width,
@@ -779,8 +829,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             //color: Colors.deepPurpleAccent.withOpacity(0.75),
           ),
           ),
+            ]),
 
-          Center(child:
+          listTempo,
+          ]),
+          ),
+
+          //Center(child:
             //_buildPlate(
             SubbeatWidget(
               subbeatCount: _beat.subBeatCount,
@@ -788,11 +843,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               color: _textColor,
               textStyle: _textStyle,
               width: 0.18 * _sizeCtrls.width,
-              height: 0.24 * _sizeCtrls.height,
+              height: 0.30 * _sizeCtrls.height,
               onChanged: onSubbeatChanged,
             ),
             //padding: const Offset(8, 0),
-          ),
+          //),
+
           //AspectRatio(aspectRatio: 6,
 /*
               subDiv: 8,
@@ -824,32 +880,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ])
       );
     children.add(rowMetre);
-
-    ///widget Tempo list
-    final Widget listTempo = new Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      //Padding( padding: EdgeInsets.zero, child:
-      children: <Widget>[
-        //_buildPlate(TempoWidget(
-        Padding(
-          padding: EdgeInsets.only(bottom: 0),
-          child:
-          TempoWidget(//TODO Limit
-            tempo: _tempoBpm,
-            textStyle: Theme.of(context).textTheme.display1
-              .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
-            onChanged: (int tempo) {
-              if (_tempoBpm != tempo)
-              {
-                _tempoBpm = tempo;
-                if (_playing)
-                  _setTempo(tempo);
-                setState(() {});
-              }
-            }
-          )),
-      ]
-    );
 
     final ScrollController scrollCtrl = new FixedExtentScrollController(initialItem: _tempoBpm - minTempo);
     Widget picker = new CupertinoPicker.builder(
@@ -901,7 +931,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       limit: _tempoBpmMax.toDouble(),
       buttonRadius: 0.1,
       outerRadius: 0.8,
-      size: 0.5 * _sizeCtrls.height,
+      size: 0.6 * _sizeCtrls.height,
       debug: true,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
@@ -932,7 +962,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           _setTempo(_tempoBpm);
         setState(() {});
       },
-      diameter: 0.55 * _sizeCtrls.height,//0.43
+      diameter: 0.65 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
       outerRadius: _outerRadius,
     );
@@ -1023,17 +1053,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Widget btnPlay = new MaterialButton(
       minWidth: 0.25 * _sizeCtrls.width,
       //iconSize: 0.4 * _sizeCtrls.height,
+      /*
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(width: 2, color: Colors.purple.withOpacity(0.8)),
       ),
       padding: EdgeInsets.all(8),//_padding.dx),
-/*
+*/
       shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       padding: EdgeInsets.all(18),//_padding.dx),
-*/
-      child: tempo,
-      //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
+      //child: tempo,
+      child: Icon(_playing ? Icons.pause : Icons.play_arrow,
+      size: 0.125 * _sizeCtrls.width),
       color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
       enableFeedback: false,
       onPressed: _play
@@ -1072,16 +1103,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
 */
         //Expanded(child:
-        Row(
+        Column(
   //      mainAxisAlignment: portrait ?
   //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
           //mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          //crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
             MaterialButton(
               //iconSize: 40,
-              //padding: EdgeInsets.all(_padding.dx),
+              padding: EdgeInsets.all(0),
               //icon: Icon(Icons.check_box_outline_blank,),
               child: Text((_activeSoundScheme + 1).toString(),
                 style: Theme.of(context).textTheme.display1
@@ -1118,7 +1149,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               _showSettings(context);
             },
           ),
-
+/*
           VolumeButton(
             value: _volume,
             min: 0,
@@ -1137,6 +1168,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             color: _cWhiteColor,
             enableFeedback: !_playing,
           ),
+*/
 /*
             Stack(
               alignment: Alignment.center,
@@ -1193,13 +1225,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 */
     final Widget rowTempo = Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         //listTempo,
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            rowButtons,
 /*
             SizedBox(
               width: 20,
@@ -1235,17 +1268,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               knobTempo,
               //wheelTempo,
               //cupWheelTempo,
-
             Container(
-              width: (usePlayButton ? 0.1 : 0.3) * _sizeCtrls.width,
+              width: (usePlayButton ? 0.0 : 0.3) * _sizeCtrls.width,
               //width: 0.025 * _sizeCtrls.width,
             ),
             usePlayButton ?
-              //Center(child: tempo)
-              btnPlay
-              :
+            //Center(child: tempo)
+            btnPlay
+            :
             Container()
-
+            ,
           ]
         ),
       ],
@@ -1291,6 +1323,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             Column(
               children: <Widget>[
                 rowMetre,
+
                 Stack(
                   children: <Widget>[
                     Row(
@@ -1301,15 +1334,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         //wixKnob,
                       ]
                     ),
+                    //rowButtons,
+                    /*
                     Positioned(
                       right: 0,
                       width: 0.5 * _sizeCtrls.width,
                       child: listTempo
                     ),
+*/
                 ]),
-              ]
+               ]
             ),
-            rowButtons,
+            //rowButtons,
           ]
         ),
 /*

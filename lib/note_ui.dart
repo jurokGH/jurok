@@ -35,7 +35,7 @@ class NoteWidget extends StatefulWidget {
 
   /// Note's colors:
   /// Цвет сыгранной ноты, цвет несыгранной
-  final Color colorPast, colorNow, colorFuture;
+  final Color colorPast, colorNow, colorFuture, colorInner;
 
   final ActiveNoteType activeNoteType;
 
@@ -47,6 +47,7 @@ class NoteWidget extends StatefulWidget {
     this.colorPast = Colors.blue,
     this.colorNow = Colors.pink,
     this.colorFuture = Colors.black,
+    this.colorInner = Colors.yellow,
     this.activeNoteType
   });
 
@@ -59,7 +60,7 @@ class _NoteState extends State<NoteWidget> {
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: NotePainter(widget.denominator, widget.subDiv, widget.accents, widget.active,
-        widget.colorPast, widget.colorNow,widget.colorFuture,widget.activeNoteType),
+        widget.colorPast, widget.colorNow, widget.colorFuture, widget.colorInner, widget.activeNoteType),
     );
     //TODO Шаблон для рисования красивого флажка
      /* 
@@ -108,9 +109,9 @@ class NotePainter extends CustomPainter {
   //TODO
   /// Note head gradient parameters
   /// Gradient inner color
-  final Color colorInner = Colors.grey[700];
+  final Color colorInner;// = Colors.yellow; //Colors.grey[700];
   /// Coefficient of gradient radius relating to note radius
-  final double _coefGrad = 1.4;
+  final double _coefGrad = 1.6;
   /// Gradient center shift along X-axis relating to note radius
   final double _coefGradSkewX = 0.15;
 
@@ -152,7 +153,7 @@ class NotePainter extends CustomPainter {
   final double _bigRadiusMultiplier = 1.4;
 
   ///Низ зоны флагов
-  final double _relFlagsZoneBottom = 0.4;//0.4 //VG
+  final double _relFlagsZoneBottom = 0.45;//0.4 //VG
 
   ///!!! СЛОЖНОЕ МЕСТО... Непонятно: ширина штиля и пространство
   ///медлу ними должны ли масштабироваться? Пока принято решение, что да.
@@ -253,7 +254,7 @@ class NotePainter extends CustomPainter {
   ///Часть констант должна вычисляться один раз
   ///И наоборот, я не понимаю, почему значение active должно быть final
   NotePainter([this.denominator, this.subDiv, this.accents, this.active,
-    this.colorPast, this.colorNow, this.colorFuture, this.activeNoteType]);
+    this.colorPast, this.colorNow, this.colorFuture, this.colorInner, this.activeNoteType]);
 
   ///Рисуем одну четвертную/половинную нотку.
   /// isHallow - пустая внутри
@@ -289,7 +290,7 @@ class NotePainter extends CustomPainter {
       canvas.save();
       canvas.translate(centerHead.dx, centerHead.dy);
 
-      final double heightAccent2 = 2.5;
+      final double heightAccent2 = 2.0 * _widthStem;
       if (accents != null && sub < accents.length)
         for (int i = 0; i < accents[sub]; i++)
         {
@@ -592,6 +593,35 @@ class NotePainter extends CustomPainter {
         tp.layout();
         tp.paint(canvas,off.translate(tp.width * 0.25, -tp.height * 0.5));
       }
+
+    //https://stackoverflow.com/questions/57224518/flutter-applying-shadows-to-custompainted-widget
+    //canvas.drawShadow();
+    /*
+    final Color shadowColor = Colors.black.withOpacity(0.15);
+
+    Path shadowPath = Path();
+    Paint shadowPaint = Paint();
+
+    /// Points to make a semicircle approximation using Bezier Curve
+
+    var shadowfirstendPoint = new Offset(endCurve-topSpace, 0.0);
+    var shadowcontrolPoint1  = new Offset(startCurve+xValueInset+topSpace,yValueOffset);
+    var shadowcontrolPoint2  = new Offset((diameter-xValueInset)+startCurve-topSpace,yValueOffset);
+
+    //! Start sketching Shadow
+    shadowPath.lineTo(startCurve+topSpace, 0.0);
+    shadowPath.cubicTo(shadowcontrolPoint1.dx, shadowcontrolPoint1.dy,
+      shadowcontrolPoint2.dx, shadowcontrolPoint2.dy,
+      shadowfirstendPoint.dx, shadowfirstendPoint.dy);
+    shadowPath.lineTo(size.width, 0.0);
+    shadowPath.lineTo(size.width, size.height);
+    shadowPath.lineTo(0.0, size.height);
+    shadowPath.close();
+
+    //! End Sketching Shadow
+    shadowPaint.color = shadowColor;
+    canvas.drawPath(shadowPath, shadowPaint);
+    */
 
     ///ToDo: отладка, убрать
     if (false)

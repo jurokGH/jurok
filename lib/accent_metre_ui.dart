@@ -74,9 +74,10 @@ class AccentMetreState extends State<AccentMetreWidget>
           subDiv: metres[i],
           denominator: widget.noteValue,
           active: -1,
-          colorPast: Colors.white,
-          colorNow: Colors.red,
-          colorFuture: Colors.white,
+          colorPast: Colors.black,
+          colorNow: Colors.black,
+          colorFuture: Colors.black,
+          colorInner: Colors.black,
           accents: accents,
         ),
       );
