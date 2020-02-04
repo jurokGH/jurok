@@ -194,6 +194,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
               }
             },
             child:
+/*
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.rectangle,
@@ -205,6 +206,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                     )],
                   ),
                   child:
+*/
                   AspectRatio( // This gives size to NoteWidget
                 aspectRatio: 1.2,//3.5 / 3,
                 //width: 0.9 * widget.width,
@@ -226,7 +228,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                  )
               ),
               ),
-              ),
+              //),
 
 //              RepaintBoundary(child:
               //TODO SizedBox(
