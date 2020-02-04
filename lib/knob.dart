@@ -21,6 +21,7 @@ class Knob extends StatefulWidget
   final Color color;
   final TextStyle textStyle;
   final bool showIcon;
+  final bool showText;
   final bool debug;
 
   final ValueChanged<double> onChanged;
@@ -36,6 +37,7 @@ class Knob extends StatefulWidget
     this.outerRadius = 0.8,
     this.color = Colors.blue,
     this.showIcon = true,
+    this.showText = true,
     this.debug = false,
     @required this.textStyle,
     @required this.onChanged, @required this.onPressed});
@@ -66,6 +68,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   AnimationController _controller;
   Animation<double> _animation;
   int _time = 5000;
+
+  Image _image;  /// Knob image
+  Size _imageSize = Size.zero;
 
   void onTimer()
   {
@@ -150,6 +155,12 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       ..addStatusListener(onTimerStatus);
     _animation = new Tween<double>(begin: 0, end: 1)
       .chain(CurveTween(curve: Curves.decelerate)).animate(_controller);
+
+    _image = new Image.asset('images/TempoKnob.png',
+      //height: size,
+      fit: BoxFit.cover,  //contain
+      filterQuality: FilterQuality.medium, //TODO Choose right one
+    );
   }
 
   @override
@@ -171,6 +182,13 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     double clippedValue = min(max(widget.value, widget.min), min(widget.limit, widget.max));
     double normalizedValue = (clippedValue - widget.min)/(widget.max - widget.min);
     double angle = (minAngle + normalizedValue * sweepAngle) * pi / 180;
+
+    final Size imageSize = new Size.square(size);
+    if (imageSize != _imageSize)
+    {
+      precacheImage(_image.image, context, size: imageSize);
+      _imageSize = imageSize;
+    }
 
     return Center(
       child: Container(
@@ -212,10 +230,8 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               tap = false;
             });
           },
-          onPanDown: (DragDownDetails details) {
-            details.globalPosition;
-          },
           onPanStart: (DragStartDetails details)
+          //onPanDown: (DragDownDetails details)
           {
             double radius = size / 2;
             _startValue = widget.value;
@@ -352,17 +368,14 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                 child: ClipOval(
                   child: Container(
                     color: Colors.deepPurple.withOpacity(0.7), //widget.color,
-                    child: Image.asset('images/TempoKnob.png',
-                      height: size,
-                      fit: BoxFit.cover
-                    )
+                    child: _image,
                   )
                 ),
               ),
 
               CustomPaint(
                 painter: KnobPainter(widget.outerRadius, widget.buttonRadius,
-                  _prevPos, widget.scaleCount,
+                  _prevPos, widget.scaleCount, pressed,
                   Colors.purpleAccent, Colors.purple.withOpacity(0.25), Colors.blueAccent, widget.debug),
                 size: Size(size, size),
               ),
@@ -371,10 +384,10 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(pressed ? Icons.pause : Icons.play_arrow,
-                    size: 0.5 * size,
-                    color: widget.color,
-                  ),
+//                  Icon(pressed ? Icons.pause : Icons.play_arrow,
+//                    size: 0.5 * size,
+//                    color: widget.color,
+//                  ),
                   Text(widget.value.toInt().toString(),
                     style: widget.textStyle
                   ),
@@ -382,7 +395,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               )
               :
               Container(),
-              widget.showIcon ?
+              widget.showText ?
               Text(widget.value.toInt().toString(),
                 style: widget.textStyle
               )
@@ -406,9 +419,10 @@ class KnobPainter extends CustomPainter
   final Color colorRing;
   final Color colorHit;
   final bool debug;
+  final bool drawCenter;
   final int scaleCount;
 
-  KnobPainter(this.outer, this.inner, this.pos, this.scaleCount, this.colorDot, this.colorRing, this.colorHit, this.debug);
+  KnobPainter(this.outer, this.inner, this.pos, this.scaleCount, this.drawCenter, this.colorDot, this.colorRing, this.colorHit, this.debug);
 
   @override
   void paint(Canvas canvas, Size size)
@@ -421,6 +435,14 @@ class KnobPainter extends CustomPainter
       ..color = colorRing;
     if (debug)
       canvas.drawCircle(center, outer * radius, paintRing);
+
+    if (drawCenter)
+    {
+      Paint paintBtn = new Paint()
+        ..style = PaintingStyle.fill
+        ..color = Colors.purpleAccent;
+      canvas.drawCircle(center, inner * radius, paintBtn);
+    }
 
     if (debug)
       canvas.drawCircle(center, inner * radius, paintRing);

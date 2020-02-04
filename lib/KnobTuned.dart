@@ -110,6 +110,9 @@ class KnobTunedState extends State<KnobTuned> {
   Offset X;
   Offset Y;
 
+  Image _image;  /// Knob image
+  Size _imageSize = Size.zero;
+
   double getValueUncut(double absAngle, double ang0, double val0) {
     double size = widget.diameter != null
         ? widget.diameter
@@ -133,11 +136,28 @@ class KnobTunedState extends State<KnobTuned> {
   }*/
 
   @override
+  void initState() {
+    super.initState();
+
+    _image = new Image.asset('images/TempoKnobT.png',
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.medium,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     //print('Knob::build');
     double size = widget.diameter != null
         ? widget.diameter
         : MediaQuery.of(context).size.shortestSide; //TODO
+
+    final Size imageSize = new Size.square(size);
+    if (imageSize != _imageSize)
+    {
+      precacheImage(_image.image, context, size: imageSize);
+      _imageSize = imageSize;
+    }
 
     return Center(
       child: Container(
@@ -263,11 +283,10 @@ class KnobTunedState extends State<KnobTuned> {
               angle: widget.knobValue.absoluteAngle,
               child: ClipOval(
                   child: Container(
-                      //                color: widget.color,
-                      child: //Image.asset('images/knobToRotate.png',
-                          //Image.asset('images/TempoKnobOld.png',
-                          Image.asset('images/TempoKnob.png',
-                              height: size, fit: BoxFit.cover))),
+//                color: widget.color,
+                      child: _image
+                  )
+              ),
             ),
 
             Container(
