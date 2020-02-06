@@ -535,7 +535,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
-    soundSсhemes.add(new MusicSchemeMix("Woodblocks&Cabasa,ag", res, R.raw.woodblocks, R.raw.cabasa,
+    soundSсhemes.add(new MusicSchemeMix("WoodBl&Cabasa,ag", res, R.raw.woodblocks, R.raw.cabasa,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("CowBell&Cabasa,ag", res, R.raw.cowbell, R.raw.cabasa,

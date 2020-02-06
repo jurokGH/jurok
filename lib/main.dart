@@ -1083,13 +1083,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               //iconSize: 40,
               //padding: EdgeInsets.all(_padding.dx),
               //icon: Icon(Icons.check_box_outline_blank,),
-              child: Text((_activeSoundScheme + 1).toString(),
-                style: Theme.of(context).textTheme.display1
-                  .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor),
-//                TextStyle(fontSize: 28,
-//                  fontWeight: FontWeight.bold,
-//                  color: _cWhiteColor
-//                )
+              child: Text(
+                (_soundSchemes.length==0)?(_activeSoundScheme + 1).toString():
+                (_activeSoundScheme + 1).toString()+":"+_soundSchemes[_activeSoundScheme],
+                  style: _textStyle.copyWith(fontSize: 14),
               ),
               shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
               //padding: EdgeInsets.all(0),
