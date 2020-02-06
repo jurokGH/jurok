@@ -586,8 +586,8 @@ class NotePainter extends CustomPainter
     //TODO Check
     double stemWidth = denominator == 2 || denominator == 3 ? _widthHollowStem : _widthStem;
     //TODO && !isPowerOf2
-    bool useTupletLine = (denominator == subDiv && subDiv > 1) ||
-      (denominator == 2 * subDiv && !_isPowerOf2);
+    bool useTupletLine = (denominator == subDiv && subDiv > 1 && !_isPowerOf2) ||
+      (denominator == 2 * subDiv && subDiv == 3);
     print('$denominator --- $subDiv');
 
     ///Если нот несколько - вертикальные черты, или скоба для нот 1/2,1/4; число сверху
