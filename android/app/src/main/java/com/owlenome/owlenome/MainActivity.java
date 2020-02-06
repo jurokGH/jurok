@@ -534,18 +534,94 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
+    soundSсhemes.add(new MusicSchemeMix("WoodBl&Cabasa,ag", res, R.raw.woodblocks, R.raw.cabasa,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("CowBell&Cabasa,ag", res, R.raw.cowbell, R.raw.cabasa,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Xylo-marimba,ag", res, R.raw.xylomarimba880, R.raw.xylomarimba440,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Celesta,ag", res, R.raw.celesta880, R.raw.celesta440,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Triangle+claves,ag", res, R.raw.triangle, R.raw.claves,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Pizzakato-Lev,ag", res, R.raw.pizz880, R.raw.pizz440,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("bass(ac)&snare(el),ag", res, R.raw.buss_ac, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Sin-Short",
+            880, 30, 440, 30,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Sin-ExtraShort",
+            880, 15, 440, 15,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Owls-dragt", res, R.raw.owl_long, R.raw.owl_short,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+    //initSoundSchemesExtra();
+  }
+
+  /**
+   snaredrumelectric232 лучше акустического snaredrumacoustic240
+   buss1 лучше акустического buss_ac
+   ноты не соединяются с барабанами
+   гобой отлично звучит для метра
+   */
+
+  private void initSoundSchemesExtra() {
+
+
+    Resources res = getResources();
+
+
+    soundSсhemes.add(new MusicSchemeMix("Kuuu", res, R.raw.ku, R.raw.ma,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Ag", res, R.raw.cucareculong, R.raw.cucarecushort,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("bassandtumb&snare(el),ag", res, R.raw.bassandtumb280, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("oboeA4&snare(el),ag", res, R.raw.oboe_a4_250, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("oboeA4&snare(el),ag", res, R.raw.oboe_a4_250, R.raw.snaredrumacoustic240,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Ag", res, R.raw.cucareculong, R.raw.cucarecushort,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Dyn", res, R.raw.cucareculong, R.raw.cucarecushort,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Owls-1", res, R.raw.owl_long, R.raw.owl_short,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("ExtraShort",
+            880, 15, 440, 15,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
+
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
     // эту схему, чтобы не плодить их.
     musicSсhemeTunable = new MusicSchemeMix("Bips-A4C5",
-      523.25, 30,440, 30,
-      GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
+            523.25, 30, 440, 30,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic
     );
     soundSсhemes.add(musicSсhemeTunable);
 
-    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
-      880, 15, 440, 15,
-      GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
+
 
     soundSсhemes.add(new MusicSchemeMix("ShortDrums-1Ag", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
       GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
@@ -578,23 +654,21 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       523.25, 30,440, 25,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
     */
+    soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-1",
+            res, R.raw.woodblock_short1, R.raw.cabasa1,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
+
     soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-AGOG",
-      res, R.raw.woodblock_short1, R.raw.cabasa1,
-      GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+            res, R.raw.woodblock_short1, R.raw.cabasa1,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-1",
-      res, R.raw.woodblock_short1, R.raw.cabasa1,
-      GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
-
-/*VG Doable?
-    soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-1",
-      res, R.raw.woodblock_short1, R.raw.cabasa1,
-      GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
+            res, R.raw.woodblock_short1, R.raw.cabasa1,
+            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-Ag",
-      res, R.raw.woodblock_short1, R.raw.cabasa1,
-      GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
-*/
+            res, R.raw.woodblock_short1, R.raw.cabasa1,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     /* //Шлак.
     soundSсhemes.add(

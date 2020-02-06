@@ -8,10 +8,15 @@ import 'prosody.dart';
 class BeatMetre
 {
   static const List<int> _initSubBeats = [
-    2, 2, 4, 2, 4, 2,  // Fancy
+    1,3,1,3,1,1, 1,3,1,3,3,3 // Fancy; Bolero; needs accents
+    //2, 2, 4, 2, 4, 2,  // Fancy
     //2,2,4,2,4,2,6,1,
     //1,1,1,1,1,1,1,1,1,1,1,1
-    1,1,1,1
+    //1,1,1,1
+  ];
+
+  static const List<int> _initAccents=[
+    2, 0, 1, 0,  1, 0, 2, 0, 1, 0,  1, 0,//Bolero
   ];
 
   //ToDo: fancy Bolero ;
@@ -47,6 +52,12 @@ class BeatMetre
     //ToDo: просодия тут
     //accents = new List<int>.filled(_initSubBeats.length, 0, growable: true);
     accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
+
+    //Попытка настройки начальной мелодии.
+    if (subBeats.length==_initAccents.length){
+      accents= new List<int>.from(_initAccents, growable: true);
+    }
+
     //accents[0] = -1;
     //subBeats[0] = 1;
 
