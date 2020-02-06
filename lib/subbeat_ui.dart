@@ -51,22 +51,17 @@ class SubbeatState extends State<SubbeatWidget>
             ),
           ),
           //BoxDecoration
-          SizedBox(
-            //aspectRatio: 0.5,
-            height: widget.height,
-            width: widget.width,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10, bottom: 10),
-              child:
-              NoteWidget(
-                subDiv: widget.subbeatCount,
-                denominator: widget.noteValue * widget.subbeatCount,
-                active: -1,
-                colorPast: widget.color,
-                colorNow: widget.color,
-                colorFuture: widget.color,
-              )
-            ),
+          Padding(
+            padding: const EdgeInsets.only(right: 10, bottom: 10),
+            child: NoteWidget(
+              subDiv: widget.subbeatCount,
+              denominator: widget.noteValue * widget.subbeatCount,
+              active: -1,
+              colorPast: widget.color,
+              colorNow: widget.color,
+              colorFuture: widget.color,
+              size: widget.size,
+            )
           ),
         ]
       )
