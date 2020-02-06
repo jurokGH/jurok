@@ -10,16 +10,14 @@ class SubbeatWidget extends StatefulWidget
   final ValueChanged<int> onChanged;
   final Color color;
   final TextStyle textStyle;
-  final double width;
-  final double height;
+  final Size size;
 
   SubbeatWidget({
     this.subbeatCount = 1,
     this.noteValue = 4,
     @required this.onChanged,
     this.color = Colors.white,
-    this.width,
-    this.height,
+    this.size = Size.zero,
     @required this.textStyle});
 
   @override
@@ -48,7 +46,7 @@ class SubbeatState extends State<SubbeatWidget>
             opacity: 0.55,
             child:
             Image.asset('images/owl1-1.png',
-              height: widget.height,
+              height: widget.size.height,
               fit: BoxFit.contain
             ),
           ),

@@ -66,20 +66,16 @@ class AccentMetreState extends State<AccentMetreWidget>
       print(accents);
       j += metres[i];
 
-      Widget wix = new SizedBox(
-        width: width,
-        height: widget.size.height,
-        child:
-        NoteWidget(
-          subDiv: metres[i],
-          denominator: widget.noteValue,
-          active: -1,
-          colorPast: Colors.black,
-          colorNow: Colors.black,
-          colorFuture: Colors.black,
-          colorInner: Colors.black,
-          accents: accents,
-        ),
+      final Widget wix = new NoteWidget(
+        subDiv: metres[i],
+        denominator: widget.noteValue,
+        active: -1,
+        colorPast: Colors.black,
+        colorNow: Colors.black,
+        colorFuture: Colors.black,
+        colorInner: Colors.black,
+        accents: accents,
+        size: new Size(width, widget.size.height),
       );
       notes.add(wix);
     };

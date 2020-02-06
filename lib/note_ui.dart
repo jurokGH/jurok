@@ -6,7 +6,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 ///Как анимируем активную поддолю
-enum ActiveNoteType{
+enum ActiveNoteType
+{
   ///Элиипс активной ноты рисуется с тем же центом
   headFixed,
   ///Штиль активной ноты неподвижен
@@ -15,7 +16,8 @@ enum ActiveNoteType{
   explosion
 }
 
-class NoteWidget extends StatefulWidget {
+class NoteWidget extends StatefulWidget
+{
   // TODO IS: Remove old comments
 
   ///number of subdivisions, numerator
@@ -38,6 +40,7 @@ class NoteWidget extends StatefulWidget {
   final Color colorPast, colorNow, colorFuture, colorInner;
 
   final ActiveNoteType activeNoteType;
+  final Size size;
 
   NoteWidget({
     this.subDiv,
@@ -48,19 +51,25 @@ class NoteWidget extends StatefulWidget {
     this.colorNow = Colors.pink,
     this.colorFuture = Colors.black,
     this.colorInner = Colors.yellow,
-    this.activeNoteType
+    this.activeNoteType,
+    this.size = Size.zero,
   });
 
   @override
   _NoteState createState() => _NoteState();
 }
 
-class _NoteState extends State<NoteWidget> {
+class _NoteState extends State<NoteWidget>
+{
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)
+  {
     return CustomPaint(
+      size: widget.size,
       painter: NotePainter(widget.denominator, widget.subDiv, widget.accents, widget.active,
-        widget.colorPast, widget.colorNow, widget.colorFuture, widget.colorInner, widget.activeNoteType),
+        widget.colorPast, widget.colorNow, widget.colorFuture, widget.colorInner,
+        widget.activeNoteType),
+      //TODO isComplex: true,
     );
     //TODO Шаблон для рисования красивого флажка
      /* 
@@ -76,9 +85,8 @@ class _NoteState extends State<NoteWidget> {
   }
 }
 
-
-
-class NotePainter extends CustomPainter {
+class NotePainter extends CustomPainter
+{
   /// denominator of the subdivision duration
   /// 0 < denominator
   final int denominator;

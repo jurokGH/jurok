@@ -148,11 +148,10 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     }
 */
 
-    //debugPrint('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
-    //if (subbeatCount != widget.subbeatCount)
-      //debugPrint('!Owl:subbeatCount ${widget.subbeatCount}');
-    //if (active != widget.active)
-      //debugPrint('!Owl:active $active ${widget.active}');
+    Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
+    if (imageSize.height == null)
+      imageSize = new Size(imageSize.width, 1.2 * imageSize.width);
+    print(imageSize);
 
     return
           //TODO 1 vs 2 RepaintBoundary in Column
@@ -207,28 +206,33 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   ),
                   child:
 */
-                  AspectRatio( // This gives size to NoteWidget
-                aspectRatio: 1.2,//3.5 / 3,
-                //width: 0.9 * widget.width,
-                //height: 0.9 * widget.width,
-                child: Container(
+                AspectRatio( // This gives size to NoteWidget
+              aspectRatio: 1.2,//3.5 / 3,
+              //width: 0.9 * widget.width,
+              //height: 0.9 * widget.width,
+              child:
+              Container(
+                //width: imageSize.width,
+                //height: imageSize.height,
 //                  decoration: BoxDecoration(
 //                    shadow:
 //                  ),
-                  padding: EdgeInsets.only(bottom: 0),
-                  child: NoteWidget(
-                    subDiv: widget.subbeatCount,
-                    denominator: widget.denominator * widget.subbeatCount,
-                    active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.explosion,
-                    colorPast: Colors.white,
-                    colorNow: Colors.red,
-                    colorFuture: Colors.white,
-                  )
-                 )
-              ),
-              ),
-              //),
+                padding: EdgeInsets.only(bottom: 0),
+                child:
+                NoteWidget(
+                  subDiv: widget.subbeatCount,
+                  denominator: widget.denominator * widget.subbeatCount,
+                  active: active ? activeSubbeat : -1,
+                  activeNoteType: ActiveNoteType.explosion,
+                  colorPast: Colors.white,
+                  colorNow: Colors.red,
+                  colorFuture: Colors.white,
+                  //size: imageSize,
+                )
+               )
+            ),
+            ),
+            //),
 
 //              RepaintBoundary(child:
               //TODO SizedBox(
