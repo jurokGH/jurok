@@ -535,6 +535,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
+    soundSсhemes.add(new MusicSchemeMix("Xylo-marimba,ag", res, R.raw.xylomarimba880, R.raw.xylomarimba440,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
     soundSсhemes.add(new MusicSchemeMix("Celesta,ag", res, R.raw.celesta880, R.raw.celesta440,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
@@ -544,24 +547,10 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes.add(new MusicSchemeMix("Pizzakato-Lev,ag", res, R.raw.pizz880, R.raw.pizz440,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
-    soundSсhemes.add(new MusicSchemeMix("Kuuu", res, R.raw.ku, R.raw.ma,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Ag", res, R.raw.cucareculong, R.raw.cucarecushort,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
     soundSсhemes.add(new MusicSchemeMix("bass(ac)&snare(el),ag", res, R.raw.buss_ac, R.raw.snaredrumelectric232,
             GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
 
-    soundSсhemes.add(new MusicSchemeMix("bass1&snare(el),ag", res, R.raw.buss1, R.raw.snaredrumelectric232,
-            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
 
-
-    soundSсhemes.add(new MusicSchemeMix("bass(ac)&ttt(el),ag", res, R.raw.buss_ac, R.raw.snaredrumacoustic240,
-            GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("bass1&snxxxxxare(el),ag", res, R.raw.buss1, R.raw.snaredrumelectric232,
-            GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
 
     //initSoundSchemesExtra();
   }
@@ -577,6 +566,13 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
     Resources res = getResources();
+
+
+    soundSсhemes.add(new MusicSchemeMix("Kuuu", res, R.raw.ku, R.raw.ma,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Cucarecu-Ag", res, R.raw.cucareculong, R.raw.cucarecushort,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("bassandtumb&snare(el),ag", res, R.raw.bassandtumb280, R.raw.snaredrumelectric232,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
