@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 class Settings
 {
   int animationType;
-  int soundScheme;
+  int activeScheme;
+  final List<String> soundSchemes;
   bool useKnob;
 
-  Settings({this.animationType, this.soundScheme, this.useKnob});
+  Settings({this.animationType, this.activeScheme, this.soundSchemes, this.useKnob});
 }
 
 /*
@@ -30,8 +31,6 @@ class TempoDef
 class SettingsWidget extends StatelessWidget
 {
   final Settings settings;
-  final int animationType;
-  final bool useKnob;
   final List<String> animations = [
     'Голова набок через раз',
     'Голова набок через два',
@@ -41,45 +40,69 @@ class SettingsWidget extends StatelessWidget
   ];
 
   SettingsWidget({
-    this.animationType,
-    this.useKnob,
     this.settings,
   });
 
   @override
   Widget build(BuildContext context)
   {
+    //List<Widget> radioSoundSchemes = new List<Widget>();
+
     return Scaffold(
       appBar: AppBar(),
       body: Center(
         child: ListView(
-        children: List<Widget>.generate(5, (int index) =>
+        children: List<Widget>.generate(settings.soundSchemes.length, (int index) =>
           //RadioListTile<SingingCharacter>(
           new RadioListTile<int>(
-            title: Text(animations[index]),
-            value: index,//animationType == index ? 1 : 0,
-            groupValue: settings.animationType,
+            value: index,
+            title: Text(settings.soundSchemes[index]),
+            groupValue: settings.activeScheme,
             onChanged: (int value) {
               //setState(() { _character = value; });
-              //final List<int> res = [value, settings.useKnob ? 1 : 0];
-              settings.animationType = value;
+              settings.activeScheme = value;
               Navigator.pop(context, settings);
             },
           )
         )
         ..add(new Divider())
+        ..add(new ListTile(
+          //leading: icon,
+          title: Text('Animation type'),
+          //dense: true,
+        ))
+        ..addAll(List<Widget>.generate(5, (int index) =>
+            //RadioListTile<SingingCharacter>(
+            new RadioListTile<int>(
+              title: Text(animations[index]),
+              value: index,
+              groupValue: settings.animationType,
+              onChanged: (int value) {
+                //setState(() { _character = value; });
+                settings.animationType = value;
+                Navigator.pop(context, settings);
+              },
+            )
+          )
+        )
+        ..add(new Divider())
+        ..add(new ListTile(
+          //leading: icon,
+          title: Text('Other options'),
+          //dense: true,
+        ))
         ..add(
           new SwitchListTile(
             title: Text('Новый ручкан'),
             value: settings.useKnob,
             onChanged: (bool value) {
               //setState(() { _character = value; });
-//              final List<int> res = [settings.animationType, value ? 1 : 0];
-//              Navigator.pop(context, res);
               settings.useKnob = value;
               Navigator.pop(context, settings);
             },
-        )),
+        ))
+        ..add(new Divider())
+        ..add(new AboutListTile()),
 
 /*          CheckboxListTile(
             title: Text('Text'),

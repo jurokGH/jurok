@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int minTempo = 1;
   ///Некий абсолютный максимум скорости. Больше него не ставим, даже если
   /// позволяет сочетание схемы и метра.
-  static const int maxTempo = 500; //5000
+  static const int maxTempo = 1000; //500/5000
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
@@ -670,24 +670,36 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget _buildSoundBtn()
   {
-    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
-      _soundSchemes[_activeSoundScheme] : '';
+//    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
+//      _soundSchemes[_activeSoundScheme] : '';
+    final String strScheme = (_activeSoundScheme + 1).toString();
 
+    final Widget icon1 = new Text(strScheme,
+      style: Theme.of(context).textTheme.display1
+        .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
+    );
+    final Widget icon = new Row(
+      children: <Widget>[
+        Icon(Icons.music_note, size: 24, color: _cWhiteColor),
+        Text(strScheme,
+          style: Theme.of(context).textTheme.title//headline
+            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
+//          style: Theme.of(context).textTheme.display1
+//            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
+        ),
+      ]
+    );
+//FlatButton
     return new MaterialButton(
       //iconSize: 40,
+      //minWidth: 40,
       padding: EdgeInsets.all(0),
       //icon: Icon(Icons.check_box_outline_blank,),
-      child: Text((_activeSoundScheme + 1).toString(),
-        style: Theme.of(context).textTheme.display1
-          .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor),
-        //                TextStyle(fontSize: 28,
-        //                  fontWeight: FontWeight.bold,
-        //                  color: _cWhiteColor
-        //                )
-      ),
+      child: icon,
       shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       //padding: EdgeInsets.all(0),
-      textTheme: ButtonTextTheme.primary,
+      //textTheme: ButtonTextTheme.primary,
+      textColor: _cWhiteColor,
       //color: _cWhiteColor,
       //tooltip: _soundSchemes[_activeSoundScheme],
       enableFeedback: !_playing,
@@ -1600,23 +1612,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     final Settings settings = new Settings(
       animationType: _animationType,
-      soundScheme: _activeSoundScheme,
+      activeScheme: _activeSoundScheme,
+      soundSchemes: _soundSchemes,
       useKnob: _useNewKnob,
     );
 
     final Settings res = await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => SettingsWidget(
-        animationType: _animationType,
-        useKnob: _useNewKnob,
-        settings: settings)));
+      MaterialPageRoute(builder: (context) => SettingsWidget(settings: settings)));
     //Navigator.of(context).push(_createSettings());
+
+    if (res != null)
+    {
+      if (res.activeScheme != _activeSoundScheme && _soundSchemes != null && res.activeScheme < _soundSchemes.length)
+      {
+        _activeSoundScheme = res.activeScheme;
+        _setMusicScheme(_activeSoundScheme);//TODO move to _setMusicScheme?
+      }
       setState(() {
-        if (res != null)
-        {
-          _animationType = res.animationType;
-          _useNewKnob = res.useKnob;
-        }
+        _animationType = res.animationType;
+        _useNewKnob = res.useKnob;
       });
+    }
     /*
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => SettingsWidget(),
