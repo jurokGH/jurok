@@ -136,25 +136,27 @@ class TempoState extends State<TempoWidget>
     assert(0 <= _index && _index < tempoList.length);
     final String txt = tempoList[_index].name;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _index++;
+    return Center(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _index++;
+            if (_index >= tempoList.length)
+              _index = 1;
+          });
+          widget.onChanged(tempoList[_index].tempo);
+        },
+        onHorizontalDragEnd: (DragEndDetails details) {
+          _index += details.primaryVelocity.sign.toInt();
+          if (_index < 1)
+            _index = tempoList.length - 1;
           if (_index >= tempoList.length)
             _index = 1;
-        });
-        widget.onChanged(tempoList[_index].tempo);
-      },
-      onHorizontalDragEnd: (DragEndDetails details) {
-        _index += details.primaryVelocity.sign.toInt();
-        if (_index < 1)
-          _index = tempoList.length - 1;
-        if (_index >= tempoList.length)
-          _index = 1;
-        widget.onChanged(tempoList[_index].tempo);
-      },
-      child: Text(txt,
-        style: widget.textStyle
+          widget.onChanged(tempoList[_index].tempo);
+        },
+        child: Text(txt,
+          style: widget.textStyle
+        )
       )
     );
   }
