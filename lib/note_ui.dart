@@ -72,7 +72,7 @@ class _NoteState extends State<NoteWidget>
       //TODO isComplex: true,
     );
     //TODO Шаблон для рисования красивого флажка
-     /* 
+     /*
     return Stack(
       children: [
       Image.asset('images/32nd_note.svg.png'),
@@ -268,8 +268,8 @@ class NotePainter extends CustomPainter
   /// isHallow - пустая внутри
   void _drawNakedNote(Canvas canvas, int sub,
       Offset centerHead, double radiusHead, double stemTop,
-      Color color, bool isFilled) {
-
+      Color color, bool isFilled)
+  {
     ///Head of the note
     Rect rect = Rect.fromCenter(center: Offset.zero,
       width: 2 * radiusHead,
@@ -349,7 +349,8 @@ class NotePainter extends CustomPainter
 
 
   ///Рисуем ноту номер sub обычной формы
-  _drawRegularFormNote(Canvas canvas, int sub) {
+  _drawRegularFormNote(Canvas canvas, int sub)
+  {
     Color color;
     if (sub < active) color = colorPast;
     if (sub == active) color = colorNow;
@@ -454,38 +455,42 @@ class NotePainter extends CustomPainter
       canvas.drawPath(path.shift(new Offset(x, y)), _paintFlag);
   }
 
-  void _drawVerticalFlags(Canvas canvas){
+  void _drawVerticalFlags(Canvas canvas)
+  {
     if (_nmbOfFlags == 0)
       return;
 
     double rad;
-
     double left = _noteCenterX(0);
-    if ((0 == active)&&(activeNoteType == ActiveNoteType.headFixed))
-      ///Смешаем левую границу флагов
-      {rad = _radiusBig;} else {rad = _radius;}
-
+    ///Смешаем левую границу флагов
+    if (0 == active && activeNoteType == ActiveNoteType.headFixed)
+      rad = _radiusBig;
+    else
+      rad = _radius;
     left += rad;
 
-    double right = _noteCenterX(subDiv-1);
-    if ((subDiv-1 == active)&&(activeNoteType == ActiveNoteType.headFixed))
+    double right = _noteCenterX(subDiv - 1);
     ///Смещаем правую границу флагов
-        {rad = _radiusBig;} else {rad = _radius;}
+    if (subDiv - 1 == active && activeNoteType == ActiveNoteType.headFixed)
+      rad = _radiusBig;
+    else
+      rad = _radius;
     right += rad;
 
-    double y = _flagsZoneBottom+_flagWidth * 0.5;
+    double y = _flagsZoneBottom + _flagWidth * 0.5;
 
-    for(int i = 0;i<_nmbOfFlags;i++) {
+    for (int i = 0; i < _nmbOfFlags; i++)
+    {
       Offset off = new Offset(left, y);
       canvas.drawLine(off, off.translate(right - left, 0), _paintSubdivFlag);
-      y  -=  (_flagWidth + _deltaHforFlag);
+      y -= _flagWidth + _deltaHforFlag;
     }
   }
 
   /// X-координата центра поддоли
-  double _noteCenterX(int subDivN){
-    return _safeX+
-        (subDivN+1) * ((size.width- (_safeX+_safeX))/(subDiv+1));
+  double _noteCenterX(int subDivN)
+  {
+    return _safeX + (subDivN + 1) * (size.width - (_safeX + _safeX)) / (subDiv + 1);
   }
 
   _init()
@@ -495,13 +500,15 @@ class NotePainter extends CustomPainter
     int exp = 0;
     ///Может, есть и умнее код, но я боюсь
     ///слишком затейливой кроссплатформенной битовой арифметики, сорри.
-    while (n <denominator)
+    while (n < denominator)
     {
       n = n << 1;
       exp += 1;
     }
     _isPowerOf2 = n == denominator;
     _noteExponent = exp;
+    if (!_isPowerOf2)
+      _noteExponent--;
     _nmbOfFlags = max(_noteExponent - 2, 0);
 
     ///
@@ -570,37 +577,59 @@ class NotePainter extends CustomPainter
   Size size;
 
   @override
-  void paint(Canvas canvas, Size size) {
-
+  void paint(Canvas canvas, Size size)
+  {
     ///ToDo: move to constructor, make constants final?
     this.size = size;
     _init();
 
+    //TODO Check
+    double stemWidth = denominator == 2 || denominator == 3 ? _widthHollowStem : _widthStem;
+    //TODO && !isPowerOf2
+    bool useTupletLine = (denominator == subDiv && subDiv > 1) ||
+      (denominator == 2 * subDiv && !_isPowerOf2);
+    print('$denominator --- $subDiv');
+
     ///Если нот несколько - вертикальные черты, или скоба для нот 1/2,1/4; число сверху
     _drawNotes(canvas);
 
-    if (subDiv > 1)
+    if (subDiv <= 1)
+      _drawCurvedFlags(canvas);  // Single note
+    else if (!useTupletLine)
       _drawVerticalFlags(canvas);
-    else  // Single note
-      _drawCurvedFlags(canvas);
 
-    if (!_isPowerOf2) {
-        Offset off = new Offset(size.width * 0.5,
-          _flagsZoneTop-
-              _relSpaceBelowNumber * size.height
-              -size.height * _relNumberHeight * 0.5);
+    if (!_isPowerOf2)
+    {
+      //TODO Draw text in the center
+      double y = _flagsZoneTop - _relSpaceBelowNumber * size.height - size.height * _relNumberHeight * 0.5;
+      Offset center = new Offset(size.width * 0.5, y);
 
-        //canvas.drawCircle(off, size.height * _relNumberHeight * 0.5, _paintHallowNote);
+      //canvas.drawCircle(center, size.height * _relNumberHeight * 0.5, _paintHallowNote);
 
-        TextSpan span = new TextSpan(
-            style: new TextStyle(color: colorPast,
-            fontSize:  size.height * _relNumberHeight,),
-            text: subDiv.toString());
-        TextPainter tp = new TextPainter(text: span,
-            textDirection: TextDirection.ltr);
-        tp.layout();
-        tp.paint(canvas,off.translate(tp.width * 0.25, -tp.height * 0.5));
+      TextSpan span = new TextSpan(
+        style: new TextStyle(color: colorPast,
+          fontSize: size.height * _relNumberHeight,),
+        text: subDiv.toString());
+      TextPainter tp = new TextPainter(text: span,
+        textDirection: TextDirection.ltr);
+
+      tp.layout();
+      tp.paint(canvas, center.translate(0/*tp.width * 0.25*/, - tp.height * 0.5));
+
+      //TODO
+      if (useTupletLine)
+      {
+        final Offset left = new Offset(_noteCenterX(0) - _radius - 2 * stemWidth, y);
+        final Offset right = new Offset(_noteCenterX(subDiv - 1) + _radius + 2 * stemWidth, y);
+
+        //TODO Coefficients
+        double tupletEnd = 0.4;
+        canvas.drawLine(left.translate(0, tupletEnd * tp.height), left, _paintStem);
+        canvas.drawLine(left, center.translate(- 0.5 * tp.width, 0), _paintStem);
+        canvas.drawLine(center.translate(1.25 * tp.width, 0), right, _paintStem);
+        canvas.drawLine(right.translate(0, tupletEnd * tp.height), right, _paintStem);
       }
+    }
 
     //https://stackoverflow.com/questions/57224518/flutter-applying-shadows-to-custompainted-widget
     //canvas.drawShadow();
