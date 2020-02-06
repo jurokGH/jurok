@@ -241,7 +241,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
     metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
-            160,//TODO: TEST: 1000; //00;
+            1000,//TODO: TEST: 1000;
             // 160 - основной кандидат (8 моих буферов)
             // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
             handler);
@@ -534,10 +534,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
-    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
-            880, 15, 440, 15,
-            GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
-
     //Старые добрые бипы
     // ToDo: при настройке звуков из flutter, можно менять именно
     // эту схему, чтобы не плодить их.
@@ -547,7 +543,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     );
     soundSсhemes.add(musicSсhemeTunable);
 
-
+    soundSсhemes.add( new MusicSchemeMix("ExtraShort",
+      880, 15, 440, 15,
+      GeneralProsody.AccentationType.Dynamic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("ShortDrums-1Ag", res, R.raw.short_drum_accent, R.raw.pedal_hihat_weak120,
       GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
@@ -580,10 +578,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       523.25, 30,440, 25,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
     */
-    soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-1",
-      res, R.raw.woodblock_short1, R.raw.cabasa1,
-      GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
-
     soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-AGOG",
       res, R.raw.woodblock_short1, R.raw.cabasa1,
       GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
@@ -592,9 +586,15 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       res, R.raw.woodblock_short1, R.raw.cabasa1,
       GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
 
+/*VG Doable?
+    soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-1",
+      res, R.raw.woodblock_short1, R.raw.cabasa1,
+      GeneralProsody.AccentationType.Dynamic,GeneralProsody.AccentationType.Dynamic));
+
     soundSсhemes.add(new MusicSchemeMix("WoodblockCabasa-Ag",
       res, R.raw.woodblock_short1, R.raw.cabasa1,
       GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+*/
 
     /* //Шлак.
     soundSсhemes.add(

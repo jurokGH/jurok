@@ -30,13 +30,37 @@ class OwlSkin
 
   List<Image> get images => new List<Image>.unmodifiable(_images);
 
-  bool init()
+  Future<bool> init() async //TODO
   {
     Future<ui.Image> futImage = _loadImage('images/owl1-0.png');
     futImage.then((ui.Image image) => _imageSize0 = new Size(image.width.toDouble(), image.height.toDouble()));
     aspect = _imageSize0.width > 0 ? _imageSize0.height / _imageSize0.width : 310 / 250.0;
-    return true;
+    return new Future.value(true);
   }
+
+/*
+    int indexImage = active ? 3 : 0;
+    if (active && widget.subbeatCount > 1)
+    {
+      indexImage = activeSubbeat % widget.subbeatCount + 1;
+      if (indexImage > 4) //TODO
+        indexImage = 1 + indexImage % 4;
+    }
+*/
+  /*
+    int indexImage = 2 * (widget.nAccent + 1);
+    if (active)
+    {
+      //indexImage++;
+      indexImage += activeSubbeat % 2;
+    }
+
+    //debugPrint('OwlState: ${widget.id} - $beat0 - $_counter - $active - ${widget.active} - $activeSubbeat - ${widget.activeSubbeat}');
+    //if (subbeatCount != widget.subbeatCount)
+      //debugPrint('!Owl:subbeatCount ${widget.subbeatCount}');
+    //if (active != widget.active)
+      //debugPrint('!Owl:active $active ${widget.active}');
+*/
 
   int getImageIndex(int accent, int subbeat, int subbeatCount)
   {
@@ -64,7 +88,7 @@ class OwlSkin
           indexImage += subbeat % 2 == 0 ? 2 : 3;
         else if (animationType == 3)
           indexImage += subbeat % 2 == 0 ? 1 : 4;
-        else
+        else if (animationType == 4)
         {
           if (subbeatCount <= 2)
             indexImage += subbeat == 1 ? 4 : 1;
@@ -80,16 +104,19 @@ class OwlSkin
 
   void cacheImages(BuildContext context, Size size)
   {
-    loadImages(context, size);
-    precacheImages(context, size);
+    if (size != _imageSize)
+    {
+      loadImages(context, size);
+      precacheImages(context, size);
+    }
   }
 
   void loadImages(BuildContext context, Size size)
   {
-    if (_imageSize == size)
+    if (size == _imageSize)
       return;
 
-    _imageSize = size;
+    //_imageSize = size;
     //AssetImage
     _images = new List<Image>(2 + (kindCount - 1) * frameCount);
     int iImage = 0;
@@ -110,14 +137,17 @@ class OwlSkin
       }
     }
 
-    //debugPrint('loadImages $size');
+    debugPrint('loadImages $size');
   }
 
   /// Using precacheImages in didChangeDependencies as they suggested don't have any effect
   void precacheImages(BuildContext context, Size size)
   {
-    //debugPrint('precacheImages');
-    for (int i = 0; i < _images.length; i++)
-      precacheImage(_images[i].image, context);
+    if (size != _imageSize)
+    {
+      for (int i = 0; i < _images.length; i++)
+        precacheImage(_images[i].image, context, size: size);
+      _imageSize = size;
+    }
   }
 }
