@@ -139,18 +139,20 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
     if (!_mute)
       _value = widget.value;
 
-    Widget rollup = new Column(
+    Widget rollup = Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        /*
+/*
         IconButton(
           iconSize: 30,
           padding: const EdgeInsets.all(0),
           icon: Icon(Icons.volume_up,),
-          color: _cWhiteColor,
+          color: widget.color,
           enableFeedback: widget.enableFeedback,
-          onPressed: () { _changeVolume(10); },
+          onPressed: () {
+            widget.onChanged(widget.value - 10);
+          },
         ),
 */
         RotatedBox(
@@ -190,29 +192,12 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
       ]
     );
 
-/*
-    return RolloutBtn(
-      child: button,
-      rollout: rollup,
-      radius: widget.radius,
+    Widget rollup1 = Container(
+      width: 2 * widget.radius - 4,
       height: widget.height,
-      msec: 200,
-      onLongPress: () {
-        setState(() {
-          _mute = !_mute;
-        });
-        widget.onChanged(_mute ? widget.min : widget.value);
-      },
+      color: Color(0x8080FF80),
     );
-*/
 
-    /*
-    FloatingActionButton(
-      backgroundColor: Colors.blue,
-      onPressed: _handleOpenClose,
-      child: Icon(Icons.add)
-    ),
-*/
     Widget button = new MaterialButton(
       //iconSize: 40,
       child: Icon(_mute ? Icons.volume_off : Icons.volume_up,
@@ -258,16 +243,19 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
       align = AlignmentDirectional.centerStart;
       break;
     }
-
-    return UnconstrainedBox(
-      alignment: align,
+//      return UnconstrainedBox(
+//      alignment: align,
+      return SizedOverflowBox(
+        alignment: Alignment.bottomCenter,
+        size: new Size(2 * widget.radius, 2 * widget.radius),
       //      minWidth: 2 * widget.radius,
-      //      minHeight: widget.height,
+      //minHeight: widget.height,
       //      maxWidth: 2 * widget.radius,
       //      maxHeight: widget.height,
       child: Stack(
         alignment: align,
-        //overflow: Overflow.clip,
+        //fit: StackFit.expand,
+        //overflow: Overflow.visible,
         children: <Widget>[
           ClipRRect(
             borderRadius: BorderRadius.circular(widget.radius),
@@ -290,13 +278,10 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
                   height: widget.height,
                   //color: Colors.red,
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.withOpacity(0.5),
+                    color: Colors.deepPurple.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(widget.radius),
                   ),
                   child: rollup,
-                  //Icon(Icons.add_circle)
-
-
                 ),
               ),
             ),
