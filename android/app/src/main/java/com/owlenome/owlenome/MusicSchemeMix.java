@@ -2,7 +2,6 @@ package com.owlenome.owlenome;
 
 import android.content.res.Resources;
 
-
 //Этот класс представляет собой данные, нужные для создания массива из двух бипов (музыкальной схемы).
 //Он нужен для того, чтобы определить музыкальные схемы, но не загружать
 //их сразу (это было бы расточительно).
@@ -13,7 +12,8 @@ import android.content.res.Resources;
 //Флаттеру нужно знать кое-что еще - а именно, картинку, представляющую схему.
 //А вот данные о звуковых файлах ему не нужно знать. В любом случае,
 //мы должны согласовывать руками всю эту бадягу.
-class MusicSchemeMix {
+class MusicSchemeMix
+{
     //adHoc, под нашу задачу. Хватает для деления на 12 долей/поддолей
     final int absoluteMaxOfNoteAccents =4;
     final int absoluteMaxOfSubAccents =4;
@@ -175,13 +175,6 @@ class MusicSchemeMix {
     /*
     //Из двух готовых звуков - может, это самое прекрасное, что можно придумать? Быстрая:)
     private  void loadFromBytes(byte[] beatSound, byte[] subBeatSound )
-    {        this.subBeatSound=subBeatSound; this.beatSound=beatSound;  //ОПАСНО. Не надо так  }*/
-
-
-
+    {        this.subBeatSound=subBeatSound; this.beatSound=beatSound;  //ОПАСНО. Не надо так  }
+    */
 }
-
-
-
-
-
