@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
 
+class Settings
+{
+  int animationType;
+  int soundScheme;
+  bool useKnob;
+
+  Settings({this.animationType, this.soundScheme, this.useKnob});
+}
+
+/*
+class TempoDef
+{
+  String name;
+  int tempo;
+  int minTempo;
+  int maxTempo;
+
+  TempoDef([name, minTempo, maxTempo, tempo])
+  {
+    this.name = name;
+    this.minTempo = minTempo;
+    this.maxTempo = maxTempo;
+    this.tempo = tempo == null ? minTempo : tempo;
+  }
+}
+*/
+
 class SettingsWidget extends StatelessWidget
 {
+  final Settings settings;
   final int animationType;
   final bool useKnob;
   final List<String> animations = [
@@ -15,6 +43,7 @@ class SettingsWidget extends StatelessWidget
   SettingsWidget({
     this.animationType,
     this.useKnob,
+    this.settings,
   });
 
   @override
@@ -29,22 +58,26 @@ class SettingsWidget extends StatelessWidget
           new RadioListTile<int>(
             title: Text(animations[index]),
             value: index,//animationType == index ? 1 : 0,
-            groupValue: animationType,
+            groupValue: settings.animationType,
             onChanged: (int value) {
               //setState(() { _character = value; });
-              final List<int> res = [value, useKnob ? 1 : 0];
-              Navigator.pop(context, res);
+              //final List<int> res = [value, settings.useKnob ? 1 : 0];
+              settings.animationType = value;
+              Navigator.pop(context, settings);
             },
           )
         )
+        ..add(new Divider())
         ..add(
           new SwitchListTile(
             title: Text('Новый ручкан'),
-            value: useKnob,
+            value: settings.useKnob,
             onChanged: (bool value) {
               //setState(() { _character = value; });
-              final List<int> res = [animationType, value ? 1 : 0];
-              Navigator.pop(context, res);
+//              final List<int> res = [settings.animationType, value ? 1 : 0];
+//              Navigator.pop(context, res);
+              settings.useKnob = value;
+              Navigator.pop(context, settings);
             },
         )),
 

@@ -1731,20 +1731,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() {});  // Update UI
   }*/
 
-
   // Settings boilerplate
   void _showSettings(BuildContext context) async
   {
-    final List<int> res = await Navigator.push(context,
+    final Settings settings = new Settings(
+      animationType: _animationType,
+      soundScheme: _activeSoundScheme,
+      useKnob: _useNewKnob,
+    );
+
+    final Settings res = await Navigator.push(context,
       MaterialPageRoute(builder: (context) => SettingsWidget(
         animationType: _animationType,
-        useKnob: _useNewKnob,)));
+        useKnob: _useNewKnob,
+        settings: settings)));
     //Navigator.of(context).push(_createSettings());
       setState(() {
         if (res != null)
         {
-          _animationType = res[0];
-          _useNewKnob = res[1] != 0;
+          _animationType = res.animationType;
+          _useNewKnob = res.useKnob;
         }
       });
     /*
