@@ -23,7 +23,7 @@ import 'settings.dart';
 import 'knob.dart';
 import 'KnobTuned.dart';
 import 'timer_ui.dart';
-import 'tempo.dart';
+import 'NoteTempo.dart';
 
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  bool _useNewKnob = true;
+  bool _useNewKnob = false;
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = 2;
   static const int maxBeatCount = 12;
@@ -157,11 +157,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   bool _showAds = false;
   ///<<<<<< JG!
 
-  /// Size of square owl's area
-  double _sideSquare;
-  Size _sizeCtrls;
   /// Overall screen size
   Size _screenSize;
+  /// Size of square owl's area
+  double _sideSquare;
+  double _squareX = 1.0;
+  double _squareY = 0.85;
+  Size _sizeCtrls;
 
   BeatMetre _beat = new BeatMetre();
   BeatSound _soundConfig = new BeatSound();
@@ -395,22 +397,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             /// Owl square and controls
             final List<Widget> innerUI = <Widget>[
               _buildOwlenome(portrait, false),
-              _buildControls(portrait)
+              _buildBar(portrait),
+              _buildControls(portrait),
             ];
+
+            if (_showAds && portrait)
+            {
+              innerUI.add(_buildAds(portrait));
+            }
 
             return portrait ?
               // Vertical/portrait
               Container(
                 decoration: BoxDecoration(
-                   image: DecorationImage(
+                  image: DecorationImage(
                     image: AssetImage('images/Backg-1.jpg'),
-                   fit: BoxFit.cover
-                   )
+                    fit: BoxFit.cover,
+                  )
                 ),
                 child:
               Column(children: innerUI,
                 mainAxisAlignment: MainAxisAlignment.start)
-              ) :
+              )
+              :
               // Horizontal/landscape
               Row(children: innerUI,
                 mainAxisAlignment: MainAxisAlignment.start);
@@ -457,7 +466,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 end: Alignment.centerRight,
                 colors: [Colors.white70, Colors.white70])
             ),
-            width: 0.18 * _sizeCtrls.width,
+            width: 0.22 * _sizeCtrls.width,
             height: 0.16 * _sizeCtrls.height,
             child: WheelChooser.integer(
             selectTextStyle: Theme.of(context).textTheme.headline
@@ -503,7 +512,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             end: Alignment.centerRight,
             colors: [Colors.white70, Colors.white70])
         ),
-        width: 0.18 * _sizeCtrls.width,
+        width: 0.22 * _sizeCtrls.width,
         height: 0.16 * _sizeCtrls.height,
         child: WheelChooser(
           selectTextStyle: Theme.of(context).textTheme.headline
@@ -560,8 +569,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         noteValue: _noteValue,
         color: _textColor,
         textStyle: textStyle,
-        width: 0.18 * _sizeCtrls.width,
-        height: 0.24 * _sizeCtrls.height,
+        size: new Size(0.18 * _sizeCtrls.width, 0.24 * _sizeCtrls.height),
         onChanged: onSubbeatChanged,
       ),
       //padding: const Offset(8, 0),
@@ -626,14 +634,120 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  Widget _buildPlayBtn()
+  {
+    return new MaterialButton(
+      minWidth: 0.25 * _sizeCtrls.width,
+      //iconSize: 0.4 * _sizeCtrls.height,
+      /*
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(width: 2, color: Colors.purple.withOpacity(0.8)),
+      ),
+      padding: EdgeInsets.all(8),//_padding.dx),
+*/
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      padding: EdgeInsets.all(18),//_padding.dx),
+      //child: tempo,
+      child: Icon(_playing ? Icons.pause : Icons.play_arrow,
+        size: 0.125 * _sizeCtrls.width),
+      color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+      enableFeedback: false,
+      onPressed: _play
+    );
+    /*
+    Widget btnPlay = new IconButton(
+      iconSize: 0.4 * _sizeCtrls.height,
+      padding: EdgeInsets.all(0),//_padding.dx),
+      icon: tempo,
+      //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
+      color: _cWhiteColor, //portrait ? _accentColor : _primaryColor,
+      enableFeedback: false,
+      onPressed: _play
+    );
+*/
+  }
+
+  Widget _buildSoundBtn()
+  {
+    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
+      _soundSchemes[_activeSoundScheme] : '';
+
+    return new MaterialButton(
+      //iconSize: 40,
+      padding: EdgeInsets.all(0),
+      //icon: Icon(Icons.check_box_outline_blank,),
+      child: Text((_activeSoundScheme + 1).toString(),
+        style: Theme.of(context).textTheme.display1
+          .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor),
+        //                TextStyle(fontSize: 28,
+        //                  fontWeight: FontWeight.bold,
+        //                  color: _cWhiteColor
+        //                )
+      ),
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      //padding: EdgeInsets.all(0),
+      textTheme: ButtonTextTheme.primary,
+      //color: _cWhiteColor,
+      //tooltip: _soundSchemes[_activeSoundScheme],
+      enableFeedback: !_playing,
+      onPressed: () {
+        if (_soundSchemes != null && _soundSchemes.length > 0)
+        {
+          _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemes.length;
+          _setMusicScheme(_activeSoundScheme);
+          setState(() {}); //TODO move to _setMusicScheme?
+        }
+      },
+    );
+  }
+
+  Widget _buildVolumeBtn()
+  {
+    return new VolumeButton(
+      value: _volume,
+      min: 0,
+      max: 100,
+      //mute = false,
+      msec: 250,
+      onChanged: _changeVolume,
+/*
+      onLongPress: () {
+        setState(() {
+          _mute = !_mute;
+        });
+      },
+*/
+      radius: 0.08 * _sizeCtrls.height,
+      height: 0.85 * _sizeCtrls.height,
+      color: _cWhiteColor,
+      enableFeedback: !_playing,
+    );
+  }
+
+  ///widget Settings
+  Widget _buildSettingsBtn()
+  {
+    return new IconButton(
+      iconSize: 0.14 * _sizeCtrls.height,
+      padding: EdgeInsets.all(0),
+      icon: Icon(Icons.settings,),
+      color: _cWhiteColor.withOpacity(0.8),
+      enableFeedback: !_playing,
+      onPressed: () {
+        _showSettings(context);
+      },
+    );
+  }
+
   Widget _buildAds(bool portrait)
   {
     return Container(
       height: portrait ? 50 : 32,
       color: Colors.grey[400],
       child: Image.asset('images/Ad-1.png',
-          //height: portrait ? 50 : 32,
-          fit: BoxFit.contain
+        //height: portrait ? 50 : 32,
+        fit: BoxFit.contain
       ),
     );
   }
@@ -643,68 +757,199 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     ///widget Owls
     final Widget wixOwls = OwlGrid(
-        playing: _playing,
-        beat: _beat,
-        activeBeat: _activeBeat,  //TODO Move to _beat??
-        activeSubbeat: _activeSubbeat,
-        noteValue: _noteValue,
-        accents: _beat.accents,
-        //width: _widthSquare,
-        //childSize: childSize,
-        animationType: _animationType,
-        onChanged: onOwlChanged,
-        onAccentChanged: onAccentChanged,
-        onCountChanged: (int count) {
-          if (count > maxBeatCount)
-            count = minBeatCount;
-          if (count < minBeatCount)
-            count = maxBeatCount;
-          onMetreChanged(count, _noteValue);
-        }
-      );
-
-    //VG TODO
-    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ?
-      10 : 0;
-      //0.03 * _widthSquare : 0;
-    final double paddingY = 0;//_beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
-
-    return GestureDetector(
-/*
-      onTap: () {
-        int count = _beat.beatCount + 1;
+      playing: _playing,
+      beat: _beat,
+      activeBeat: _activeBeat,  //TODO Move to _beat??
+      activeSubbeat: _activeSubbeat,
+      noteValue: _noteValue,
+      accents: _beat.accents,
+      //width: _widthSquare,
+      //childSize: childSize,
+      animationType: _animationType,
+      onChanged: onOwlChanged,
+      onAccentChanged: onAccentChanged,
+      onCountChanged: (int count) {
         if (count > maxBeatCount)
           count = minBeatCount;
         if (count < minBeatCount)
           count = maxBeatCount;
         onMetreChanged(count, _noteValue);
-      //setState(() {});
-      //Provider.of<MetronomeState>(context, listen: false)
-      //.setActiveState(widget.id, widget.subbeatCount);
-      //widget.onTap(widget.id, widget.subbeatCount);
-      },
-*/
-      child: Container(
-        width: _sideSquare,
-        height: 0.85 * _sideSquare,
-        padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
-          EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
-        ///widget Background
-/*
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [_primaryColor, _accentColor])
-         // image: DecorationImage(
-          //  image: AssetImage('images/Backg-Up-1.jpg'),
-           // fit: BoxFit.cover
-         // )
-        ),
-*/
-        child: wixOwls
-      )
+      }
     );
+
+    //VG TODO
+    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
+      //0.03 * _widthSquare : 0;
+    final double paddingY = 0;//_beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
+
+    return Container(
+      width: _squareX * _sideSquare,
+      height: _squareY * _sideSquare,
+      padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
+        EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
+      ///widget Background
+/*
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [_primaryColor, _accentColor])
+       // image: DecorationImage(
+        //  image: AssetImage('images/Backg-Up-1.jpg'),
+         // fit: BoxFit.cover
+       // )
+      ),
+*/
+      child: wixOwls
+    );
+  }
+
+  ///widget Metre-bar section
+  Widget _buildBar(bool portrait)
+  {
+    final double horzSpace = portrait ? 16 : 16;
+    List<Widget> children = new List<Widget>();
+
+    double paddingY = portrait ? 0 : 0.1 * _sideSquare;
+    double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
+
+    final NoteTempoWidget noteTempo = new NoteTempoWidget(
+      tempo: _tempoBpm,
+      noteValue: _noteValue,
+      color: Colors.black,
+      size: new Size(18, 36),
+      textStyle: TextStyle(fontSize: 16, color: Colors.black),
+    );
+
+    ///widget Tempo list
+    final Widget listTempo = new Padding(
+      padding: EdgeInsets.only(top: 0.0 * _sizeCtrls.height, bottom: 0.0 * _sizeCtrls.height),
+      //padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
+      child:
+      TempoWidget(//TODO Limit
+        tempo: _tempoBpm,
+        textStyle: Theme.of(context).textTheme.display1
+          .copyWith(color: Colors.black, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
+        onChanged: (int tempo) {
+          if (_tempoBpm != tempo)
+          {
+            _tempoBpm = tempo;
+            if (_playing)
+              _setTempo(tempo);
+            setState(() {});
+          }
+        }
+      ));
+
+    ///widget Metre row
+    final Widget rowBar = new Padding(
+      padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(width: 0.05 * _sizeCtrls.width,),
+
+          ///widget Metre
+          _buildMetre(_textStyle),
+/*
+          SizedBox(
+            width: 0.3 * (_sizeCtrls.width - 2 * _padding.dx),
+            child: _buildMetre(_textStyle)
+          ),
+*/
+          Container(width: 0.02 * _sizeCtrls.width,),
+
+          Flexible(child:
+            Container(
+              color: Colors.white70,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+/*
+          SizedBox(
+            width: 0.02 * _sizeCtrls.width,//10
+            height: 0.14 * _sizeCtrls.height,
+            child:
+            ArrowWidget(direction: ArrowDirection.left,
+              color: Colors.white.withOpacity(0.8),
+              //color: Colors.deepPurpleAccent.withOpacity(0.75),
+            ),
+          ),
+*/
+          ///widget Subbeat widget
+          //Flexible(child:
+            Padding(
+              padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
+              child:
+              AccentMetreWidget(
+                beats: _beat.beatCount,
+                noteValue: _noteValue,
+                accents: _beat.accents,
+                pivoVodochka: _beat.pivoVodochka, //?
+                size: Size(0.5 * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
+                onChanged: onMetreChanged,
+                onOptionChanged: (bool pivoVodochka) {
+                  _beat.pivoVodochka = pivoVodochka;
+                  setState(() {});
+                },
+              ),
+            ),
+                    ]),
+/*
+          SizedBox(
+            width: 0.02 * _sizeCtrls.width,
+            height: 0.14 * _sizeCtrls.height,
+            child:
+            ArrowWidget(direction: ArrowDirection.right,
+              color: Colors.white.withOpacity(0.8),
+              //color: Colors.deepPurpleAccent.withOpacity(0.75),
+            ),
+          ),
+*/
+                  Row(
+                    //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      noteTempo,
+                      Expanded(child:
+                        listTempo,
+                      ),
+                    ]
+                  ),
+                ]),
+              )
+            ),
+
+            SubbeatWidget(
+              subbeatCount: _beat.subBeatCount,
+              noteValue: _noteValue,
+              color: _textColor,
+              textStyle: _textStyle,
+              size: new Size(0.15 * _sizeCtrls.width, 0.3 * _sizeCtrls.height),
+              onChanged: onSubbeatChanged,
+            ),
+
+//            AnimatedOpacity(
+//              duration: new Duration(seconds: 1),
+//              opacity: _subbeatWidth,
+//              child: _buildSubbeat(_textStyle),
+//            )
+//            AnimatedContainer(
+//              duration: new Duration(seconds: 1),
+//              width: _subbeatWidth,
+//              child:
+//            _buildSubbeat(_textStyle),
+//            )
+          //)
+        ])
+      );
+
+    return rowBar;
   }
 
   // Remaining section with controls
@@ -713,8 +958,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final TextStyle textStyleTimer = _textStyle.copyWith(fontSize: 20);
 
     final double horzSpace = portrait ? 16 : 16;
-    List<Widget> children = new List<Widget>();
-
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
 
@@ -743,145 +986,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           )),
       ]
     );
-
-    ///widget Metre row
-    final Widget rowMetre = new Padding(
-      padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(width: 0.05 * _sizeCtrls.width,),
-
-          ///widget Metre
-          //Flexible(mainAxisAlignment: MainAxisAlignment.start, child:
-          _buildMetre(_textStyle),
-/*
-          SizedBox(
-            width: 0.3 * (_sizeCtrls.width - 2 * _padding.dx),
-            child: _buildMetre(_textStyle)
-          ),
-*/
-          Container(width: 0.03 * _sizeCtrls.width,),
-
-          //),
-          //Placeholder(),
-/*
-          portrait ?
-          TimerWidget(
-            active: _playing,
-            opacity: _opacity,
-            color: _ctrlColor,
-            borderWidth: _borderWidth,
-            borderRadius: _borderRadius,
-            textStyle: textStyleTimer,
-          )
-          :
-          Container(width: 0, height: 0),
-*/
-          Flexible(child:
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-          SizedBox(
-            width: 0.02 * _sizeCtrls.width,//10
-            height: 0.14 * _sizeCtrls.height,
-            child:
-          ArrowWidget(
-            direction: ArrowDirection.left,
-            color: Colors.white.withOpacity(0.8),
-            //color: Colors.deepPurpleAccent.withOpacity(0.75),
-          ),
-          ),
-          ///widget Subbeat widget
-          //Flexible(child:
-              Container(
-                color: Colors.white70,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
-                child:
-              AccentMetreWidget(
-                beats: _beat.beatCount,
-                noteValue: _noteValue,
-                accents: _beat.accents,
-                pivoVodochka: _beat.pivoVodochka, //?
-                size: Size(0.5 * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
-                onChanged: onMetreChanged,
-                onOptionChanged: (bool pivoVodochka) {
-                  _beat.pivoVodochka = pivoVodochka;
-                  setState(() {});
-                },
-              ),
-            ),
-         // ),
-          ),
-          SizedBox(
-            width: 0.02 * _sizeCtrls.width,
-            height: 0.14 * _sizeCtrls.height,
-            child:
-          ArrowWidget(
-            direction: ArrowDirection.right,
-            color: Colors.white.withOpacity(0.8),
-            //color: Colors.deepPurpleAccent.withOpacity(0.75),
-          ),
-          ),
-            ]),
-          //),
-
-          listTempo,
-          ]),
-          ),
-
-          //Center(child:
-            //_buildPlate(
-            SubbeatWidget(
-              subbeatCount: _beat.subBeatCount,
-              noteValue: _noteValue,
-              color: _textColor,
-              textStyle: _textStyle,
-              width: 0.18 * _sizeCtrls.width,
-              height: 0.30 * _sizeCtrls.height,
-              onChanged: onSubbeatChanged,
-            ),
-            //padding: const Offset(8, 0),
-          //),
-
-          //AspectRatio(aspectRatio: 6,
-/*
-              subDiv: 8,
-              denominator: 4 * 8,
-              active: 0,
-              activeNoteType: ActiveNoteType.explosion,
-              colorPast: Colors.white,
-              colorNow: Colors.red,
-              colorFuture: Colors.white,
-*/
-/*
-          SizedBox(
-            width: 0.2 * (width - 2 * _padding.dx),
-            child: _buildSubbeat(_textStyle)
-          ),
-*/
-//            AnimatedOpacity(
-//              duration: new Duration(seconds: 1),
-//              opacity: _subbeatWidth,
-//              child: _buildSubbeat(_textStyle),
-//            )
-//            AnimatedContainer(
-//              duration: new Duration(seconds: 1),
-//              width: _subbeatWidth,
-//              child:
-//            _buildSubbeat(_textStyle),
-//            )
-          //)
-        ])
-      );
-    children.add(rowMetre);
 
     final ScrollController scrollCtrl = new FixedExtentScrollController(initialItem: _tempoBpm - minTempo);
     Widget picker = new CupertinoPicker.builder(
@@ -924,62 +1028,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
     );
 
-      ///widget Tempo knob control
-    Widget knobTempo = new Knob(
-      value: _tempoBpm.toDouble(),
-      min: minTempo.toDouble(),
-      max: maxTempo.toDouble(),
-      scaleCount: 12,
-      limit: _tempoBpmMax.toDouble(),
-      buttonRadius: 0.1,
-      outerRadius: 0.8,
-      size: 0.65 * _sizeCtrls.height,
-      debug: true,
-      showIcon: false,
-      color: _cWhiteColor.withOpacity(0.8),
-      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
-      onPressed: () {},//_play,
-      onChanged: (double value) {
-        _tempoBpm = value.round();
-        //_tempoList.setTempo(_tempoBpm);
-        if (_playing)
-          _setTempo(_tempoBpm);//ToDo: в такой последовательности?
-        //else
-        setState(() {});
-      },
-    );
-
-    _knobValue..value = _tempoBpm.toDouble();
-    print('_knobValue.value');
-    print(_knobValue.value);
-    Widget knobTempoNew = new KnobTuned(
-      knobValue: _knobValue,//..value = _tempoBpm.toDouble(),
-      minValue: minTempo.toDouble(),
-      maxValue: _tempoBpmMax.toDouble(),
-      sensitivity: _sensitivity,
-      onChanged: (KnobValue newVal) {
-        _tempoBpm = newVal.value.round();
-        _knobValue = newVal;
-        if (_playing)
-          _setTempo(_tempoBpm);
-        setState(() {});
-      },
-      diameter: 0.65 * _sizeCtrls.height,//0.43
-      innerRadius: _innerRadius,
-      outerRadius: _outerRadius,
-      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
-    );
-
     Widget wheelTempo =
-      new Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Color(0x40202020), Colors.deepPurple[600]])
-        ),
-        width: 0.2 * _sizeCtrls.width, //80,
-        height: 0.35 * _sizeCtrls.height, //100,
+    new Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0x40202020), Colors.deepPurple[600]])
+      ),
+      width: 0.2 * _sizeCtrls.width, //80,
+      height: 0.35 * _sizeCtrls.height, //100,
       child: WheelChooser.integer(
         selectTextStyle: Theme.of(context).textTheme.display1
           .copyWith(color: _cWhiteColor, fontSize: 24, fontWeight: FontWeight.bold, height: 1),
@@ -1013,18 +1071,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       child: picker,
     );
 
-    if (false)
-    children.add(Row(
-      mainAxisAlignment: portrait ?
-      MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-      //crossAxisAlignment: CrossAxisAlignment.end,
-      //mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        wheelTempo,
-      ]
-    ));
-
-/*
+    /*
     children.add(Row(
       mainAxisAlignment: portrait ?
       MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
@@ -1035,7 +1082,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ]
     ));
 */
-/*
+    /*
     children.add(Row(
       mainAxisAlignment: portrait ?
       MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
@@ -1049,317 +1096,134 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Widget tempo = Text(_tempoBpm.toString(),
       style: Theme.of(context).textTheme.display3
         .copyWith(
-          color: ((_tempoBpm> minTempo)&&(_tempoBpm<_tempoBpmMax))?_cWhiteColor : Colors.amberAccent, //TODO
-              fontSize: 0.10 * _sizeCtrls.height,
-          height: 1));
+        color: ((_tempoBpm> minTempo)&&(_tempoBpm<_tempoBpmMax))?_cWhiteColor : Colors.amberAccent, //TODO
+        fontSize: 0.10 * _sizeCtrls.height,
+        height: 1));
 
-    Widget btnPlay = new MaterialButton(
-      minWidth: 0.25 * _sizeCtrls.width,
-      //iconSize: 0.4 * _sizeCtrls.height,
-      /*
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(width: 2, color: Colors.purple.withOpacity(0.8)),
-      ),
-      padding: EdgeInsets.all(8),//_padding.dx),
-*/
-      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-      padding: EdgeInsets.all(18),//_padding.dx),
-      //child: tempo,
-      child: Icon(_playing ? Icons.pause : Icons.play_arrow,
-      size: 0.125 * _sizeCtrls.width),
-      color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
-      enableFeedback: false,
-      onPressed: _play
+
+    ///widget Tempo knob control
+    final Widget knobTempo = new Knob(
+      value: _tempoBpm.toDouble(),
+      min: minTempo.toDouble(),
+      max: maxTempo.toDouble(),
+      scaleCount: 12,
+      limit: _tempoBpmMax.toDouble(),
+      buttonRadius: 0.1,
+      outerRadius: 0.8,
+      size: 0.65 * _sizeCtrls.height,
+      debug: true,
+      showIcon: false,
+      color: _cWhiteColor.withOpacity(0.8),
+      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height,
+        color: Colors.white, height: 1),
+      onPressed: () {},//_play,
+      onChanged: (double value) {
+        _tempoBpm = value.round();
+        //_tempoList.setTempo(_tempoBpm);
+        if (_playing)
+          _setTempo(_tempoBpm);//ToDo: в такой последовательности?
+        //else
+        setState(() {});
+      },
     );
-/*
-    Widget btnPlay = new IconButton(
-      iconSize: 0.4 * _sizeCtrls.height,
-      padding: EdgeInsets.all(0),//_padding.dx),
-      icon: tempo,
-      //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
-      color: _cWhiteColor, //portrait ? _accentColor : _primaryColor,
-      enableFeedback: false,
-      onPressed: _play
+
+    _knobValue.value = _tempoBpm.toDouble();
+    Widget knobTempoNew = new KnobTuned(
+      knobValue: _knobValue,
+      minValue: minTempo.toDouble(),
+      maxValue: _tempoBpmMax.toDouble(),
+      sensitivity: _sensitivity,
+      onChanged: (KnobValue newVal) {
+        _tempoBpm = newVal.value.round();
+        _knobValue = newVal;
+        if (_playing)
+          _setTempo(_tempoBpm);
+        setState(() {});
+      },
+      diameter: 0.65 * _sizeCtrls.height,//0.43
+      innerRadius: _innerRadius,
+      outerRadius: _outerRadius,
+      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
     );
-*/
+
+    Widget btnPlay = _buildPlayBtn();
 
     // On app startup: _soundSchemes == null
-    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
-      _soundSchemes[_activeSoundScheme] : '';
-
-    Widget rowButtons =
-//    Column(
-//      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//      children: <Widget>[
-/*
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            //SizedBox(width: 0.2 * (width - 2 * _padding.dx),
-              //child:
-              //_buildSubbeat(_textStyle),
-            //),
-
-
-          ]
-        ),
-*/
-        //Expanded(child:
-        Column(
-  //      mainAxisAlignment: portrait ?
-  //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-          //mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          //crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            MaterialButton(
-              //iconSize: 40,
-              padding: EdgeInsets.all(0),
-              //icon: Icon(Icons.check_box_outline_blank,),
-              child: Text((_activeSoundScheme + 1).toString(),
-                style: Theme.of(context).textTheme.display1
-                  .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor),
-//                TextStyle(fontSize: 28,
-//                  fontWeight: FontWeight.bold,
-//                  color: _cWhiteColor
-//                )
-              ),
-              shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-              //padding: EdgeInsets.all(0),
-              textTheme: ButtonTextTheme.primary,
-              //color: _cWhiteColor,
-              //tooltip: _soundSchemes[_activeSoundScheme],
-              enableFeedback: !_playing,
-              onPressed: () {
-                if (_soundSchemes != null && _soundSchemes.length > 0)
-                {
-                  _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemes.length;
-                  _setMusicScheme(_activeSoundScheme);
-                  setState(() {}); //TODO move to _setMusicScheme?
-                }
-              },
-            ),
-
-          Container(height: 0.1 * _sizeCtrls.height),
-
-          ///widget Settings
-          IconButton(
-            iconSize: 0.14 * _sizeCtrls.height,
-            padding: EdgeInsets.all(0),
-            icon: Icon(Icons.settings,),
-            color: _cWhiteColor.withOpacity(0.8),
-            enableFeedback: !_playing,
-            onPressed: () {
-              _showSettings(context);
-            },
-          ),
-/*
-          VolumeButton(
-            value: _volume,
-            min: 0,
-            max: 100,
-            //mute = false,
-            onChanged: _changeVolume,
-/*
-            onLongPress: () {
-              setState(() {
-                _mute = !_mute;
-              });
-            },
-*/
-            radius: 0.08 * _sizeCtrls.height,
-            height: 0.85 * _sizeCtrls.height,
-            color: _cWhiteColor,
-            enableFeedback: !_playing,
-          ),
-*/
-/*
-            Stack(
-              alignment: Alignment.center,
-            children: <Widget>[
-              FlatButton(
-                //iconSize: 40,
-                //padding: EdgeInsets.all(_padding.dx),
-                //icon: Icon(Icons.check_box_outline_blank,),
-                child: Text((_activeSoundScheme + 1).toString(),
-                  style: TextStyle(fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: _cWhiteColor
-                  )
-                ),
-                shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-                padding: EdgeInsets.all(4),
-                textTheme: ButtonTextTheme.primary,
-                //color: _cWhiteColor,
-                //tooltip: _soundSchemes[_activeSoundScheme],
-                onPressed: () {
-                  setState(() {
-                    _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemeCount;
-                  });
-                  _setMusicScheme(_activeSoundScheme);
-                },
-              ),
-            ]),
-*/
-
-            //Flexible(child:
-            //padding: EdgeInsets.only(right: _padding.dx),
-            ///widget Settings
-            ///widget Volume
-            //_buildVolume(),
-          ]
-        );
-
-/*
-    children.add(
-      //Expanded(child:
-        Stack(
-          //alignment: AlignmentDirectional.center,
-          //fit: StackFit.passthrough,
-          children: <Widget>[
-            Center(child:
-              cupWheelTempo,
-            ),
-            rowButtons,
-          //wixTempoWheel,
-          //wixKnob,
-          ]
-        ),
-      //)
-    );
-*/
-    final Widget rowTempo = Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final Widget buttons = new Column(
+      //      mainAxisAlignment: portrait ?
+      //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
+      //mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        //listTempo,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            rowButtons,
-/*
-            SizedBox(
-              width: 20,
-              height: 0.4 * _sizeCtrls.height,
-              child:
-            RotatedBox(
-              quarterTurns: 1,
-              child:
-              Slider(
-                min: minTempo.toDouble(),
-                max: maxTempo.toDouble(),
-                //label: _value.toString(),
-                value: _tempoBpm.toDouble(),
-                onChanged: (double value) {
-                  _tempoBpm = value.round();
-                  //_tempoList.setTempo(_tempoBpm);
-                  if (_playing)
-                    _setTempo(_tempoBpm);
-                  //else
-                  setState(() {});
-                },
-              ),
-            ),
-            ),
-            Container(
-              width: 0.025 * _sizeCtrls.width,
-            ),
-*/
-
-            _useNewKnob ?
-              knobTempoNew
-            :
-              knobTempo,
-              //wheelTempo,
-              //cupWheelTempo,
-            Container(
-              width: (usePlayButton ? 0.0 : 0.3) * _sizeCtrls.width,
-              //width: 0.025 * _sizeCtrls.width,
-            ),
-            usePlayButton ?
-            //Center(child: tempo)
-            btnPlay
-            :
-            Container()
-            ,
-          ]
-        ),
-      ],
+        _buildSoundBtn(),
+        //Container(height: 0.1 * _sizeCtrls.height),
+        _buildVolumeBtn(),
+        _buildSettingsBtn(),
+      ]
     );
 
-    /*
-    children.add(
-        SlideTransition(
-            position: _animationDown,
-            child:
-            _buildVolume()
-        ));
-*/
-
-    //children.add(Expanded(child: Container()));
-
-    Widget ads = _showAds ? _buildAds(portrait) : new Container();
-
-    // Fill up the remaining screen as the last widget in column/row
-    return Expanded(
-      //Container(
-//        width: _sizeCtrls.width,
-//        height: _sizeCtrls.height - 24,
-        /// Background
-/*
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
-                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
-                colors: [_primaryColor, _accentColor])
-        ),
-*/
-        //Padding(
-        //  padding: const EdgeInsets.all(8.0),
-        //  child:
-        //child: IntrinsicHeight(
-
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          //fit: StackFit.passthrough,
+    final Widget stack = new Stack(
+      alignment: Alignment.bottomCenter,
+      //fit: StackFit.passthrough,
+      children: <Widget>[
+        Column(
           children: <Widget>[
-            ads,
-            Column(
-              children: <Widget>[
-                rowMetre,
+            //rowMetre,
 
-                Stack(
+            Stack(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        rowTempo,
-                        //wixTempoWheel,
-                        //wixKnob,
-                      ]
-                    ),
-                    //rowButtons,
-                    /*
+                    //rowTempo,
+                    //wixTempoWheel,
+                    //wixKnob,
+                  ]
+                ),
+                //rowButtons,
+                /*
                     Positioned(
                       right: 0,
                       width: 0.5 * _sizeCtrls.width,
                       child: listTempo
                     ),
 */
-                ]),
-               ]
-            ),
-            //rowButtons,
+              ]),
           ]
         ),
-/*
-        child: Column(
-          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: children,
-        )
-*/
+        //rowButtons,
+      ]
+    );
+
+    final Widget rowButtons = new Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        buttons,
+        (_useNewKnob ? knobTempoNew : knobTempo),
+        //Container(width: 0.0 * _sizeCtrls.width,),
+        btnPlay,
+      ]
+    );
+
+    // Fill up the remaining screen as the last widget in column/row
+    return Expanded(
+      //Container(
+      //        width: _sizeCtrls.width,
+      //        height: _sizeCtrls.height - 24,
+      //  padding: const EdgeInsets.all(8.0),
+      /// Background
+      /*
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
+                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
+                colors: [_primaryColor, _accentColor])
+        ),
+      */
+      child: rowButtons
     );
   }
 
@@ -1771,102 +1635,3 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
    */
   }
 }
-
-///VG: Don't delete
-/*
-  _scaffoldKey.currentState.showSnackBar(SnackBar(
-    content: Text('Minus one'),
-    duration: Duration(milliseconds: 250)));
-
-  IconButton(
-    iconSize: 36,
-    icon: Icon(
-      Icons.exposure_neg_1,
-      //color: Colors.deepPurple,
-      //size: 36.0,
-      semanticLabel: 'Reduce tempo by one',
-    ),
-    onPressed: () {
-      setState(() {
-        _tempoBpm -= 10;
-      });
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Minus one'),
-        duration: Duration(milliseconds: 250)));
-    },
-    tooltip: 'Reduce tempo',
-  ),
-
-  DropdownButton<int>(
-    value: _subBeatCount,
-    style: textStyle,
-    icon: Icon(
-      Icons.arrow_drop_down,
-      color: Colors.white,
-      size: 24.0,
-      semanticLabel: 'Choose beat subdivision',
-    ),
-    //isDense: true,
-    onChanged: (int value) {
-      setState(() {
-        if (value != null) {
-          _subBeatCount = value;
-          if (_playing)
-            _setTempo(0.0);
-        }
-      });
-    },
-    items: <int>[1, 2, 3, 4, 5, 6]
-      .map<DropdownMenuItem<int>>((int value) {
-      return DropdownMenuItem<int>(
-        value: value,
-        child: Text(value.toString(),
-        style: TextStyle(color: Colors.black)));
-    }).toList()
-  ),
-
-  DropdownButton<int>(
-    value: _subBeatCount,
-    style: textStyle,
-    icon: Icon(
-      Icons.arrow_drop_down,
-      color: Colors.white,
-      size: 24.0,
-      semanticLabel: 'Choose beat subdivision',
-    ),
-    //isDense: true,
-    onChanged: (int value) {
-      setState(() {
-        if (value != null) {
-          _subBeatCount = value;
-          if (_playing)
-            _setTempo(0.0);
-        }
-      });
-    },
-    items: <int>[1, 2, 3, 4, 5, 6]
-      .map<DropdownMenuItem<int>>((int value) {
-      return DropdownMenuItem<int>(
-        value: value,
-        child: Text(value.toString(),
-        style: TextStyle(color: Colors.black)));
-    }).toList()
-  ),
-
-  ButtonTheme(
-    minWidth: 150,
-    buttonColor: Colors.purple.withOpacity(_opacity),
-    colorScheme: ColorScheme.light(),
-    child: RaisedButton(
-      textColor: Colors.white,
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-      child: Text(isTicking() ? 'Pause' : 'Start',
-        style: textStyle),
-      shape: RoundedRectangleBorder(
-        borderRadius: new BorderRadius.circular(16.0),
-        side: BorderSide(color: Colors.purpleAccent.withOpacity(_opacity), width: 2)
-      ),
-      onPressed: _play,
-    )
-  )
-*/

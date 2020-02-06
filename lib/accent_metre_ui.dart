@@ -107,7 +107,7 @@ class AccentMetreState extends State<AccentMetreWidget>
           //setState(() {});
         },
         child: Wrap(
-        children: notes,
+          children: notes,
       )
     ));
   }

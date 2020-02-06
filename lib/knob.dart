@@ -190,8 +190,8 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       _imageSize = imageSize;
     }
 
-    return Center(
-      child: Container(
+    return //Center(child:
+      Container(
         width: size,
         height: size,
         child: GestureDetector(
@@ -378,6 +378,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                   _prevPos, widget.scaleCount, pressed,
                   Colors.purpleAccent, Colors.purple.withOpacity(0.25), Colors.blueAccent, widget.debug),
                 size: Size(size, size),
+//                child: Text(widget.value.toInt().toString(),
+//                  style: widget.textStyle
+//                ),
               ),
 
               widget.showIcon ?
@@ -389,7 +392,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 //                    color: widget.color,
 //                  ),
                   Text(widget.value.toInt().toString(),
-                    style: widget.textStyle
+                    style: widget.textStyle,
                   ),
                 ]
               )
@@ -404,7 +407,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             ]
           ),
         ),
-      ),
+      //),
     );
   }
 }

@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+/*
+TimerWidget(
+  active: _playing,
+  opacity: _opacity,
+  color: _ctrlColor,
+  borderWidth: _borderWidth,
+  borderRadius: _borderRadius,
+  textStyle: textStyleTimer,
+)
+*/
+
 class TimerWidget extends StatefulWidget
 {
   final bool active;
