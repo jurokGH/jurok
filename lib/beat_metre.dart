@@ -81,6 +81,12 @@ class BeatMetre
     }
   }
 
+  void setAccentOption(bool accentLean)
+  {
+    pivoVodochka = accentLean;
+    accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
+  }
+
   ///TODO For now
   int get accent => accents.length > 0 ? accents[0] : 0;
 

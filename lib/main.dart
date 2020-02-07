@@ -906,7 +906,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 size: Size(0.5 * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
                 onChanged: onMetreChanged,
                 onOptionChanged: (bool pivoVodochka) {
-                  _beat.pivoVodochka = pivoVodochka;
+                  _beat.setAccentOption(pivoVodochka);
                   setState(() {});
                 },
               ),
