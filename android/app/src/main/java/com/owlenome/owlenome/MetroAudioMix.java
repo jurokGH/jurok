@@ -642,9 +642,10 @@ public class MetroAudioMix
             copy2bufferAux(melody.cycleDriven, bufferDriven);
 
             //MIX //ToDo:             mixNOTNormalized
-            MelodyToolsPCM16.mixNOTNormalized(
+            MelodyToolsPCM16.mixNormalized(
              buffer.array(),bufferDriven.array()
               );
+
             buffer.position(0);
 
 

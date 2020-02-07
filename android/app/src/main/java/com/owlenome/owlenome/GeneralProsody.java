@@ -170,18 +170,28 @@ public class GeneralProsody {
     }
 
 
+    public static  byte[][] agogicAccentsNormalizedTmp(byte[] longSound, byte[] shortSound,
+                                                         int nOfAccents){
+        return dynamicAccents(longSound,
+                nOfAccents, GeneralProsody.beatDynamic);
+    }
+
 
     //Складываем пробно так, чтобы можно было бипы миксовать.
     //Пока - деля пополам!
     //Первый, сильный звук - длинный!
-    public static  byte[][] agogicAccentsNormalized(byte[] longSound, byte[] shortSound,
-                                          int nOfAccents){
+    public static  byte[][] agogicAccentsNormalizedWrong(byte[] longSound, byte[] shortSound,
+                                                         int nOfAccents){
+
+        //Untested. Не докнца понято
+       double strongMultiplier=1;
 
         //byte[][] sounds=new byte[nOfAccents][];
 
 
         double[] longSndD=MelodyToolsPCM16.doubleFrom16BitPCM(longSound);//ToDo: переделать -
-        double[] shortSndD=MelodyToolsPCM16.doubleFrom16BitPCM(longSound);// лень было по битам разбирать
+        double[] shortSndD=MelodyToolsPCM16.doubleFrom16BitPCM(shortSound);// лень было по битам разбирать
+        //TODO: longSound выше - ОШИБКА ОШИБКА
         double maxAmp=0;
         for (int i=0; i<shortSndD.length; i++){
             double amp= Math.abs( longSndD[i]*strongMultiplier+shortSndD[i]);
@@ -222,8 +232,6 @@ public class GeneralProsody {
     final static double subBeatDynamic =1.5;
 
 
-    //Untested. Не докнца понято
-    final static double strongMultiplier=3;//todo: в константы
 
 
     /**

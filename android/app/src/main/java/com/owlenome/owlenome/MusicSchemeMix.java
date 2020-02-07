@@ -127,7 +127,7 @@ class MusicSchemeMix {
                 break;
 
             case Agogic:
-                setOfNotes = GeneralProsody.agogicAccentsNormalized(beatSound, subBeatSound,
+                setOfNotes = GeneralProsody.agogicAccentsNormalizedTmp(beatSound, subBeatSound,
                         absoluteMaxOfNoteAccents);
                 break;
 
