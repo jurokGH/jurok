@@ -18,6 +18,7 @@ class OwlSkin
 {
   final int kindCount = 5;  // == accentCount + 1
   final int frameCount = 5;  // == subbeatCount
+  final String _fileBase = 'images/owl5-';
   //List<List<Image>> _images;
   List<Image> _images;
   Size _imageSize = Size.zero;
@@ -127,7 +128,7 @@ class OwlSkin
       int jCount = i == 0 ? 2 : frameCount;
       for (int j = 0; j < jCount; j++, iImage++)
       {
-        _images[iImage] = new Image.asset('images/owl$i-$j.png',
+        _images[iImage] = new Image.asset(_fileBase + '$i-$j.png',
           width: size.width,
           //height: size.height,
           fit: BoxFit.contain,
