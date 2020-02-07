@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  bool _useNewKnob = false;
+  bool _useNewKnob = true;
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = 2;
   static const int maxBeatCount = 12;
@@ -695,7 +695,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //minWidth: 40,
       padding: EdgeInsets.all(0),
       //icon: Icon(Icons.check_box_outline_blank,),
-      child: icon,
+      child: icon1,
       shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       //padding: EdgeInsets.all(0),
       //textTheme: ButtonTextTheme.primary,
@@ -929,7 +929,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     children: <Widget>[
                       noteTempo,
                       Expanded(child:
+                        ClipRect(child:
                         listTempo,
+                      ),
                       ),
                     ]
                   ),
