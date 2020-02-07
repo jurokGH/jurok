@@ -143,9 +143,6 @@ class NotePainter extends CustomPainter
   final double _innerScaleX = 0.9;
   final double _innerScaleY = 0.5;
 
-  /// абсолютное значение в пикселях
-  final double _tupletBracketLineWidth = 1;
-
   ///Ниже идут значения относительно высоты
 
   ///вертикальный радиус ноты (относительно высоты)
@@ -193,11 +190,14 @@ class NotePainter extends CustomPainter
   ///Значения для случая скобки (половинные и четвертные ноты):
   ///
 
+  final bool fullTuplet = false;
+  /// Высота боковых загибов скобки относительно высотвы цифры
+  final double _relTupletHeight = 0.4;
+  /// абсолютное значение в пикселях
+  final double _tupletBracketLineWidth = 1;
+
   ///Отступ от половинной-четвертной ноты до скобки
   final double _spaceBelowTupletBracket = 0.1;
-
-  ///Высота боковых загибов скобки
-  final double _relTupletBracketHeight = 0.1;
 
   ///
   ///Параметры взрыва
@@ -588,7 +588,6 @@ class NotePainter extends CustomPainter
     //TODO && !isPowerOf2
     bool useTupletLine = (denominator == subDiv && subDiv > 1 && !_isPowerOf2) ||
       (denominator == 2 * subDiv && subDiv == 3);
-    print('$denominator --- $subDiv');
 
     ///Если нот несколько - вертикальные черты, или скоба для нот 1/2,1/4; число сверху
     _drawNotes(canvas);
@@ -614,20 +613,21 @@ class NotePainter extends CustomPainter
         textDirection: TextDirection.ltr);
 
       tp.layout();
-      tp.paint(canvas, center.translate(0/*tp.width * 0.25*/, - tp.height * 0.5));
+      double xShift = fullTuplet ? 0 : tp.width * 0.25;
+      tp.paint(canvas, center.translate(xShift, - tp.height * 0.5));
 
       //TODO
       if (useTupletLine)
       {
-        final Offset left = new Offset(_noteCenterX(0) - _radius - 2 * stemWidth, y);
+        final double xLeft = fullTuplet ?
+          _noteCenterX(0) - _radius - 2 * stemWidth : _noteCenterX(0) + _radius - 3 * stemWidth;
+        final Offset left = new Offset(xLeft, y);
         final Offset right = new Offset(_noteCenterX(subDiv - 1) + _radius + 2 * stemWidth, y);
 
-        //TODO Coefficients
-        double tupletEnd = 0.4;
-        canvas.drawLine(left.translate(0, tupletEnd * tp.height), left, _paintStem);
-        canvas.drawLine(left, center.translate(- 0.5 * tp.width, 0), _paintStem);
-        canvas.drawLine(center.translate(1.25 * tp.width, 0), right, _paintStem);
-        canvas.drawLine(right.translate(0, tupletEnd * tp.height), right, _paintStem);
+        canvas.drawLine(left.translate(0, _relTupletHeight * tp.height), left, _paintStem);
+        canvas.drawLine(left, center.translate(- 0.25 * tp.width + xShift, 0), _paintStem);
+        canvas.drawLine(center.translate(1.25 * tp.width + xShift, 0), right, _paintStem);
+        canvas.drawLine(right.translate(0, _relTupletHeight * tp.height), right, _paintStem);
       }
     }
 
