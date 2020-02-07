@@ -142,6 +142,10 @@ public class MetroAudioMix
 
     //ToDo: TEST
     private boolean bNewTempo = false;
+
+    private boolean bConnectSounds = false;
+    int lastSample;
+
     //private Tempo _tempo;
     private int _BPMtoSet;//ToDo: убрать?
 
@@ -221,6 +225,8 @@ public class MetroAudioMix
 
         setState(STATE_STARTING);
         doPlay = true;
+
+        lastSample=0;
 
         initTrack();
 
@@ -634,6 +640,10 @@ public class MetroAudioMix
         }
 
 
+
+        final double timeToClickReductionMs=0.15;
+
+
         /**
          *   Копируем в буфер цикл
          */
@@ -641,10 +651,16 @@ public class MetroAudioMix
             int toWrite= copy2bufferAux(melody.cycle,buffer);
             copy2bufferAux(melody.cycleDriven, bufferDriven);
 
+            long samplesForClickReduction=
+                    nanoSec2samples((int)(timeToClickReductionMs*1000000))+1;
+
             //MIX //ToDo:             mixNOTNormalized
-            MelodyToolsPCM16.mixNormalized(
-             buffer.array(),bufferDriven.array()
+            lastSample=MelodyToolsPCM16.mixNormalized(
+             buffer.array(),bufferDriven.array(), lastSample, samplesForClickReduction,
+                    bConnectSounds
               );
+            bConnectSounds=false;
+
 
             buffer.position(0);
 
@@ -655,6 +671,8 @@ public class MetroAudioMix
 
             return toWrite;
         }
+
+
 
 
         int copy2bufferAux(BipPauseCycle cycle, ByteBuffer buff)//ToDo
@@ -801,7 +819,7 @@ public class MetroAudioMix
                 // кратными малым буферам (или хотя бы их половинам)
                 // - иначе может не обновиться параметр getPlaybackHeadPosition, и мы
                 // получим "пляски" при дергании темпа. Тут нужен баланс - слишком большой программный буфер
-                // означает долгое "доигрывание" звуков и большую latency, маленький может дать
+                // означает долгое "доигрывание" звуков и большую задержку старта, маленький может дать
                 // неравномерное считывание.  (Еще раз протестировать всё в весеннем комбайне.)
                 // Этот параметр вроде бы подобирается правильно - так, чтобы число
                 // записанных росло равномерно с числом отыгранных (сразу после записи);
@@ -815,6 +833,7 @@ public class MetroAudioMix
                 // Я пока не понимаю, как с этим быть. Только тесты на разном железе.
 
                 bNewTempo = false;
+                bConnectSounds=true;
                 //tempo.beatsPerMinute = BPMfromSeekBar;
                 //barrelOrgan.reSetAngles(cycle);
 

@@ -162,7 +162,7 @@ class MusicSchemeMix {
         int lengthStrong = (int) Utility.nanoSec2samples(nativeSampleRate, beatDuration * 1000000);
 
 
-        beatSound = melodyTools.getFreq(beatFreq, lengthWeak, 5, 2);
+        beatSound = melodyTools.getFreq(beatFreq, lengthWeak, 3, 3);
         subBeatSound = melodyTools.getFreq(subBeatFreq, lengthStrong, 2, 2);
     }
 
