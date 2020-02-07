@@ -45,7 +45,7 @@ class SubbeatState extends State<SubbeatWidget>
           Opacity(
             opacity: 0.55,
             child:
-            Image.asset('images/owl1-1.png',
+            Image.asset('images/owl-sub.png',
               height: widget.size.height,
               fit: BoxFit.contain
             ),
