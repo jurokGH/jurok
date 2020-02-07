@@ -33,7 +33,7 @@ class OwlSkin
 
   Future<bool> init() async //TODO
   {
-    Future<ui.Image> futImage = _loadImage('images/owl1-0.png');
+    Future<ui.Image> futImage = _loadImage(_fileBase + '1-0.png');
     futImage.then((ui.Image image) => _imageSize0 = new Size(image.width.toDouble(), image.height.toDouble()));
     aspect = _imageSize0.width > 0 ? _imageSize0.height / _imageSize0.width : 310 / 250.0;
     return new Future.value(true);
