@@ -700,7 +700,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //Icon(Icons.music_note, size: 24, color: _cWhiteColor),
         Text(strScheme,
           style: Theme.of(context).textTheme.title//headline
-            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
+            .copyWith(fontWeight: FontWeight.bold, color: Colors.amberAccent), //fontSize: 28
           //          style: Theme.of(context).textTheme.display1
           //            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
         ),
