@@ -399,6 +399,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             {
               setState(() {
                 pressed = !pressed;
+                pressed = false;
               });
               widget.onPressed();  //TODO Should place it inside setState?
               tap = false;
