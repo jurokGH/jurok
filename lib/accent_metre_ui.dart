@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:owlenome/util.dart';
 import 'note_ui.dart';
 import 'metre.dart';
 import 'prosody.dart';
@@ -12,12 +13,14 @@ class AccentMetreWidget extends StatefulWidget
   final bool pivoVodochka;
   final List<int> accents;
   final Size size;
+  final Color color;
   final ValueChanged2<int, int> onChanged;
   final ValueChanged<bool> onOptionChanged;
 
   AccentMetreWidget({
     this.beats, this.noteValue, this.accents, this.pivoVodochka = true,
     this.size,
+    this.color,
     @required this.onChanged,
     @required this.onOptionChanged,
   });
@@ -44,7 +47,7 @@ class AccentMetreState extends State<AccentMetreWidget>
 
   @override
   Widget build(BuildContext context)
-  {
+    {
     final List<int> metres = Prosody.getSimpleMetres(widget.beats, widget.pivoVodochka);
 
     double width = widget.size.width / metres.length;
@@ -84,7 +87,7 @@ class AccentMetreState extends State<AccentMetreWidget>
     return Container(
       child: GestureDetector(
         onTap: () {
-          _activeMetre = (_activeMetre + 1) % _metreList.length;
+          _activeMetre = _activeMetre + 1;
           if (_activeMetre >= _metreList.length)
             _activeMetre = 0;
           widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
@@ -94,11 +97,8 @@ class AccentMetreState extends State<AccentMetreWidget>
         //widget.onTap(widget.id, widget.subbeatCount);
         },
         onHorizontalDragEnd: (DragEndDetails details) {
-          int index = _activeMetre + details.primaryVelocity.sign.toInt();
-          if (index < 0)
-            index = _metreList.length - 1;
-          if (index >= _metreList.length)
-            index = 0;
+          int index = _activeMetre - details.primaryVelocity.sign.toInt();
+          index = loopClamp(index, 0, _metreList.length - 1);
           _activeMetre = index;
           widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
         },
@@ -106,9 +106,13 @@ class AccentMetreState extends State<AccentMetreWidget>
           widget.onOptionChanged(!widget.pivoVodochka);
           //setState(() {});
         },
+        onDoubleTap: () {
+          widget.onOptionChanged(!widget.pivoVodochka);
+        },
         child: Wrap(
           children: notes,
+        )
       )
-    ));
+    );
   }
 }

@@ -37,6 +37,7 @@ class BeatMetre
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
   List<int> accents;
+  List<int> _regularAccents;
   bool pivoVodochka = false;  // false - чтобы распевней
 
   /// notes[i] - i-th notes (bips)
@@ -49,14 +50,13 @@ class BeatMetre
     _beatCount = subBeats.length;
     _subBeatCount = 1;
     metres = new List<int>.filled(1, _beatCount, growable: true);
-    //ToDo: просодия тут
-    //accents = new List<int>.filled(_initSubBeats.length, 0, growable: true);
-    accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
+    accents = Prosody.getAccents(_beatCount, pivoVodochka);
+    _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
 
+    //TODO
     //Попытка настройки начальной мелодии.
-    if (subBeats.length==_initAccents.length){
-      accents= new List<int>.from(_initAccents, growable: true);
-    }
+    if (subBeats.length == _initAccents.length)
+      accents = new List<int>.from(_initAccents, growable: true);
 
     //accents[0] = -1;
     //subBeats[0] = 1;
@@ -64,6 +64,32 @@ class BeatMetre
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
+  }
+
+  bool get regular
+  {
+    //TODO only if _beatCount < 12
+    if (_beatCount == 5 || _beatCount == 7 || _beatCount == 11 ||
+      accents.length != _regularAccents.length)
+    {
+      print('regular:false 1');
+      return false;
+    }
+    for (int i = 0; i < accents.length; i++)
+      if (accents[i] != _regularAccents[i])
+      {
+        print('regular:false 2');
+        return false;
+      }
+    print('regular:true');
+    return true;
+  }
+
+  /// Test if this metre has plain accent scheme: [1, 0, 0, ..]
+  bool get plainAccent
+  {
+    return accents.isEmpty || (accents.length == 1 && accents[0] == 0) ||
+      (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
   }
 
   //TODO Change to var?
@@ -77,14 +103,14 @@ class BeatMetre
     {
       accents[beat]++;
       if (accents[beat] > maxAccent)
-        accents[beat] = -1;
+        accents[beat] = 0;//TODO -1;
     }
   }
 
   void setAccentOption(bool accentLean)
   {
     pivoVodochka = accentLean;
-    accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
+    accents = Prosody.getAccents(_beatCount, pivoVodochka);
   }
 
   ///TODO For now
@@ -106,7 +132,9 @@ class BeatMetre
         newAccents[i] = accents[i];
       accents = newAccents;
 */
-      accents = Prosody.reverseAccents(Prosody.getAccents(_beatCount, pivoVodochka));
+      accents = Prosody.getAccents(_beatCount, pivoVodochka);
+      if (_beatCount != 5 && _beatCount != 7 && _beatCount != 11)
+        _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
     }
   }
 

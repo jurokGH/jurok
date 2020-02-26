@@ -60,6 +60,7 @@ class SubbeatState extends State<SubbeatWidget>
               colorPast: widget.color,
               colorNow: widget.color,
               colorFuture: widget.color,
+              colorInner: Colors.white,
               size: widget.size,
             )
           ),

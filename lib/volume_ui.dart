@@ -28,7 +28,10 @@ class VolumeButton extends StatefulWidget
   /// Whether detected gestures should provide acoustic and/or haptic feedback.
   final bool enableFeedback;
 
+  /// In milliseconds
   final int msec;
+  ///TODO Need? Idle time in milliseconds
+  //final int idleTime;
   final RolloutDirection direction;
   //final VoidCallback onLongPress;
 
@@ -46,6 +49,7 @@ class VolumeButton extends StatefulWidget
     this.enableFeedback = true,
     this.direction = RolloutDirection.up,
     this.msec = 100,
+    //this.idleTime = 2000,
   });
 
   @override
@@ -62,8 +66,9 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
   Animation<double> _animPos;
   Animation<Offset> _animOffset;
   BtnStatus _status = BtnStatus.Closed;
+  final int _idleTime = 2000;  // in milliseconds
+  Duration _duration;
   Timer _timer;
-  int _timeOut = 1000;  // milliseconds
 
   VolumeState();
 
@@ -71,6 +76,8 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    _duration = new Duration(milliseconds: _idleTime);
     controller = new AnimationController(duration: new Duration(milliseconds: widget.msec), vsync: this)
       ..addStatusListener((AnimationStatus status){
         if (status == AnimationStatus.completed)
@@ -79,7 +86,8 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
           _status = BtnStatus.Closed;
         else
           _status = BtnStatus.Animating;
-      });
+      })
+    ..addStatusListener(onStatusListener);
 
     _animScale = new Tween(begin: 0.2, end: 1.0)
       .animate(controller)
@@ -112,12 +120,18 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
     //      });
   }
 
+  void onStatusListener(AnimationStatus status)
+  {
+    if (status == AnimationStatus.completed)
+      _timer = new Timer(_duration, _onTimer);
+  }
+
   void _onTimer()
   {
     if (_status == BtnStatus.Open)
       controller.reverse().orCancel;
+    _timer = null;
   }
-
 
   @override
   void dispose() {
@@ -130,7 +144,10 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
     if (_status == BtnStatus.Closed)
       controller.forward().orCancel;
     else if (_status == BtnStatus.Open)
+    {
+      _timer?.cancel();  // To prevent calling twice controller.reverse()
       controller.reverse().orCancel;
+    }
   }
 
   @override
@@ -152,6 +169,8 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
           enableFeedback: widget.enableFeedback,
           onPressed: () {
             widget.onChanged(widget.value - 10);
+            _timer?.cancel();
+            _timer = new Timer(_duration, _onTimer);
           },
         ),
 */
@@ -167,6 +186,9 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
               max: widget.max,
               //label: _volume.toString(),
               value: widget.value,
+              onChangeStart: (double value) {
+                _timer?.cancel();
+              },
               onChanged: (double value) {
                 setState(() {
                   _mute = value == widget.min;
@@ -174,7 +196,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
                 widget.onChanged(value);
               },
               onChangeEnd: (double value) {
-
+                _timer = new Timer(_duration, _onTimer);
               }
             )
           ),
@@ -186,7 +208,11 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
           icon: Icon(Icons.volume_down,),
           color: _cWhiteColor,
           enableFeedback: widget.enableFeedback,
-          onPressed: () { _changeVolume(-10); },
+          onPressed: () {
+            _changeVolume(-10);
+            _timer?.cancel();
+            _timer = new Timer(_duration, _onTimer);
+          },
         ),
 */
       ]
@@ -211,10 +237,12 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
       //tooltip: _soundSchemes[_activeSoundScheme],
       enableFeedback: widget.enableFeedback,
       onLongPress: () {
+        _timer?.cancel();
         setState(() {
           _mute = !_mute;
         });
         widget.onChanged(_mute ? widget.min : _value);
+        _timer = new Timer(_duration, _onTimer);
       },
       onPressed: _handleOpenClose,
         /*
@@ -243,11 +271,15 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
       align = AlignmentDirectional.centerStart;
       break;
     }
-//      return UnconstrainedBox(
+
+//    return SizedOverflowBox(
+//      alignment: Alignment.bottomCenter,
+//      size: new Size(2 * widget.radius, 2 * widget.radius),
+
+//    return UnconstrainedBox(
 //      alignment: align,
-      return SizedOverflowBox(
-        alignment: Alignment.bottomCenter,
-        size: new Size(2 * widget.radius, 2 * widget.radius),
+
+    return Container(
       //      minWidth: 2 * widget.radius,
       //minHeight: widget.height,
       //      maxWidth: 2 * widget.radius,
@@ -261,14 +293,14 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
             borderRadius: BorderRadius.circular(widget.radius),
             child: SlideTransition(
               position: _animOffset,
-              //          Positioned(
-              //            //top: -100 + _animPos.value,
-              //            bottom: _animPos.value,
-              //            child:
-              //            Transform(
-              //              transform: Matrix4.diagonal3Values(1.0, _animScale.value, 1.0)
-              //                ..setTranslationRaw(0.0, _animPos.value, 0.0),
-              //scale: 1.0,//_animScale.value,
+//          Positioned(
+//            //top: -100 + _animPos.value,
+//            bottom: _animPos.value,
+//            child:
+//            Transform(
+//              transform: Matrix4.diagonal3Values(1.0, _animScale.value, 1.0)
+//                ..setTranslationRaw(0.0, _animPos.value, 0.0),
+//scale: 1.0,//_animScale.value,
               child: Transform(
                 transform: Matrix4.diagonal3Values(1.0, 1.0, 1.0),
                 //                ..setTranslationRaw(0.0, _animPos.value, 0.0),

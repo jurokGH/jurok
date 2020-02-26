@@ -207,6 +207,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                   colorPast: Colors.white,
                   colorNow: Colors.red,
                   colorFuture: Colors.white,
+                  colorInner: Colors.white,
                   //size: imageSize,
                 )
                )

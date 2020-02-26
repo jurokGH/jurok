@@ -270,21 +270,28 @@ class NotePainter extends CustomPainter
       Offset centerHead, double radiusHead, double stemTop,
       Color color, bool isFilled)
   {
+    //TODO Connect Stem and head without angles
+    double noteWidth = 2 * radiusHead + 2;
     ///Head of the note
     Rect rect = Rect.fromCenter(center: Offset.zero,
-      width: 2 * radiusHead,
+      width: noteWidth,
       height: 2 * radiusHead / radiusRatio);
 
     final Rect rcGrad = Rect.fromCenter(
       center: Offset.zero.translate(_coefGradSkewX * radiusHead, 0),
-      width: _coefGrad * 2 * radiusHead,
+      width: _coefGrad * noteWidth,
       height: _coefGrad * 2 * radiusHead / radiusRatio);
 
     //TODO --Colors.white
-    final Shader _headGradient = new RadialGradient(
-      colors: <Color>[colorInner, color],
-    ).createShader(rcGrad);
-    _paintFilledNote.shader = _headGradient;
+    if (colorInner != color)
+    {
+      final Shader _headGradient = new RadialGradient(
+        colors: <Color>[colorInner, color],
+      ).createShader(rcGrad);
+      _paintFilledNote.shader = _headGradient;
+    }
+    else
+      _paintFilledNote.color = color;
 
     if (isFilled)
     {
@@ -298,16 +305,8 @@ class NotePainter extends CustomPainter
       canvas.save();
       canvas.translate(centerHead.dx, centerHead.dy);
 
-      final double heightAccent2 = 2.0 * _widthStem;
-      if (accents != null && sub < accents.length)
-        for (int i = 0; i < accents[sub]; i++)
-        {
-          final Rect rc = rcGrad;
-          final Offset offL = rc.bottomLeft.translate(0, 2.5 * heightAccent2 * i).translate(2, 0);
-          final Offset offR = rc.bottomRight.translate(0, 2.5 * heightAccent2 * i).translate(-2, 0);
-          canvas.drawLine(offL, offR + Offset(0, heightAccent2), _paintStem);
-          canvas.drawLine(offL + Offset(0, 2 * heightAccent2), offR + Offset(0, heightAccent2), _paintStem);
-        }
+      // Draw accents
+      _drawAccents(canvas, sub, rcGrad);
 
       canvas.rotate(_headAngle);
       canvas.drawOval(rect, _paintFilledNote);
@@ -322,14 +321,14 @@ class NotePainter extends CustomPainter
       Path pathInner = new Path()
         ..addOval(
           Rect.fromCenter(center: Offset.zero,
-            width: _innerScaleX * 2 * radiusHead,
+            width: _innerScaleX * noteWidth,
             height: _innerScaleY * 2 * radiusHead / radiusRatio
           )
         );
       Path pathOuter = new Path()
         ..addRect(
           Rect.fromCenter(center: Offset.zero,
-            width: 2 * rect.width,
+            width: noteWidth,
             height: 2 * rect.height
           )
         );
@@ -340,6 +339,10 @@ class NotePainter extends CustomPainter
       // Draw hollow head
       canvas.save();
       canvas.translate(centerHead.dx, centerHead.dy);
+
+      // Draw accents
+      _drawAccents(canvas, sub, rcGrad);
+
       canvas.rotate(_headAngle);
       canvas.clipPath(Path.combine(PathOperation.difference, pathOuter, pathInner));
       canvas.drawOval(rect, _paintFilledNote);
@@ -347,6 +350,20 @@ class NotePainter extends CustomPainter
     }
   }
 
+  // Draw accents
+  void _drawAccents(Canvas canvas, int sub, final Rect rcGrad)
+  {
+    final double heightAccent2 = 2.0 * _widthStem;
+    if (accents != null && sub < accents.length)
+      for (int i = 0; i < accents[sub]; i++)
+      {
+        final Rect rc = rcGrad;
+        final Offset offL = rc.bottomLeft.translate(0, 2.5 * heightAccent2 * i).translate(2, 0);
+        final Offset offR = rc.bottomRight.translate(0, 2.5 * heightAccent2 * i).translate(-2, 0);
+        canvas.drawLine(offL, offR + Offset(0, heightAccent2), _paintStem);
+        canvas.drawLine(offL + Offset(0, 2 * heightAccent2), offR + Offset(0, heightAccent2), _paintStem);
+      }
+  }
 
   ///Рисуем ноту номер sub обычной формы
   _drawRegularFormNote(Canvas canvas, int sub)
@@ -538,6 +555,8 @@ class NotePainter extends CustomPainter
     ///Стили рисования нот, штилей, флагов и т.п.
 
     _paintFilledNote = new Paint()
+      ..color = colorPast
+      ..strokeWidth = _widthHollowHeadBoundary
       ..style = PaintingStyle.fill;
 
     _paintStem = new Paint()

@@ -82,7 +82,7 @@ class Prosody
   /// размеру в нерегулярных случаях, а не к двудольному.
   /// Тут начинается Римский-Корсаков и могут получится очень любопытные звучания.
   ///
-  static List<int> getAccents(int noteNumber, bool pivoVodochka)
+  static List<int> getAccents(int noteNumber, bool pivoVodochka, [int level = 0, bool inc = true])
   {
     //TODO Use byte instead of int?
     //Uint16List (byte)
@@ -96,11 +96,14 @@ class Prosody
 
     //Простой двудольный размер:
     if (noteNumber == 2)
-      return [0 ,1];
+      return [1, 0];
 
     //Простой трёхдольный размер:
     if (noteNumber == 3)
-      return [0, 1, 1];
+      return [1, 0, 0];
+
+    if (noteNumber == 7)
+      return pivoVodochka ? [2, 0, 0, 1, 0, 1, 0] : [2, 0, 1, 0, 1, 0, 0];
 
     //byte[] res = new byte[noteNumber];
     List<int> accents = new List<int>(noteNumber);
@@ -109,10 +112,10 @@ class Prosody
     if (noteNumber % 2 == 0)
     {
       int middle = noteNumber ~/ 2;
-      List<int> left = getAccents(middle, pivoVodochka);
+      List<int> left = getAccents(middle, pivoVodochka, level + 1, inc);
       for (int i = 0; i < middle; i++)
-        accents[i + middle] = accents[i] = left[i] + 1; // лишняя операция при i = 0
-      accents[0] = left[0];
+        accents[i + middle] = accents[i] = left[i];// > 0 ? left[i] + 1 : 0; // лишняя операция при i = 0
+      accents[0]++;
     }
     // На два равных не делится. Если не делится на 3 (этот случай разобран далее, то делим на два неравных
     else if (noteNumber % 3 != 0)
@@ -120,21 +123,23 @@ class Prosody
       int middle = noteNumber ~/ 2;
       if (!pivoVodochka)
         middle++;  // Make vOdOchkA-pIvO
-      List<int> left = getAccents(middle, pivoVodochka);
-      List<int> right = getAccents(noteNumber - middle, pivoVodochka);
-      accents[0] = left[0];
-      for (int i = 1; i < middle; i++)
-        accents[i] = left[i] + 1;
+      List<int> left = getAccents(middle, pivoVodochka, level + 1, inc && true);
+      List<int> right = getAccents(noteNumber - middle, pivoVodochka, level + 1, false);
+      for (int i = 0; i < middle; i++)
+        accents[i] = left[i];// > 0 ? left[i] + 1 : 0;
       for (int i = middle; i < noteNumber; i++)
-        accents[i] = right[i - middle] + 1;
+        accents[i] = right[i - middle];// > 0 ? right[i - middle] + 1 : 0;
+      //accents[middle]--;
+      accents[0]++;
     }
     else
     {
       int third = noteNumber ~/ 3;
-      List<int> left = getAccents(third, pivoVodochka);
+      List<int> left = getAccents(third, pivoVodochka, level, inc);
       for (int i = 0; i < third; i++)
-        accents[i + third + third] = accents[i + third] = accents[i] = left[i] + 1; //лишняя операция при i=0;
-      accents[0] = left[0];
+        accents[i + third + third] = accents[i + third] = accents[i] = left[i];
+          //left[i] > 0 ? left[i] + 1 : 0; //лишняя операция при i=0;
+      accents[0]++;
     }
     return accents;
   }

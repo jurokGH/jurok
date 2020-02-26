@@ -1,32 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'metre.dart';
+import 'metronome_state.dart';
+import 'util.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
+class WheelScrollController extends FixedExtentScrollController
+{
+@override
+  ScrollPosition createScrollPosition(ScrollPhysics physics, ScrollContext context, ScrollPosition oldPosition) {
+    // TODO: implement createScrollPosition
+    return super.createScrollPosition(physics, context, oldPosition);
+  }
+}
+
 class MetreWidget extends StatefulWidget
 {
+  bool update;
   final int beats;
   final int minBeats;
   final int maxBeats;
-  final int note;
-  final int minNote;
-  final int maxNote;
+  final int noteIndex;
+  final int minNoteIndex;
+  final int maxNoteIndex;
+
   final double width;
   final double height;
+  final double itemExtent;
   final Color color;
   final TextStyle textStyle;
+  final TextStyle textStyleSelected;
 
-  //final ValueChanged<int> onChanged;
-  final ValueChanged2<int, int> onChanged;
+  final ValueChanged<int> onBeatChanged;
+  final ValueChanged<int> onNoteChanged;
 
   MetreWidget({
-    this.beats, this.note,
-    @required this.onChanged,
-    this.minBeats = 1, this.maxBeats = 8,
-    this.minNote = 1, this.maxNote = 8,
-    this.width = 0, this.height = 0,
+    this.update = false,
+    @required this.beats,
+    @required note,
+    @required this.onBeatChanged,
+    @required this.onNoteChanged,
+    this.minBeats = 1, this.maxBeats = 32,
+    minNote = 1, maxNote = 32,
+    this.width = double.infinity,
+    this.height = double.infinity,
+    this.itemExtent = 40,
     this.color = Colors.white,
-    @required this.textStyle});
+    @required this.textStyle,
+    this.textStyleSelected
+  }): noteIndex = noteValue2index(note),
+      minNoteIndex = noteValue2index(minNote),
+      maxNoteIndex = noteValue2index(maxNote);
 
   @override
   State<StatefulWidget> createState() {
@@ -49,30 +74,70 @@ class MetreState extends State<MetreWidget>
   int _iMetre = 2;
   Offset _tapPosition;
 
+  FixedExtentScrollController beatController;
+  FixedExtentScrollController noteController;
+  final int duration = 1000;
+  bool _notify = true;
+
   MetreState();
+
+  void _beatScrollListener()
+  {
+    print('_beatScrollListener');
+  }
+
+  void finishUpdate(_)
+  {
+    widget.update = false;
+    _notify = true;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    beatController = new FixedExtentScrollController(initialItem: widget.beats - widget.minBeats);
+    //beatController.addListener(_beatScrollListener);
+    noteController = new FixedExtentScrollController(initialItem: widget.noteIndex - widget.minNoteIndex);
+  }
 
   @override
   Widget build(BuildContext context)
   {
-    //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
+    //TODO final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
 
-    // TODO: implement build
-    return
-    /*
-      PopupMenuButton<int>(
-      onSelected: (int value) {
+    // To prevent reenter via widget.onBeat/NoteChanged::setState
+    // when position is changing via jumpToItem/animateToItem
+    if (widget.update)
+    {
+      _notify = false;
+      print('update1 ${widget.beats}');
+      //TODO Need?
+      int beats = loopClamp(widget.beats, widget.minBeats, widget.maxBeats);
+      if (false)
+      {
+        beatController.jumpToItem(beats - widget.minBeats);
+        noteController.jumpToItem(widget.noteIndex - widget.minNoteIndex);
+        // finishUpdate:
+        widget.update = false;
+        _notify = true;
+      }
+      else
+      {
+        //TODO Both run => when finishUpdate?
+        beatController.animateToItem(beats - widget.minBeats,
+          duration: Duration(milliseconds: duration), curve: Curves.ease)
+          .catchError(finishUpdate).then<void>(finishUpdate);
+        noteController.animateToItem(widget.noteIndex - widget.minNoteIndex,
+          duration: Duration(milliseconds: duration), curve: Curves.ease)
+          .catchError(finishUpdate).then<void>(finishUpdate);
+      }
+      print('update2 ${widget.beats}');
+      //widget.update = false;
+    }
 
-        },
-      itemBuilder: (BuildContext context) => menuItems,
-    child:
-    */
-    Container(
-      width: 80,
-      //height: 100,
-      //Padding(
-      //  padding: const EdgeInsets.all(8.0),
-
-      child: GestureDetector(
+/*
         onDoubleTap: () {
           _iMetre++;
           if (_iMetre >= _metreList.length)
@@ -89,97 +154,160 @@ class MetreState extends State<MetreWidget>
             _iMetre = _metreList.length - 1;
           widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
         },
+ */
 
-        child: IntrinsicWidth(  //TODO Time-expensive!
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              GestureDetector(
-                onHorizontalDragUpdate: (DragUpdateDetails details) {
-                  /*
-                  print('onHorizontalDragUpdate');
-                  double changeInX = details.delta.dx;
-                  double changeInValue = distanceToAngle * changeInX;
-                  double newValue = widget.value + changeInValue;
-                  double clippedValue = min(max(newValue, widget.min), widget.max);
-
-                  widget.onChanged(clippedValue);
-                   */
-                },
-                onHorizontalDragEnd: (DragEndDetails details) {
-                  int beats = widget.beats + details.primaryVelocity.sign.toInt();
-                  if (beats < widget.minBeats)
-                    beats = widget.maxBeats;
-                  if (beats > widget.maxBeats)
-                    beats = widget.minBeats;
-                  widget.onChanged(beats, widget.note);
-                },
-                //onLongPress: _showMenu,
-                onTap: () {
-                  int beats = widget.beats >= widget.maxBeats ?
-                    widget.minBeats : widget.beats + 1;
-                  widget.onChanged(beats, widget.note);
-                },
-                child: Text(widget.beats.toString(),
-                  style: widget.textStyle,
-                ),
-              ),
-              //child: Text(widget.beats.toString(),
-              //  style: Theme.of(context).textTheme.display1,
-              //SizedBox.expand(
-                //fit: BoxFit.fill,
-                //width: double.infinity,
-                //child:
-              /*
-              Container(
-                height: 2,
-                width: 24,
-                color: widget.color,
-                //constraints: BoxConstraints.tightForFinite(),
-                //margin: const EdgeInsets.all(2.0)
-              ),
-               */
-              //),
-              GestureDetector(
-                onHorizontalDragUpdate: (DragUpdateDetails details) {
-                  /*
-                  print('onHorizontalDragUpdate');
-                  double changeInX = details.delta.dx;
-                  double changeInValue = distanceToAngle * changeInX;
-                  double newValue = widget.value + changeInValue;
-                  double clippedValue = min(max(newValue, widget.min), widget.max);
-
-                  widget.onChanged(clippedValue);
-                   */
-                },
-                onHorizontalDragEnd: (DragEndDetails details) {
-                  int note = widget.note;
-                  if (details.primaryVelocity.sign > 0)
-                    note *= 2;
-                  if (details.primaryVelocity.sign < 0)
-                    note ~/= 2;
-                  if (note < widget.minNote)
-                    note = widget.maxNote;
-                  if (note > widget.maxNote)
-                    note = widget.minNote;
-                  widget.onChanged(widget.beats, note);
-                },
-                //onLongPress: _showMenu,
-                onTap: () {
-                  int note = widget.note >= widget.maxNote ?
-                    widget.minNote : 2 * widget.note;
-                  widget.onChanged(widget.beats, note);
-                },
-                child: Text(widget.note.toString(),
-                  style: widget.textStyle,
-                ),
-              ),
-            ]
-          )
+    final List<Widget> wixBeats = new List<Widget>.generate(widget.maxBeats - widget.minBeats + 1,
+      (int i) => new RotatedBox(
+        quarterTurns: 1,
+        child:
+        Text((i + widget.minBeats).toString(),
+          textAlign: TextAlign.center,
+          //textScaleFactor: 1.5,
+          style: i + widget.minBeats == widget.beats ? widget.textStyleSelected : widget.textStyle,
         )
       )
     );
+
+    final List<Widget> wixNotes = new List<Widget>.generate(widget.maxNoteIndex - widget.minNoteIndex + 1,
+      (int i) {
+        int noteValue = index2noteValue(i + widget.minNoteIndex);
+        return new RotatedBox(
+          quarterTurns: 1,
+          child:
+          Text(noteValue.toString(),
+            textAlign: TextAlign.center,
+            style: i + widget.minNoteIndex == widget.noteIndex ? widget.textStyleSelected : widget.textStyle,
+          )
+        );
+      }
+    );
+
+    double width = widget.width;
+    double height = 0.5 * widget.height - 2;
+
+    print('Metre::build ${widget.beats}');
+
+    return
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/Metre.png'),
+                  fit: BoxFit.fill,
+                ),
+/*
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [widget.color.withOpacity(0.2), widget.color])
+*/
+            ),
+            width: width,
+            height: height,
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: GestureDetector(
+                onTap: () {
+                  print('onTap ${widget.beats}');
+                  int beats = loopClamp(widget.beats + 1, widget.minBeats, widget.maxBeats);
+                  print('onTap $beats');
+                  widget.onBeatChanged(beats);
+                  beatController.jumpToItem(beats - widget.minBeats);
+                  //setState(() {});
+                },
+                child: Container(
+                  //color: widget.color,
+                  width: height,//double.infinity,
+                  height: width,
+                  child:
+                  ListWheelScrollView.useDelegate(
+                    controller: beatController,
+                    physics: new FixedExtentScrollPhysics(),
+                    diameterRatio: 1.0,
+                    perspective: 0.004,
+                    offAxisFraction: 0,
+                    useMagnifier: false,
+                    magnification: 1,
+                    itemExtent: widget.itemExtent,
+                    squeeze: 1.5,
+                    onSelectedItemChanged: (int index) {
+                      print('onSelectedItemChanged ${index + widget.minBeats} - $_notify');
+                      if (_notify)  // To prevent reenter via widget.onBeatChanged::setState
+                        widget.onBeatChanged(index + widget.minBeats);
+                      //setState(() {});
+                    },
+                    clipToSize: true,
+                    renderChildrenOutsideViewport: false,
+                    childDelegate: ListWheelChildLoopingListDelegate(children: wixBeats),
+                  )
+                )
+              )
+            ),
+          ),
+
+          Container(
+            //width: 0.3 * _sizeCtrls.height,
+            height: 4,
+          ),
+
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/Metre.png'),
+                fit: BoxFit.fill,
+              ),
+/*
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Colors.white70, Colors.white70])
+*/
+            ),
+            width: width,
+            height: height,
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: GestureDetector(
+                onTap: () {
+                  int index = loopClamp(widget.noteIndex + 1, widget.minNoteIndex, widget.maxNoteIndex);
+                  widget.onNoteChanged(index2noteValue(index));
+                  noteController.jumpToItem(index - widget.minNoteIndex);
+                  //setState(() {});
+                },
+                child: Container(
+                  //color: widget.color,
+                  width: height,//double.infinity,
+                  height: width,
+                  child:
+                  ListWheelScrollView.useDelegate(
+                    controller: noteController,
+                    physics: new FixedExtentScrollPhysics(),
+                    diameterRatio: 1.0,
+                    perspective: 0.004,
+                    offAxisFraction: 0.0,
+                    useMagnifier: false,
+                    magnification: 1.0,
+                    itemExtent: widget.itemExtent,
+                    squeeze: 1.5,
+                    onSelectedItemChanged: (int index) {
+                      print(index);
+                      if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
+                        widget.onNoteChanged(index2noteValue(index + widget.minNoteIndex));
+                      //setState(() {});
+                    },
+                    clipToSize: true,
+                    renderChildrenOutsideViewport: false,
+                    childDelegate: ListWheelChildLoopingListDelegate(children: wixNotes),
+                  )
+                )
+              )
+            ),
+          ),
+        ]
+      );
   }
 
   void _storePosition(TapDownDetails details)
@@ -217,13 +345,13 @@ class MetreState extends State<MetreWidget>
       color: widget.color,
       //captureInheritedThemes: false,
     )
-    .then<void>((int choice) {
+      .then<void>((int choice) {
       if (choice != null)
       {
         setState(() {
           _iMetre = choice;
         });
-        widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
+        //widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
       }
     });
   }

@@ -6,18 +6,51 @@ import 'package:flutter/material.dart';
 
 typedef OnPressedCallback = void Function();
 
+int inDialDivision(Offset pos, double radius2, double radiusDial2, int dialDivisions)
+{
+  int div = -1;
+  double distance2 = pos.distanceSquared;//TODO Opt
+  if (distance2 >= radiusDial2 && distance2 <= radius2)
+  {
+    final double angle = pos.direction;
+    final double divAngle = 2 * pi / dialDivisions;
+    div = angle ~/ divAngle;
+  }
+  return div;
+}
+
+int posInArrow(Offset pos, double radius2, double radiusDial2, int dialDivisions)
+{
+  int arrow = 0;
+  double distance2 = pos.distanceSquared;//TODO Opt
+  if (distance2 >= radiusDial2 && distance2 <= radius2)
+  {
+    final double angle = pos.direction.abs();
+    final double divAngle = 2 * pi / dialDivisions;
+    if (angle < divAngle)
+      arrow = 1;
+    else if (angle > pi - divAngle)
+      arrow = -1;
+  }
+  return arrow;
+}
+
 class Knob extends StatefulWidget
 {
   final double value;
   final double min;
   final double max;
   final double limit;
+  final double minAngle;
+  final double maxAngle;
+  final int turnCount;
+  final double sweepAngle;
   final bool pressed;
-  final int scaleCount;
+  final int dialDivisions;
 
-  final double size;
-  final double buttonRadius;
-  final double outerRadius;
+  final double radius;
+  final double radiusButton;
+  final double radiusDial;
   final Color color;
   final TextStyle textStyle;
   final bool showIcon;
@@ -30,11 +63,15 @@ class Knob extends StatefulWidget
   Knob({@required this.value,
     this.min = 0, this.max = 1,
     this.limit = 0,
-    this.scaleCount = 10,
+    this.dialDivisions = 10,
     this.pressed = false,
-    this.size,
-    this.buttonRadius = 0.4,
-    this.outerRadius = 0.8,
+    this.minAngle = -160,
+    this.maxAngle = 160,
+    this.turnCount = 2,
+    this.sweepAngle = 2 * 360.0 + 2 * 160.0,
+    this.radius,
+    this.radiusButton = 0.4,
+    this.radiusDial = 0.8,
     this.color = Colors.blue,
     this.showIcon = true,
     this.showText = true,
@@ -48,10 +85,10 @@ class Knob extends StatefulWidget
 
 class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 {
-  static const double minAngle = -170;
-  static const double maxAngle = 170;
-  static const double sweepAngle = maxAngle - minAngle;
-  static const double innerRadius = 0.1;//0.25;
+  //static const double minAngle = -170;
+  //static const double maxAngle = 170;
+  //static const double sweepAngle = maxAngle - minAngle;
+  static const double centerRadius = 0.1;//0.25;
 
   double _value;
   double _startValue;
@@ -67,48 +104,150 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
   AnimationController _controller;
   Animation<double> _animation;
+  Animation<Color> _animColor;
+  ColorTween _tweenColor;
+  Color _colorRing;
   int _time = 5000;
+  double _tangential;
+
+  double _friction = 0.1;//0.05;
+  double _accel = 800;
 
   Image _image;  /// Knob image
   Size _imageSize = Size.zero;
 
+  @override
+  void initState()
+  {
+    super.initState();
+
+    _controller = new AnimationController(vsync: this, duration: new Duration(milliseconds: _time))
+      ..addListener(onTimer);
+      //..addStatusListener(onTimerStatus);
+    _animation = new Tween<double>(begin: 0, end: 1)
+      .chain(CurveTween(curve: Curves.linear)).animate(_controller);
+      //.chain(CurveTween(curve: Curves.decelerate)).animate(_controller);
+    _animColor = new ColorTween(begin: Colors.deepPurple[700], end: Colors.purple.withOpacity(0.25))
+      //.chain(CurveTween(curve: Curves.easeInOutSine))
+      .animate(_controller);
+    _tweenColor = new ColorTween(begin: Colors.pink[700].withOpacity(0.5), end: Colors.purple.withOpacity(0.25));
+
+    _image = new Image.asset('images/TempoKnob.png',
+      //height: radius,
+      fit: BoxFit.cover,  //contain
+      filterQuality: FilterQuality.medium, //TODO Choose right one
+    );
+  }
+
+  @override
+  void dispose()
+  {
+    _controller.dispose();
+    super.dispose();
+  }
+
   void onTimer()
   {
-    _controller.value;
-    /*
-    _prevAngle + _animation.value;
-    _value
+    //_controller.value;
 
-    double clippedValue = min(max(widget.value, widget.min), min(widget.limit, widget.max));
-    double normalizedValue = (clippedValue - widget.min)/(widget.max - widget.min);
-    double angle = (minAngle + normalizedValue * sweepAngle) * pi / 180;
-*/
+    // a0 + v * t - k * t * t * 0.5
+    double t = 0.001 * _animation.value;  // in sec
+    _friction = 0.25;
+    double angle = _prevAngle + _friction * (_tangential * t - _tangential.sign * 0.5 * _accel * t * t);
+
+    double value = widget.min + (widget.max - widget.min) * (angle - widget.minAngle) / widget.sweepAngle;
+
+    double clipped = min(max(value, widget.min), min(widget.limit, widget.max));
+    //    double normalized = (clipped - widget.min)/(widget.max - widget.min);
+    //    double angle = (widget.minAngle + normalized * widget.sweepAngle) * pi / 180;
+    //debugPrint('onTimer ${_animation.value.toInt()} - $_prevAngle - $angle - $value');
+
+    _colorRing = _tweenColor.lerp(sin(0.004 * 2 * pi * _animation.value));
+
     setState(() {});
+    if (clipped != widget.value)
+      widget.onChanged(clipped);
+    else
+    {
+      //debugPrint('onTimer:stop');
+      _controller.stop();
+    }
   }
 
   void onTimerStatus(AnimationStatus status)
   {
     if (status == AnimationStatus.completed)
     {
-/*
-      _prevAngle = angle1;
-      _prevPos = pos;
-      angle1 += 360 * turn;
-      double da = angle1 - _startAngle;
+    }
+    setState(() {});
+  }
 
-      debugPrint('Knob $angle1 - $_startAngle - $da');
+  void onPanStart(DragStartDetails details, double radius)
+  {
+    if (_controller.isAnimating)
+      _controller.stop();
+
+    _value = _startValue = widget.value;
+    _startPos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
+    _prevPos = _startPos;
+    double radius0 = _startPos.distance;
+    if (_startPos.dx.abs() < 0.1)
+      _startAngle = _startPos.dy < 0 ? -180 : 180;
+    else
+      _startAngle = _startPos.direction * 180 / pi;
+    _prevAngle = _startAngle;
+    _prevTime = details.sourceTimeStamp;
+    turn = 0;
+
+    //debugPrint('onStart (pos,loc,glob,angle,rad0,val,time) ${_startPos.toString()} - ${details.localPosition.toString()} - ${details.globalPosition.toString()} - $_startAngle - $radius0 - $_startValue - $_prevTime');
+  }
+
+  void onPanUpdate(DragUpdateDetails details, double radius)
+  {
+    Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
+    //Offset prev = cur - details.delta;
+
+    //debugPrint('onPan (pos,glob,dx,dy,time) ${pos.toString()} - ${details.globalPosition.toString()} - ${details.delta.dx} - ${details.delta.dy} - ${details.sourceTimeStamp}');
+
+    Duration t = details.sourceTimeStamp - _prevTime;
+    if (_startPos == null || details.sourceTimeStamp - _prevTime < Duration(milliseconds: 0))
+      return;
+    _prevTime = details.sourceTimeStamp;
+
+    //            if (details.delta.distanceSquared < 2 || cur.dx.abs() < 1 || prev.dx.abs() < 1)
+    //              return;
+    double radius2 = pos.distanceSquared;
+
+    double radius00 = radius * centerRadius;
+    if (radius2 > radius00 * radius00)  // TODO
+    {
+      //double da = atan2(cur.dy, cur.dx) - atan2(prev.dy, prev.dx);
+      double alpha = pos.direction;
+      alpha *= 180 / pi;
+      if (alpha * _prevAngle < 0 && (alpha - _prevAngle).abs() > 180)
+      {
+        turn += _prevAngle > 0 ? 1  : -1;
+        //debugPrint('Turnaround');
+      }
+      _prevAngle = alpha;
+      _prevPos = pos;
+      _posSpot = _prevPos;
+      alpha += 360 * turn;
+      double da = alpha - _startAngle;
+
+      //debugPrint('Knob Angles: $alpha - $_startAngle - $da');
       //dda *= 180 / pi;
       //double changeInX = details.delta.dx;
       //double changeInValue = distanceToAngle * changeInX;
 
       //if (radius2)
       double radiusIn = 0.6 * radius;
-      double radiusOut = widget.outerRadius * radius;
+      double radiusOut = widget.radiusDial * radius;
 
       // Change velocity over the radius
       double kOut = 2 * pi * radiusOut;
       kOut = 20 / (widget.max - widget.min);
-      kOut = 10 / ((widget.max - widget.min) * 360 / sweepAngle);
+      kOut = widget.dialDivisions / ((widget.max - widget.min) * 360 / widget.sweepAngle);
 
       double kIn = 2 * pi * radiusIn;
       kIn = 1;
@@ -119,69 +258,90 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       if (radius0 >= radiusOut)
         k = kOut;
       else
-        k = (widget.max - widget.min) / sweepAngle;
+        k = (widget.max - widget.min) / widget.sweepAngle;
       //if (radius2 > radius * radius)  // TODO
-      //
-      // double newValue = _startValue - da * k;
-      double clippedValue = min(max(newValue, widget.min), min(widget.limit, widget.max));
 
-      //debugPrint('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
-      if (clippedValue != widget.value)
+      //double newValue = widget.value - (1 / coef) * da * (widget.max - widget.min) / sweepAngle;
+      double newValue = _startValue - da * k;
+      double clipped = min(max(newValue, widget.min), min(widget.limit, widget.max));
+
+      //debugPrint('Knob $pos - ${details.delta} - ${details.globalPosition} - $da - $clipped');
+      if (clipped != widget.value)
       {
-        _value = clippedValue;
+        _value = clipped;
 
-        debugPrint('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
+        //debugPrint('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
 
-        widget.onChanged(clippedValue);
+        widget.onChanged(clipped);
+        //if (pressed)
+        //setState(() {});
       }
-      */
     }
-    _controller.value;
-    _prevAngle + _animation.value;
-
-    double clippedValue = min(max(widget.value, widget.min), min(widget.limit, widget.max));
-    double normalizedValue = (clippedValue - widget.min)/(widget.max - widget.min);
-    double angle = (minAngle + normalizedValue * sweepAngle) * pi / 180;
-
-    setState(() {});
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void onPanEnd(DragEndDetails details, double radius)
+  {
+    final Offset velocity = details.velocity.pixelsPerSecond;
+    double v = velocity.distance;
+    //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
-    _controller = new AnimationController(vsync: this, duration: new Duration(milliseconds: _time))
-      ..addListener(onTimer)
-      ..addStatusListener(onTimerStatus);
-    _animation = new Tween<double>(begin: 0, end: 1)
-      .chain(CurveTween(curve: Curves.decelerate)).animate(_controller);
+    if (_prevPos == null || _prevAngle == null)
+    {
+      //debugPrint('onPanEnd Error ${velocity.toString()} - $v - $_prevPos - $_prevAngle');
+      _startPos = null;
+      return;
+    }
 
-    _image = new Image.asset('images/TempoKnob.png',
-      //height: size,
-      fit: BoxFit.cover,  //contain
-      filterQuality: FilterQuality.medium, //TODO Choose right one
-    );
-  }
+    _prevAngle = widget.minAngle + widget.sweepAngle * (_value - widget.min) / (widget.max - widget.min);
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+    double alpha = _prevPos.direction;
+    // velocity.dy has opposite direction to y-axis
+    double tangential = - velocity.dx * sin(alpha) - velocity.dy * cos(alpha);
+    // Tangential velocity
+    final Offset velocityTang = new Offset(- tangential * sin(alpha), tangential * cos(alpha));
+
+    double tangentialAbs = tangential.abs();
+    _time = 1000;  // in msec
+    _time = tangentialAbs ~/ 1.5;  // in msec
+    _accel = 1000 * tangentialAbs / _time;
+    //_time = (tangentialAbs * 1000) ~/ _accel;  // in msec
+    // Knob turns CW to higher values
+    _tangential = - tangential;
+    //debugPrint('Velocity $_tangential - $_accel - $_time - $_prevAngle');
+
+    _startPos = _prevPos = null;
+
+    if (_controller.isAnimating)
+      _controller.stop();
+    if (tangentialAbs > 0)
+    {
+      _controller.reset();
+      _controller.duration = new Duration(milliseconds: _time);
+      _animation = new Tween<double>(begin: 0, end: _time.toDouble())
+          .chain(CurveTween(curve: Curves.linear)).animate(_controller);
+
+      _controller.forward(); //TODO .orCancel ??
+    }
+    else
+      setState(() {});
+
+    //widget.onChanged(_value);
   }
 
   @override
   Widget build(BuildContext context)
   {
-    //debugPrint('Knob::build');
-    double size = widget.size != null ? widget.size :
+    double size = widget.radius != null ? widget.radius :
       MediaQuery.of(context).size.shortestSide; //TODO
 
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
-    double distanceToAngle = (widget.max - widget.min);
+    //double distanceToAngle = (widget.max - widget.min);
 
-    double clippedValue = min(max(widget.value, widget.min), min(widget.limit, widget.max));
-    double normalizedValue = (clippedValue - widget.min)/(widget.max - widget.min);
-    double angle = (minAngle + normalizedValue * sweepAngle) * pi / 180;
+    double clipped = min(max(widget.value, widget.min), min(widget.limit, widget.max));
+    double normalized = (clipped - widget.min)/(widget.max - widget.min);
+    double angle = (widget.minAngle + normalized * widget.sweepAngle) * pi / 180;
+
+    //debugPrint('Knob::build $clipped - $angle - $size - ${MediaQuery.of(context).size}');
 
     final Size imageSize = new Size.square(size);
     if (imageSize != _imageSize)
@@ -190,16 +350,30 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       _imageSize = imageSize;
     }
 
-    return //Center(child:
+    return LayoutBuilder(
+    builder: (BuildContext context, BoxConstraints constraints) {
+      //double size = widget.radius != null ? widget.radius :
+      Size sz = MediaQuery.of(context).size; //TODO
+      //debugPrint('Builder ${MediaQuery.of(context).size} - $constraints');
+
+      return Center(child:
       Container(
         width: size,
         height: size,
         child: GestureDetector(
           onTapDown: (TapDownDetails details) {
-            //debugdebugPrint('onTapDown');
+            //debugPrint('onTapDown');
+            
+            if (_controller.isAnimating)
+              _controller.stop();
+
             double radius = size / 2;
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
-            tap = pos.distance <= (innerRadius * radius);
+            tap = pos.distance <= (widget.radiusButton * radius);
+            // For arrow buttons
+            setState(() {
+              _prevPos = pos;
+            });
           },
 /*
           onTap: () {
@@ -214,9 +388,14 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
           },
 */
           onTapUp: (TapUpDetails details) {
+            //debugPrint('onTapUp');
             double radius = size / 2;
+            double radius2 = radius * radius;
+            double radiusDial2 = widget.radiusDial * widget.radiusDial * radius2;
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
-            //if (tap && pos.distance <= (innerRadius * radius))
+            double distance2 = pos.distanceSquared;//TODO Opt
+
+            if (tap && distance2 <= radiusDial2)
             {
               setState(() {
                 pressed = !pressed;
@@ -224,130 +403,39 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               widget.onPressed();  //TODO Should place it inside setState?
               tap = false;
             }
+            int arrow = posInArrow(pos, radius2, radiusDial2, widget.dialDivisions);
+            if (arrow != 0)
+            {
+              //debugPrint('TapRing $arrow');
+              double clipped = min(max(widget.value + arrow, widget.min), min(widget.limit, widget.max));
+              if (clipped != widget.value)
+              {
+                _value = clipped;
+                widget.onChanged(clipped);
+              }
+            }
+            _prevPos = null;
           },
           onTapCancel: () {
             setState(() {
               tap = false;
+              _prevPos = null;
             });
           },
-          onPanStart: (DragStartDetails details)
           //onPanDown: (DragDownDetails details)
-          {
-            double radius = size / 2;
-            _startValue = widget.value;
-            _startPos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
-            double radius0 = _startPos.distance;
-            if (_startPos.dx.abs() < 0.5)
-              _startAngle = _startPos.dy < 0 ? -180 : 180;
-            else
-              _startAngle = atan2(_startPos.dy, _startPos.dx) * 180 / pi;
-            _prevAngle = _startAngle;
-            _prevTime = details.sourceTimeStamp;
-            turn = 0;
-
-            //debugPrint('onPanStart  ${_startPos.toString()} - ${details.globalPosition.toString()} - $_prevTime - $_startValue - $_startAngle - $radius0');
+          onPanStart: (DragStartDetails details) {
+            onPanStart(details, size / 2);
           },
-          onPanUpdate: (DragUpdateDetails details)
-          {
-            double radius = size / 2;
-            Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
-            //Offset prev = cur - details.delta;
-
-            //debugPrint('onPanUpdate ${pos.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - ${details.delta.dx} - ${details.delta.dy}');
-
-            Duration t = details.sourceTimeStamp - _prevTime;
-            if (details.sourceTimeStamp - _prevTime < Duration(milliseconds: 10))
-              return;
-            _prevTime = details.sourceTimeStamp;
-
-//            if (details.delta.distanceSquared < 2 || cur.dx.abs() < 1 || prev.dx.abs() < 1)
-//              return;
-            double radius2 = pos.distanceSquared;
-
-            double radius00 = radius * innerRadius;
-            if (radius2 > radius00 * radius00)  // TODO
-            {
-              //double da = atan2(cur.dy, cur.dx) - atan2(prev.dy, prev.dx);
-              double angle1 = atan2(pos.dy, pos.dx);
-              angle1 *= 180 / pi;
-              if (angle1 * _prevAngle < 0 && (angle1 - _prevAngle).abs() > 180)
-              {
-                turn += _prevAngle > 0 ? 1  : -1;
-                //debugPrint('Turnaround');
-              }
-              _prevAngle = angle1;
-              _prevPos = pos;
-              _posSpot = _prevPos;
-              angle1 += 360 * turn;
-              double da = angle1 - _startAngle;
-
-              //debugPrint('Knob $angle1 - $_startAngle - $da');
-              //dda *= 180 / pi;
-              //double changeInX = details.delta.dx;
-              //double changeInValue = distanceToAngle * changeInX;
-
-              //if (radius2)
-              double radiusIn = 0.6 * radius;
-              double radiusOut = widget.outerRadius * radius;
-
-              // Change velocity over the radius
-              double kOut = 2 * pi * radiusOut;
-              kOut = 20 / (widget.max - widget.min);
-              kOut = widget.scaleCount / ((widget.max - widget.min) * 360 / sweepAngle);
-
-              double kIn = 2 * pi * radiusIn;
-              kIn = 1;
-              double radius0 = _startPos.distance;
-              double k = lerpDouble(kIn, kOut, (radius0 - radiusIn) / (radiusOut - radiusIn));
-              if (radius0 <= radiusIn)
-                k = kIn;
-              if (radius0 >= radiusOut)
-                k = kOut;
-              else
-                k = (widget.max - widget.min) / sweepAngle;
-              //if (radius2 > radius * radius)  // TODO
-
-              //double newValue = widget.value - (1 / coef) * da * (widget.max - widget.min) / sweepAngle;
-              double newValue = _startValue - da * k;
-              double clippedValue = min(max(newValue, widget.min), min(widget.limit, widget.max));
-
-              //debugPrint('Knob $cur - $prev - ${details.delta} - ${details.globalPosition} - $da - $clippedValue');
-              if (clippedValue != widget.value)
-              {
-                _value = clippedValue;
-
-                //debugPrint('onPanUpdate ${details.localPosition.toString()} - ${details.globalPosition.toString()} - ${details.sourceTimeStamp} - $_value - $da -- $k');
-
-                widget.onChanged(clippedValue);
-              //if (pressed)
-                //setState(() {});
-              }
-            }
+          onPanUpdate: (DragUpdateDetails details) {
+            onPanUpdate(details, size / 2);
           },
           onPanEnd: (DragEndDetails details) {
-            Offset velocity = details.velocity.pixelsPerSecond;
-            double v = velocity.distance;
-            final double v0 = 1;
-            //debugPrint('onPanEnd ${velocity.toString()} - $v');
-
-            setState(() {
-              _prevPos = null;
-            });
-
-            _time = (v * 1000) ~/ v0;
-            if (_controller.isAnimating)
-            {
-              _controller.stop();
-              _controller.reset();
-            }
-            _controller.duration = new Duration(milliseconds: _time);
-            _controller.forward().orCancel;
-
-            //widget.onChanged(_value);
+            onPanEnd(details, size / 2);
           },
           onPanCancel: () {
+            //debugPrint('onPanCancel');
             setState(() {
-              _prevPos = null;
+              _startPos = _prevPos = null;
             });
           },
           /*
@@ -374,9 +462,12 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               ),
 
               CustomPaint(
-                painter: KnobPainter(widget.outerRadius, widget.buttonRadius,
-                  _prevPos, widget.scaleCount, pressed,
-                  Colors.purpleAccent, Colors.purple.withOpacity(0.25), Colors.blueAccent, widget.debug),
+                painter: KnobPainter(widget.radiusDial, widget.radiusButton,
+                  _prevPos, widget.dialDivisions, pressed,
+                  Colors.purpleAccent,
+                  //_controller.isAnimating ? _animColor.value : Colors.purple.withOpacity(0.25),
+                  _controller.isAnimating ? _colorRing : Colors.purple.withOpacity(0.25),
+                  Colors.blue.withOpacity(0.75), Colors.blueAccent, widget.debug),
                 size: Size(size, size),
 //                child: Text(widget.value.toInt().toString(),
 //                  style: widget.textStyle
@@ -407,53 +498,152 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             ]
           ),
         ),
-      //),
+      ),
+      );
+      }
     );
   }
 }
 
 class KnobPainter extends CustomPainter
 {
-  final double outer;
-  final double inner;
+  final double radiusDial;
+  final double radiusButton;
   final double radiusDot = 5;
   final Offset pos;
   final Color colorDot;
   final Color colorRing;
+  final Color colorArrow;
   final Color colorHit;
   final bool debug;
   final bool drawCenter;
-  final int scaleCount;
+  final int dialDivisions;
 
-  KnobPainter(this.outer, this.inner, this.pos, this.scaleCount, this.drawCenter, this.colorDot, this.colorRing, this.colorHit, this.debug);
+  KnobPainter(this.radiusDial, this.radiusButton, this.pos, this.dialDivisions, this.drawCenter,
+    this.colorDot, this.colorRing, this.colorArrow, this.colorHit, this.debug);
+
+  Path arrowPath(int direction, Offset center, double radius, double deltaAngle, double xCenter)
+  {
+    final double x = radiusDial * radius * cos(deltaAngle);
+    final double y = radiusDial * radius * sin(deltaAngle);
+    Path path = new Path();
+    path.moveTo(center.dx + direction * radius, center.dy);
+    path.lineTo(center.dx + direction * x, center.dy + y);
+    path.lineTo(center.dx + direction * xCenter, center.dy);
+    path.lineTo(center.dx + direction * x, center.dy - y);
+    path.close();
+    return path;
+  }
+
+  Path divisionPath(int div, Offset center, double radius, double deltaAngle)
+  {
+    final double angle = div * deltaAngle;
+//    final double x = radiusDial * radius * cos(angle);
+//    final double y = radiusDial * radius * sin(angle);
+//    final Rect rect = new Rect.fromCircle(center: center, radius: radius);
+    Path path = new Path();
+    //path.moveTo(center.dx + x, center.dy + y);
+    path.arcTo(new Rect.fromCircle(center: center, radius: radius), angle, deltaAngle, true);
+    path.arcTo(new Rect.fromCircle(center: center, radius: radiusDial * radius), angle + deltaAngle, -deltaAngle, false);
+    path.close();
+    return path;
+  }
 
   @override
   void paint(Canvas canvas, Size size)
   {
+    //debugPrint('paint');
+
     double radius = size.width / 2;
+    double radius2 = radius * radius;
+    double radiusDial2 = radiusDial * radiusDial * radius2;
+
     Offset center = new Offset(size.width / 2, size.height / 2);
     Paint paintRing = new Paint()
-      ..style = PaintingStyle.stroke
+      ..style = PaintingStyle.fill
       ..strokeWidth = 2
       ..color = colorRing;
+    Paint paintArrow = new Paint()
+      ..style = PaintingStyle.fill
+      //..blendMode = BlendMode.darken
+      ..strokeWidth = 2
+      ..color = colorArrow;
+    Paint paintArrowHi = new Paint()
+      ..style = PaintingStyle.fill
+      //..blendMode = BlendMode.darken
+      ..strokeWidth = 2
+      ..color = Colors.pinkAccent[400];
+//    final Shader paintArrowHi = new RadialGradient(
+//      colors: <Color>[colorDot, colorDot.withOpacity(0.3)],
+//    ).createShader(rcDot);
+//    final Paint paintDot = new Paint()
+//      ..style = PaintingStyle.fill
+//    //..shader = gradientDot;
+//      ..color = colorDot;
+
     if (debug)
-      canvas.drawCircle(center, outer * radius, paintRing);
+      ;//canvas.drawCircle(center, radiusDial * radius, paintRing);
 
     if (drawCenter)
     {
       Paint paintBtn = new Paint()
         ..style = PaintingStyle.fill
         ..color = Colors.purpleAccent;
-      canvas.drawCircle(center, inner * radius, paintBtn);
+      canvas.drawCircle(center, radiusButton * radius, paintBtn);
     }
 
     if (debug)
-      canvas.drawCircle(center, inner * radius, paintRing);
+      ;//canvas.drawCircle(center, radiusButton * radius, paintRing);
+
+    final Path ring = new Path();
+    double a = 1.9999 * pi;
+    ring.arcTo(new Rect.fromCircle(center: center, radius: radius), 0, a, true);
+    ring.arcTo(new Rect.fromCircle(center: center, radius: radiusDial * radius), a, -a, false);
+    //ring.fillType = PathFillType.evenOdd;
+//    ring.addOval(new Rect.fromCircle(center: center, radius: radius));
+//    final Path ringInner = new Path();
+//    ringInner.addOval(new Rect.fromCircle(center: center, radius: radiusDial * radius));
+    ring.close();
+    //ringInner.fillType = PathFillType.evenOdd;
+//    ring.addPath(new Path()..addOval(
+//        new Rect.fromCircle(center: center, radius: radiusDial * radius)), Offset.zero);
+    //canvas.clipPath(new Path()..addOval(new Rect.fromCircle(center: center, radius: radiusDial * radius)));
+    //canvas.drawPath(Path.combine(PathOperation.difference, ring, ringInner), paintRing);
+    canvas.drawPath(ring, paintRing);
 
     //double radiusDot = 5;
-    for (int i = 0; i < scaleCount; i++)
+    double angleDiv = 2 * pi / dialDivisions;
+    final double coef = 0.75;
+    double xCenter = (1 - coef + coef * radiusDial) * radius;
+
+    final Path right = arrowPath(1, center, radius, angleDiv, xCenter);
+    final Path left = arrowPath(-1, center, radius, angleDiv, xCenter);
+    canvas.drawPath(right, paintArrow);
+    canvas.drawPath(left, paintArrow);
+
+    if (pos != null)
     {
-      double angle = i * 2 * pi / scaleCount;
+      //debugPrint('posInArrow');
+      int arrow = posInArrow(pos, radius2, radiusDial2, dialDivisions);
+      if (arrow == 1)
+      {
+        //int div = dialDivisions ~/ 4;
+        canvas.drawPath(divisionPath(dialDivisions - 1, center, radius, angleDiv), paintArrowHi);
+        canvas.drawPath(divisionPath(0, center, radius, angleDiv), paintArrowHi);
+        //canvas.drawPath(right, paintArrowHi);
+      }
+      else if (arrow == -1)
+      {
+        int div = dialDivisions ~/ 2;
+        canvas.drawPath(divisionPath(div - 1, center, radius, angleDiv), paintArrowHi);
+        canvas.drawPath(divisionPath(div, center, radius, angleDiv), paintArrowHi);
+        //canvas.drawPath(left, paintArrowHi);
+      }
+    }
+
+    for (int i = 0; i < dialDivisions; i++)
+    {
+      double angle = i * angleDiv;
       Offset off = Offset(sin(angle), cos(angle));
       off *= 0.9 * radius;
 
@@ -473,7 +663,7 @@ class KnobPainter extends CustomPainter
     {
 /*
     double angleSpot = atan2(-pos.dy, pos.dx);
-    double deltaAngle = 2 * pi * scaleCount;
+    double deltaAngle = 2 * pi * dialDivisions;
     bool next = angleSpot % deltaAngle >= 0.5;
 
     double a = deltaAngle * (angleSpot ~/ deltaAngle);
@@ -486,7 +676,7 @@ class KnobPainter extends CustomPainter
 
       double radiusSpot = 20;
       double radiusHit = pos.distance;
-      if (outer * radius < radiusHit && radiusHit <= radius)
+      if (radiusDial * radius < radiusHit && radiusHit <= radius)
       {
         Offset off = new Offset(pos.dx, -pos.dy);
         Rect rc = new Rect.fromCircle(center: center + off, radius: radiusSpot);
@@ -503,7 +693,7 @@ class KnobPainter extends CustomPainter
 
   @override
   bool shouldRepaint(KnobPainter oldDelegate) {
-    return outer != oldDelegate.outer || pos != oldDelegate.pos ||
+    return radiusDial != oldDelegate.radiusDial || pos != oldDelegate.pos ||
       colorDot != oldDelegate.colorDot || colorRing != oldDelegate.colorRing;
   }
 }

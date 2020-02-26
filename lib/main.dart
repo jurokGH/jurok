@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:owlenome/accent_metre_ui.dart';
 import 'package:owlenome/prosody.dart';
+import 'package:owlenome/util.dart';
 import 'package:provider/provider.dart';
 import 'package:wheel_chooser/wheel_chooser.dart';
 import 'package:device_preview/device_preview.dart';
@@ -17,7 +18,7 @@ import 'beat_sound.dart';
 import 'owl_grid.dart';
 import 'metre_ui.dart';
 import 'subbeat_ui.dart';
-import 'tempo_ui.dart';
+import 'TempoListWidget.dart';
 import 'volume_ui.dart';
 import 'settings.dart';
 import 'knob.dart';
@@ -42,6 +43,22 @@ final Color _cCtrlColor = Colors.grey;
 final double _cCtrlOpacity = 0;
 
 final Color _cWhiteColor = Colors.white;
+const Color _clrRegularBar = Colors.white70;  // Color(0xB3FFFFFF)
+const Color _clrIrregularBar = Color(0xB3FFECB3);  // Colors.amber[100];
+const Color _clrIrregularMetre = Color(0xFFFFA000);  // Colors.amber[600];
+
+const int _cMinBeatCount = 2;
+const int _cMaxBeatCount = 12;
+const int _cMaxSubBeatCount = 8;
+const int _cMinNoteValue = 2;
+const int _cMaxNoteValue = 16;
+const int _cMinTempo = 1;
+///Некий абсолютный максимум скорости. Больше него не ставим, даже если
+/// позволяет сочетание схемы и метра.
+const int _cMaxTempo = 1000;  //500-5000
+const int _cIniTempo = 121;  //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+const int _cTempoKnobTurns = 2;
+const double _cTempoKnobAngle = 160;
 
 final bool usePlayButton = true;
 final bool _debugDevices = false;
@@ -115,18 +132,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  bool _useNewKnob = true;
+  bool _useNewKnob = false;
   //static const int initBeatCount = 4;//From beatMetre
-  static const int minBeatCount = 2;
-  static const int maxBeatCount = 12;
-  static const int maxSubBeatCount = 8;
-  static const int minNoteValue = 2;
-
-  static const int maxNoteValue = 16;
-  static const int minTempo = 1;
+  static const int minBeatCount = _cMinBeatCount;
+  static const int maxBeatCount = _cMaxBeatCount;
+  static const int maxSubBeatCount = _cMaxSubBeatCount;
+  static const int minNoteValue = _cMinNoteValue;
+  static const int maxNoteValue = _cMaxNoteValue;
+  static const int minTempo = _cMinTempo;
   ///Некий абсолютный максимум скорости. Больше него не ставим, даже если
   /// позволяет сочетание схемы и метра.
-  static const int maxTempo = 500; //500/5000
+  static const int maxTempo = _cMaxTempo;
 
   /// Flutter-Java connection channel
   static const MethodChannel _channel =
@@ -155,6 +171,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// Show advertising box
   bool _showAds = false;
+  final List<double> _heightAds = [50, 32];
   ///<<<<<< JG!
 
   /// Overall screen size
@@ -183,7 +200,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   double _volume = 100;
   bool _mute = false;
-  int _tempoBpm = 121;//121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+  int _tempoBpm = _cIniTempo;
   //BipAndPouseCycle
   ///Переменная, ограничивающся максимальную скорость при данной музыкальной схеме и
   ///метре
@@ -202,6 +219,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int latency = 0;
   int warmupFrames = 0;*/
   String _infoMsg = '';
+  bool _screenOn = true;
 
   //Melody melody;
   //BipPauseCycle bipPauseCycle;
@@ -229,6 +247,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const double initKnobAngle = 0;
 
   KnobValue _knobValue;
+  bool _updateMetre = false;
 
   _HomePageState();
 
@@ -315,7 +334,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() {});
   }
 
-  void onMetreChanged(int beats, int note)
+  void _onBeatChanged(int beats)
+  {
+    if (_beat.beatCount != beats)
+    {
+      _beat.beatCount = beats;
+      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+      _setBeat();
+      print('_onBeatChanged');
+      setState(() {});  //TODO ListWheelScrollView redraws 1 excess time after wheeling
+    }
+  }
+
+  void _onNoteChanged(int noteValue)
+  {
+    _noteValue = noteValue;  // Does not affect sound
+    print('_onNoteChanged');
+    setState(() {});  //TODO ListWheelScrollView redraws 1 excess time after wheeling
+  }
+
+  void onMetreChanged(int beats, int noteValue)
   {
     if (_beat.beatCount != beats)
     {
@@ -323,8 +361,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       _setBeat();
     }
-    _noteValue = note;  // Does not affect sound
-    setState(() {});
+    _noteValue = noteValue;  // Does not affect sound
+    print('onMetreChanged');
+    setState(() { _updateMetre = true; });
   }
 
   void onSubbeatChanged(int subbeatCount)
@@ -360,7 +399,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Main screen
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQueryData = MediaQuery.of(context);
+    final MediaQueryData mediaQueryData = MediaQuery.of(context);
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.width > _screenSize.height ? _screenSize.height : _screenSize.width;
 
@@ -394,35 +433,82 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           builder: (context, orientation) {
             final bool portrait = orientation == Orientation.portrait;
 
-            /// Owl square and controls
-            final List<Widget> innerUI = <Widget>[
-              _buildOwlenome(portrait, false),
-              _buildBar(portrait),
-              _buildControls(portrait),
-            ];
-
-            if (_showAds && portrait)
+            // Vertical/portrait
+            if (portrait)
             {
-              innerUI.add(_buildAds(portrait));
-            }
+              /// Owl square and controls
+              final List<Widget> innerUI = <Widget>[
+                _buildOwlenome(portrait, false),
+                _buildBar(portrait),
+                _buildControls(portrait),
+              ];
 
-            return portrait ?
-              // Vertical/portrait
-              Container(
+              if (_showAds)
+                innerUI.add(_buildAds(portrait));
+
+              return Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('images/Backg-1.jpg'),
                     fit: BoxFit.cover,
                   )
                 ),
-                child:
-              Column(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start)
-              )
-              :
-              // Horizontal/landscape
-              Row(children: innerUI,
-                mainAxisAlignment: MainAxisAlignment.start);
+                child: Stack(
+                  children: <Widget>[
+                    Column(
+                      children: innerUI,
+                      mainAxisAlignment: MainAxisAlignment.start
+                    ),
+                    Positioned(
+                      left: 0,
+                      bottom: _showAds ? _heightAds[0] + 10 : 10,
+                      child: _buildVolumeBtn()
+                    )
+                  ]
+                )
+              );
+            }
+            else  // Horizontal/landscape
+            {
+              //TODO _showAds = true;
+              /// Owl square and controls
+              final Widget innerUI = new Row(
+                children: <Widget>[
+                  _buildOwlenome(portrait, false),
+                  Stack(
+                    children: <Widget>[
+                      Column(
+                        //mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          _buildBar(portrait),
+                          _buildControls(portrait),
+                        ]
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: _showAds ? _heightAds[1] + 10 : 10,
+                        child:
+                        _buildVolumeBtn())
+                    ]
+                  ),
+                ]
+              );
+
+              if (_showAds)
+              {
+                return Column(
+                  children: <Widget>[
+                    innerUI,
+                    _buildAds(portrait),
+                  ]
+                );
+              }
+              else
+              {
+                return innerUI;
+              }
+            }
           }
         )
       ),
@@ -448,114 +534,34 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Metre
   Widget _buildMetre(TextStyle textStyle)
   {
-    int noteValuePos = 0;
-    for (int noteValue = _noteValue; noteValue > 2; noteValue ~/= 2)
-      noteValuePos++;
-    print('noteValuePos');
-    print(noteValuePos);
+//    selectTextStyle: Theme.of(context).textTheme.headline
+//      .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//16
+//    unSelectTextStyle: Theme.of(context).textTheme.subhead
+//      .copyWith(color: Colors.white70, height: 1),//16
+    bool update = _updateMetre;
+    _updateMetre = false;
 
-    return //_buildPlate(
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [Colors.white70, Colors.white70])
-            ),
-            width: 0.22 * _sizeCtrls.width,
-            height: 0.16 * _sizeCtrls.height,
-            child: WheelChooser.integer(
-            selectTextStyle: Theme.of(context).textTheme.headline
-              .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//20
-            unSelectTextStyle: Theme.of(context).textTheme.subhead
-              .copyWith(color: Colors.white, height: 1),//16
-            magnification: 1,
-            //itemSize: 48,
-            //perspective: 0.01,
-            //listWidth: 100,
-            squeeze: 1.6,
-            horizontal: true,
-            minValue: minBeatCount,
-            maxValue: maxBeatCount,
-            initValue: _beat.beatCount,
-            //start: _beat.beatCount - ,
-            step: 1,
-            onValueChanged: (dynamic value) {
-              int beats = value;
-              if (_beat.beatCount != beats)
-              {
-                _beat.beatCount = beats;
-                //_activeBeat %= _beat.beatCount;
-                _activeBeat = _activeSubbeat = 0;
-                //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-                //TODO if (_playing)
-                  _setBeat();
-                setState(() {});
-              }
-            },
-          ),
-        ),
-
-      Container(
-        //width: 0.3 * _sizeCtrls.height,
-        height: 4,
+    return new MetreWidget(
+      update: update,
+      beats: _beat.beatCount,
+      minBeats: minBeatCount,
+      maxBeats: maxBeatCount,
+      note: _noteValue,
+      minNote: minNoteValue,
+      maxNote: maxNoteValue,
+      width: 0.22 * _sizeCtrls.width,
+      height: 0.32 * _sizeCtrls.height,
+      itemExtent: 44,
+      color: Colors.deepPurple,
+      textStyle: textStyle,
+      textStyleSelected: textStyle.copyWith(
+        fontWeight: FontWeight.w800,
+        fontSize: textStyle.fontSize + 2,
+        height: 1,
+        color: _beat.regular ? _cWhiteColor : _clrIrregularMetre
       ),
-
-      Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [Colors.white70, Colors.white70])
-        ),
-        width: 0.22 * _sizeCtrls.width,
-        height: 0.16 * _sizeCtrls.height,
-        child: WheelChooser(
-          selectTextStyle: Theme.of(context).textTheme.headline
-            .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//16
-          unSelectTextStyle: Theme.of(context).textTheme.subhead
-            .copyWith(color: Colors.white70, height: 1),//16
-          magnification: 1,
-          //itemSize: 48,
-          //perspective: 0.01,
-          //listWidth: 100,
-          squeeze: 1.6,
-          horizontal: true,
-          datas: ['2', '4', '8', '16'],
-          startPosition: noteValuePos,
-          onValueChanged: (dynamic value) {
-            String sNote = value;
-            int note = int.parse(sNote);
-            if (_noteValue != note)
-            {
-              _noteValue = note;
-              if (_playing)
-                _setTempo(note);
-              else //ToDo: нужно поменять ноты в строке размере
-                setState(() {});
-            }
-          },
-        ),
-      ),
-      ]
-    );
-
-    return _buildPlate(
-      MetreWidget(
-        beats: _beat.beatCount,
-        minBeats: minBeatCount,
-        maxBeats: maxBeatCount,
-        note: _noteValue,
-        minNote: minNoteValue,
-        maxNote: maxNoteValue,
-        color: _primaryColor,
-        textStyle: textStyle,
-        onChanged: onMetreChanged
-      )
+      onBeatChanged: _onBeatChanged,
+      onNoteChanged: _onNoteChanged,
     );
   }
 
@@ -670,15 +676,42 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget _buildSoundBtn()
   {
+    int soundScheme = _activeSoundScheme;
+    final int imageIndex = soundScheme < 3 ? soundScheme : 3;
+    final String schemeName = 'images/sound' + imageIndex.toString() + '.png';
+
 //    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
 //      _soundSchemes[_activeSoundScheme] : '';
-    final String strScheme = (_activeSoundScheme + 1).toString();
+    final String strScheme = (soundScheme + 1).toString();
+
+    final Widget icon = new Image.asset(schemeName,
+      width: 0.18 * _sizeCtrls.height,
+      height: 0.18 * _sizeCtrls.height,
+      fit: BoxFit.contain,
+    );
+    final Widget icon3 = new Stack(
+      alignment: AlignmentDirectional.center,
+      children: <Widget>[
+        Image.asset(schemeName,
+          width: 32,
+          height: 32,
+          fit: BoxFit.contain,
+        ),
+        //Icon(Icons.music_note, size: 24, color: _cWhiteColor),
+        Text(strScheme,
+          style: Theme.of(context).textTheme.title//headline
+            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
+          //          style: Theme.of(context).textTheme.display1
+          //            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
+        ),
+      ]
+    );
 
     final Widget icon1 = new Text(strScheme,
       style: Theme.of(context).textTheme.display1
         .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
     );
-    final Widget icon = new Row(
+    final Widget icon2 = new Row(
       children: <Widget>[
         Icon(Icons.music_note, size: 24, color: _cWhiteColor),
         Text(strScheme,
@@ -689,14 +722,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
       ]
     );
+
 //FlatButton
     return new MaterialButton(
       //iconSize: 40,
       //minWidth: 40,
       padding: EdgeInsets.all(0),
       //icon: Icon(Icons.check_box_outline_blank,),
-      child: icon1,
-      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      child: imageIndex == 3 ? icon3 : icon,
+      //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       //padding: EdgeInsets.all(0),
       //textTheme: ButtonTextTheme.primary,
       textColor: _cWhiteColor,
@@ -755,7 +789,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildAds(bool portrait)
   {
     return Container(
-      height: portrait ? 50 : 32,
+      height: portrait ? _heightAds[0] : _heightAds[1],
       color: Colors.grey[400],
       child: Image.asset('images/Ad-1.png',
         //height: portrait ? 50 : 32,
@@ -780,6 +814,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       animationType: _animationType,
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
+/*
       onCountChanged: (int count) {
         if (count > maxBeatCount)
           count = minBeatCount;
@@ -787,18 +822,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           count = maxBeatCount;
         onMetreChanged(count, _noteValue);
       }
+*/
     );
 
     //VG TODO
     final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
       //0.03 * _widthSquare : 0;
-    final double paddingY = 0;//_beat.beatCount > 4 ? 0.05 * _widthSquare : 0;
+    final double paddingY = _beat.beatCount > 4 ? 0.02 * _sideSquare : 0;
 
     return Container(
-      width: _squareX * _sideSquare,
-      height: _squareY * _sideSquare,
-      padding: portrait ? EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX) :
-        EdgeInsets.only(top: paddingY, left: paddingX, right: paddingX),
+      width: portrait ? _sideSquare : _squareX * _sideSquare,
+      height: portrait ? _squareY * _sideSquare : _sideSquare - _heightAds[1],
+      padding: portrait ? EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX) :
+        EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX),
       ///widget Background
 /*
       decoration: BoxDecoration(
@@ -834,12 +870,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 
     ///widget Tempo list
-    final Widget listTempo = new Padding(
-      padding: EdgeInsets.only(top: 0.0 * _sizeCtrls.height, bottom: 0.0 * _sizeCtrls.height),
+    final Widget listTempo = new Container(
+      //color: Colors.orange,
+        //width: 80,
+        height: 0.12 * _sizeCtrls.height,
+        padding: EdgeInsets.only(top: 0.0 * _sizeCtrls.height, bottom: 0.0 * _sizeCtrls.height),
       //padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
       child:
-      TempoWidget(//TODO Limit
+      TempoListWidget(//TODO Limit
         tempo: _tempoBpm,
+        width: 0.5 * _sizeCtrls.width,
         textStyle: Theme.of(context).textTheme.display1
           .copyWith(color: Colors.black, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
         onChanged: (int tempo) {
@@ -847,12 +887,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           {
             _tempoBpm = tempo;
             if (_playing)
-              _setTempo(tempo);
+              _setTempo(_tempoBpm);
             setState(() {});
           }
         }
       ));
 
+    if (portrait)
+    {
     ///widget Metre row
     final Widget rowBar = new Padding(
       padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
@@ -860,7 +902,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(width: 0.05 * _sizeCtrls.width,),
+          Container(width: 0.02 * _sizeCtrls.width,),
 
           ///widget Metre
           _buildMetre(_textStyle),
@@ -872,9 +914,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
           Container(width: 0.02 * _sizeCtrls.width,),
 
-          Flexible(child:
+          Flexible(
+            //fit: FlexFit.tight,
+            child:
             Container(
-              color: Colors.white70,
+              color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
@@ -893,6 +937,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
           ),
 */
+            Container(width: 0.02 * _sizeCtrls.width,),
           ///widget Subbeat widget
           //Flexible(child:
             Padding(
@@ -904,6 +949,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 accents: _beat.accents,
                 pivoVodochka: _beat.pivoVodochka, //?
                 size: Size(0.5 * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
+                //color: _beat.regular ? _cWhiteColor : Colors.orangeAccent,
                 onChanged: onMetreChanged,
                 onOptionChanged: (bool pivoVodochka) {
                   _beat.setAccentOption(pivoVodochka);
@@ -929,9 +975,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     children: <Widget>[
                       noteTempo,
                       Expanded(child:
-                        ClipRect(child:
+//                        ClipRect(child:
                         listTempo,
-                      ),
                       ),
                     ]
                   ),
@@ -963,7 +1008,80 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ])
       );
 
-    return rowBar;
+      return rowBar;
+    }
+    else
+    {
+      ///widget Metre row
+      final Widget rowBar = new Padding(
+        padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            ///widget Metre
+            _buildMetre(_textStyle),
+            Container(width: 0.02 * _sizeCtrls.width,),
+
+            Center(
+              //fit: FlexFit.tight,
+              child:
+              Container(
+                color: Colors.white70,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        ///widget Subbeat widget
+                        //Flexible(child:
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
+                          child:
+                          AccentMetreWidget(
+                            beats: _beat.beatCount,
+                            noteValue: _noteValue,
+                            accents: _beat.accents,
+                            pivoVodochka: _beat.pivoVodochka, //?
+                            size: Size(0.5 * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
+                            onChanged: onMetreChanged,
+                            onOptionChanged: (bool pivoVodochka) {
+                              _beat.setAccentOption(pivoVodochka);
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                      ]),
+                    Row(
+                      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        noteTempo,
+//                        Expanded(child:
+                        listTempo,
+//                        ),
+                      ]
+                    ),
+                  ]),
+              )
+            ),
+
+            Container(width: 0.02 * _sizeCtrls.width,),
+            SubbeatWidget(
+              subbeatCount: _beat.subBeatCount,
+              noteValue: _noteValue,
+              color: _textColor,
+              textStyle: _textStyle,
+              size: new Size(0.05 * _sizeCtrls.width, 0.2 * _sizeCtrls.height),
+              onChanged: onSubbeatChanged,
+            ),
+          ])
+      );
+
+      return rowBar;
+    }
   }
 
   // Remaining section with controls
@@ -984,7 +1102,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         Padding(
           padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
           child:
-          TempoWidget(//TODO Limit
+          TempoListWidget(//TODO Limit
             tempo: _tempoBpm,
             textStyle: Theme.of(context).textTheme.display1
               .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
@@ -993,7 +1111,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               {
                 _tempoBpm = tempo;
                 if (_playing)
-                  _setTempo(tempo);
+                  _setTempo(_tempoBpm);
                 setState(() {});
               }
             }
@@ -1120,12 +1238,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       value: _tempoBpm.toDouble(),
       min: minTempo.toDouble(),
       max: maxTempo.toDouble(),
-      scaleCount: 12,
+      minAngle: -_cTempoKnobAngle,
+      maxAngle: _cTempoKnobAngle,
+      turnCount: _cTempoKnobTurns,
+      sweepAngle: _cTempoKnobTurns * 360.0 + 2 * _cTempoKnobAngle,
+      dialDivisions: 12,
       limit: _tempoBpmMax.toDouble(),
-      buttonRadius: 0.1,
-      outerRadius: 0.8,
-      size: 0.65 * _sizeCtrls.height,
-      debug: true,
+      radiusButton: 0.1,
+      radiusDial: 0.8,
+      radius: portrait ? 0.65 * _sizeCtrls.height : 0.45 * _sizeCtrls.width,
+      debug: false,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
       textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height,
@@ -1172,8 +1294,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       children: <Widget>[
         _buildSoundBtn(),
         //Container(height: 0.1 * _sizeCtrls.height),
-        _buildVolumeBtn(),
+        //_buildVolumeBtn(), //TODO SizedOverflowBox
         _buildSettingsBtn(),
+        Container(
+          width: 24,
+          height: 0.2 * _sizeCtrls.height,
+        ),
       ]
     );
 
@@ -1342,6 +1468,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final Map<String, int> args =
       <String, int>{
         'tempo': _tempoBpm,
+        'screen': _screenOn ? 1 : 0,
         //'note': _beat.beatCount,//_noteValue,//IS: VS, Полагаю, beatCount тут - опечатка. В любом случае, это больше не нужно.
         //'quorta': _quortaInMSec.toInt(),
         'numerator': _beat.beatCount,

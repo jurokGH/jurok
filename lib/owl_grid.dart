@@ -211,14 +211,14 @@ class OwlGrid extends StatefulWidget
   final int animationType;
 
   final ValueChanged2<int, int> onChanged;
-  final ValueChanged<int> onCountChanged;
+  //final ValueChanged<int> onCountChanged;
   final ValueChanged<int> onAccentChanged;
 
   OwlGrid({@required this.beat, this.noteValue,
     this.accents,
     this.activeBeat, this.activeSubbeat,
     this.playing = false,
-    this.onChanged, this.onCountChanged, this.onAccentChanged,
+    this.onChanged, this.onAccentChanged,
     this.animationType = 0,
     //this.width,
     });
@@ -376,8 +376,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
     toggleAnimation();
 
-    //TODO
     //return Consumer<MetronomeState>(
+    //TODO Gesture
+/*
       //builder: (BuildContext context, MetronomeState metronome, Widget child) {
         return GestureDetector(
           //onHorizontalDragStart,
@@ -385,21 +386,19 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           //onHorizontalDragEnd,
           //onHorizontalDragCancel,
           onTap: () {
-            debugPrint('onTaponTaponTap');
+            //debugPrint('onTaponTaponTap');
             //debugPrint(count);
 
-            widget.onCountChanged(widget.beat.beatCount + 1);
+            //widget.onCountChanged(widget.beat.beatCount + 1);
             //setState(() {});
             //Provider.of<MetronomeState>(context, listen: false)
             //.setActiveState(widget.id, widget.subbeatCount);
             //widget.onTap(widget.id, widget.subbeatCount);
           },
-          child: CustomMultiChildLayout(
-            children: wOwls,
-            delegate: layout,
-          )
-        );
-      //}
-    //);
+*/
+    return CustomMultiChildLayout(
+      children: wOwls,
+      delegate: layout,
+    );
   }
 }

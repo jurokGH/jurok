@@ -12,6 +12,7 @@ import android.util.Log;
 
 
 import android.content.res.Resources;
+import android.view.WindowManager;
 
 //import  android.R; //Test: for raw
 //import  android.R.raw; //Test: for raw
@@ -268,11 +269,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     if (methodCall.method.equals("start"))
     {
       int _beatsPerMinute = methodCall.argument("tempo");
+      int screenOn = methodCall.argument("screen");
       //_tempo.denominator = methodCall.argument("note");
 
       //int realTempo = 0;
       if (beatMelody != null)
-         start(_beatsPerMinute);
+         start(_beatsPerMinute, screenOn != 0);
       //List<Map<Double, Integer> a = new HashMap<>
       result.success(1);
     }
@@ -435,6 +437,18 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       result.success(names);
       //channel.invokeMethod("foo", args, new MethodChannel.Result(){
     }
+    else if (methodCall.method.equals("awake"))
+    {
+      int awakeOn = methodCall.argument("on");
+
+      if (awakeOn == 0)
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+      else
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+      result.success(0);
+      //channel.invokeMethod("foo", args, new MethodChannel.Result(){
+    }
     else
     {
       result.notImplemented();
@@ -492,13 +506,16 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   }
 
   // Start/stop with given tempo rate
-  private void start(int beatsPerMinute)
+  private void start(int beatsPerMinute, boolean screenOn)
   {
     //int realTempo = 0;
     //_onStartStopBn(tempo);
     if (metroAudio.state == MetroAudioMix.STATE_READY)
     {
       //_beatsPerMinute = beatsPerMinute;
+      if (screenOn)
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
       metroAudio.play(beatsPerMinute);
       //realTempo = metroAudio.play(beatsPerMinute);
 
@@ -507,6 +524,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     else
     {
       metroAudio.stop();
+
+      if (screenOn)
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
       //  realTempo = metroAudio.getTempo();
     }
 
@@ -534,6 +554,16 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
+    soundSсhemes.add(new MusicSchemeMix("Sin-Short",
+      880, 30, 440, 30,
+      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Bass(ac)&snare(el),ag", res, R.raw.buss_ac, R.raw.snaredrumelectric232,
+      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Pizzakato-Lev,ag", res, R.raw.pizz880, R.raw.pizz440,
+      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
     soundSсhemes.add(new MusicSchemeMix("WoodBl&Cabasa,ag", res, R.raw.woodblocks, R.raw.cabasa,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
@@ -547,16 +577,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("Triangle+claves,ag", res, R.raw.triangle, R.raw.claves,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Pizzakato-Lev,ag", res, R.raw.pizz880, R.raw.pizz440,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Bass(ac)&snare(el),ag", res, R.raw.buss_ac, R.raw.snaredrumelectric232,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Sin-Short",
-      880, 30, 440, 30,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("Sin-ExtraShort",
