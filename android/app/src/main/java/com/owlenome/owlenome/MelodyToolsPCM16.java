@@ -286,6 +286,41 @@ public class MelodyToolsPCM16
 
 
 
+  public static int mixNormalized(byte[] samples1, byte[] samples2, int previousSample,
+                                  long stepsPer2, boolean bConnect ){
+    int res=0;
+    int lngsShort=Math.min(samples1.length,samples2.length)/2;
+    for(int i=0;i<samples1.length/2;i++){
+      int newSample1=  (samples1[2*i+1]<<8)|(0xFF&samples1[2*i]);
+      int newSample2=0;
+      if (i<lngsShort){       newSample2=  (samples2[2*i+1]<<8)|(0xFF&samples2[2*i]);}
+      int newSample=(newSample1+newSample2)/2;
+      samples1[2 * i] = (byte) (newSample & 0x00ff);
+      samples1[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
+      res=newSample;
+    }
+
+
+
+    //Пробуем срастить начало с initValueApprox. Experiment; НЕ РАБОТАЕТ - щелкает
+    /*
+    if (!bConnect) return  res;
+    int initSample=(samples1[1]<<8)|(0xFF&samples1[0]);
+    long delta=previousSample-initSample;
+    double doubleDelta=0.5/(Short.MAX_VALUE+1)*Math.abs(delta);
+    long n=Math.min(samples1.length/2, (int)(stepsPer2*doubleDelta));
+    for (int i=0; i<n; i++)
+    {
+      int oldSample=  (samples1[2*i+1]<<8)|(0xFF&samples1[2*i]);
+      int newSample = (int)(oldSample + (delta*(n-i)/(n+1)));
+      samples1[2 * i] = (byte) (newSample & 0x00ff);
+      samples1[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
+    }*/
+    return res;
+  }
+
+
+
     //Проще генерировать ноты по полутонам, или по октавам и именам...
   //http://pages.mtu.edu/~suits/notefreqs.html
   public byte[] noteA4(int samplesN, int degIn, int degOut)

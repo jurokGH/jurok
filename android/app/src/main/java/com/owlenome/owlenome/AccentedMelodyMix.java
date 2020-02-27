@@ -3,6 +3,8 @@ package com.owlenome.owlenome;
 
 import android.util.Log;
 
+import static com.owlenome.owlenome.MelodyToolsPCM16.getSilence;
+
 //То, что мы будем играть. Определено с точностью до
 // темпа (темп регулируется через setTempo)
 class AccentedMelodyMix
@@ -149,6 +151,10 @@ class AccentedMelodyMix
                 weakestAccent = accents[i];
         }
 
+        //Заплата.
+        //Делаем ноту слабейшего акцента тишиной.
+        setOfNotes[weakestAccent]=getSilence(setOfNotes[weakestAccent].length/2);
+
         BipAndPause[] _bipAndPauseMainSing = new BipAndPause[beats.beatCount];
         for (int i = 0; i < beats.beatCount; i++)
         {
@@ -158,6 +164,10 @@ class AccentedMelodyMix
                 //самая слаба доля (максимум) пусть будет
                 // самым сильным слабым звуком
                 symbols[i] = musicScheme.setOfNotes.length; //ToDo: тут этому не место по логике вещей
+
+                 //symbols[i] = elasticSymbol; //-- так не выходит, там где-то длина ноты вычисляется по этому символу
+
+                symbols[i] = accents[i];
             }
             else
             {
@@ -183,11 +193,13 @@ class AccentedMelodyMix
                         noteLength / 2,
                         (totalLengthOfBeat / (beats.subBeats.get(i) * noteLength / 2)) - 1
                 );
-                if (j == 0)
+
+                //ToDo: if symobls[i]==elasticSymbol ....  - в тишину всё
+                /*if (j == 0)
+                //Это пока не сделано нормально - при агодическом миксе становится тихим звук доли.
                 {//начало доли
                     symbolsDriven[k] = elasticSymbol; //Можно и иначе.//ToDo: эксперимент
-                }
-                //ToDo: не устарело ли то, что выше?  - теперь же свободный метр
+                }*/
             }
         }
 

@@ -241,7 +241,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   //IS: my knob constants
   double _sensitivity = 2;
-  double _innerRadius = 0.1;  //VG ??
+  double _innerRadius = 0.1;
   double _outerRadius = 2;
   //double _knobSize = 150;
   static const double initKnobAngle = 0;

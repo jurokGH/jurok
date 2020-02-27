@@ -127,7 +127,7 @@ class MusicSchemeMix
                 break;
 
             case Agogic:
-                setOfNotes = GeneralProsody.agogicAccentsNormalized(beatSound, subBeatSound,
+                setOfNotes = GeneralProsody.agogicAccentsNormalizedTmp(beatSound, subBeatSound,
                         absoluteMaxOfNoteAccents);
                 break;
 
@@ -162,7 +162,7 @@ class MusicSchemeMix
         int lengthStrong = (int) Utility.nanoSec2samples(nativeSampleRate, beatDuration * 1000000);
 
 
-        beatSound = melodyTools.getFreq(beatFreq, lengthWeak, 2, 2);
+        beatSound = melodyTools.getFreq(beatFreq, lengthWeak, 3, 3);
         subBeatSound = melodyTools.getFreq(subBeatFreq, lengthStrong, 2, 2);
     }
 

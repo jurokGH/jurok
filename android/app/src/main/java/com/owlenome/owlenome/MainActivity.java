@@ -242,7 +242,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
 
     metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
-            120,//TODO: TEST: 1000;
+            120,//TODO: TEST: 1000; //00;
             // 160 - основной кандидат (8 моих буферов)
             // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
             handler);
@@ -437,18 +437,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       result.success(names);
       //channel.invokeMethod("foo", args, new MethodChannel.Result(){
     }
-    else if (methodCall.method.equals("awake"))
-    {
-      int awakeOn = methodCall.argument("on");
-
-      if (awakeOn == 0)
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-      else
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-      result.success(0);
-      //channel.invokeMethod("foo", args, new MethodChannel.Result(){
-    }
     else
     {
       result.notImplemented();
@@ -554,16 +542,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
-    soundSсhemes.add(new MusicSchemeMix("Sin-Short",
-      880, 30, 440, 30,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Bass(ac)&snare(el),ag", res, R.raw.buss_ac, R.raw.snaredrumelectric232,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Pizzakato-Lev,ag", res, R.raw.pizz880, R.raw.pizz440,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
     soundSсhemes.add(new MusicSchemeMix("WoodBl&Cabasa,ag", res, R.raw.woodblocks, R.raw.cabasa,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
@@ -579,14 +557,31 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes.add(new MusicSchemeMix("Triangle+claves,ag", res, R.raw.triangle, R.raw.claves,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
+    /* //Первый барабан слышно только в наушниках!!!
+    soundSсhemes.add(new MusicSchemeMix("bass(ac)&snare(el),ag", res, R.raw.buss1, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+    */
+
+    soundSсhemes.add(new MusicSchemeMix("bass(ac)&snare(el),ag", res, R.raw.bussdrums240, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("cymb&snare(el),ag", res, R.raw.cymbal, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
+
+    soundSсhemes.add(new MusicSchemeMix("Sin-Short",
+            880, 30, 440, 30,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
     soundSсhemes.add(new MusicSchemeMix("Sin-ExtraShort",
-      880, 15, 440, 15,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+            880, 20, 440, 15,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("Owls-dragt", res, R.raw.owl_long, R.raw.owl_short,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
-    initSoundSchemesExtra();
+
+    //initSoundSchemesExtra();
   }
 
   /**
