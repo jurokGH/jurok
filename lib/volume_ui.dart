@@ -227,7 +227,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
     Widget button = new MaterialButton(
       //iconSize: 40,
       child: Icon(_mute ? Icons.volume_off : Icons.volume_up,
-        size: 36,
+        size: 2 * widget.radius,//36,
         color: widget.color,
         semanticLabel: 'Mute volume',
       ),
