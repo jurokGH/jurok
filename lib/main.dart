@@ -11,6 +11,7 @@ import 'package:wheel_chooser/wheel_chooser.dart';
 import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 
+import 'BarBracket.dart';
 import 'arrow.dart';
 import 'metronome_state.dart';
 import 'beat_metre.dart';
@@ -452,8 +453,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       portrait ? hScale * _sideSquare : _sideSquare - _heightAds[1]);
 
     // Vertical/portrait
-    if (portrait)
-    {
+    if (portrait) {
       /// Owl square and controls
       final List<Widget> innerUI = <Widget>[
         _buildOwlenome(portrait, sizeOwlenome),
@@ -474,43 +474,54 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Stack(
               children: <Widget>[
                 Column(
-                    children: innerUI,
-                    mainAxisAlignment: MainAxisAlignment.start
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: innerUI,
                 ),
                 Positioned(
-                    left: 0,
-                    bottom: _showAds ? _heightAds[0] + 10 : 10,
-                    child: _buildVolumeBtn()
+                  left: 0,
+                  bottom: _showAds ? _heightAds[0] + 10 : 10,
+                  child: _buildVolumeBtn(
+                    Theme.of(context).buttonTheme.height,//0.05 * _sizeCtrlsShortest
+                    _sizeCtrlsShortest)
                 )
               ]
           )
       );
     }
     else  // Horizontal/landscape
-        {
+    {
       //TODO _showAds = true;
       /// Owl square and controls
       final Widget innerUI = new Row(
-          children: <Widget>[
-            _buildOwlenome(portrait, sizeOwlenome),
-            Stack(
-                children: <Widget>[
-                  Column(
-                    //mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        _buildBar(portrait),
-                        _buildControls(portrait),
-                      ]
-                  ),
-                  Positioned(
-                      left: 0,
-                      bottom: _showAds ? _heightAds[1] + 10 : 10,
-                      child:
-                      _buildVolumeBtn())
-                ]
-            ),
-          ]
+        children: <Widget>[
+          _buildOwlenome(portrait, sizeOwlenome),
+          Expanded(child:
+          Stack(
+            //fit: StackFit.expand,
+            children: <Widget>[
+              //Positioned.fill(
+                //child:
+                Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    _buildBar(portrait),
+                    _buildControls(portrait),
+                  ]
+                //),
+                //),
+              ),
+              Positioned(
+                left: 0,
+                bottom: _showAds ? _heightAds[1] + 10 : 10,
+                child: _buildVolumeBtn(
+                  Theme.of(context).buttonTheme.height,//0.05 * _sizeCtrlsShortest
+                  _sizeCtrlsShortest)
+              )
+            ]
+          ),
+          ),
+        ]
       );
 
       if (_showAds)
@@ -546,7 +557,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   ///widget Metre
-  Widget _buildMetre(TextStyle textStyle)
+  Widget _buildMetre(double width, double height, TextStyle textStyle)
   {
 //    selectTextStyle: Theme.of(context).textTheme.headline
 //      .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//16
@@ -563,8 +574,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       note: _noteValue,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
-      width: 0.22 * _sizeCtrls.width,
-      height: 0.32 * _sizeCtrls.height,
+      width: width,
+      height: height,
       itemExtent: 44,
       color: Colors.deepPurple,
       textStyle: textStyle,
@@ -688,7 +699,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 */
   }
 
-  Widget _buildSoundBtn()
+  Widget _buildSoundBtn(double size)
   {
     int soundScheme = _activeSoundScheme;
     final int imageIndex = soundScheme < 3 ? soundScheme : 3;
@@ -697,7 +708,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 //    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
 //      _soundSchemes[_activeSoundScheme] : '';
     final String strScheme = (soundScheme + 1).toString();
-    final double sizeButton = 1.3 * Theme.of(context).buttonTheme.height;
+    final double sizeButton = size;
 
     final Widget icon = new Image.asset(schemeName,
       width: sizeButton,
@@ -763,7 +774,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildVolumeBtn()
+  Widget _buildVolumeBtn(double size, double height)
   {
     return new VolumeButton(
       value: _volume,
@@ -779,18 +790,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         });
       },
 */
-      radius: 0.5 * Theme.of(context).buttonTheme.height, // 0.05 * _sizeCtrlsShortest,
-      height: 0.85 * _sizeCtrlsShortest,
+      diameter: size,
+      height: height,
       color: _cWhiteColor,
       enableFeedback: !_playing,
     );
   }
 
   ///widget Settings
-  Widget _buildSettingsBtn()
+  Widget _buildSettingsBtn(double size)
   {
     return new IconButton(
-      iconSize: 1.4 * Theme.of(context).buttonTheme.height,
+      iconSize: size,
       padding: EdgeInsets.all(4),
       icon: Icon(Icons.settings,),
       color: _cWhiteColor.withOpacity(0.8),
@@ -876,6 +887,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
 
+    bool update = _updateMetre;
+    _updateMetre = false;
+
+    final MetreWidget metre = new MetreWidget(
+      update: update,
+      beats: _beat.beatCount,
+      minBeats: minBeatCount,
+      maxBeats: maxBeatCount,
+      note: _noteValue,
+      minNote: minNoteValue,
+      maxNote: maxNoteValue,
+      width: 0.3 * _sizeCtrls.width,
+      height: 0.32 * _sizeCtrls.height,
+      itemExtent: 44,
+      color: Colors.deepPurple,
+      textStyle: _textStyle,
+      textStyleSelected: _textStyle.copyWith(
+          fontWeight: FontWeight.w800,
+          fontSize: _textStyle.fontSize + 2,
+          height: 1,
+          color: _beat.regular ? _cWhiteColor : _clrIrregularMetre
+      ),
+      onBeatChanged: _onBeatChanged,
+      onNoteChanged: _onNoteChanged,
+    );
+
     final NoteTempoWidget noteTempo = new NoteTempoWidget(
       tempo: _tempoBpm,
       noteValue: _noteValue,
@@ -884,12 +921,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       textStyle: TextStyle(fontSize: 16, color: Colors.black),
     );
 
+    final Size barSize = Size((portrait ? 0.5 : 0.4) * _sizeCtrls.width, 0.14 * _sizeCtrls.height);
     final Widget accentMetre = new AccentMetreWidget(
       beats: _beat.beatCount,
       noteValue: _noteValue,
       accents: _beat.accents,
       pivoVodochka: _beat.pivoVodochka, //?
-      size: Size((portrait ? 0.5 : 0.4) * _sizeCtrls.width, 0.15 * _sizeCtrls.height),
+      size: barSize,
       //color: _beat.regular ? _cWhiteColor : Colors.orangeAccent,
       onChanged: onMetreChanged,
       onOptionChanged: (bool pivoVodochka) {
@@ -932,6 +970,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onChanged: onSubbeatChanged,
     );
 
+    double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
+    //0.02 * _sizeCtrls.width,
+    final Size bracketSize = new Size(3.2 * btnPadding, 0.19 * _sizeCtrls.height);
+    final Widget barSpacer = new Container(width: btnPadding,);
+
     if (portrait)
     {
     ///widget Metre row
@@ -941,46 +984,64 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(width: 0.02 * _sizeCtrls.width,),
-          ///widget Metre
-          _buildMetre(_textStyle),
-          Container(width: 0.02 * _sizeCtrls.width,),
+          barSpacer,
+          metre,  ///widget Metre
+          barSpacer,
 
           Flexible(
             //fit: FlexFit.tight,
-            child: Container(
-              color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                    Container(width: 0.02 * _sizeCtrls.width,),
-                      ///widget Subbeat widget
-                      //Flexible(child:
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
-                        child: accentMetre
-                      ),
-                    ]
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: btnPadding),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                      //Container(width: 0.02 * _sizeCtrls.width,),
+                        BarBracketWidget(
+                          direction: BarBracketDirection.left,
+                          color: Colors.black,
+                          size: bracketSize,
+                        ),
+                        ///widget Subbeat widget
+                        //Flexible(child:
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
+                          child: accentMetre
+                        ),
+                        BarBracketWidget(
+                          direction: BarBracketDirection.right,
+                          color: Colors.black,
+                          size: bracketSize
+                        ),
+                      ]
+                    ),
                   ),
-                  Row(
-                  //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                ),
+                Container(
+                  margin: EdgeInsets.only(top: 4),
+                  color: Colors.deepPurple.withOpacity(0.8),
+                  child: Row(
+                    //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       noteTempo,
                       Expanded(child:
-//                        ClipRect(child:
+  //                        ClipRect(child:
                         listTempo,
                       ),
                     ]
                   ),
-                ]),
-              )
+                )
+              ],
+              ),
             ),
             //btnSubbeat,
+            barSpacer,
           ]
         )
     );
@@ -1007,44 +1068,45 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(width: 0.02 * _sizeCtrls.width,),
           ///widget Metre
-          _buildMetre(_textStyle),
-          Container(width: 0.02 * _sizeCtrls.width,),
+          _buildMetre(0.22 * _sizeCtrls.width, 0.32 * _sizeCtrls.height, _textStyle),
+          Container(width: btnPadding,),
 
-          Container(
+          Expanded(child:
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+            Container(
             color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(width: 0.02 * _sizeCtrls.width,),
-                    ///widget Subbeat widget
-                    /////TODO !!!
-                    //Flexible(child:
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
-                      child: accentMetre
-                    ),
-                  ]
-                ),
-
-                Row(
-                  //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      noteTempo,
-                      //Expanded(child:
-//                        ClipRect(child:
-                      //TODO !!! listTempo,
-                      //),
-                    ]
-                ),
-              ]
+                Container(width: btnPadding,),
+                  ///widget Subbeat widget
+                  /////TODO !!!
+                  //Flexible(child:
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
+                    child: accentMetre
+                  ),
+                ]
+              ),
             ),
+
+            Row(
+              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  noteTempo,
+                  //Expanded(child:
+//                        ClipRect(child:
+                  //TODO !!! listTempo,
+                  //),
+                ]
+              ),
+            ]
+          ),
           ),
           //btnSubbeat,
           //listTempo,
@@ -1058,8 +1120,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   // Remaining section with controls
-  Widget _buildControls(bool portrait)
+  Widget _layoutControls(BuildContext context, BoxConstraints constraints, bool portrait)
   {
+    double minSquare = constraints.maxWidth > constraints.maxHeight ? constraints.maxHeight : constraints.maxWidth;
+    print("minSquare");
+    print(constraints);
+
     final TextStyle textStyleTimer = _textStyle.copyWith(fontSize: 20);
 
     final double horzSpace = portrait ? 16 : 16;
@@ -1219,7 +1285,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       limit: _tempoBpmMax.toDouble(),
       radiusButton: 0.1,
       radiusDial: 0.8,
-      radius: 0.5 * _sizeCtrlsShortest,
+      //radius: 0.7 * _sizeCtrlsShortest,
+      radius: 0.9 * minSquare,
       debug: false,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
@@ -1269,8 +1336,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Widget buttonsLeft = new Column(
       //      mainAxisAlignment: portrait ?
       //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-      //mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         btnSubbeat,
@@ -1286,16 +1353,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Widget buttonsRight = new Column(
       //      mainAxisAlignment: portrait ?
       //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-      //mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           _buildPlayBtn(portrait),
           //Container(height: 0.1 * _sizeCtrls.height),
           Wrap(
             children: <Widget>[
-              _buildSoundBtn(),
-              _buildSettingsBtn(),
+              _buildSoundBtn(Theme.of(context).buttonTheme.height),
+              _buildSettingsBtn(Theme.of(context).buttonTheme.height),
             ]
           ),
           //_buildVolumeBtn(), //TODO SizedOverflowBox
@@ -1354,8 +1421,52 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ]
     );
 
+    double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
+
     // Fill up the remaining screen as the last widget in column/row
-    return Expanded(
+    return Stack(
+      children: <Widget>[
+        Positioned(
+          left: btnPadding,
+          top: btnPadding,
+          child: btnSubbeat,
+        ),
+        Positioned(
+          bottom: 10,
+          left: 0,
+          child:
+            Container(
+              width: 88,
+              height: Theme.of(context).buttonTheme.height,
+            ),
+        ),
+        Center(
+          child: (_useNewKnob ? knobTempoNew : knobTempo),
+        ),
+        Positioned(
+          right: btnPadding,
+          top: btnPadding,
+          child: _buildPlayBtn(portrait),
+        ),
+        Positioned(
+          right: btnPadding,
+          bottom: btnPadding,
+          child: Row(
+            children: <Widget>[
+              _buildSoundBtn(Theme.of(context).buttonTheme.height),
+              Container(width: btnPadding),
+              _buildSettingsBtn(Theme.of(context).buttonTheme.height),
+            ]
+          ),
+        ),
+      ]
+    );
+  }
+
+  Widget _buildControls(bool portrait)
+  {
+    // Fill up the remaining screen as the last widget in column/row
+    return
       //Container(
       //        width: _sizeCtrls.width,
       //        height: _sizeCtrls.height - 24,
@@ -1369,7 +1480,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 colors: [_primaryColor, _accentColor])
         ),
       */
-      child: rowButtons
+      Expanded(child:  //TODO Without Expanded in portrait mode: constraints.height == infinity
+        LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return _layoutControls(context, constraints, portrait);
+          },
+        ),
+      //child: rowButtons
     );
   }
 
