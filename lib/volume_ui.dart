@@ -20,7 +20,7 @@ class VolumeButton extends StatefulWidget
   final double max;
   final bool mute;
   final ValueChanged<double> onChanged;
-  final double radius;
+  final double diameter;
   final double height;
 
   final Color color;
@@ -42,7 +42,7 @@ class VolumeButton extends StatefulWidget
     this.mute = false,
     @required this.onChanged,
     //@required this.onLongPress,
-    this.radius,
+    this.diameter,
     this.height,
     this.color = Colors.white,
     this.textStyle,
@@ -219,7 +219,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
     );
 
     Widget rollup1 = Container(
-      width: 2 * widget.radius - 4,
+      width: widget.diameter - 4,
       height: widget.height,
       color: Color(0x8080FF80),
     );
@@ -227,7 +227,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
     Widget button = new MaterialButton(
       //iconSize: 40,
       child: Icon(_mute ? Icons.volume_off : Icons.volume_up,
-        size: 2 * widget.radius,//36,
+        size: widget.diameter,//36,
         color: widget.color,
         semanticLabel: 'Mute volume',
       ),
@@ -290,7 +290,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
         //overflow: Overflow.visible,
         children: <Widget>[
           ClipRRect(
-            borderRadius: BorderRadius.circular(widget.radius),
+            borderRadius: BorderRadius.circular(0.5 * widget.diameter),
             child: SlideTransition(
               position: _animOffset,
 //          Positioned(
@@ -306,12 +306,12 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
                 //                ..setTranslationRaw(0.0, _animPos.value, 0.0),
                 child:
                   Container(
-                  width: 2 * widget.radius,
+                  width: widget.diameter,
                   height: widget.height,
                   //color: Colors.red,
                   decoration: BoxDecoration(
                     color: Colors.deepPurple.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(widget.radius),
+                    borderRadius: BorderRadius.circular(0.5 * widget.diameter),
                   ),
                   child: rollup,
                 ),
