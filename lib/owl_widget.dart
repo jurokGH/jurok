@@ -230,8 +230,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   }
 }
 
-
-//VG Boilerplate
+// Boilerplate
 // Maybe somewhen in future try to paint images for optimization
 class OwlPainter extends CustomPainter
 {

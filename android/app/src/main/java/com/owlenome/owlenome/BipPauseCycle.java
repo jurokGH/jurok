@@ -445,7 +445,6 @@ public class BipPauseCycle
     for (int i = 0; i < bipsAndPauses.length; i++)
     {
       duration += bipsAndPauses[i].duration();
-      // vg duration += (1 + bipsAndPauses[i].pauseFactor) * bipsAndPauses[i].bipDuration;
     }
     duration *= numerator;
     initDuration = duration;

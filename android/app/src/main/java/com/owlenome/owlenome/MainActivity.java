@@ -294,29 +294,22 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         int schemeIndex = config.get(2);
         if (schemeIndex < soundSсhemes.size())
           currentMusicScheme = schemeIndex;
-        //_beatsPerMinute = config.get(3);
-        //_tempo.denominator = config.get(4);
       }
+      /*
       if (config.size() >= 7)
       {
-        /*
+        //_beatsPerMinute = config.get(3);
+        //_tempo.denominator = config.get(4);
         // меняем параметры musicSсhemeTunable
-
         beat.subBeatFreq = 0.001 * config.get(3);
         beat.beatDuration = config.get(4);
         beat.accentFreq = 0.001 * config.get(5);
-        beat.accentDuration = config.get(6);*/
-      }
-      if (config.size() >= 10)
-      {
+        beat.accentDuration = config.get(6);
         //bars = config.get(7);
         // numerator = config.get(8);
         //quortaDuration = config.get(9);
       }
-
-      //IS: VG Hack!!!
-      // numerator = 1;
-
+*/
       List<Integer> subBeats = methodCall.argument("subBeats");
       if (subBeats.size() > 0)
       {

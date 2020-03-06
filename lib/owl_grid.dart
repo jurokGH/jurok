@@ -230,7 +230,7 @@ class OwlGrid extends StatefulWidget
 class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<OwlGrid>
 {
   AnimationController _controller;
-  int _period = 60000; //IS: А не мало? VG: Он повторяется: _controller.repeat
+  int _period = 60000;
   //duration: new Duration(days: 3653)
 
   OwlSkin _skin;
