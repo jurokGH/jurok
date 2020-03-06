@@ -11,6 +11,7 @@ import 'package:wheel_chooser/wheel_chooser.dart';
 import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 
+import 'PlatformSvc.dart';
 import 'BarBracket.dart';
 import 'arrow.dart';
 import 'metronome_state.dart';
@@ -126,6 +127,8 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+/// /////////////////////////////////////////////////////////////////////////
+
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin<HomePage>
 {
   // for showSnackBar to run
@@ -145,8 +148,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int maxTempo = _cMaxTempo;
 
   /// Flutter-Java connection channel
-  static const MethodChannel _channel =
-    MethodChannel('samples.flutter.io/owlenome');
+  PlatformSvc _channel;
 
   ///>>>>>> JG!
   /// UI parameters
@@ -250,6 +252,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   KnobValue _knobValue;
   bool _updateMetre = false;
 
+  /// /////////////////////////////////////////////////////////////////////////
+
   _HomePageState();
 
   @override
@@ -265,9 +269,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 
     // Channel callback from hardware Java code
-    _channel.setMethodCallHandler(_handleMsg);
-    // Query native hardware audio parameters
-    //_getAudioParams();
+    _channel = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
 
     _controller = new AnimationController(
       vsync: this,
@@ -279,17 +281,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_animation = new Tween<double>(begin: 1, end: 0).animate(_controller);
     //_animation = new Tween<double> CurvedAnimation(parent: _controller, curve: Curves.linear);
 
-    _getMusicSchemes();
+    _channel.getSoundSchemes(_activeSoundScheme).then((List<String> soundSchemes) {
+      _soundSchemes = soundSchemes;
+      if (_soundSchemes.isEmpty)
+        _activeSoundScheme = -1;
+      else if (_activeSoundScheme == -1)
+        _activeSoundScheme = 0;  // Set default 0 scheme
+    });
+
 //    debugPrint('!!!!!!!!!!!!!_getMusicSchemes_getMusicSchemes');
 //    debugPrint('${_activeSoundScheme} - ${_soundSchemes.length}');
-
-    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    state.beatMetre = _beat;
     _playing = false;
-    _setBeat();
+
+    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
+    _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
 
     //TODO Remove
-    _setMusicScheme(_activeSoundScheme);
+    //_setMusicScheme(_activeSoundScheme);
   }
 
   @override
@@ -299,41 +308,87 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  bool isTicking()
-  {
-    return _playing;
-  }
+  /// /////////////////////////////////////////////////////////////////////////
+  /// Platform sound code handlers
+  ///
 
-  // Start/Stop play handler
-  void _play()
+  /// Called from platform sound code after sound warmup finished
+  void onStartSound(int initTime)
   {
-    //_subbeatWidth = _subbeatWidth == 0 ? 60 : 0;
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.startAfterWarm(initTime, _tempoBpm);
 
-    if (_playing)
-    {
-      _togglePlay();
-      _playing = false;
-      if (hideCtrls)
-        _controller.reverse();
-      /// Stops OwlGridState::AnimationController
-      setState(() {});
-    }
-    else
-    {
-      if (hideCtrls)
-        _controller.forward();
-      _togglePlay();
-      //TODO setState(() {});
-    }
-  }
-
-  // Start animation of graphics
-  void _start()
-  {
+    // Start graphics animation
     _playing = true;
     //TODO _setBeat(); //Даёт отвратительный эффект при старт - доп. щелк
     setState(() {});
   }
+
+  /// Called from platform sound code after sound warmup finished
+  void onSyncSound(int newTime, int tempoBpm, int startTime)
+  {
+    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    state.sync(newTime, tempoBpm, startTime);
+  }
+
+  /// Called from platform sound code when max tempo limited
+  void onLimitTempo(int limitTempo)
+  {
+    if (limitTempo > maxTempo)
+      limitTempo = maxTempo;
+    //TODO IS (Elsa): what if limitTempo<minTempo?
+    if (limitTempo < minTempo)
+      limitTempo = minTempo;
+    if (limitTempo != _tempoBpmMax)
+      setState(() {
+        _tempoBpmMax = limitTempo;
+        if (_tempoBpm > _tempoBpmMax)
+          _tempoBpm = _tempoBpmMax;
+      });
+  }
+
+  /// Start/Stop play handler
+  void _play()
+  {
+    //_subbeatWidth = _subbeatWidth == 0 ? 60 : 0;
+
+    if (!_playing && hideCtrls)
+      _controller.forward();
+
+    _channel.togglePlay(_tempoBpm, _beat.beatCount, _screenOn).then((int result) {
+      if (result != 0)
+        setState(() {  // TODO
+          //IS: TEST
+          Provider.of<MetronomeState>(context, listen: false).reset();
+          //_tempoBpm = realTempo;
+        });
+    });
+
+    if (_playing)
+    {
+      _playing = false;
+      if (hideCtrls)
+        _controller.reverse();
+      setState(() {});  // Stops OwlGridState::AnimationController
+    }
+    //TODO setState(() {});
+  }
+
+  /// Set new tempo to platform sound code
+  void _setTempo(int tempo)
+  {
+    if (_tempoBpm != tempo)
+    {
+      _tempoBpm = tempo;
+      if (_playing)
+        _channel.setTempo(_tempoBpm);
+      setState(() {}); //ToDo: в такой последовательности?
+    }
+  }
+
+  /// /////////////////////////////////////////////////////////////////////////
+  /// UI notification handlers
+  ///
 
   void _onBeatChanged(int beats)
   {
@@ -341,7 +396,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     {
       _beat.beatCount = beats;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      _setBeat();
+      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+          _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
       print('_onBeatChanged');
       setState(() {});  //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
@@ -360,7 +417,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     {
       _beat.beatCount = beats;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      _setBeat();
+      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+          _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     }
     _noteValue = noteValue;  // Does not affect sound
     print('onMetreChanged');
@@ -372,7 +431,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO
     _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-    _setBeat();
+    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
   }
 
@@ -381,7 +442,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     assert(id < _beat.subBeats.length);
     _beat.subBeats[id] = subCount;
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-    _setBeat();
+    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
   }
 
@@ -389,7 +452,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     assert(id < _beat.subBeats.length);
     _beat.accentUp(id);
-    _setBeat();
+    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
   }
 
@@ -617,7 +682,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _mute = value == 0;
       _volume = value;//.round();
     });
-    _setVolume(_volume.round());
+    _channel.setVolume(_volume.round());
   }
 
   void _changeVolumeBy(int delta)
@@ -629,7 +694,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (_volume > 100)
         _volume = 100;
       _mute = _volume == 0;
-      _setVolume(_volume.round());
+      _channel.setVolume(_volume.round());
     });
   }
 
@@ -764,11 +829,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //tooltip: _soundSchemes[_activeSoundScheme],
       enableFeedback: !_playing,
       onPressed: () {
-        if (_soundSchemes != null && _soundSchemes.length > 0)
+        if (_soundSchemes?.length > 0)
         {
           _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemes.length;
-          _setMusicScheme(_activeSoundScheme);
-          setState(() {}); //TODO move to _setMusicScheme?
+          // setState() is called in onLimitTempo() call
+          _channel.setSoundScheme(_activeSoundScheme);
         }
       },
     );
@@ -949,16 +1014,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         width: (portrait ? 0.5 : 0.3) * _sizeCtrls.width,
         textStyle: Theme.of(context).textTheme.display1
           .copyWith(color: Colors.black, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
-        onChanged: (int tempo) {
-          if (_tempoBpm != tempo)
-          {
-            _tempoBpm = tempo;
-            if (_playing)
-              _setTempo(_tempoBpm);
-            setState(() {});
-          }
-        }
-      ));
+        onChanged: _setTempo
+      )
+    );
 
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
@@ -1145,16 +1203,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             tempo: _tempoBpm,
             textStyle: Theme.of(context).textTheme.display1
               .copyWith(color: _cWhiteColor, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
-            onChanged: (int tempo) {
-              if (_tempoBpm != tempo)
-              {
-                _tempoBpm = tempo;
-                if (_playing)
-                  _setTempo(_tempoBpm);
-                setState(() {});
-              }
-            }
-          )),
+            onChanged: _setTempo
+          )
+        ),
       ]
     );
 
@@ -1172,12 +1223,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       itemExtent: 36,
       scrollController: scrollCtrl,
       onSelectedItemChanged: (int index) {
-        _tempoBpm = minTempo + index;
-        //_tempoList.setTempo(_tempoBpm);
-        if (_playing)
-          _setTempo(_tempoBpm);
-        else
-          setState(() {});
+        _setTempo(minTempo + index); // TODO Check out setState()
       },
       itemBuilder: (BuildContext context, int index) =>
         Text((index + minTempo).toString(),
@@ -1225,12 +1271,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         initValue: _tempoBpm,
         step: 1,
         onValueChanged: (dynamic value) {
-          _tempoBpm = value.round();
-          //_tempoList.setTempo(_tempoBpm);
-          if (_playing)
-            _setTempo(_tempoBpm);
-          //else
-          setState(() {});
+          _setTempo(value.round());
         },
       )
     );
@@ -1294,12 +1335,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         color: Colors.white, height: 1),
       onPressed: () {},//_play,
       onChanged: (double value) {
-        _tempoBpm = value.round();
-        //_tempoList.setTempo(_tempoBpm);
-        if (_playing)
-          _setTempo(_tempoBpm);//ToDo: в такой последовательности?
-        //else
-        setState(() {});
+        _setTempo(value.round());
       },
     );
 
@@ -1310,11 +1346,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       maxValue: _tempoBpmMax.toDouble(),
       sensitivity: _sensitivity,
       onChanged: (KnobValue newVal) {
-        _tempoBpm = newVal.value.round();
         _knobValue = newVal;
-        if (_playing)
-          _setTempo(_tempoBpm);
-        setState(() {});
+        _setTempo(newVal.value.round());
       },
       diameter: 0.65 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
@@ -1492,374 +1525,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// <<<<<<<< Widget section
   /// /////////////////////////////////////////////////////////////////////////
-  /// Flutter-Java inter operation
-  ///
 
-  Future<dynamic> _handleMsg(MethodCall call) async
-  {
-    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-
-    if  (call.method == 'warm')
-    {
-      debugPrint('START-STABLE');
-      //int warmupFrames = call.arguments;
-      int initTime=call.arguments;
-      debugPrint('Time in Flutter of stable time (mcs) $initTime');
-      state.startAfterWarm(initTime,_tempoBpm);
-      _start();
-    }
-    else if (call.method == 'Cauchy') {
-      //IS:Устанавливаем время начала первого бипа и темп
-      int bpmToSet = call.arguments['bpm'];
-      int timeOfAFirstToSet = call.arguments['nt']; //новое время
-      int newSpeedStarts = call.arguments['dt']; //время, когда менять время
-      state.sync(timeOfAFirstToSet, bpmToSet, newSpeedStarts);
-
-      /*
-      //test:
-      int timeNow = DateTime
-          .now()
-          .microsecondsSinceEpoch;
-      int timeNowRem = timeNow % 1000000000;
-
-      int dtime = (timeNow - timeOfAFirstToSet) ~/ 1000;
-       */
-
-      //debugPrint('MsgTest:  BPM in Flutter $bpmToSet\n');
-      //debugPrint('MsgTest:  Time now mCs mod 10^9  in Flutter $timeNowRem');
-      //debugPrint('MsgTest:  d-from-frst in Flutter $dtime\n');
-
-      /*int newBPMMax=call.arguments['maxBpm'];
-      if (_tempoBpmMax!=newBPMMax) {
-        setState(() { _tempoBpmMax = newBPMMax; });
-        /*
-        _tempoBpmMax = newBPMMax;
-        setState(() {}); //IS: VS, Витя, это правильно так делать?
-         */
-      }*/
-    }
-    /*
-    else if (call.method == 'sync')
-    {
-      int index = call.arguments['index'];
-      int beatIndex = call.arguments['beat'];
-      int subbeatIndex = call.arguments['sub'];
-      int offset = call.arguments['offset'];
-      int cycle = call.arguments['cycle'];
-      int time = call.arguments['time'];
-
-      //debugPrint('SYNC $index - $offset - $time');
-
-      //warmupFrames = call.arguments;
-      //state.sync(index, 1e-6 * offset, beatIndex, subbeatIndex, time);
-    }*/
-    /*IS: Obsolete:
-    else if (call.method == 'timeFrame')
-    {
-      int beatOrder = call.arguments['index'];
-      int offset = call.arguments['offset'];
-      int cycle = call.arguments['cycle'];
-
-      List<int> pair = _beat.beatPair(beatOrder);
-
-      //beatOrder += _timeTick;
-      //_activeBeat =  beatOrder ~/ _subBeatCount;
-      if (_beat.beatCount == 1 && _beat.subBeatCount == 1)
-        //_activeBeat %= 2;
-        _activeBeat = (_activeBeat + 1) % 2;
-      else
-        _activeBeat = pair[0];
-      _activeSubbeat = pair[1];
-
-      //_timeTick++;
-
-      //debugPrint('NOTECOUNT $beatOrder - $offset - $cycle - $_timeTick - $_activeBeat - $_activeSubbeat');
-      //state.setActiveState(_activeBeat, _activeSubbeat);
-      redraw = true;
-    }*/
-    return new Future.value('');
-  }
-
-  Future<void> _togglePlay() async
-  {
-    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    //state.setTempo(_tempoBpm/*, _noteValue*/);
-
-    //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
-    try
-    {
-      final Map<String, int> args =
-      <String, int>{
-        'tempo': _tempoBpm,
-        'screen': _screenOn ? 1 : 0,
-        //'note': _beat.beatCount,//_noteValue,//IS: VS, Полагаю, beatCount тут - опечатка. В любом случае, это больше не нужно.
-        //'quorta': _quortaInMSec.toInt(),
-        'numerator': _beat.beatCount,
-      };
-      final int res =  await _channel.invokeMethod('start', args);
-      if (res == 0)
-      {
-        _infoMsg = 'Failed starting/stopping';
-        debugPrint(_infoMsg);
-      }
-      else
-      {
-        setState(() {
-          state.reset();//IS: TEST
-          //_tempoBpm = realTempo;
-        });
-      }
-    }
-    on PlatformException
-    {
-      _infoMsg = 'Exception: Failed to start playing';
-    }
-  }
-
-  /// Send beat music to Java sound player and state.beatMetre
-  Future<void> _setBeat() async
-  {
-    MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    /*
-    state.melody = new AccentBeat(nativeSampleRate, _quortaInMSec,
-      _beat,
-      0.001 * _soundConfig.beatFreq, _soundConfig.beatDuration,
-      0.001 * _soundConfig.accentFreq, _soundConfig.accentDuration,
-      _bars, 1);
-     */
-    state.beatMetre = _beat;
-
-    //Tempo tempo = new Tempo(beatsPerMinute: _subBeatCount * _tempoBpm.toInt(), denominator: _noteValue);
-    //List<BipAndPause> bipsAndPauses = new List<BipAndPause>();
-    try
-    {
-      //IS:
-      final List<int> config = [
-        _beat.beatCount,
-        _beat.subBeatCount,
-        _activeSoundScheme,
-        _tempoBpm,
-        _beat.beatCount,//_noteValue
-//        _soundConfig.beatFreq,
-//        _soundConfig.beatDuration,
-//        _soundConfig.accentFreq,
-//        _soundConfig.accentDuration,
-//        _bars,
-//        _beat.beatCount,
-//        _quortaInMSec.toInt(),
-      ];
-
-      final Map<String, List<int>> args = <String, List<int>>{
-        'config': config,
-        'subBeats': _beat.subBeats,
-        'accents': Prosody.reverseAccents(_beat.accents),
-      };
-
-      final int limitTempo = await _channel.invokeMethod('setBeat', args);
-
-      if (limitTempo == 0)
-      {
-        _infoMsg = 'Failed setting beat';
-        debugPrint(_infoMsg);
-      }
-      else if (limitTempo == -1){
-        // - это значит что мы первый раз посылали beat,
-        //и схема (нужная для получения скорости, для которой нужен beat) еще не определена.
-      }
-      else
-      {
-        onMaxTempoRecieved(limitTempo);
-      }
-    }
-    on PlatformException
-    {
-      _infoMsg = 'Exception: Failed setting beat';
-    }
-  }
-
-  ///Рутина, которую нужно проделать при получении нового максимально темпа
-  void onMaxTempoRecieved(int limitTempo)
-  {
-    if (limitTempo > maxTempo)
-      limitTempo = maxTempo;
-    //TODO IS (Elsa): what if limitTempo<minTempo?
-    if (limitTempo < minTempo)
-      limitTempo = minTempo;
-    if (limitTempo != _tempoBpmMax)
-      setState(() {
-        _tempoBpmMax = limitTempo;
-        if (_tempoBpm > _tempoBpmMax)
-          _tempoBpm = _tempoBpmMax;
-      });
-  }
-
-  /// Send music tempo to Java sound player
-  Future<void> _setTempo(int tempo) async
-  {
-    // MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    //state.setTempo(_tempoBpm/*, _noteValue*/);//IS: Почему сначала меняется tempo у состояния?
-
-    //В любом случае, новый темп для анимации устанавливать рано -
-    //Ява начнет играть с данным темпом не сразу.
-    //Есом мы раньше явы поменяем BPM в state,
-    //и, кроме того, не учтем, что изменилось время начального бипа
-    //(то, которое мы бы имели, играя с данным темпом),
-    //то у нас разойдутся звук и анимация
-    //("путешествия в прошлое").
-    try
-    {
-      final Map<String, int> args =
-      <String, int>{
-        'tempo' : _tempoBpm,
-        //'note' : _beat.beatCount,//_noteValue IS: Это ява не использует.
-      };
-      //Нам не нужно ниже переопределять мак. темп,
-      //ява сама пришлёт, когда установит
-      //_channel.invokeMethod('setTempo', args);
-
-      final int res = await _channel.invokeMethod('setTempo', args);
-      //assert(result == 1);
-      if (res == 0)
-      {
-        _infoMsg = 'Failed setting tempo';
-        debugPrint(_infoMsg);
-      }
-      else
-      { //темп придёт позже, когда ява узнает время его начала
-        /*
-        setState(() {
-          /*_tempoBpmMax = limitTempo;
-          if (_tempoBpm > _tempoBpmMax)
-            _tempoBpm = _tempoBpmMax;*/
-        });*/
-      }
-    }
-    on PlatformException
-    {
-      _infoMsg = 'Exception: Failed setting tempo';
-    }
-    //metroAudio.reSetTempo(progress + minimal_tempoBpm);
-    //tempo.beatsPerMinute = BPMfromSeekBar;
-    //realBPM = singSingSing.setTempo(tempo);
-
-    //barrelOrgan.reSetAngles(cycle);
-    //this.bipPauseCycle=cycle;
-    //setAngles();
-
-    /*
-    if (_mode)
-      barrelOrgan?.setTempo(i_tempoBpm, _noteValue);
-    else
-    {
-      if (melody != null)
-      {
-        int realBpM = melody.cycle.setTempo(tempo, _bars);
-        double dur = melody.cycle.tempoToCycleDuration(
-          tempo, _bars, nativeSampleRate);
-        //metronome1?.setCycle(melody.cycle, latency);
-        metronome1?.setTempo(_tempoBpm, nativeSampleRate, _noteValue, dur);
-      }
-    }
-     */
-  }
-
-  /// Send music volume to Java sound player
-  Future<void> _setVolume(int volume) async
-  {
-    try
-    {
-      final int result = await _channel.invokeMethod('setVolume', {'volume' : volume});
-      //assert(result == 1);
-      if (result != 1)
-      {
-        _infoMsg = 'Failed setting volume';
-        debugPrint(_infoMsg);
-      }
-    } on PlatformException {
-      _infoMsg = 'Exception: Failed setting volume';
-    }
-  }
-
-  /// Send sound scheme number to Java sound player
-  Future<void> _setMusicScheme(int musicScheme) async
-  {
-    try
-    {
-      final int limitTempo = await _channel.invokeMethod('setScheme', {'scheme': musicScheme});
-      if (limitTempo <=0) {
-        _infoMsg = 'Failed setting  music scheme, lay-la,la-la-la-lay-lay-la-la-la...';
-        debugPrint(_infoMsg);
-      }
-      else
-      {
-//        debugPrint('###############_setMusicSchemes_SetMusicSchemes');
-//        debugPrint('${_activeSoundScheme} - ${_soundSchemes.length}');
-
-        onMaxTempoRecieved(limitTempo);
-        /*
-        setState(() {
-          _tempoBpmMax = limitTempo;
-          if (_tempoBpm > _tempoBpmMax)
-            _tempoBpm = _tempoBpmMax;
-        });*/
-      }
-    } on PlatformException {
-      _infoMsg = 'Exception: Failed setting  music scheme';
-    }
-  }
-
-  Future<void> _getMusicSchemes() async
-  {
-    try
-    {
-      List<dynamic> result = await _channel.invokeMethod('getSchemes');
-//      debugPrint('??????????????_getMusicSchemes_getMusicSchemes');
-//      debugPrint('${result.length} - ${_soundSchemes.length}');
-      if (result.length > 0)
-      {
-        _soundSchemes = new List<String>();
-        for (int i = 0; i < result.length; i++)
-          _soundSchemes.add(result[i]);
-
-        bool doSet = _activeSoundScheme < 0;  // 1st run on app startup
-        if (_activeSoundScheme >= _soundSchemes.length)
-          _activeSoundScheme = 0;
-
-//TODO Need at 1st ? No, Include to getSchemes call
-        // if (doSet)
-//          _setMusicScheme(_activeSoundScheme);
-      }
-      else
-        debugPrint('Error: Sound scheme not found');
-    } on PlatformException {
-      _infoMsg = 'Exception: Failed getting music schemes';
-    }
-  }
-
-  /*
-  Future<void> _getAudioParams() async {
-    try {
-      final Map<String, dynamic> result =
-          await _channel.invokeMapMethod('getAudioParams');
-      if (result != null) {
-        nativeSampleRate = result['nativeSampleRate'];
-        nativeBuffer = result['nativeBuffer'];
-        latencyUntested = result['latencyUntested'];
-        _infoMsg = 'Native audio params: $nativeSampleRate - $nativeBuffer - $latencyUntested';
-      }
-      else
-        _infoMsg = 'Failed to get audio params';
-    }
-    on PlatformException
-    {
-      _infoMsg = 'Failed to get audio params';
-    }
-
-    debugPrint(_infoMsg);
-    setState(() {});  // Update UI
-  }*/
-
-  // Settings boilerplate
+  /// Show settings
   void _showSettings(BuildContext context) async
   {
     final Settings settings = new Settings(
@@ -1870,7 +1537,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 
     final Settings res = await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => SettingsWidget(settings: settings)));
+        MaterialPageRoute(builder: (context) => SettingsWidget(settings: settings)));
     //Navigator.of(context).push(_createSettings());
 
     if (res != null)
@@ -1878,7 +1545,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (res.activeScheme != _activeSoundScheme && _soundSchemes != null && res.activeScheme < _soundSchemes.length)
       {
         _activeSoundScheme = res.activeScheme;
-        _setMusicScheme(_activeSoundScheme);//TODO move to _setMusicScheme?
+        _channel.setSoundScheme(_activeSoundScheme);
       }
       setState(() {
         _animationType = res.animationType;
