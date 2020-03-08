@@ -52,6 +52,7 @@ class Knob extends StatefulWidget
   final double radiusButton;
   final double radiusDial;
   final Color color;
+  final Color colorOutLimit;
   final TextStyle textStyle;
   final bool showIcon;
   final bool showText;
@@ -73,6 +74,7 @@ class Knob extends StatefulWidget
     this.radiusButton = 0.4,
     this.radiusDial = 0.8,
     this.color = Colors.blue,
+    this.colorOutLimit = Colors.red,
     this.showIcon = true,
     this.showText = true,
     this.debug = false,
@@ -355,6 +357,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       //double size = widget.radius != null ? widget.diameter :
       Size sz = MediaQuery.of(context).size; //TODO
       //debugPrint('Builder ${MediaQuery.of(context).size} - $constraints');
+      TextStyle textStyle = widget.textStyle;
+      if (widget.value <= widget.min || widget.value >= widget.limit)
+        textStyle = widget.textStyle.copyWith(color: widget.colorOutLimit);
 
       return Center(child:
       Container(
@@ -503,7 +508,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               Container(),
               widget.showText ?
               Text(widget.value.toInt().toString(),
-                style: widget.textStyle
+                style: textStyle
               )
               :
               Container(),

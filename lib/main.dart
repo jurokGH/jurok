@@ -996,6 +996,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       debug: false,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
+      colorOutLimit: _clrIrregularMetre,
       textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height,
         color: Colors.white, height: 1),
       onPressed: () {},//_play,
