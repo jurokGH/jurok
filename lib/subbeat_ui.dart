@@ -46,10 +46,10 @@ class SubbeatState extends State<SubbeatWidget>
         alignment: AlignmentDirectional.center,
         children: <Widget>[
           Opacity(
-            opacity: 0.75,
+            opacity: 1,//0.75,
             child:
-              Image.asset('images/owl-sub.png',//owl-btn
-              //Image.asset('images/owl-btn.png',
+              //Image.asset('images/owl-sub.png',//owl-btn
+              Image.asset('images/owl-btn.png',
               height: widget.size.height,
               fit: BoxFit.contain
             ),

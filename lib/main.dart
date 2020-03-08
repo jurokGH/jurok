@@ -1033,7 +1033,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
       noteValue: _noteValue,
-      color: _textColor,
+      color: Colors.amber,
       textStyle: _textStyle,
       size: subbeatSize,
       onChanged: onSubbeatChanged,
@@ -1105,12 +1105,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget _buildPlayBtn(double diameter, bool portrait)
   {
+    final Widget icon = Icon(_playing ? Icons.pause : Icons.play_arrow,
+        size: 0.9 * diameter, color: Colors.amberAccent);
+    final Widget icon1 = Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        Image.asset('images/owl-btn.png',
+          height: diameter,
+          fit: BoxFit.contain
+        ),
+        icon,
+    ]);
+
     return new RawMaterialButton(  //FlatButton
       //padding: EdgeInsets.all(18),//_padding.dx),
-      child: Icon(_playing ? Icons.pause : Icons.play_arrow,
-          size: 1.0 * diameter),
-      fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
-      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      child: icon1,
+      //fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+      //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       constraints: BoxConstraints(
         minWidth: diameter,
         minHeight: diameter,
