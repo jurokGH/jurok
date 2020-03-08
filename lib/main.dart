@@ -775,16 +775,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       )
     );
 
-    final Widget btnSubbeat = new SubbeatWidget(
-      subbeatCount: _beat.subBeatCount,
-      noteValue: _noteValue,
-      color: _textColor,
-      textStyle: _textStyle,
-      size: new Size(0.10 * _sizeCtrls.width, 0.28 * _sizeCtrls.height),
-      //size: new Size(0.10 * _sizeCtrls.width, 0.28 * _sizeCtrls.height),
-      onChanged: onSubbeatChanged,
-    );
-
     double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     //0.02 * _sizeCtrls.width,
     final Size bracketSize = new Size(3.2 * btnPadding, 0.19 * _sizeCtrls.height);
@@ -1033,7 +1023,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
       noteValue: _noteValue,
-      color: Colors.amber,
+      color: _textColor,
       textStyle: _textStyle,
       size: subbeatSize,
       onChanged: onSubbeatChanged,
@@ -1106,7 +1096,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildPlayBtn(double diameter, bool portrait)
   {
     final Widget icon = Icon(_playing ? Icons.pause : Icons.play_arrow,
-        size: 0.9 * diameter, color: Colors.amberAccent);
+        size: 1 * diameter);
     final Widget icon1 = Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -1119,9 +1109,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     return new RawMaterialButton(  //FlatButton
       //padding: EdgeInsets.all(18),//_padding.dx),
-      child: icon1,
-      //fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
-      //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      child: icon,
+      fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
       constraints: BoxConstraints(
         minWidth: diameter,
         minHeight: diameter,
@@ -1394,23 +1384,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onBeatChanged: _onBeatChanged,
       onNoteChanged: _onNoteChanged,
     );
-  }
-
-  ///widget Subbeat
-  Widget _buildSubbeat(TextStyle textStyle)
-  {
-    return Center(child:
-    _buildPlate(
-      SubbeatWidget(
-        subbeatCount: _beat.subBeatCount,
-        noteValue: _noteValue,
-        color: _textColor,
-        textStyle: textStyle,
-        size: new Size(0.18 * _sizeCtrls.width, 0.24 * _sizeCtrls.height),
-        onChanged: onSubbeatChanged,
-      ),
-      //padding: const Offset(8, 0),
-    ));
   }
 
   ///+- tempo buttons
