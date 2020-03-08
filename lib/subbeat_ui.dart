@@ -33,6 +33,9 @@ class SubbeatState extends State<SubbeatWidget>
   @override
   Widget build(BuildContext context)
   {
+    Size noteSize = widget.size;
+    noteSize -= new Offset(10, 10);
+
     return GestureDetector(
       onTap: () {
         int subbeatCount = Subbeat.next(widget.subbeatCount);
@@ -43,9 +46,10 @@ class SubbeatState extends State<SubbeatWidget>
         alignment: AlignmentDirectional.center,
         children: <Widget>[
           Opacity(
-            opacity: 0.55,
+            opacity: 0.75,
             child:
-            Image.asset('images/owl-sub.png',
+              Image.asset('images/owl-sub.png',//owl-btn
+              //Image.asset('images/owl-btn.png',
               height: widget.size.height,
               fit: BoxFit.contain
             ),
@@ -61,7 +65,7 @@ class SubbeatState extends State<SubbeatWidget>
               colorNow: widget.color,
               colorFuture: widget.color,
               colorInner: Colors.white,
-              size: widget.size,
+              size: noteSize,
             )
           ),
         ]

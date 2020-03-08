@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +47,7 @@ final Color _cWhiteColor = Colors.white;
 const Color _clrRegularBar = Colors.white70;  // Color(0xB3FFFFFF)
 const Color _clrIrregularBar = Color(0xB3FFECB3);  // Colors.amber[100];
 const Color _clrIrregularMetre = Color(0xFFFFA000);  // Colors.amber[600];
+final Color _cTempoList = Colors.white;
 
 const int _cMinBeatCount = 2;
 const int _cMaxBeatCount = 12;
@@ -145,7 +148,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const int maxTempo = _cMaxTempo;
 
   /// Flutter-Java connection channel
-  PlatformSvc _channel;
+  //PlatformSvc _channel = new PlatformSvc();
+  PlatformSvc _channel;// = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
 
   ///>>>>>> JG!
   /// UI parameters
@@ -163,6 +167,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Controls border parameters
   double _borderRadius = 12;
   double _borderWidth = 3;
+  double _smallBtnSize = 24;
+  Offset _paddingBtn = new Offset(8, 8);//Size(24, 36);
   /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
   /// Standart padding
@@ -312,6 +318,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO IS (Elsa): what if limitTempo<minTempo?
     if (limitTempo < minTempo)
       limitTempo = minTempo;
+    //TODO Check out setState and UI refreshing
     if (limitTempo != _tempoBpmMax)
       setState(() {
         _tempoBpmMax = limitTempo;
@@ -458,6 +465,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   /// /////////////////////////////////////////////////////////////////////////
+
+  double knobRadius(double width, double height, double radiusT,
+      Offset sidePadding, Offset knobPadding, double dist0)
+  {
+    double padX = sidePadding.dx;
+    double padY = sidePadding.dy;
+    double padX0 = knobPadding.dx;
+    double padY0 = knobPadding.dy;
+
+    double x = 0.5 * width - radiusT - padX;
+    double y = 0.5 * height - radiusT - padY;
+    double radius1 = sqrt(x * x + y * y) - dist0 - radiusT;
+
+    double y1 = height - padY0 - radiusT - padY;
+    double a = radiusT + dist0;
+    print('$x - $y - $y1 - $a - $radiusT');
+    double radius2 = 0.5 * (x * x + y1 * y1 - a * a) / (a + y1);
+
+    double radius = min(0.5 * height - padY0, 0.5 * width - padX0);
+    print('${0.5 * height - padY0} - ${0.5 * width - padX0}');
+    print('$radius - $radius1 - $radius2 - $width - $height');
+
+    //if (radius > radius1)
+      //radius = radius1;
+    if (radius > radius2)
+      radius = radius2;
+    print('$radius');
+    return radius;
+  }
+
+  /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
   ///
 
@@ -483,6 +521,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 //    MediaQuery.of(context).removePadding(
 //      removeTop: true,
 //      removeLeft: true,
+//      removeRight: true,
 //      removeRight: true,
 //    ).padding
 
@@ -514,6 +553,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       portrait ? _sideSquare : wScale * _sideSquare,
       portrait ? hScale * _sideSquare : _sideSquare - _heightAds[1]);
 
+    _smallBtnSize = 1.2 * Theme.of(context).buttonTheme.height;
+    double btnPadding = 0.1 * Theme.of(context).buttonTheme.height;
+    _paddingBtn = new Offset(btnPadding, btnPadding);
+
     // Vertical/portrait
     if (portrait) {
       /// Owl square and controls
@@ -540,10 +583,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   children: innerUI,
                 ),
                 Positioned(
-                  left: 0,
-                  bottom: _showAds ? _heightAds[0] + 10 : 10,
-                  child: _buildVolumeBtn(
-                    Theme.of(context).buttonTheme.height,//0.05 * _sizeCtrlsShortest
+                  left: _paddingBtn.dx,
+                  bottom: _showAds ? _heightAds[0] + _paddingBtn.dy : _paddingBtn.dy,
+                  child: _buildVolumeBtn(_smallBtnSize,//0.05 * _sizeCtrlsShortest
                     _sizeCtrlsShortest)
                 )
               ]
@@ -575,7 +617,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               Positioned(
                 left: 0,
-                bottom: _showAds ? _heightAds[1] + 10 : 10,
+                bottom: _showAds ? _heightAds[1] + _paddingBtn.dy : _paddingBtn.dy,
                 child: _buildVolumeBtn(
                   Theme.of(context).buttonTheme.height,//0.05 * _sizeCtrlsShortest
                   _sizeCtrlsShortest)
@@ -600,152 +642,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         return innerUI;
       }
     }
-  }
-
-  Widget _buildPlayBtn(bool portrait)
-  {
-    return new MaterialButton(
-      minWidth: (portrait ? 0.25 : 0.2) * _sizeCtrlsShortest,
-      //iconSize: 0.4 * _sizeCtrls.height,
-//      shape: RoundedRectangleBorder(
-//        borderRadius: BorderRadius.circular(16),
-//        side: BorderSide(width: 2, color: Colors.purple.withOpacity(0.8)),),
-      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-      padding: EdgeInsets.all(18),//_padding.dx),
-      //child: tempo,
-      child: Icon(_playing ? Icons.pause : Icons.play_arrow,
-        size: 0.125 * _sizeCtrls.width),
-      color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
-      enableFeedback: false,
-      onPressed: _play
-    );
-    /*
-    Widget btnPlay = new IconButton(
-      iconSize: 0.4 * _sizeCtrls.height,
-      padding: EdgeInsets.all(0),//_padding.dx),
-      icon: tempo,
-      //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
-      color: _cWhiteColor, //portrait ? _accentColor : _primaryColor,
-      enableFeedback: false,
-      onPressed: _play
-    );
-*/
-  }
-
-  Widget _buildSoundBtn(double size)
-  {
-    int soundScheme = _activeSoundScheme;
-    final int imageIndex = soundScheme < 3 ? soundScheme : 3;
-    final String schemeName = 'images/sound' + imageIndex.toString() + '.png';
-
-//    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
-//      _soundSchemes[_activeSoundScheme] : '';
-    final String strScheme = (soundScheme + 1).toString();
-    final double sizeButton = size;
-
-    final Widget icon = new Image.asset(schemeName,
-      width: sizeButton,
-      height: sizeButton,
-      fit: BoxFit.contain,
-    );
-    final Widget icon3 = new Stack(
-      alignment: AlignmentDirectional.center,
-      children: <Widget>[
-        Image.asset(schemeName,
-          width: sizeButton,
-          height: sizeButton,
-          fit: BoxFit.contain,
-        ),
-        //Icon(Icons.music_note, size: 24, color: _cWhiteColor),
-        Text(strScheme,
-          style: Theme.of(context).textTheme.headline
-            .copyWith(fontWeight: FontWeight.bold, color: Colors.amberAccent), //fontSize: 28
-        ),
-      ]
-    );
-
-    final Widget icon1 = new Text(strScheme,
-      style: Theme.of(context).textTheme.display1
-        .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
-    );
-    final Widget icon2 = new Row(
-      children: <Widget>[
-        Icon(Icons.music_note, size: 24, color: _cWhiteColor),
-        Text(strScheme,
-          style: Theme.of(context).textTheme.title//headline
-            .copyWith(fontWeight: FontWeight.bold, color: _cWhiteColor), //fontSize: 28
-        ),
-      ]
-    );
-
-    return new RawMaterialButton(  //FlatButton
-      //iconSize: 40,
-      //minWidth: 40,
-      padding: EdgeInsets.all(4),
-      //icon: Icon(Icons.check_box_outline_blank,),
-      child: imageIndex == 3 ? icon3 : icon,
-      //shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
-      constraints: BoxConstraints(minWidth: sizeButton, minHeight: sizeButton),//36.0
-      //textTheme: ButtonTextTheme.primary,
-      //textColor: _cWhiteColor,
-      //color: _cWhiteColor,
-      //tooltip: _soundSchemes[_activeSoundScheme],
-      enableFeedback: !_playing,
-      onPressed: () {
-        if (_soundSchemes?.length > 0)
-        {
-          _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemes.length;
-          // setState() is called in onLimitTempo() call
-          _channel.setSoundScheme(_activeSoundScheme);
-        }
-      },
-    );
-  }
-
-  Widget _buildVolumeBtn(double size, double height)
-  {
-    return new VolumeButton(
-      value: _volume,
-      min: 0,
-      max: 100,
-      //mute = false,
-      msec: 250,
-      onChanged: _setVolume,
-//      onLongPress: () {setState(() {
-//          _mute = !_mute;
-//        });},
-      diameter: size,
-      height: height,
-      color: _cWhiteColor,
-      enableFeedback: !_playing,
-    );
-  }
-
-  ///widget Settings
-  Widget _buildSettingsBtn(double size)
-  {
-    return new IconButton(
-      iconSize: size,
-      padding: EdgeInsets.all(4),
-      icon: Icon(Icons.settings,),
-      color: _cWhiteColor.withOpacity(0.8),
-      enableFeedback: !_playing,
-      onPressed: () {
-        _showSettings(context);
-      },
-    );
-  }
-
-  Widget _buildAds(bool portrait)
-  {
-    return Container(
-      height: portrait ? _heightAds[0] : _heightAds[1],
-      color: Colors.grey[400],
-      child: Image.asset('images/Ad-1.png',
-        //height: portrait ? 50 : 32,
-        fit: BoxFit.contain
-      ),
-    );
   }
 
   ///widget Square section with metronome itself
@@ -810,6 +706,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
+    double barHeight = 0.32 * _sizeCtrls.height;
 
     bool update = _updateMetre;
     _updateMetre = false;
@@ -823,7 +720,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       minNote: minNoteValue,
       maxNote: maxNoteValue,
       width: 0.3 * _sizeCtrls.width,
-      height: 0.32 * _sizeCtrls.height,
+      height: barHeight,
       itemExtent: 44,
       color: Colors.deepPurple,
       textStyle: _textStyle,
@@ -845,7 +742,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       textStyle: TextStyle(fontSize: 16, color: Colors.black),
     );
 
-    final Size barSize = Size((portrait ? 0.5 : 0.4) * _sizeCtrls.width, 0.14 * _sizeCtrls.height);
+    final Size barSize = Size((portrait ? 0.45 : 0.4) * _sizeCtrls.width, 0.14 * _sizeCtrls.height);
 
     final Widget accentMetre = new AccentMetreWidget(
       beats: _beat.beatCount,
@@ -873,7 +770,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         tempo: _tempoBpm,
         width: (portrait ? 0.5 : 0.3) * _sizeCtrls.width,
         textStyle: Theme.of(context).textTheme.display1
-          .copyWith(color: Colors.black, fontSize: 0.09 * _sizeCtrls.height, height: 1),//TODO
+          .copyWith(color: _cTempoList, fontSize: 0.07 * _sizeCtrls.height, height: 1),//TODO
         onChanged: _setTempo
       )
     );
@@ -914,7 +811,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 Container(
                   color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: btnPadding),
+                    padding: EdgeInsets.symmetric(horizontal: 0.5 * btnPadding),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -947,10 +844,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      noteTempo,
+                      //noteTempo,  ///widget Note=tempo
                       Expanded(child:
   //                        ClipRect(child:
-                        listTempo,
+                        listTempo,  ///widget Tempo list
                       ),
                     ]
                   ),
@@ -1037,6 +934,34 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
+  Widget _buildControls(bool portrait)
+  {
+    // Fill up the remaining screen as the last widget in column/row
+    return
+      //Container(
+      //        width: _sizeCtrls.width,
+      //        height: _sizeCtrls.height - 24,
+      //  padding: const EdgeInsets.all(8.0),
+      /// Background
+      /*
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
+                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
+                colors: [_primaryColor, _accentColor])
+        ),
+      */
+      Expanded(child:  //TODO Without Expanded in portrait mode: constraints.height == infinity
+      LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return _layoutControls(context, constraints, portrait);
+          //return Placeholder(fallbackWidth: constraints.maxWidth, fallbackHeight: constraints.maxHeight, color: Colors.red);
+        },
+      ),
+        //child: rowButtons
+      );
+  }
+
   // Remaining section with controls
   Widget _layoutControls(BuildContext context, BoxConstraints constraints, bool portrait)
   {
@@ -1049,6 +974,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final double horzSpace = portrait ? 16 : 16;
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
+
+    double playBtnSize = 0.4 * minSquare;
+    double dist0 = _paddingBtn.dx;
+    Offset sidePadding = _paddingBtn;
+    Offset knobPadding = _paddingBtn;//const Offset(0, 0);
+    double diameter = 2 * knobRadius(constraints.maxWidth, constraints.maxHeight,
+        0.5 * playBtnSize, sidePadding, knobPadding, dist0);
+    //if (diameter == minSquare - 2 * knobPadding.dy)
+    print('${constraints.maxWidth} - ${constraints.maxHeight} - $diameter');
+    //diameter = 2 * 143.76;
+    //diameter = constraints.maxHeight - 20;
+    //radius: 0.9 * minSquare,
+    //Size subbeatSize = new Size(0.2 * _sizeCtrls.width, (portrait ? 0.3 : 0.2) * _sizeCtrlsShortest);
+    Size subbeatSize = new Size(playBtnSize, playBtnSize);
 
     ///widget Tempo knob control
     final Widget knobTempo = new Knob(
@@ -1063,7 +1002,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       limit: _tempoBpmMax.toDouble(),
       radiusButton: 0.1,
       radiusDial: 0.8,
-      radius: 0.9 * minSquare,
+      diameter: diameter,
       debug: false,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
@@ -1096,25 +1035,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       noteValue: _noteValue,
       color: _textColor,
       textStyle: _textStyle,
-      size: new Size(0.10 * _sizeCtrls.width, (portrait ? 0.25 : 0.2) * _sizeCtrlsShortest,),
+      size: subbeatSize,
       onChanged: onSubbeatChanged,
     );
 
     // On app startup: _soundSchemes == null
-    final Widget buttonsLeft = new Column(
-      //      mainAxisAlignment: portrait ?
-      //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        btnSubbeat,
-        Container(
-          width: 24,
-          height: 0.2 * _sizeCtrls.height,
-        ),
-      ]
-    );
 
     final Widget buttonsRight = new Column(
     //      mainAxisAlignment: portrait ?
@@ -1123,12 +1048,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          _buildPlayBtn(portrait),
+          _buildPlayBtn(playBtnSize, portrait),
           //Container(height: 0.1 * _sizeCtrls.height),
           Wrap(
             children: <Widget>[
-              _buildSoundBtn(Theme.of(context).buttonTheme.height),
-              _buildSettingsBtn(Theme.of(context).buttonTheme.height),
+              _buildSoundBtn(_smallBtnSize),
+              _buildSettingsBtn(_smallBtnSize),
             ]
           ),
           //_buildVolumeBtn(), //TODO SizedOverflowBox
@@ -1136,41 +1061,41 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ]
     );
 
-    double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
-
     // Fill up the remaining screen as the last widget in column/row
     return Stack(
       children: <Widget>[
         Positioned(
-          left: btnPadding,
-          top: btnPadding,
+          left: _paddingBtn.dx,
+          top: _paddingBtn.dy,
           child: btnSubbeat,
         ),
         Positioned(
-          bottom: 10,
-          left: 0,
+          bottom: _paddingBtn.dx,
+          left: _paddingBtn.dy,
           child:
             Container(
-              width: 88,
-              height: Theme.of(context).buttonTheme.height,
+              width: _smallBtnSize,
+              height: _smallBtnSize,
             ),
         ),
-        Center(
+        Positioned(
+          bottom: knobPadding.dy,
+          left: 0.5 * (constraints.maxWidth - diameter),
           child: (_useNewKnob ? knobTempoNew : knobTempo),
         ),
         Positioned(
-          right: btnPadding,
-          top: btnPadding,
-          child: _buildPlayBtn(portrait),
+          right: _paddingBtn.dx,
+          top: _paddingBtn.dy,
+          child: _buildPlayBtn(playBtnSize, portrait),
         ),
         Positioned(
-          right: btnPadding,
-          bottom: btnPadding,
+          right: _paddingBtn.dx,
+          bottom: _paddingBtn.dy,
           child: Row(
             children: <Widget>[
-              _buildSoundBtn(Theme.of(context).buttonTheme.height),
-              Container(width: btnPadding),
-              _buildSettingsBtn(Theme.of(context).buttonTheme.height),
+              _buildSoundBtn(_smallBtnSize),
+              Container(width: _paddingBtn.dx),
+              _buildSettingsBtn(_smallBtnSize),
             ]
           ),
         ),
@@ -1178,30 +1103,185 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildControls(bool portrait)
+  Widget _buildPlayBtn(double diameter, bool portrait)
   {
-    // Fill up the remaining screen as the last widget in column/row
-    return
-      //Container(
-      //        width: _sizeCtrls.width,
-      //        height: _sizeCtrls.height - 24,
-      //  padding: const EdgeInsets.all(8.0),
-      /// Background
-      /*
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
-                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
-                colors: [_primaryColor, _accentColor])
-        ),
-      */
-      Expanded(child:  //TODO Without Expanded in portrait mode: constraints.height == infinity
-        LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return _layoutControls(context, constraints, portrait);
-          },
-        ),
-      //child: rowButtons
+    return new RawMaterialButton(  //FlatButton
+      //padding: EdgeInsets.all(18),//_padding.dx),
+      child: Icon(_playing ? Icons.pause : Icons.play_arrow,
+          size: 1.0 * diameter),
+      fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      constraints: BoxConstraints(
+        minWidth: diameter,
+        minHeight: diameter,
+        //maxWidth: 200,
+        //maxHeight: 200,
+      ),
+      //tooltip: _soundSchemes[_activeSoundScheme],
+      enableFeedback: false,
+      onPressed: _play,
+    );
+
+    return new MaterialButton(
+        minWidth: (portrait ? 0.25 : 0.2) * _sizeCtrlsShortest,
+        //iconSize: 0.4 * _sizeCtrls.height,
+//      shape: RoundedRectangleBorder(
+//        borderRadius: BorderRadius.circular(16),
+//        side: BorderSide(width: 2, color: Colors.purple.withOpacity(0.8)),),
+        shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+        padding: EdgeInsets.all(18),//_padding.dx),
+        //child: tempo,
+        child: Icon(_playing ? Icons.pause : Icons.play_arrow,
+            size: diameter),
+        color: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+        enableFeedback: false,
+        onPressed: _play
+    );
+    /*
+    Widget btnPlay = new IconButton(
+      iconSize: 0.4 * _sizeCtrls.height,
+      padding: EdgeInsets.all(0),//_padding.dx),
+      icon: tempo,
+      //icon: Icon(_playing ? Icons.pause_circle_outline : Icons.play_circle_outline,),
+      color: _cWhiteColor, //portrait ? _accentColor : _primaryColor,
+      enableFeedback: false,
+      onPressed: _play
+    );
+*/
+  }
+
+  Widget _buildSoundBtn(double size)
+  {
+    int soundScheme = _activeSoundScheme;
+    final int imageIndex = soundScheme < 3 ? soundScheme : 3;
+    final String schemeName = 'images/sound' + imageIndex.toString() + '.png';
+
+//    final String strScheme = _soundSchemes != null && _activeSoundScheme < _soundSchemes.length ?
+//      _soundSchemes[_activeSoundScheme] : '';
+    final String strScheme = (soundScheme + 1).toString();
+    final double sizeButton = size;
+
+    final Widget icon = new Image.asset(schemeName,
+      width: sizeButton,
+      height: sizeButton,
+      fit: BoxFit.contain,
+    );
+    final Widget icon3 = new Stack(
+        alignment: AlignmentDirectional.center,
+        children: <Widget>[
+          Image.asset(schemeName,
+            width: sizeButton,
+            height: sizeButton,
+            fit: BoxFit.contain,
+          ),
+          Text(strScheme,
+            style: Theme.of(context).textTheme.headline
+              .copyWith(fontSize: 0.9 * size,
+                fontWeight: FontWeight.bold, color: Colors.white), //fontSize: 28
+          ),
+        ]
+    );
+
+    final Widget icon2 = new Row(
+        children: <Widget>[
+          Icon(Icons.music_note, size: 0.5 * sizeButton, color: _cWhiteColor),
+          Text(strScheme,
+            style: Theme.of(context).textTheme.headline
+                .copyWith(fontSize: 0.5 * size,
+                fontWeight: FontWeight.bold, color: Colors.white), //fontSize: 28
+          ),
+        ]
+    );
+
+    return new RawMaterialButton(  //FlatButton
+      //padding: EdgeInsets.all(10),
+      child: imageIndex == 3 ? icon2 : icon,
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      constraints: BoxConstraints(
+        minWidth: sizeButton,
+        minHeight: sizeButton,
+        //maxWidth: sizeButton,
+        //maxHeight: sizeButton,
+      ),
+      //tooltip: _soundSchemes[_activeSoundScheme],
+      enableFeedback: !_playing,
+      onPressed: () {
+        if (_soundSchemes?.length > 0)
+        {
+          _activeSoundScheme = (_activeSoundScheme + 1) % _soundSchemes.length;
+          // setState() is called in onLimitTempo() call
+          _channel.setSoundScheme(_activeSoundScheme)
+            .then((int result) {
+            setState(() {});
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildVolumeBtn(double size, double height)
+  {
+    return new VolumeButton(
+      value: _volume,
+      min: 0,
+      max: 100,
+      //mute = false,
+      msec: 250,
+      onChanged: _setVolume,
+//      onLongPress: () {setState(() {
+//          _mute = !_mute;
+//        });},
+      diameter: size,
+      height: height,
+      color: _cWhiteColor,
+      enableFeedback: !_playing,
+    );
+  }
+
+  ///widget Settings
+  Widget _buildSettingsBtn(double size)
+  {
+    return new RawMaterialButton(  //FlatButton
+      //padding: EdgeInsets.all(18),//_padding.dx),
+      child: Icon(Icons.settings,
+          size: 1.0 * size),
+      //fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+      //color: _cWhiteColor.withOpacity(0.8),
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      constraints: BoxConstraints(
+        minWidth: size,
+        minHeight: size,
+        //maxWidth: 200,
+        //maxHeight: 200,
+      ),
+      //tooltip: _soundSchemes[_activeSoundScheme],
+      enableFeedback: !_playing,
+      onPressed: () {
+        _showSettings(context);
+      },
+    );
+
+    return new IconButton(
+      iconSize: size,
+      padding: EdgeInsets.all(0),
+      icon: Icon(Icons.settings,),
+      color: _cWhiteColor.withOpacity(0.8),
+      enableFeedback: !_playing,
+      onPressed: () {
+        _showSettings(context);
+      },
+    );
+  }
+
+  Widget _buildAds(bool portrait)
+  {
+    return Container(
+      height: portrait ? _heightAds[0] : _heightAds[1],
+      color: Colors.grey[400],
+      child: Image.asset('images/Ad-1.png',
+          //height: portrait ? 50 : 32,
+          fit: BoxFit.contain
+      ),
     );
   }
 
@@ -1227,7 +1307,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (res.activeScheme != _activeSoundScheme && _soundSchemes != null && res.activeScheme < _soundSchemes.length)
       {
         _activeSoundScheme = res.activeScheme;
-        _channel.setSoundScheme(_activeSoundScheme);
+        _channel.setSoundScheme(_activeSoundScheme)
+          .then((int result) {
+            setState(() {});
+        });
       }
       setState(() {
         _animationType = res.animationType;

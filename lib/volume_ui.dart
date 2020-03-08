@@ -224,7 +224,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
       color: Color(0x8080FF80),
     );
 
-    Widget button = new MaterialButton(
+    Widget button1 = new MaterialButton(
       //iconSize: 40,
       child: Icon(_mute ? Icons.volume_off : Icons.volume_up,
         size: widget.diameter,//36,
@@ -246,6 +246,46 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
       },
       onPressed: _handleOpenClose,
         /*
+      onPressed: () {
+        setState(() {
+          _mute = !_mute;
+          _setVolume(_mute ? 0 : _volume);
+        });
+      },
+*/
+    );
+
+    Widget button = new RawMaterialButton(  //FlatButton
+      //padding: EdgeInsets.all(18),//_padding.dx),
+      child: Icon(_mute ? Icons.volume_off : Icons.volume_up,
+        size: widget.diameter,//36,
+        color: widget.color,
+        semanticLabel: 'Mute volume',
+      ),
+      //fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+      //color: _cWhiteColor.withOpacity(0.8),
+      shape: CircleBorder(side: BorderSide(width: 2, color: widget.color)),
+      constraints: BoxConstraints(
+        minWidth: widget.diameter,
+        minHeight: widget.diameter,
+        //maxWidth: 200,
+        //maxHeight: 200,
+      ),
+      //tooltip: _soundSchemes[_activeSoundScheme],
+//      padding: EdgeInsets.all(4),
+      //textTheme: ButtonTextTheme.primary,
+      //tooltip: _soundSchemes[_activeSoundScheme],
+      enableFeedback: widget.enableFeedback,
+      onLongPress: () {
+        _timer?.cancel();
+        setState(() {
+          _mute = !_mute;
+        });
+        widget.onChanged(_mute ? widget.min : _value);
+        _timer = new Timer(_duration, _onTimer);
+      },
+      onPressed: _handleOpenClose,
+      /*
       onPressed: () {
         setState(() {
           _mute = !_mute;

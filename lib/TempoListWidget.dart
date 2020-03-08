@@ -173,11 +173,14 @@ class TempoListState extends State<TempoListWidget>
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: 5),
 */
-        child: Text(tempoList[i].name,
-          textAlign: TextAlign.center,
-          style: widget.textStyle
-        )
-      )
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: Text(tempoList[i].name,
+            textAlign: TextAlign.center,
+            style: widget.textStyle
+          ),
+        ),
+      ),
     );
 
     return RotatedBox(
@@ -225,7 +228,7 @@ class TempoListState extends State<TempoListWidget>
           useMagnifier: false,
           magnification: 1.0,
           itemExtent: widget.width,
-          squeeze: 1.0,
+          squeeze: 0.88,
           onSelectedItemChanged: (int index) {
             print(index);
             if (_notify)  // To prevent reenter via widget.onBNotehanged::setState

@@ -48,7 +48,7 @@ class Knob extends StatefulWidget
   final bool pressed;
   final int dialDivisions;
 
-  final double radius;
+  final double diameter;
   final double radiusButton;
   final double radiusDial;
   final Color color;
@@ -69,7 +69,7 @@ class Knob extends StatefulWidget
     this.maxAngle = 160,
     this.turnCount = 2,
     this.sweepAngle = 2 * 360.0 + 2 * 160.0,
-    this.radius,
+    this.diameter,
     this.radiusButton = 0.4,
     this.radiusDial = 0.8,
     this.color = Colors.blue,
@@ -331,7 +331,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   @override
   Widget build(BuildContext context)
   {
-    double size = widget.radius != null ? widget.radius :
+    double size = widget.diameter != null ? widget.diameter :
       MediaQuery.of(context).size.shortestSide; //TODO
 
     //double distanceToAngle = 0.007 * (widget.max - widget.min);
@@ -352,7 +352,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
     return LayoutBuilder(
     builder: (BuildContext context, BoxConstraints constraints) {
-      //double size = widget.radius != null ? widget.radius :
+      //double size = widget.radius != null ? widget.diameter :
       Size sz = MediaQuery.of(context).size; //TODO
       //debugPrint('Builder ${MediaQuery.of(context).size} - $constraints');
 
@@ -473,6 +473,17 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 //                child: Text(widget.value.toInt().toString(),
 //                  style: widget.textStyle
 //                ),
+              ),
+
+              Positioned(
+                top: 0,
+                child: Text(widget.value.toInt().toString(),
+                  style: widget.textStyle.copyWith(
+                    color: Colors.purple[100],
+                    fontSize: 0.6 * (1 - widget.radiusDial) * widget.diameter,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
 
               widget.showIcon ?
@@ -642,10 +653,11 @@ class KnobPainter extends CustomPainter
       }
     }
 
-    for (int i = 0; i < dialDivisions; i++)
+    /// Dial divisions
+    for (int i = 1; i < dialDivisions; i++)
     {
-      double angle = i * angleDiv;
-      Offset off = Offset(sin(angle), cos(angle));
+      double angle = i * angleDiv - 0.5 * pi;
+      Offset off = Offset(cos(angle), sin(angle));
       off *= 0.9 * radius;
 
       final Rect rcDot = new Rect.fromCircle(center: center + off, radius: radiusDot);
@@ -670,7 +682,7 @@ class KnobPainter extends CustomPainter
     double a = deltaAngle * (angleSpot ~/ deltaAngle);
     if (next)
       a += deltaAngle;
-    Offset off = Offset(sin(a), cos(a));
+    Offset off = Offset(cos(a), sin(a));
     off *= 0.9 * radius;
     Offset pos1 = center + off;
 */
