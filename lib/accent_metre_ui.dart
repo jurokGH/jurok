@@ -47,7 +47,7 @@ class AccentMetreState extends State<AccentMetreWidget>
 
   @override
   Widget build(BuildContext context)
-    {
+  {
     final List<int> metres = Prosody.getSimpleMetres(widget.beats, widget.pivoVodochka);
 
     double width = widget.size.width / metres.length;
@@ -58,6 +58,7 @@ class AccentMetreState extends State<AccentMetreWidget>
     else if (widget.beats == 4)
       width /= 1.5;
 
+    print("Aaccent::build");
     print(widget.accents);
     //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
     final List<Widget> notes = new List<Widget>();
@@ -78,6 +79,9 @@ class AccentMetreState extends State<AccentMetreWidget>
         colorFuture: Colors.black,
         colorInner: Colors.black,
         accents: accents,
+        coverWidth: true,
+        showTuplet: true,
+        showAccent: true,
         size: new Size(width, widget.size.height),
       );
       notes.add(wix);
@@ -90,6 +94,8 @@ class AccentMetreState extends State<AccentMetreWidget>
           _activeMetre = _activeMetre + 1;
           if (_activeMetre >= _metreList.length)
             _activeMetre = 0;
+          print("Accent::onChanged ${_metreList[_activeMetre].beats} - ${_metreList[_activeMetre].note}");
+
           widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
         //setState(() {});
         //Provider.of<MetronomeState>(context, listen: false)
