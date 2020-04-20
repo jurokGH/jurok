@@ -7,9 +7,15 @@ T loop<T>(T x, T left, T right)
 }
 */
 
-int loopClamp(int x, int left, int right)
+int clamp(int x, int left, int right)
 {
-  print('loopClamp $x - $left - $right');
+  //print('loopClamp $x - $left - $right');
+  return x > right ? right : (x < left ? left : x);
+}
+
+int clampLoop(int x, int left, int right)
+{
+  //print('loopClamp $x - $left - $right');
   return x > right ? left : (x < left ? right : x);
 }
 
@@ -35,4 +41,21 @@ int index2noteValue(int index)
     index--;
   }
   return index >= 0 ? noteValue : -1;
+}
+
+bool equalLists(List<int> a, List<int> b)
+{
+  if (a == null && b == null)
+    return true;
+  else if (a == null || b == null)
+    return false;
+  else if (a.length == b.length)
+  {
+    for (int i = 0 ; i < a.length; i++)
+      if (a[i] != b[i])
+        return false;
+    return true;
+  }
+  else
+    return false;
 }

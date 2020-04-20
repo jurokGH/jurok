@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
-import 'owl_widget.dart';
+import 'OwlWidget.dart';
 import 'beat_metre.dart';
 import 'skin.dart';
 
@@ -166,13 +166,18 @@ class _OwlLayout extends MultiChildLayoutDelegate
     for (int i = 0; i < _layout.length; i++)
     {
       double dx = size.width / _layout[i];
+      // TODO! Remove case??
       if (!vertical)
       {
         x0 = (size.width - _layout[i] * w) / (2 * _layout[i]);
         dx = w + 2 * x0;
       }
       else
-        dx = w + padding.width;
+      {
+        x0 = (size.width - _layout[i] * w) / (2 * _layout[i]);
+        //dx = w + padding.width;
+        dx = w + 2 * x0;
+      }
 
       double y = y0 + dy * i;
 
@@ -212,7 +217,7 @@ class OwlGrid extends StatefulWidget
 
   final ValueChanged2<int, int> onChanged;
   //final ValueChanged<int> onCountChanged;
-  final ValueChanged<int> onAccentChanged;
+  final ValueChanged2<int, int> onAccentChanged;
 
   OwlGrid({@required this.beat, this.noteValue,
     this.accents,
@@ -308,7 +313,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       return Container();
 
     double aspect = _skin.aspect;
-    aspect *= 1.8;  // for NoteWidget
+    aspect *= 1.5;//1.8;  // for NoteWidget
 
     _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
@@ -350,6 +355,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           id: k,
           accent: accent,
           nAccent: nAccent,
+          maxAccentCount: 3,
           active: k == widget.activeBeat,
           activeSubbeat: k == widget.activeBeat ? widget.activeSubbeat : -1,
           subbeatCount: widget.beat.subBeats[k],
@@ -357,10 +363,10 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           animation: _controller.view,
           images: _skin.images,//[accent ? 0 : 1]),
           getImageIndex: _skin.getImageIndex,
-          onTap: (int id, int accent) {
+          onTap: (int id, int step) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
-            widget.onAccentChanged(id);
+            widget.onAccentChanged(id, step);
           },
           onNoteTap: (int id, int subCount) {
             //assert(id < widget.beat.subBeats.length);

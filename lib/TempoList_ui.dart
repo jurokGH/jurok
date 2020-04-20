@@ -52,7 +52,7 @@ class TempoListState extends State<TempoListWidget>
     TempoDef('andante', 76, 108),
     TempoDef('andantino', 80, 108),
     //TempoDef('con moto', 100, ),  //?  //S-
-    TempoDef('marcia mod', 83, 85),  //S-
+    TempoDef('marcia mod', 83, 85),  //S-marcia mod
     TempoDef('andante mod', 92, 112),  //S-
     TempoDef('moderato', 108, 120),
     TempoDef('allegretto', 112, 120),
@@ -129,6 +129,224 @@ class TempoListState extends State<TempoListWidget>
     //noteController = new FixedExtentScrollController(initialItem: widget.noteIndex - widget.minNoteIndex);
   }
 
+  Size _textSize(String text, TextStyle style)
+  {
+    final TextPainter textPainter = TextPainter(
+        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: TextDirection.ltr, textAlign: TextAlign.center)
+      ..layout(minWidth: 0, maxWidth: double.infinity);
+    return textPainter.size;
+  }
+
+  Size maxListItemSize()
+  {
+    int maxLength = 0;
+    int maxIndex = -1;
+    for (int i = 0; i < tempoList.length; i++)
+    {
+      int len = tempoList[i].name.length;
+      if (len > maxLength) {
+        maxLength = len;
+        maxIndex = i;
+      }
+    }
+    assert(maxIndex >= 0);
+    Size maxTextSize = Size.zero;
+    if (maxIndex >= 0) {
+      maxTextSize = _textSize(tempoList[maxIndex].name, widget.textStyle);
+    }
+    return maxTextSize;
+  }
+
+  double maxFontSize(Size size)
+  {
+    // TODO
+    size = new Size(0.9 * size.width, size.height);
+    double fontSize = widget.textStyle.fontSize;
+    //fontSize = 64;
+
+    int maxLength = 0;
+    int maxIndex = -1;
+    for (int i = 0; i < tempoList.length; i++)
+    {
+      int len = tempoList[i].name.length;
+      if (len > maxLength) {
+        maxLength = len;
+        maxIndex = i;
+      }
+    }
+    assert(maxIndex >= 0);
+
+    List<int> compare = new List<int>();
+    for (int i = 0; i < tempoList.length; i++)
+    {
+      int len = tempoList[i].name.length;
+      if (len >= maxLength)
+        compare.add(i);
+    }
+    //print('compare');
+    //print(compare.length);
+
+    bool fit = false;
+    for (; !fit && fontSize > 0; fontSize--)
+    {
+      Size textSize = Size.zero;
+      for (int i = 0; i < compare.length; i++) {
+        textSize = _textSize(tempoList[compare[i]].name,
+            widget.textStyle.copyWith(fontSize: fontSize));
+        //print('tt - $textSize');
+        fit = textSize.width <= size.width && textSize.height <= size.height;
+        if (!fit)
+          break;
+      }
+      //print('textSize1 - $fontSize - $textSize - $size');
+    }
+    //print('textSize1 - $fontSize - $size');
+    return fontSize;
+  }
+
+  Widget _builder(BuildContext context, BoxConstraints constraints)
+  {
+    int index = tempoIndex(widget.tempo);
+    assert(0 <= index && index < tempoList.length);
+    //final String txt = tempoList[_index].name;
+
+    final Size size = constraints.biggest;
+
+    Size maxTextSize = maxListItemSize();
+    double fontSize = maxFontSize(size);
+
+    // To prevent reenter via widget.onBeat/NoteChanged::setState
+    // when position is changing via jumpToItem/animateToItem
+    if (index != _index && _notify)
+    {
+      _notify = false;
+      print('Tempo:update1 $index');
+      _index = index;
+      //TODO Need?
+      if (false)
+      {
+        controller.jumpToItem(index);
+        // finishUpdate:
+        _notify = true;
+      }
+      else
+      {
+        //TODO Both run => when finishUpdate?
+        controller.animateToItem(index,
+            duration: Duration(milliseconds: duration), curve: Curves.ease)
+            .catchError(finishUpdate).then<void>(finishUpdate);
+      }
+      print('Tempo:update2');
+      //widget.update = false;
+    }
+
+    final List<Widget> wixTempo = new List<Widget>.generate(
+      tempoList.length,
+          (int i) => new RotatedBox(
+        quarterTurns: 1,
+        child:
+      new Container(
+//        color: Colors.blue,
+        width: size.width,
+        height: size.height,
+        alignment: Alignment.center,
+        //padding: EdgeInsets.symmetric(horizontal: 5),
+//        child: FittedBox(
+//          fit: BoxFit.contain,
+          child: Text(tempoList[i].name,
+              //textAlign: TextAlign.center,
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+              //style: widget.textStyle
+              style: widget.textStyle.copyWith(fontSize: fontSize)
+          ),
+        ),
+      ),
+    );
+
+    return RotatedBox(
+      quarterTurns: 3,
+      child:
+      GestureDetector(
+        onTap: () {
+          print('TempoList:onTap');
+          int index = _index + 1;
+          //loopClamp(widget.noteIndex + 1, widget.minNoteIndex, widget.maxNoteIndex);
+          if (index >= tempoList.length)
+            index = 0;
+          controller.jumpToItem(index);
+//          _index = index;
+//          widget.onChanged(tempoList[index].tempo);
+
+//          setState(() {
+//            _index++;
+//            if (_index >= tempoList.length)
+//              _index = 1;
+//          });
+        },
+        /*
+        onHorizontalDragEnd: (DragEndDetails details) {
+          _index += details.primaryVelocity.sign.toInt();
+          if (_index < 1)
+            _index = tempoList.length - 1;
+          if (_index >= tempoList.length)
+            _index = 1;
+          widget.onChanged(tempoList[_index].tempo);
+        },
+*/
+//    child: Container(
+//    //color: widget.color,
+//    width: height,//double.infinity,
+//    height: width,
+
+        child:
+        ListWheelScrollView.useDelegate(
+          controller: controller,
+          physics: new FixedExtentScrollPhysics(),
+          diameterRatio: 1000.0,
+          perspective: 0.000001,
+          offAxisFraction: 0.0,
+          useMagnifier: false,
+          magnification: 1.0,
+          itemExtent: widget.width,
+          squeeze: 0.88,
+          onSelectedItemChanged: (int index) {
+            print(index);
+            if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
+                {
+              _index = index;
+              widget.onChanged(tempoList[index].tempo);
+            }
+            //setState(() {});
+          },
+          clipToSize: true,
+          renderChildrenOutsideViewport: false,
+          childDelegate: ListWheelChildListDelegate(children: wixTempo),
+        ),
+/*
+        child: CustomScrollView(
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          //cacheExtent:,
+          controller: ScrollController(),
+          //dragStartBehavior: DragStartBehavior.down,
+          //physics: ,
+          //semanticChildCount: children.length,
+          //anchor:,
+          slivers: <Widget>[
+            //SliverPadding(padding: const EdgeInsets.all(20.0), sliver:
+            SliverList(
+              delegate: SliverChildListDelegate.fixed(children,
+                //addRepaintBoundaries: false
+              ),
+            ),
+          ],
+        ),
+*/
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context)
   {
@@ -181,6 +399,10 @@ class TempoListState extends State<TempoListWidget>
           ),
         ),
       ),
+    );
+
+    return LayoutBuilder(
+      builder: _builder
     );
 
     return RotatedBox(

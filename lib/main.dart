@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:owlenome/MetreBar_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 //import 'package:wheel_chooser/wheel_chooser.dart';
@@ -14,12 +15,13 @@ import 'PlatformSvc.dart';
 import 'BarBracket.dart';
 import 'arrow.dart';
 import 'metronome_state.dart';
+import 'metre.dart';
 import 'beat_metre.dart';
 import 'beat_sound.dart';
-import 'owl_grid.dart';
-import 'metre_ui.dart';
-import 'subbeat_ui.dart';
-import 'TempoListWidget.dart';
+import 'OwlGrid.dart';
+import 'Metre_ui.dart';
+import 'Subbeat_ui.dart';
+import 'TempoList_ui.dart';
 import 'volume_ui.dart';
 import 'settings.dart';
 import 'knob.dart';
@@ -43,25 +45,35 @@ final Color _cTextColor = Colors.white;
 final Color _cCtrlColor = Colors.grey;
 final double _cCtrlOpacity = 0;
 
+/// Common 'white' color
 final Color _cWhiteColor = Colors.white;
+/// Metre bar regular metre color
 const Color _clrRegularBar = Colors.white70;  // Color(0xB3FFFFFF)
+/// Metre bar irregular metre color
 const Color _clrIrregularBar = Color(0xB3FFECB3);  // Colors.amber[100];
+/// Metre control irregular metre color
 const Color _clrIrregularMetre = Color(0xFFFFA000);  // Colors.amber[600];
+/// Tempo List text color
 final Color _cTempoList = Colors.white;
 
-const int _cMinBeatCount = 2;
+/// Beat count min/max
+const int _cMinBeatCount = 1;
 const int _cMaxBeatCount = 12;
+/// Max beat subdivision
 const int _cMaxSubBeatCount = 8;
+/// Note value min/max
 const int _cMinNoteValue = 2;
 const int _cMaxNoteValue = 16;
+/// Min tempo
 const int _cMinTempo = 1;
-///Некий абсолютный максимум скорости. Больше него не ставим, даже если
-/// позволяет сочетание схемы и метра.
+/// Absolute max tempo. Больше него не ставим, даже если позволяет сочетание схемы и метра.
 const int _cMaxTempo = 1000;  //500-5000
+/// Initial tempo
 const int _cIniTempo = 121;  //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 
+/// Debug on different devices/resolutions
 final bool _debugDevices = false;
 ///<<<<<< JG!
 
@@ -167,6 +179,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Controls border parameters
   double _borderRadius = 12;
   double _borderWidth = 3;
+  double _smallBtnSize0 = 24;
   double _smallBtnSize = 24;
   Offset _paddingBtn = new Offset(8, 8);//Size(24, 36);
   /// Controls opacity
@@ -234,6 +247,79 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   KnobValue _knobValue;
   bool _updateMetre = false;
+  bool _updateMetreBar = false;
+
+  List<MetreBar> _metreList =
+  [
+    MetreBar(2, 2),
+    MetreBar(3, 4),
+    MetreBar(4, 4),
+    MetreBar(5, 8),  // 3+2/8
+    MetreBar(6, 8),
+    MetreBar(9, 8),
+    MetreBar(12, 16),
+  ];
+  int _activeMetre = 2;
+  int _userMetre = -1;
+
+  int metreIndex(int beats, int note) {
+    if (_metreList.length == 0 || beats < _metreList[0].beats)
+      return 0;
+    int i = 0;
+    while (i < _metreList.length && beats > _metreList[i].beats ||
+        (beats == _metreList[i].beats && note > _metreList[i].note)) {
+      print(i);
+      i++;
+    }
+
+    if (0 < i && i < _metreList.length &&
+        !(beats == _metreList[i].beats && note == _metreList[i].beats)) {
+      //print("-- $i");
+      //i--;
+    }
+    return i;
+  }
+
+  bool insertMetre(int beats, int note)
+  {
+    bool activeChanged = true;
+    print('insertMetre - $beats - $note');
+    int index = metreIndex(beats, note);
+    if (index < _metreList.length &&
+      beats == _metreList[index].beats && note == _metreList[index].beats)
+    {
+      if (index == _activeMetre)
+        activeChanged = false;
+      _activeMetre = index;
+      print('insertMetre_= - $index');
+    }
+    else
+    {
+      if (index == _userMetre)
+      {
+        print('insertMetre_user - $index');
+        _metreList[_userMetre] = MetreBar(beats, note);
+      }
+      else
+      {
+        print('insertMetre_insert - $index');
+        // Insert shifts right all elements including [index]
+        _metreList.insert(index, MetreBar(beats, note));
+        // Remove previous User Metre if existed
+        if (_userMetre != -1)
+        {
+          print('insertMetre_remove - $index - ${_userMetre + (_userMetre >= index ? 1 : 0)}');
+          _metreList.removeAt(_userMetre + (_userMetre >= index ? 1 : 0));
+          // Correct new index after removing
+          if (_userMetre < index)
+            index--;
+        }
+      }
+      _activeMetre = _userMetre = index;
+    }
+    print('insertMetre - $_activeMetre');
+    return activeChanged;
+  }
 
   /// /////////////////////////////////////////////////////////////////////////
 
@@ -272,6 +358,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else if (_activeSoundScheme == -1)
         _activeSoundScheme = 0;  // Set default 0 scheme
     });
+
+    insertMetre(_beat.beatCount, _noteValue);
 
     _playing = false;
 
@@ -398,23 +486,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void _onBeatChanged(int beats)
   {
+    print('_onBeatChanged');
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
+      bool changed = insertMetre(beats, _noteValue);
+
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
           _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
-      print('_onBeatChanged');
-      setState(() {});  //TODO ListWheelScrollView redraws 1 excess time after wheeling
+      print('_onBeatChanged2');
+      setState(() { _updateMetreBar = changed; });  //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
   }
 
   void _onNoteChanged(int noteValue)
   {
     _noteValue = noteValue;  // Does not affect sound
+    bool changed = insertMetre(_beat.beatCount, noteValue);
+
     print('_onNoteChanged');
-    setState(() {});  //TODO ListWheelScrollView redraws 1 excess time after wheeling
+    setState(() { _updateMetreBar = changed; });  //TODO ListWheelScrollView redraws 1 excess time after wheeling
   }
 
   void onMetreChanged(int beats, int noteValue)
@@ -428,7 +521,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     }
     _noteValue = noteValue;  // Does not affect sound
+    insertMetre(beats, noteValue);
+
     print('onMetreChanged');
+    setState(() { _updateMetre = true; });
+  }
+
+  void onMetreBarChanged(int index)
+  {
+    int beats = _metreList[index].beats;
+    if (_beat.beatCount != beats || !equalLists(_metreList[index].accents, _beat.accents))
+    {
+      _beat.beatCount = beats;
+      _beat.accents = _metreList[index].accents;
+      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
+          _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+    }
+    _noteValue = _metreList[index].note;  // Does not affect sound
+    _activeMetre = index;
+
+    print('onMetreBarChanged');
     setState(() { _updateMetre = true; });
   }
 
@@ -454,10 +568,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() {});
   }
 
-  void onAccentChanged(int id)
+  void onAccentChanged(int id, int step)
   {
     assert(id < _beat.subBeats.length);
-    _beat.accentUp(id);
+    _beat.accentUp(id, step);
+    _metreList[_activeMetre].accentUp(id, step);
     Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
         _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
@@ -466,8 +581,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// /////////////////////////////////////////////////////////////////////////
 
-  double knobRadius(double width, double height, double radiusT,
-      Offset sidePadding, Offset knobPadding, double dist0)
+  /// Calculate tempo knob radius depending on control area size and other sizes
+  /// width, height - control area size
+  /// radiusT - radius of play button
+  /// sidePadding - min (x, y) padding between all controls and area edges
+  /// knobPadding - min (x, y) padding around knob
+  /// dist0 - min padding between knob and play button
+  List<double> knobRadius(double width, double height, double radiusT,
+      Offset sidePadding, Offset knobPadding, double dist0, double radiusBtn)
   {
     double padX = sidePadding.dx;
     double padY = sidePadding.dy;
@@ -492,7 +613,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (radius > radius2)
       radius = radius2;
     print('$radius');
-    return radius;
+
+    double x2 = 0.5 * width - 2 * padX;
+    double y2 = radius + padY0 < 0.5 * height ? radius + padY0 : 0.5 * height;
+    y2 -= padY;
+    //double y2 = 0.5 * height - padY;
+    double z2 = radius + dist0;
+    //(radius + dist0 + radiusBtn)**2 = (0.5 * width - 3 * radiusBtn - 2 * padX)**2 + (0.5 * height - radiusBtn - padY)**2;
+    //9 * xx * xx - 2 * xx * (3 * x2 + y2 + z2) + x2 * x2 + y2 * y2 - z2 * z2 = 0;
+    double b = (3 * x2 + y2 + z2) / 9;
+    double d = b * b - (x2 * x2 + y2 * y2 - z2 * z2) / 9;
+    if (d >= 0)
+      d = sqrt(d);
+    else
+      print("D < 0");
+    double xx1 = b + d;
+    double xx2 = b - d;
+    double xx = xx1 < radius ? xx1 : xx2;
+    print("Button $radius - $xx1 - $xx2 - $radiusBtn");
+
+    return [radius, xx];
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -553,8 +693,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       portrait ? _sideSquare : wScale * _sideSquare,
       portrait ? hScale * _sideSquare : _sideSquare - _heightAds[1]);
 
-    _smallBtnSize = 1.2 * Theme.of(context).buttonTheme.height;
-    double btnPadding = 0.1 * Theme.of(context).buttonTheme.height;
+    _smallBtnSize0 = 1.2 * Theme.of(context).buttonTheme.height;//1.2
+    double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     _paddingBtn = new Offset(btnPadding, btnPadding);
 
     // Vertical/portrait
@@ -719,7 +859,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       note: _noteValue,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
-      width: 0.3 * _sizeCtrls.width,
+      width: 0.25 * _sizeCtrls.width,
       height: barHeight,
       itemExtent: 44,
       color: Colors.deepPurple,
@@ -728,21 +868,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           fontWeight: FontWeight.w800,
           fontSize: _textStyle.fontSize + 2,
           height: 1,
-          color: _beat.regular ? _cWhiteColor : _clrIrregularMetre
+          color: _beat.regularAccent ? _cWhiteColor : _clrIrregularMetre
       ),
       onBeatChanged: _onBeatChanged,
       onNoteChanged: _onNoteChanged,
     );
 
-    final NoteTempoWidget noteTempo = new NoteTempoWidget(
-      tempo: _tempoBpm,
-      noteValue: _noteValue,
-      color: Colors.black,
-      size: new Size(18, 36),
-      textStyle: TextStyle(fontSize: 16, color: Colors.black),
-    );
-
-    final Size barSize = Size((portrait ? 0.45 : 0.4) * _sizeCtrls.width, 0.14 * _sizeCtrls.height);
+    final Size barSize = Size((portrait ? 0.45 : 0.4) * _sizeCtrls.width, 0.16 * _sizeCtrls.height);
 
     final Widget accentMetre = new AccentMetreWidget(
       beats: _beat.beatCount,
@@ -758,11 +890,36 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
     );
 
+    bool updateMetreBar = _updateMetreBar;
+    _updateMetreBar = false;
+
+    final Widget metreBar = new MetreBarWidget(
+      update: updateMetreBar,
+      beats: _beat.beatCount,
+      noteValue: _noteValue,
+      accents: _beat.accents,
+      pivoVodochka: _beat.pivoVodochka, //?
+      activeMetre: _activeMetre,
+      metres: _metreList,
+      size: barSize,
+      //color: _beat.regular ? _cWhiteColor : Colors.orangeAccent,
+      color: _clrRegularBar,
+      colorIrregular: _clrIrregularBar, // Switched off
+      onSelectedChanged: onMetreBarChanged,
+      onOptionChanged: (bool pivoVodochka) {
+        _beat.setAccentOption(pivoVodochka);
+        if (_metreList[_activeMetre].setAccentOption(pivoVodochka ? 0 : 1))
+        {
+          setState(() {});
+        }
+      },
+    );
+
     ///widget Tempo list
     final Widget listTempo = new Container(
       //color: Colors.orange,
         //width: 80,
-        height: 0.12 * _sizeCtrls.height,
+        height: 0.15 * _sizeCtrls.height,
         padding: EdgeInsets.only(top: 0.0 * _sizeCtrls.height, bottom: 0.0 * _sizeCtrls.height),
       //padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
       child:
@@ -770,14 +927,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         tempo: _tempoBpm,
         width: (portrait ? 0.5 : 0.3) * _sizeCtrls.width,
         textStyle: Theme.of(context).textTheme.display1
-          .copyWith(color: _cTempoList, fontSize: 0.07 * _sizeCtrls.height, height: 1),//TODO
+          .copyWith(color: _cTempoList, height: 1),//TODO
+          //.copyWith(color: _cTempoList, fontSize: 0.07 * _sizeCtrls.height, height: 1),//TODO
         onChanged: _setTempo
       )
     );
 
+    final Size subbeatSize = Size(0.2 * _sizeCtrls.width, barSize.height);
+    final Widget btnSubbeat = new SubbeatWidget(
+      subbeatCount: _beat.subBeatCount,
+      noteValue: _noteValue,
+      color: _textColor,
+      textStyle: _textStyle,
+      size: subbeatSize,
+      onChanged: onSubbeatChanged,
+    );
+    final NoteTempoWidget noteTempo = new NoteTempoWidget(
+      tempo: _tempoBpm,
+      noteValue: _noteValue,
+      color: Colors.white,
+      size: new Size(0.12 * barSize.width, 0.9 * barSize.height),
+      textStyle: TextStyle(fontSize: 20, color: Colors.white),
+    );
+
     double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     //0.02 * _sizeCtrls.width,
-    final Size bracketSize = new Size(3.2 * btnPadding, 0.19 * _sizeCtrls.height);
+    final Size bracketSize = new Size(3.2 * btnPadding, 0.16 * _sizeCtrls.height);
     final Widget barSpacer = new Container(width: btnPadding,);
 
     if (portrait)
@@ -787,8 +962,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       padding: EdgeInsets.zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
+          //btnSubbeat,
           barSpacer,
           metre,  ///widget Metre
           barSpacer,
@@ -799,7 +975,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Container(
-                  color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
+                  color: _beat.regularAccent ? _clrRegularBar : _clrIrregularBar,
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 0.5 * btnPadding),
                     child: Row(
@@ -815,8 +991,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         ///widget Subbeat widget
                         //Flexible(child:
                         Padding(
-                          padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
-                          child: accentMetre
+                          padding: EdgeInsets.only(top: 2),//(bottom: 0.05 * _sizeCtrls.height),//20
+                          child: metreBar
+                          //child: accentMetre
                         ),
                         BarBracketWidget(
                           direction: BarBracketDirection.right,
@@ -834,7 +1011,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      //noteTempo,  ///widget Note=tempo
+                      noteTempo,  ///widget Note=tempo
                       Expanded(child:
   //                        ClipRect(child:
                         listTempo,  ///widget Tempo list
@@ -882,7 +1059,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
             Container(
-            color: _beat.regular ? _clrRegularBar : _clrIrregularBar,
+            color: _beat.regularAccent ? _clrRegularBar : _clrIrregularBar,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -969,8 +1146,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double dist0 = _paddingBtn.dx;
     Offset sidePadding = _paddingBtn;
     Offset knobPadding = _paddingBtn;//const Offset(0, 0);
-    double diameter = 2 * knobRadius(constraints.maxWidth, constraints.maxHeight,
-        0.5 * playBtnSize, sidePadding, knobPadding, dist0);
+    //sidePadding = const Offset(0, 0);
+    //knobPadding = const Offset(0, 0);
+    //dist0 = 0;
+    List<double> res = knobRadius(constraints.maxWidth, constraints.maxHeight,
+        0.5 * playBtnSize, sidePadding, knobPadding, dist0, _smallBtnSize0);
+    double diameter = 2 * res[0];
+    _smallBtnSize = 2 * res[1] < _smallBtnSize0 ? 2 * res[1] : _smallBtnSize0;
+    _smallBtnSize = 2 * res[1];
+
+    //_smallBtnSize = _smallBtnSize0;
     //if (diameter == minSquare - 2 * knobPadding.dy)
     print('${constraints.maxWidth} - ${constraints.maxHeight} - $diameter');
     //diameter = 2 * 143.76;
@@ -993,6 +1178,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       radiusButton: 0.1,
       radiusDial: 0.8,
       diameter: diameter,
+      firmKnob: false,
       debug: false,
       showIcon: false,
       color: _cWhiteColor.withOpacity(0.8),
@@ -1014,8 +1200,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onChanged: (KnobValue newVal) {
         _knobValue = newVal;
         _setTempo(newVal.value.round());
+        //_tempoBpm = newVal.value.round();
+        //if (_playing)
+          //_setTempo(_tempoBpm);
+        setState(() {});
       },
-      diameter: 0.65 * _sizeCtrls.height,//0.43
+      diameter: diameter,
+      //diameter: 0.65 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
       outerRadius: _outerRadius,
       textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
@@ -1058,6 +1249,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         Positioned(
           left: _paddingBtn.dx,
           top: _paddingBtn.dy,
+          //child: Container(),
           child: btnSubbeat,
         ),
         Positioned(
@@ -1205,6 +1397,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //maxWidth: sizeButton,
         //maxHeight: sizeButton,
       ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       //tooltip: _soundSchemes[_activeSoundScheme],
       enableFeedback: !_playing,
       onPressed: () {
@@ -1245,6 +1438,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     return new RawMaterialButton(  //FlatButton
       //padding: EdgeInsets.all(18),//_padding.dx),
+      //padding: EdgeInsets.zero,
       child: Icon(Icons.settings,
           size: 1.0 * size),
       //fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
@@ -1256,6 +1450,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //maxWidth: 200,
         //maxHeight: 200,
       ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,  // Make button of exact size
       //tooltip: _soundSchemes[_activeSoundScheme],
       enableFeedback: !_playing,
       onPressed: () {
@@ -1380,7 +1575,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           fontWeight: FontWeight.w800,
           fontSize: textStyle.fontSize + 2,
           height: 1,
-          color: _beat.regular ? _cWhiteColor : _clrIrregularMetre
+          color: _beat.regularAccent ? _cWhiteColor : _clrIrregularMetre
       ),
       onBeatChanged: _onBeatChanged,
       onNoteChanged: _onNoteChanged,

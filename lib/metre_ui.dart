@@ -114,14 +114,12 @@ class MetreState extends State<MetreWidget>
       _notify = false;
       print('update1 ${widget.beats}');
       //TODO Need?
-      int beats = loopClamp(widget.beats, widget.minBeats, widget.maxBeats);
-      if (false)
+      int beats = clampLoop(widget.beats, widget.minBeats, widget.maxBeats);
+      if (true)
       {
         beatController.jumpToItem(beats - widget.minBeats);
         noteController.jumpToItem(widget.noteIndex - widget.minNoteIndex);
-        // finishUpdate:
-        widget.update = false;
-        _notify = true;
+        finishUpdate(0);
       }
       else
       {
@@ -212,7 +210,7 @@ class MetreState extends State<MetreWidget>
               child: GestureDetector(
                 onTap: () {
                   print('onTap ${widget.beats}');
-                  int beats = loopClamp(widget.beats + 1, widget.minBeats, widget.maxBeats);
+                  int beats = clampLoop(widget.beats + 1, widget.minBeats, widget.maxBeats);
                   print('onTap $beats');
                   widget.onBeatChanged(beats);
                   beatController.jumpToItem(beats - widget.minBeats);
@@ -272,7 +270,7 @@ class MetreState extends State<MetreWidget>
               quarterTurns: 3,
               child: GestureDetector(
                 onTap: () {
-                  int index = loopClamp(widget.noteIndex + 1, widget.minNoteIndex, widget.maxNoteIndex);
+                  int index = clampLoop(widget.noteIndex + 1, widget.minNoteIndex, widget.maxNoteIndex);
                   widget.onNoteChanged(index2noteValue(index));
                   noteController.jumpToItem(index - widget.minNoteIndex);
                   //setState(() {});

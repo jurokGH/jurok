@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'note_ui.dart';
+import 'NoteWidget.dart';
 import 'metre.dart';
 import 'prosody.dart';
 
@@ -47,6 +47,9 @@ class NoteTempoState extends State<NoteTempoWidget>
         colorFuture: widget.color,
         colorInner: widget.color,
         accents: [],
+        showAccent: false,
+        showTuplet: false,
+        coverWidth: true,
       ),
     );
 
@@ -57,9 +60,10 @@ class NoteTempoState extends State<NoteTempoWidget>
       //setState(() {});
       },
       child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
           wix,
+          Container(width: 2),
           Text('=' + widget.tempo.toString(),
             style: widget.textStyle),
         ],

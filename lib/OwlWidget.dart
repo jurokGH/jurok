@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:owlenome/util.dart';
 import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
-import 'note_ui.dart';
+import 'NoteWidget.dart';
 import 'prosody.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
@@ -13,7 +14,8 @@ class OwlWidget extends StatefulWidget
 {
   final int id;
   final bool accent;
-  final int nAccent;
+  int nAccent;  //TODO
+  final int maxAccentCount;
   final bool active;
   final int activeSubbeat;
   int subbeatCount;
@@ -34,6 +36,7 @@ class OwlWidget extends StatefulWidget
     @required this.getImageIndex,
     @required this.accent,
     @required this.nAccent,
+    this.maxAccentCount = 3,
     @required this.active,
     @required this.denominator,
     @required this.activeSubbeat,
@@ -63,6 +66,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
 
   double _dragStart = 0;
   double maxDragX = 50;
+  double _dragStartY = 0;
+  double maxDragY = 25;
 
   OwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
 
@@ -117,7 +122,6 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   @override
   void dispose()
   {
-    //_controller0.dispose();
     _controller.removeListener(onRedraw);
     super.dispose();
   }
@@ -128,51 +132,67 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     int indexImage = widget.getImageIndex(widget.nAccent, activeSubbeat, widget.subbeatCount);
 
     maxDragX = widget.images[indexImage].width / 4;
+    //maxDragY = widget.images[indexImage].height / 4;
 
     Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
     if (imageSize.height == null)
       imageSize = new Size(imageSize.width, 1.2 * imageSize.width);
-    print(imageSize);
+    //print('OwlWidget $imageSize - $maxDragX');
 
     //TODO 1 vs 2 RepaintBoundary in Column
     return RepaintBoundary(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-//              RepaintBoundary(child:
-          GestureDetector(
-          onTap: () {
-            setState(() {
-              widget.subbeatCount = Subbeat.next(widget.subbeatCount);
-            });
-            //Provider.of<MetronomeState>(context, listen: false)
-            //.setActiveState(widget.id, widget.subbeatCount);
-            widget.onNoteTap(widget.id, widget.subbeatCount);
-          },
-          onHorizontalDragStart: (DragStartDetails details) {
+      child: GestureDetector(
+        onHorizontalDragStart: (DragStartDetails details) {
+          _dragStart = details.localPosition.dx;
+        },
+        onHorizontalDragUpdate: (DragUpdateDetails details) {
+          final double delta = details.localPosition.dx - _dragStart;
+          //TODO
+          int step = (Subbeat.maxSubbeatCount * delta) ~/ maxDragX;
+          step = delta ~/ maxDragX;
+          if (step != 0)
+          {
             _dragStart = details.localPosition.dx;
-          },
-          onHorizontalDragUpdate: (DragUpdateDetails details) {
-            double delta = details.localPosition.dx - _dragStart;
-            int step = (Subbeat.maxSubbeatCount * delta) ~/ maxDragX;
-            step = delta ~/ maxDragX;
-            if (step != 0)
-            {
-              _dragStart = details.localPosition.dx;
-              int subbeatCount = widget.subbeatCount + step;
-              //debugPrint('onHorizontalDragStart - $_dragStart - $delta - $step - $subbeatCount');
-              if (subbeatCount < 1)
-                subbeatCount = 1;
-              if (subbeatCount > Subbeat.maxSubbeatCount)
-                subbeatCount = Subbeat.maxSubbeatCount;
-
-              setState(() {
-                widget.subbeatCount = subbeatCount;
-              });
-              widget.onNoteTap(widget.id, widget.subbeatCount);
-            }
-          },
-          child:
+            final int subbeatCount = clamp(widget.subbeatCount + step, 1, Subbeat.maxSubbeatCount);
+            setState(() {
+              widget.subbeatCount = subbeatCount;
+            });
+            widget.onNoteTap(widget.id, widget.subbeatCount);
+          }
+        },
+        onVerticalDragStart: (DragStartDetails details) {
+          //TODO Offset
+          _dragStartY = details.localPosition.dy;
+        },
+        onVerticalDragUpdate: (DragUpdateDetails details) {
+          final double delta = details.localPosition.dy - _dragStartY;
+          //TODO
+          int step = (widget.maxAccentCount * delta) ~/ maxDragY;
+          step = delta ~/ maxDragY;
+          //print('onVerticalDragUpdate - $delta - $step');
+          if (step != 0)
+          {
+            _dragStartY = details.localPosition.dy;
+            final int accent = clamp(widget.nAccent + step, 0, widget.maxAccentCount);
+            setState(() {
+              widget.nAccent = accent;
+            });
+            widget.onTap(widget.id, step);
+          }
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+//              RepaintBoundary(child:
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  widget.subbeatCount = Subbeat.next(widget.subbeatCount);
+                });
+                //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
+                widget.onNoteTap(widget.id, widget.subbeatCount);
+              },
+              child:
 /*
               Container(
                 decoration: BoxDecoration(
@@ -186,47 +206,53 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 ),
                 child:
 */
-                AspectRatio( // This gives size to NoteWidget
-              aspectRatio: 1.2,//3.5 / 3,
-              //width: 0.9 * widget.width,
-              //height: 0.9 * widget.width,
-              child:
-              Container(
-                //width: imageSize.width,
-                //height: imageSize.height,
-//                  decoration: BoxDecoration(
-//                    shadow:
-//                  ),
-                padding: EdgeInsets.only(bottom: 0),
-                child:
-                NoteWidget(
-                  subDiv: widget.subbeatCount,
-                  denominator: widget.denominator * widget.subbeatCount,
-                  active: active ? activeSubbeat : -1,
-                  activeNoteType: ActiveNoteType.stemFixed,
-                  colorPast: Colors.white,
-                  colorNow: Colors.red,
-                  colorFuture: Colors.white,
-                  colorInner: Colors.white,
-                  //size: imageSize,
-                )
-               )
+              AspectRatio( // This gives size to NoteWidget
+                aspectRatio: 1.7,//1.2,//3.5 / 3,
+                //width: 0.9 * widget.width,
+                //height: 0.9 * widget.width,
+                child: Container(
+                  //width: imageSize.width,
+                  //height: imageSize.height,
+  //                  decoration: BoxDecoration(
+  //                    shadow:
+  //                  ),
+                  padding: EdgeInsets.only(bottom: 0),
+                  child:
+                  NoteWidget(
+                    subDiv: widget.subbeatCount,
+                    denominator: widget.denominator * widget.subbeatCount,
+                    active: active ? activeSubbeat : -1,
+                    activeNoteType: ActiveNoteType.stemFixed,
+                    coverWidth: true,
+                    showTuplet: true,
+                    showAccent: false,
+                    colorPast: Colors.white,
+                    colorNow: Colors.red,
+                    colorFuture: Colors.white,
+                    colorInner: Colors.white,
+                    showShadow: true,
+                    colorShadow: Colors.white.withOpacity(1),
+                    //size: imageSize,
+                  ),
+                ),
+              ),
             ),
-            ),
-            //),
+              //),
 
-//            RepaintBoundary(child:
-          //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                widget.onTap(widget.id, widget.nAccent);
-              });
-            },
-            child: widget.images[indexImage]
-          ),
-        ])
-      );
+  //            RepaintBoundary(child:
+            //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  widget.onTap(widget.id, widget.nAccent);
+                });
+              },
+              child: widget.images[indexImage],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dart:core';
 import 'tempo.dart';
 import 'prosody.dart';
+import 'util.dart';
 
 /// Metronome beat melody configuration
 /// Represents rhythm
@@ -8,15 +9,16 @@ import 'prosody.dart';
 class BeatMetre
 {
   static const List<int> _initSubBeats = [
-    1,3,1,3,1,1, 1,3,1,3,3,3 // Fancy; Bolero; needs accents
+    1, 1, 1, 1,
+    //1,3,1,3,1,1, 1,3,1,3,3,3 // Fancy; Bolero; needs accents
     //2, 2, 4, 2, 4, 2,  // Fancy
     //2,2,4,2,4,2,6,1,
     //1,1,1,1,1,1,1,1,1,1,1,1
-    //1,1,1,1
   ];
 
   static const List<int> _initAccents=[
-    2, 0, 1, 0,  1, 0, 2, 0, 1, 0,  1, 0,//Bolero
+    2, 0, 1, 0,
+    //2, 0, 1, 0,  1, 0, 2, 0, 1, 0,  1, 0,//Bolero
   ];
 
   //ToDo: fancy Bolero ;
@@ -40,9 +42,10 @@ class BeatMetre
   List<int> _regularAccents;
   bool pivoVodochka = false;  // false - чтобы распевней
 
+  // Unused
   /// notes[i] - i-th notes (bips)
   /// notes[i][j] - musical char of j-th subdivision of i-th note (bip)
-  List<List<int>> notes;
+  //List<List<int>> notes;
 
   BeatMetre()
   {
@@ -66,7 +69,7 @@ class BeatMetre
     //  subBeats[i] = _subBeatCount;
   }
 
-  bool get regular
+  bool get regularAccent
   {
     //TODO only if _beatCount < 12
     if (_beatCount == 5 || _beatCount == 7 || _beatCount == 11 ||
@@ -95,16 +98,13 @@ class BeatMetre
   //TODO Change to var?
   int get maxAccent =>  _beatCount > 3 ? 3 : _beatCount - 1;
 
-  void accentUp(int beat)
+  void accentUp(int beat, int step)
   {
     assert(0 <= beat && beat < _beatCount);
 
+    //TODO -1;
     if (beat < _beatCount)
-    {
-      accents[beat]++;
-      if (accents[beat] > maxAccent)
-        accents[beat] = 0;//TODO -1;
-    }
+      accents[beat] = clamp(accents[beat] + step, 0, maxAccent);
   }
 
   void setAccentOption(bool accentLean)
@@ -113,7 +113,7 @@ class BeatMetre
     accents = Prosody.getAccents(_beatCount, pivoVodochka);
   }
 
-  ///TODO For now
+  ///TODO For now Remove?
   int get accent => accents.length > 0 ? accents[0] : 0;
 
   int get beatCount => _beatCount;

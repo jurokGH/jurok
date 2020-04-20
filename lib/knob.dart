@@ -56,6 +56,7 @@ class Knob extends StatefulWidget
   final TextStyle textStyle;
   final bool showIcon;
   final bool showText;
+  final bool firmKnob;
   final bool debug;
 
   final ValueChanged<double> onChanged;
@@ -77,6 +78,7 @@ class Knob extends StatefulWidget
     this.colorOutLimit = Colors.red,
     this.showIcon = true,
     this.showText = true,
+    this.firmKnob = true,
     this.debug = false,
     @required this.textStyle,
     @required this.onChanged, @required this.onPressed});
@@ -100,6 +102,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   Duration _prevTime;
   double _startAngle;
   double _prevAngle;
+  int _prevDir;
   int turn;
   bool pressed = false;
   bool tap = false;
@@ -112,6 +115,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   int _time = 5000;
   double _tangential;
 
+  double flingVelocity = 1.5;
   double _friction = 0.1;//0.05;
   double _accel = 800;
 
@@ -198,8 +202,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     else
       _startAngle = _startPos.direction * 180 / pi;
     _prevAngle = _startAngle;
-    _prevTime = details.sourceTimeStamp;
+    _prevDir = 0;
     turn = 0;
+    _prevTime = details.sourceTimeStamp;
 
     //debugPrint('onStart (pos,loc,glob,angle,rad0,val,time) ${_startPos.toString()} - ${details.localPosition.toString()} - ${details.globalPosition.toString()} - $_startAngle - $radius0 - $_startValue - $_prevTime');
   }
@@ -226,16 +231,26 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       //double da = atan2(cur.dy, cur.dx) - atan2(prev.dy, prev.dx);
       double alpha = pos.direction;
       alpha *= 180 / pi;
+
+      // CW/CCW rotation direction
+      int dir = 0;
+      // Detect turnaround
       if (alpha * _prevAngle < 0 && (alpha - _prevAngle).abs() > 180)
       {
-        turn += _prevAngle > 0 ? 1  : -1;
+        dir = _prevAngle > 0 ? 1  : -1;
+        turn += dir;
         //debugPrint('Turnaround');
       }
-      _prevAngle = alpha;
-      _prevPos = pos;
-      _posSpot = _prevPos;
-      alpha += 360 * turn;
-      double da = alpha - _startAngle;
+
+      if (dir == 0 && alpha != _prevAngle)
+        dir = alpha > _prevAngle ? 1 : -1;
+      bool dirChanged = _prevDir != 0 && dir != _prevDir;
+      print('Knob:Dir $dir - $_prevDir - $dirChanged');
+      if (dir != 0)
+        _prevDir = dir;
+
+      double alphaFull = alpha + 360 * turn;
+      double da = alphaFull - _startAngle;
 
       //debugPrint('Knob Angles: $alpha - $_startAngle - $da');
       //dda *= 180 / pi;
@@ -265,7 +280,46 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
       //double newValue = widget.value - (1 / coef) * da * (widget.max - widget.min) / sweepAngle;
       double newValue = _startValue - da * k;
-      double clipped = min(max(newValue, widget.min), min(widget.limit, widget.max));
+      //double clipped = clamp(newValue, widget.min, min(widget.limit, widget.max));
+      final double maxValue = min(widget.limit, widget.max);
+      //TODO
+      assert(widget.min <= maxValue);
+      bool updateStart = false;
+      if (!widget.firmKnob)
+      {
+        if (newValue < widget.min)
+        {
+          //newValue = widget.min;
+          if (dirChanged && dir == 1)
+          {
+            print('Knob:correctMin');
+            newValue = widget.min + (alpha - _prevAngle) * k;
+            updateStart = true;
+          }
+        }
+        else if (newValue > maxValue)
+        {
+          //newValue = maxValue;
+          if (dirChanged && dir == -1)
+          {
+            print('Knob:correctMax');
+            newValue = maxValue + (alpha - _prevAngle) * k;
+            updateStart = true;
+          }
+        }
+      }
+      final double clipped = min(max(newValue, widget.min), min(widget.limit, widget.max));
+      if (updateStart)
+      {
+        print('Knob:updateStart - $newValue - $alpha');
+        _startValue = newValue;
+        _startAngle = alpha;
+      }
+
+      // Save previous values
+      _prevAngle = alpha;
+      _prevPos = pos;
+      _posSpot = _prevPos;
 
       //debugPrint('Knob $pos - ${details.delta} - ${details.globalPosition} - $da - $clipped');
       if (clipped != widget.value)
@@ -304,7 +358,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
     double tangentialAbs = tangential.abs();
     _time = 1000;  // in msec
-    _time = tangentialAbs ~/ 1.5;  // in msec
+    _time = tangentialAbs ~/ flingVelocity;  // in msec
     _accel = 1000 * tangentialAbs / _time;
     //_time = (tangentialAbs * 1000) ~/ _accel;  // in msec
     // Knob turns CW to higher values

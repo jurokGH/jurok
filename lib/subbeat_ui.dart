@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'note_ui.dart';
+import 'NoteWidget.dart';
 import 'prosody.dart';
 
 class SubbeatWidget extends StatefulWidget
@@ -34,7 +34,7 @@ class SubbeatState extends State<SubbeatWidget>
   Widget build(BuildContext context)
   {
     Size noteSize = widget.size;
-    noteSize -= new Offset(10, 10);
+    noteSize -= new Offset(10, 30);
 
     return GestureDetector(
       onTap: () {
@@ -56,11 +56,14 @@ class SubbeatState extends State<SubbeatWidget>
           ),
           //BoxDecoration
           Padding(
-            padding: const EdgeInsets.only(right: 10, bottom: 10),
+            padding: const EdgeInsets.only(right: 10, bottom: 0),
             child: NoteWidget(
               subDiv: widget.subbeatCount,
               denominator: widget.noteValue * widget.subbeatCount,
               active: -1,
+              coverWidth: true,
+              showTuplet: false,
+              showAccent: false,
               colorPast: widget.color,
               colorNow: widget.color,
               colorFuture: widget.color,

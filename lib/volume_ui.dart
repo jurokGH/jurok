@@ -271,6 +271,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
         //maxWidth: 200,
         //maxHeight: 200,
       ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,  // Make button of exact diameter size
       //tooltip: _soundSchemes[_activeSoundScheme],
 //      padding: EdgeInsets.all(4),
       //textTheme: ButtonTextTheme.primary,
@@ -350,7 +351,7 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
                   height: widget.height,
                   //color: Colors.red,
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.withOpacity(0.6),
+                    color: Colors.deepPurple.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(0.5 * widget.diameter),
                   ),
                   child: rollup,
