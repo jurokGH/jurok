@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -149,7 +148,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// Configuration constants
   bool _useNewKnob = false;
-  bool _showKnobDialText = false;
+  bool _showKnobDialText = true;
   bool _showNoteTempo = true;
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
@@ -853,7 +852,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       note: _noteValue,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
-      width: 0.22 * _sizeCtrls.width,
+      width: 0.25 * _sizeCtrls.width,
       height: barHeight,
       itemExtent: 44,
       color: Colors.deepPurple,
@@ -868,7 +867,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onNoteChanged: _onNoteChanged,
     );
 
-    final Size barSize = Size((portrait ? 0.42 : 0.4) * _sizeCtrls.width, 0.16 * _sizeCtrls.height);
+    final Size barSize = Size((portrait ? 0.45 : 0.4) * _sizeCtrls.width, 0.16 * _sizeCtrls.height);
 
     final Widget accentMetre = new AccentMetreWidget(
       beats: _beat.beatCount,
@@ -930,7 +929,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       )
     );
 
-    final Size subbeatSize = Size(0.13 * _sizeCtrls.width, 1.25 * barSize.height);
+    final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
       noteValue: _noteValue,
@@ -961,8 +960,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          btnSubbeat,
-          //barSpacer,
+          //btnSubbeat,
+          barSpacer,
           metre,  ///widget Metre
           barSpacer,
 
@@ -1048,7 +1047,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           ///widget Metre
-          //btnSubbeat,
           _buildMetre(0.22 * _sizeCtrls.width, 0.32 * _sizeCtrls.height, _textStyle),
           Container(width: btnPadding,),
 
@@ -1246,14 +1244,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Fill up the remaining screen as the last widget in column/row
     return Stack(
       children: <Widget>[
-/*
         Positioned(
           left: _paddingBtn.dx,
           top: _paddingBtn.dy,
           //child: Container(),
           child: btnSubbeat,
         ),
-*/
         Positioned(
           bottom: _paddingBtn.dx,
           left: _paddingBtn.dy,
