@@ -541,6 +541,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                   _prevPos, widget.dialDivisions,
                   pressed,
                   widget.showText,
+                  widget.showDialText,
                   Colors.purpleAccent,
                   //_controller.isAnimating ? _animColor.value : Colors.purple.withOpacity(0.25),
                   _controller.isAnimating ? _colorRing : Colors.purple.withOpacity(0.25),
@@ -621,11 +622,14 @@ class KnobPainter extends CustomPainter
   final bool debug;
   final bool drawCenter;
   final bool showText;
+  final bool showDialText;
   final int dialDivisions;
 
   KnobPainter(this.radiusDial, this.radiusButton,
     this.pos, this.dialDivisions,
-    this.drawCenter, this.showText,
+    this.drawCenter,
+    this.showText,
+    this.showDialText,
     this.colorDot,
     this.colorRing,
     this.colorArrow,
@@ -753,7 +757,7 @@ class KnobPainter extends CustomPainter
     }
 
     /// Dial divisions
-    for (int i = showText ? 1 : 0; i < dialDivisions; i++)
+    for (int i = showDialText ? 1 : 0; i < dialDivisions; i++)
     {
       double angle = i * angleDiv - 0.5 * pi;
       if (angle == 0 || angle == pi)
