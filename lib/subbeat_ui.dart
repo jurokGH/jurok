@@ -33,8 +33,21 @@ class SubbeatState extends State<SubbeatWidget>
   @override
   Widget build(BuildContext context)
   {
-    Size noteSize = widget.size;
-    noteSize -= new Offset(10, 30);
+    final Size noteSize = new Size(0.8 * widget.size.width, 0.5 * widget.size.height);
+    //noteSize -= new Offset(10, 30);
+    final NoteWidget noteWidget = new NoteWidget(
+      subDiv: widget.subbeatCount,
+      denominator: widget.noteValue * widget.subbeatCount,
+      active: -1,
+      coverWidth: true,
+      showTuplet: false,
+      showAccent: false,
+      colorPast: widget.color,
+      colorNow: widget.color,
+      colorFuture: widget.color,
+      colorInner: Colors.white,
+      size: noteSize,
+    );
 
     return GestureDetector(
       onTap: () {
@@ -46,7 +59,7 @@ class SubbeatState extends State<SubbeatWidget>
         alignment: AlignmentDirectional.center,
         children: <Widget>[
           Opacity(
-            opacity: 0.75,
+            opacity: 0.6,
             child:
               Image.asset('images/owl-sub.png',//owl-btn
               //Image.asset('images/owl-btn.png',
@@ -56,20 +69,8 @@ class SubbeatState extends State<SubbeatWidget>
           ),
           //BoxDecoration
           Padding(
-            padding: const EdgeInsets.only(right: 10, bottom: 0),
-            child: NoteWidget(
-              subDiv: widget.subbeatCount,
-              denominator: widget.noteValue * widget.subbeatCount,
-              active: -1,
-              coverWidth: true,
-              showTuplet: false,
-              showAccent: false,
-              colorPast: widget.color,
-              colorNow: widget.color,
-              colorFuture: widget.color,
-              colorInner: Colors.white,
-              size: noteSize,
-            )
+            padding: const EdgeInsets.only(right: 10, top: 10),
+            child: noteWidget,
           ),
         ]
       )

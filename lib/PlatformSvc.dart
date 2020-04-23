@@ -97,7 +97,7 @@ class PlatformSvc
       }
       else
       {
-        print("togglePlaytogglePlaytogglePlaytogglePlay");
+        //print("togglePlaytogglePlaytogglePlaytogglePlay");
 /*
         setState(() {
           state.reset();//IS: TEST

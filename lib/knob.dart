@@ -56,6 +56,7 @@ class Knob extends StatefulWidget
   final TextStyle textStyle;
   final bool showIcon;
   final bool showText;
+  final bool showDialText;
   final bool firmKnob;
   final bool debug;
 
@@ -78,6 +79,7 @@ class Knob extends StatefulWidget
     this.colorOutLimit = Colors.red,
     this.showIcon = true,
     this.showText = true,
+    this.showDialText = true,
     this.firmKnob = true,
     this.debug = false,
     @required this.textStyle,
@@ -103,9 +105,13 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   double _startAngle;
   double _prevAngle;
   int _prevDir;
+  bool _outLimit;
   int turn;
   bool pressed = false;
   bool tap = false;
+
+  final Color clrAnimRing1 = Colors.pink[400].withOpacity(0.5);
+  final Color clrAnimRing2 = Colors.purple[800].withOpacity(0.5);
 
   AnimationController _controller;
   Animation<double> _animation;
@@ -127,6 +133,8 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   {
     super.initState();
 
+    _outLimit = false;
+
     _controller = new AnimationController(vsync: this, duration: new Duration(milliseconds: _time))
       ..addListener(onTimer);
       //..addStatusListener(onTimerStatus);
@@ -136,7 +144,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     _animColor = new ColorTween(begin: Colors.deepPurple[700], end: Colors.purple.withOpacity(0.25))
       //.chain(CurveTween(curve: Curves.easeInOutSine))
       .animate(_controller);
-    _tweenColor = new ColorTween(begin: Colors.pink[700].withOpacity(0.5), end: Colors.purple.withOpacity(0.25));
+    _tweenColor = new ColorTween(begin: clrAnimRing1, end: clrAnimRing2);
 
     _image = new Image.asset('images/TempoKnob.png',
       //height: radius,
@@ -237,20 +245,23 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       // Detect turnaround
       if (alpha * _prevAngle < 0 && (alpha - _prevAngle).abs() > 180)
       {
-        dir = _prevAngle > 0 ? 1  : -1;
-        turn += dir;
-        //debugPrint('Turnaround');
+        dir = _prevAngle > 0 ? -1  : 1;
+        turn -= dir;
+        debugPrint('Turnaround - $dir - $turn - $alpha - $_prevAngle');
       }
-
-      if (dir == 0 && alpha != _prevAngle)
-        dir = alpha > _prevAngle ? 1 : -1;
-      bool dirChanged = _prevDir != 0 && dir != _prevDir;
-      print('Knob:Dir $dir - $_prevDir - $dirChanged');
-      if (dir != 0)
-        _prevDir = dir;
 
       double alphaFull = alpha + 360 * turn;
       double da = alphaFull - _startAngle;
+
+      if (dir == 0)
+      {
+        if (alpha != _prevAngle)
+          dir = alpha < _prevAngle ? 1 : -1;
+      }
+      bool dirChanged = _prevDir != 0 && dir != _prevDir;
+      print('Knob:Dir $dir - $_prevDir - $dirChanged - $alpha - $_prevAngle');
+      if (dir != 0)
+        _prevDir = dir;
 
       //debugPrint('Knob Angles: $alpha - $_startAngle - $da');
       //dda *= 180 / pi;
@@ -285,35 +296,38 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       //TODO
       assert(widget.min <= maxValue);
       bool updateStart = false;
-      if (!widget.firmKnob)
+      print('Knob:newValue $newValue - $maxValue');
+      if (newValue < widget.min)
       {
-        if (newValue < widget.min)
+        _outLimit = true;
+        //newValue = widget.min;
+        if (!widget.firmKnob && dirChanged && dir == 1)
         {
-          //newValue = widget.min;
-          if (dirChanged && dir == 1)
-          {
-            print('Knob:correctMin');
-            newValue = widget.min + (alpha - _prevAngle) * k;
-            updateStart = true;
-          }
-        }
-        else if (newValue > maxValue)
-        {
-          //newValue = maxValue;
-          if (dirChanged && dir == -1)
-          {
-            print('Knob:correctMax');
-            newValue = maxValue + (alpha - _prevAngle) * k;
-            updateStart = true;
-          }
+          newValue = widget.min - (alpha - _prevAngle) * k;
+          print('Knob:correctMin $newValue');
+          updateStart = true;
         }
       }
+      else if (newValue > maxValue)
+      {
+        _outLimit = true;
+        //newValue = maxValue;
+        if (!widget.firmKnob && dirChanged && dir == -1)
+        {
+          newValue = maxValue + (alpha - _prevAngle) * k;
+          print('Knob:correctMax $newValue');
+          updateStart = true;
+        }
+      }
+      else
+        _outLimit = false;
+
       final double clipped = min(max(newValue, widget.min), min(widget.limit, widget.max));
       if (updateStart)
       {
-        print('Knob:updateStart - $newValue - $alpha');
+        print('Knob:updateStart - $newValue - $alpha - $_startValue - $_startAngle');
         _startValue = newValue;
-        _startAngle = alpha;
+        _startAngle = alphaFull;
       }
 
       // Save previous values
@@ -366,6 +380,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     //debugPrint('Velocity $_tangential - $_accel - $_time - $_prevAngle');
 
     _startPos = _prevPos = null;
+    _outLimit = false;
 
     if (_controller.isAnimating)
       _controller.stop();
@@ -412,7 +427,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       Size sz = MediaQuery.of(context).size; //TODO
       //debugPrint('Builder ${MediaQuery.of(context).size} - $constraints');
       TextStyle textStyle = widget.textStyle;
-      if (widget.value <= widget.min || widget.value >= widget.limit)
+      if (_outLimit)
         textStyle = widget.textStyle.copyWith(color: widget.colorOutLimit);
 
       return Center(child:
@@ -515,7 +530,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                 angle: angle,
                 child: ClipOval(
                   child: Container(
-                    color: Colors.deepPurple.withOpacity(0.7), //widget.color,
+                    color: Colors.deepPurple.withOpacity(0.5), //widget.color,
                     child: _image,
                   )
                 ),
@@ -523,17 +538,26 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
               CustomPaint(
                 painter: KnobPainter(widget.radiusDial, widget.radiusButton,
-                  _prevPos, widget.dialDivisions, pressed,
+                  _prevPos, widget.dialDivisions,
+                  pressed,
+                  widget.showText,
                   Colors.purpleAccent,
                   //_controller.isAnimating ? _animColor.value : Colors.purple.withOpacity(0.25),
                   _controller.isAnimating ? _colorRing : Colors.purple.withOpacity(0.25),
-                  Colors.blue.withOpacity(0.75), Colors.blueAccent, widget.debug),
+                  /// Arrows color
+                  Colors.purpleAccent[400],//Colors.white,
+                  /// Arrows pressed color
+                  Colors.purpleAccent.withOpacity(0.5),
+                  /// Press spot on outer ring color
+                  Colors.redAccent[400],
+                  widget.debug),
                 size: Size(size, size),
 //                child: Text(widget.value.toInt().toString(),
 //                  style: widget.textStyle
 //                ),
               ),
 
+              widget.showDialText ?
               Positioned(
                 top: 0,
                 child: Text(widget.value.toInt().toString(),
@@ -543,7 +567,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
+              )
+              :
+              Container(),
 
               widget.showIcon ?
               Column(
@@ -562,7 +588,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               Container(),
               widget.showText ?
               Text(widget.value.toInt().toString(),
-                style: textStyle
+                style: textStyle//.copyWith(fontSize: 40)
               )
               :
               Container(),
@@ -582,16 +608,30 @@ class KnobPainter extends CustomPainter
   final double radiusButton;
   final double radiusDot = 5;
   final Offset pos;
+  /// Outer ring dot color
   final Color colorDot;
+  /// Outer ring color
   final Color colorRing;
+  /// Arrows-buttons +-1: main color
   final Color colorArrow;
+  /// Arrows-buttons +-1: pressed color
+  final Color colorArrowHi;
+  /// Press spot on outer ring color
   final Color colorHit;
   final bool debug;
   final bool drawCenter;
+  final bool showText;
   final int dialDivisions;
 
-  KnobPainter(this.radiusDial, this.radiusButton, this.pos, this.dialDivisions, this.drawCenter,
-    this.colorDot, this.colorRing, this.colorArrow, this.colorHit, this.debug);
+  KnobPainter(this.radiusDial, this.radiusButton,
+    this.pos, this.dialDivisions,
+    this.drawCenter, this.showText,
+    this.colorDot,
+    this.colorRing,
+    this.colorArrow,
+    this.colorArrowHi,
+    this.colorHit,
+    this.debug);
 
   Path arrowPath(int direction, Offset center, double radius, double deltaAngle, double xCenter)
   {
@@ -643,7 +683,7 @@ class KnobPainter extends CustomPainter
       ..style = PaintingStyle.fill
       //..blendMode = BlendMode.darken
       ..strokeWidth = 2
-      ..color = Colors.pinkAccent[400];
+      ..color = colorArrowHi;
 //    final Shader paintArrowHi = new RadialGradient(
 //      colors: <Color>[colorDot, colorDot.withOpacity(0.3)],
 //    ).createShader(rcDot);
@@ -713,9 +753,11 @@ class KnobPainter extends CustomPainter
     }
 
     /// Dial divisions
-    for (int i = 1; i < dialDivisions; i++)
+    for (int i = showText ? 1 : 0; i < dialDivisions; i++)
     {
       double angle = i * angleDiv - 0.5 * pi;
+      if (angle == 0 || angle == pi)
+        continue;
       Offset off = Offset(cos(angle), sin(angle));
       off *= 0.9 * radius;
 

@@ -25,7 +25,7 @@ class MetreBarWidget extends StatefulWidget
   final int beats;
   final int noteValue;
   final bool pivoVodochka;
-  final List<int> accents;
+  //final List<int> accents;
   final int activeMetre;
   final List<MetreBar> metres;
   final Size size;
@@ -34,6 +34,7 @@ class MetreBarWidget extends StatefulWidget
   final ValueChanged<int> onSelectedChanged;
   //final ValueChanged2<int, int> onMetreChanged;
   final ValueChanged<bool> onOptionChanged;
+  final Function onResetMetre;
 
   MetreBarWidget({
     this.update = false,
@@ -41,14 +42,15 @@ class MetreBarWidget extends StatefulWidget
     this.noteValue,
     this.activeMetre,
     this.metres,
-    this.accents,
+    //this.accents,
     this.pivoVodochka = true,
     this.size,
     this.color,
     this.colorIrregular,
-    @required this.onSelectedChanged,
+    this.onSelectedChanged,
     //@required this.onMetreChanged,
-    @required this.onOptionChanged,
+    this.onOptionChanged,
+    this.onResetMetre,
   });
 
   @override
@@ -111,6 +113,10 @@ class MetreBarState extends State<MetreBarWidget>
     final List<int> metres = widget.metres[index].simpleMetres();
     final List<int> accents = widget.metres[index].accents;
 
+    print('metreBuilder $index');
+    print(accents);
+    print(metres);
+
     final List<Widget> notes = new List<Widget>();
     int j = 0;  // Simple metre 1st note index
     for (int i = 0; i < metres.length; i++)
@@ -122,14 +128,13 @@ class MetreBarState extends State<MetreBarWidget>
       //TODO Width
       double width = widget.size.width * metres[i] / beats;
 
-      //print('widget.accents $index - $i');
-      //print(accents1);
-      //print(widget.size);
+      print('widget.accents $index - $i - ${metres[i]} - ${widget.noteValue}');
+      print(accents1);
 
       final Widget wix = new NoteWidget(
         subDiv: metres[i],
         denominator: widget.noteValue,
-        active: -1,
+        active: -2,
         colorPast: Colors.black,
         colorNow: Colors.black,
         colorFuture: Colors.black,
@@ -143,6 +148,15 @@ class MetreBarState extends State<MetreBarWidget>
       );
       notes.add(wix);
     }
+/*
+    return Container(
+      width: widget.size.width,
+      height: widget.size.height,
+      alignment: Alignment.center,
+      color: Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0),
+      child: Text(index.toString()),
+    );
+*/
     // Need size here to be defined
     return new Container(
       //color: Colors.blue,
@@ -150,19 +164,16 @@ class MetreBarState extends State<MetreBarWidget>
       height: widget.size.height,
       alignment: Alignment.center,
       //padding: EdgeInsets.symmetric(horizontal: 5),
-      child: Wrap(children: notes),
+      // TODO
+      child: Row(
+        //mainAxisAlignment: MainAxisAlignment.center,
+        children: notes
+      ),
     );
     return new FittedBox(
         fit: BoxFit.contain,
         child: Wrap(children: notes),
     );
-
-    return Container(
-        height: double.infinity,
-        width: 300,
-        color: Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0),
-        margin: const EdgeInsets.all(20.0),
-      );
   }
 
   @override
@@ -178,6 +189,8 @@ class MetreBarState extends State<MetreBarWidget>
     width = widget.size.width;
 
     print("MetreBar::build - ${widget.activeMetre} - ${widget.beats} - ${widget.noteValue} - ${widget.pivoVodochka} - ${widget.size}");
+    print(widget.metres);
+    //print(widget.accents);
     //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
 
     // To prevent reenter via widget.onBeat/NoteChanged::setState
@@ -191,6 +204,15 @@ class MetreBarState extends State<MetreBarWidget>
       _controller.jumpTo(widget.size.width * activeMetre);
       finishUpdate(0);
     }
+    if (_controller != null && _controller.hasClients)
+    {
+      //&& _controller.position?.haveDimensions)
+      double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
+      print('MetreBar::_physics $dimension - $_itemExtent');
+      if (_itemExtent != dimension)
+        _physics?.itemDimension = dimension;
+      //_controller.jumpTo(widget.size.width * widget.activeMetre);
+    }
 
     final ListView listView = new ListView.builder(
       scrollDirection: Axis.horizontal,
@@ -200,15 +222,6 @@ class MetreBarState extends State<MetreBarWidget>
       itemCount: widget.metres.length,
       itemBuilder: metreBuilder,
     );
-
-    if (_controller != null && _controller.hasClients)
-    {
-    //&& _controller.position?.haveDimensions)
-      double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
-      if (_itemExtent != dimension)
-        _physics?.itemDimension = dimension;
-      //_controller.jumpTo(widget.size.width * widget.activeMetre);
-    }
 
     /*
 return Container(
@@ -234,40 +247,35 @@ return Container(
           int currentIndex = widget.activeMetre + 1;
           if (currentIndex >= widget.metres.length)
             currentIndex = 0;
-          print("MetreBar::onTap ${widget.metres[currentIndex].beats} - ${widget.metres[currentIndex].note}");
-          widget.onSelectedChanged(currentIndex);
+          print("MetreBar::onTap $currentIndex - ${widget.metres[currentIndex].beats} - ${widget.metres[currentIndex].note}");
+          widget?.onSelectedChanged(currentIndex);
+          print("MetreBar::onTap1 $currentIndex");
+          _notify = false;
           _controller.jumpTo(widget.size.width * currentIndex);
+          _notify = true;
+          print("MetreBar::onTap2 $currentIndex");
 
           //setState(() {});
           //Provider.of<MetronomeState>(context, listen: false)
           //.setActiveState(widget.id, widget.subbeatCount);
         },
-/*
-        onHorizontalDragEnd: (DragEndDetails details) {
-          int index = _activeMetre - details.primaryVelocity.sign.toInt();
-          index = loopClamp(index, 0, _metreList.length - 1);
-          _activeMetre = index;
-          widget.onChanged(_metreList[_activeMetre].beats, _metreList[_activeMetre].note);
-        },
-*/
         onVerticalDragEnd: (DragEndDetails details) {
           print("onVerticalDragEndonVerticalDragEnd");
-          widget.onOptionChanged(!widget.pivoVodochka);
+          widget?.onOptionChanged(!widget.pivoVodochka);
           //setState(() {});
         },
         onDoubleTap: () {
           print("onDoubleTaponDoubleTap");
-          widget.onOptionChanged(!widget.pivoVodochka);
+          widget?.onOptionChanged(!widget.pivoVodochka);
         },
         onLongPressStart: (LongPressStartDetails details) {
           print("onLongPress");
-          widget.onOptionChanged(true);
+          widget?.onResetMetre();
         },
         child: NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification notification)
           {
-            //ScrollStartNotification
-            //ScrollEndNotification
+            //ScrollStartNotification, ScrollEndNotification
             print("NotificationListener 1");
             if (notification.depth == 0 &&
               widget.onSelectedChanged != null &&
@@ -285,7 +293,7 @@ return Container(
               if (currentIndex != widget.activeMetre && _notify)
               {
                 print("NotificationListener 2");
-                widget.onSelectedChanged(currentIndex);
+                widget?.onSelectedChanged(currentIndex);
               }
               return true;
             }
@@ -360,6 +368,7 @@ class CustomScrollPhysics extends ScrollPhysics
   @override
   Simulation createBallisticSimulation(
       ScrollMetrics position, double velocity) {
+    print('createBallisticSimulation');
     // If we're out of range and not headed back in range, defer to the parent
     // ballistics, which should put us back in range at a page boundary.
     if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||

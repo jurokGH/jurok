@@ -139,6 +139,23 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       imageSize = new Size(imageSize.width, 1.2 * imageSize.width);
     //print('OwlWidget $imageSize - $maxDragX');
 
+    final NoteWidget noteWidget = new NoteWidget(
+      subDiv: widget.subbeatCount,
+      denominator: widget.denominator * widget.subbeatCount,
+      active: active ? activeSubbeat : -1,
+      activeNoteType: ActiveNoteType.stemFixed,
+      coverWidth: true,
+      showTuplet: true,
+      showAccent: false,
+      colorPast: Colors.white,
+      colorNow: Colors.red,
+      colorFuture: Colors.white,
+      colorInner: Colors.white,
+      showShadow: true,
+      colorShadow: Colors.white.withOpacity(1),
+      //size: imageSize,
+    );
+
     //TODO 1 vs 2 RepaintBoundary in Column
     return RepaintBoundary(
       child: GestureDetector(
@@ -177,7 +194,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
             setState(() {
               widget.nAccent = accent;
             });
-            widget.onTap(widget.id, step);
+            widget.onTap(widget.id, accent);
           }
         },
         child: Column(
@@ -217,23 +234,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   //                    shadow:
   //                  ),
                   padding: EdgeInsets.only(bottom: 0),
-                  child:
-                  NoteWidget(
-                    subDiv: widget.subbeatCount,
-                    denominator: widget.denominator * widget.subbeatCount,
-                    active: active ? activeSubbeat : -1,
-                    activeNoteType: ActiveNoteType.stemFixed,
-                    coverWidth: true,
-                    showTuplet: true,
-                    showAccent: false,
-                    colorPast: Colors.white,
-                    colorNow: Colors.red,
-                    colorFuture: Colors.white,
-                    colorInner: Colors.white,
-                    showShadow: true,
-                    colorShadow: Colors.white.withOpacity(1),
-                    //size: imageSize,
-                  ),
+                  child: noteWidget,
                 ),
               ),
             ),
@@ -243,9 +244,11 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
             //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:
             GestureDetector(
               onTap: () {
+                final int accent = clampLoop(widget.nAccent + 1, 0, widget.maxAccentCount);
                 setState(() {
-                  widget.onTap(widget.id, widget.nAccent);
+                  widget.nAccent = accent;
                 });
+                widget.onTap(widget.id, accent);
               },
               child: widget.images[indexImage],
             ),

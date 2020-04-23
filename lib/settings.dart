@@ -91,10 +91,9 @@ class SettingsWidget extends StatelessWidget
           title: Text('Other options'),
           //dense: true,
         ))
-/*
         ..add(
           new SwitchListTile(
-            title: Text('Новый ручкан'),
+            title: Text('New knob'),
             value: settings.useKnob,
             onChanged: (bool value) {
               //setState(() { _character = value; });
@@ -102,7 +101,6 @@ class SettingsWidget extends StatelessWidget
               Navigator.pop(context, settings);
             },
         ))
-*/
         ..add(new Divider())
         ..add(new AboutListTile()),
 

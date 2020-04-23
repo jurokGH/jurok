@@ -34,7 +34,7 @@ class NoteTempoState extends State<NoteTempoWidget>
   @override
   Widget build(BuildContext context)
   {
-    Widget wix = new SizedBox(
+    final Widget noteWidget = new SizedBox(
       width: widget.size.width,
       height: widget.size.height,
       child:
@@ -62,7 +62,7 @@ class NoteTempoState extends State<NoteTempoWidget>
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
-          wix,
+          noteWidget,
           Container(width: 2),
           Text('=' + widget.tempo.toString(),
             style: widget.textStyle),

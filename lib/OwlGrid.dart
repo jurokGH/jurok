@@ -363,10 +363,10 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           animation: _controller.view,
           images: _skin.images,//[accent ? 0 : 1]),
           getImageIndex: _skin.getImageIndex,
-          onTap: (int id, int step) {
+          onTap: (int id, int accent) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
-            widget.onAccentChanged(id, step);
+            widget.onAccentChanged(id, accent);
           },
           onNoteTap: (int id, int subCount) {
             //assert(id < widget.beat.subBeats.length);

@@ -80,7 +80,8 @@ class _NoteState extends State<NoteWidget>
   {
     return CustomPaint(
       size: widget.size,
-      painter: NotePainter(widget.denominator, widget.subDiv, widget.accents, widget.active,
+      painter: NotePainter(
+        widget.denominator, widget.subDiv, widget.accents, widget.active,
         widget.maxAccentCount,
         widget.colorPast, widget.colorNow, widget.colorFuture, widget.colorInner,
         widget.activeNoteType, widget.coverWidth, widget.showTuplet, widget.showAccent,

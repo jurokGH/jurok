@@ -67,9 +67,9 @@ const int _cMaxNoteValue = 16;
 /// Min tempo
 const int _cMinTempo = 1;
 /// Absolute max tempo. Больше него не ставим, даже если позволяет сочетание схемы и метра.
-const int _cMaxTempo = 1000;  //500-5000
+const int _cMaxTempo = 800;  //500-5000
 /// Initial tempo
-const int _cIniTempo = 121;  //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+const int _cIniTempo = 120;  //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 
@@ -148,6 +148,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// Configuration constants
   bool _useNewKnob = false;
+  bool _showKnobDialText = false;
+  bool _showNoteTempo = false;
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
   static const int maxBeatCount = _cMaxBeatCount;
@@ -568,11 +570,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() {});
   }
 
-  void onAccentChanged(int id, int step)
+  void onAccentChanged(int id, int accent)
   {
     assert(id < _beat.subBeats.length);
-    _beat.accentUp(id, step);
-    _metreList[_activeMetre].accentUp(id, step);
+    _beat.setAccent(id, accent);
+    _metreList[_activeMetre].setAccent(id, accent);
     Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
         _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
@@ -605,8 +607,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double radius2 = 0.5 * (x * x + y1 * y1 - a * a) / (a + y1);
 
     double radius = min(0.5 * height - padY0, 0.5 * width - padX0);
-    print('${0.5 * height - padY0} - ${0.5 * width - padX0}');
-    print('$radius - $radius1 - $radius2 - $width - $height');
+    //print('${0.5 * height - padY0} - ${0.5 * width - padX0}');
+    //print('$radius - $radius1 - $radius2 - $width - $height');
 
     //if (radius > radius1)
       //radius = radius1;
@@ -630,7 +632,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double xx1 = b + d;
     double xx2 = b - d;
     double xx = xx1 < radius ? xx1 : xx2;
-    print("Button $radius - $xx1 - $xx2 - $radiusBtn");
+    //print("Button $radius - $xx1 - $xx2 - $radiusBtn");
 
     return [radius, xx];
   }
@@ -800,15 +802,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       animationType: _animationType,
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
-/*
-      onCountChanged: (int count) {
-        if (count > maxBeatCount)
-          count = minBeatCount;
-        if (count < minBeatCount)
-          count = maxBeatCount;
-        onMetreChanged(count, _noteValue);
-      }
-*/
     );
 
     // TODO VG
@@ -897,7 +890,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       update: updateMetreBar,
       beats: _beat.beatCount,
       noteValue: _noteValue,
-      accents: _beat.accents,
+      //accents: _beat.accents,
       pivoVodochka: _beat.pivoVodochka, //?
       activeMetre: _activeMetre,
       metres: _metreList,
@@ -912,6 +905,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         {
           setState(() {});
         }
+      },
+      onResetMetre: () {
+        _metreList[_activeMetre].setRegularAccent();
       },
     );
 
@@ -1011,7 +1007,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      noteTempo,  ///widget Note=tempo
+                      _showNoteTempo ? noteTempo : Container(),  ///widget Note=tempo
                       Expanded(child:
   //                        ClipRect(child:
                         listTempo,  ///widget Tempo list
@@ -1133,8 +1129,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _layoutControls(BuildContext context, BoxConstraints constraints, bool portrait)
   {
     double minSquare = constraints.maxWidth > constraints.maxHeight ? constraints.maxHeight : constraints.maxWidth;
-    print("minSquare");
-    print(constraints);
+    //print("minSquare $constraints");
 
     final TextStyle textStyleTimer = _textStyle.copyWith(fontSize: 20);
 
@@ -1157,7 +1152,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     //_smallBtnSize = _smallBtnSize0;
     //if (diameter == minSquare - 2 * knobPadding.dy)
-    print('${constraints.maxWidth} - ${constraints.maxHeight} - $diameter');
+
+    //print('${constraints.maxWidth} - ${constraints.maxHeight} - $diameter');
+
     //diameter = 2 * 143.76;
     //diameter = constraints.maxHeight - 20;
     //radius: 0.9 * minSquare,
@@ -1181,9 +1178,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       firmKnob: false,
       debug: false,
       showIcon: false,
+      showDialText: _showKnobDialText,
       color: _cWhiteColor.withOpacity(0.8),
       colorOutLimit: _clrIrregularMetre,
-      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height,
+      textStyle: _textStyle.copyWith(fontSize: 0.15 * _sizeCtrls.height,//0.2
+        //fontWeight: FontWeight.bold,
         color: Colors.white, height: 1),
       onPressed: () {},//_play,
       onChanged: (double value) {

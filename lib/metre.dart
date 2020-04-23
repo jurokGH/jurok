@@ -58,11 +58,31 @@ class MetreBar extends Metre
   bool get plainAccent
   {
     return accents.isEmpty || (accents.length == 1 && accents[0] == 0) ||
-        (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
+      (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
   }
 
   //TODO Change to var?
   int get maxAccent =>  beats > 3 ? 3 : beats - 1;
+
+  void setRegularAccent()
+  {
+    accents = _regularAccents;
+  }
+
+  void setPlainAccent()
+  {
+    for (int i = 1; i < accents.length; i++)
+      accents[i] = 0;
+    if (accents.length > 0)
+      accents[0] = accents.length > 1 ? 1 : 0;
+  }
+
+  void setAccent(int beat, int accent)
+  {
+    assert(0 <= beat && beat < beats);
+    if (beat < beats && accent < maxAccent)
+      accents[beat] = accent;
+  }
 
   void accentUp(int beat, int step)
   {
