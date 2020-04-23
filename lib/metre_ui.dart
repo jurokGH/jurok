@@ -230,7 +230,7 @@ class MetreState extends State<MetreWidget>
                     useMagnifier: false,
                     magnification: 1,
                     itemExtent: widget.itemExtent,
-                    squeeze: 1.8,
+                    squeeze: 1.5,
                     onSelectedItemChanged: (int index) {
                       print('onSelectedItemChanged ${index + widget.minBeats} - $_notify');
                       if (_notify)  // To prevent reenter via widget.onBeatChanged::setState
@@ -289,7 +289,7 @@ class MetreState extends State<MetreWidget>
                     useMagnifier: false,
                     magnification: 1.0,
                     itemExtent: widget.itemExtent,
-                    squeeze: 1.8,
+                    squeeze: 1.5,
                     onSelectedItemChanged: (int index) {
                       print(index);
                       if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
