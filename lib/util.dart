@@ -9,13 +9,11 @@ T loop<T>(T x, T left, T right)
 
 int clamp(int x, int left, int right)
 {
-  //print('loopClamp $x - $left - $right');
   return x > right ? right : (x < left ? left : x);
 }
 
 int clampLoop(int x, int left, int right)
 {
-  //print('loopClamp $x - $left - $right');
   return x > right ? left : (x < left ? right : x);
 }
 

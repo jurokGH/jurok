@@ -15,7 +15,7 @@ class OwlWidget extends StatefulWidget
   final int id;
   final bool accent;
   int nAccent;  //TODO
-  final int maxAccentCount;
+  final int maxAccent;
   final bool active;
   final int activeSubbeat;
   int subbeatCount;
@@ -36,7 +36,7 @@ class OwlWidget extends StatefulWidget
     @required this.getImageIndex,
     @required this.accent,
     @required this.nAccent,
-    this.maxAccentCount = 3,
+    this.maxAccent = 3,
     @required this.active,
     @required this.denominator,
     @required this.activeSubbeat,
@@ -184,13 +184,13 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
         onVerticalDragUpdate: (DragUpdateDetails details) {
           final double delta = details.localPosition.dy - _dragStartY;
           //TODO
-          int step = (widget.maxAccentCount * delta) ~/ maxDragY;
+          int step = (widget.maxAccent * delta) ~/ maxDragY;
           step = delta ~/ maxDragY;
           //print('onVerticalDragUpdate - $delta - $step');
           if (step != 0)
           {
             _dragStartY = details.localPosition.dy;
-            final int accent = clamp(widget.nAccent + step, 0, widget.maxAccentCount);
+            final int accent = clamp(widget.nAccent + step, 0, widget.maxAccent);
             setState(() {
               widget.nAccent = accent;
             });
@@ -244,7 +244,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
             //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:
             GestureDetector(
               onTap: () {
-                final int accent = clampLoop(widget.nAccent + 1, 0, widget.maxAccentCount);
+                final int accent = clampLoop(widget.nAccent + 1, 0, widget.maxAccent);
+                print('accent:OnTap $accent - ${widget.nAccent} - ${widget.maxAccent}');
                 setState(() {
                   widget.nAccent = accent;
                 });

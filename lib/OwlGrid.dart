@@ -355,7 +355,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           id: k,
           accent: accent,
           nAccent: nAccent,
-          maxAccentCount: 3,
+          maxAccent: 3,
           active: k == widget.activeBeat,
           activeSubbeat: k == widget.activeBeat ? widget.activeSubbeat : -1,
           subbeatCount: widget.beat.subBeats[k],

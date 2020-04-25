@@ -101,7 +101,7 @@ class BeatMetre
   void setAccent(int beat, int accent)
   {
     assert(0 <= beat && beat < _beatCount);
-    if (beat < _beatCount && accent < maxAccent)
+    if (beat < _beatCount && accent <= maxAccent)
       accents[beat] = accent;
   }
 

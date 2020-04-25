@@ -80,7 +80,7 @@ class MetreBar extends Metre
   void setAccent(int beat, int accent)
   {
     assert(0 <= beat && beat < beats);
-    if (beat < beats && accent < maxAccent)
+    if (beat < beats && accent <= maxAccent)
       accents[beat] = accent;
   }
 

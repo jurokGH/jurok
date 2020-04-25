@@ -128,8 +128,8 @@ class MetreBarState extends State<MetreBarWidget>
       //TODO Width
       double width = widget.size.width * metres[i] / beats;
 
-      print('widget.accents $index - $i - ${metres[i]} - ${widget.noteValue}');
-      print(accents1);
+      //print('widget.accents $index - $i - ${metres[i]} - ${widget.noteValue}');
+      //print(accents1);
 
       final Widget wix = new NoteWidget(
         subDiv: metres[i],
