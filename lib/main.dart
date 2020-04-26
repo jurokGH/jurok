@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Configuration constants
   bool _useNewKnob = false;
   bool _showKnobDialText = true;
-  bool _showNoteTempo = true;
+  bool _showNoteTempo = false;
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
   static const int maxBeatCount = _cMaxBeatCount;
@@ -908,6 +908,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       },
       onResetMetre: () {
         _metreList[_activeMetre].setRegularAccent();
+        _beat.setRegularAccent();
+        setState(() { _updateMetreBar = true; });
       },
     );
 

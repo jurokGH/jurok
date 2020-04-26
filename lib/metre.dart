@@ -66,7 +66,8 @@ class MetreBar extends Metre
 
   void setRegularAccent()
   {
-    accents = _regularAccents;
+    for (int i = 1; i < accents.length; i++)
+      accents[i] = _regularAccents[i];
   }
 
   void setPlainAccent()

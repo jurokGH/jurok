@@ -120,6 +120,12 @@ class BeatMetre
     accents = Prosody.getAccents(_beatCount, pivoVodochka);
   }
 
+  void setRegularAccent()
+  {
+    for (int i = 1; i < accents.length; i++)
+      accents[i] = _regularAccents[i];
+  }
+
   ///TODO For now Remove?
   int get accent => accents.length > 0 ? accents[0] : 0;
 
