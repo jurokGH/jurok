@@ -75,9 +75,13 @@ class MetreBarState extends State<MetreBarWidget>
   final int duration = 1000;
   bool _notify = true;
 
-  double _itemExtent;
   ScrollController _controller;
   CustomScrollPhysics _physics;
+  double _itemExtent;
+
+  ScrollController _controllerV;
+  CustomScrollPhysics _physicsV;
+  double _itemExtentV;
 
   MetreBarState();
 
@@ -103,19 +107,37 @@ class MetreBarState extends State<MetreBarWidget>
         });
       }
     });
+
+    _controllerV = new ScrollController(initialScrollOffset: 2 * widget.size.height);
+    _controllerV.addListener(() {
+      if (_controllerV.position.haveDimensions && _physicsV == null)
+      {
+        setState(() {
+          double dimension = _controllerV.position.maxScrollExtent / 2;
+          _itemExtentV = dimension;
+          _physicsV = CustomScrollPhysics(itemDimension: dimension);
+        });
+      }
+    });
   }
 
   Widget metreBuilder(BuildContext context, int index)
   {
     final int beats = widget.metres[index].beats;
     //final List<int> metres = Prosody.getSimpleMetres(widget.beats, widget.pivoVodochka);
-    // Simple metre array
-    final List<int> metres = widget.metres[index].simpleMetres();
-    final List<int> accents = widget.metres[index].accents;
+    final accentOptionCount = widget.metres[index].accentOptionCount();
 
-    print('metreBuilder $index');
-    print(accents);
-    print(metres);
+    final List<Widget> accentTakts = new List<Widget>();
+    for (int k = 0; k < accentOptionCount; k++)
+    {
+      // Simple metre array
+      final List<int> metres = widget.metres[index].simpleMetres(k);
+      //final List<int> accents = widget.metres[index].accents;
+      final List<int> accents = Prosody.getAccents(beats, k == 0);
+
+      print('metreBuilder $index');
+      print(accents);
+      print(metres);
 
     final List<Widget> notes = new List<Widget>();
     int j = 0;  // Simple metre 1st note index
@@ -148,6 +170,11 @@ class MetreBarState extends State<MetreBarWidget>
       );
       notes.add(wix);
     }
+    accentTakts.add(new Row(
+        //mainAxisAlignment: MainAxisAlignment.center,
+        children: notes,
+    ));
+    }
 /*
     return Container(
       width: widget.size.width,
@@ -157,6 +184,24 @@ class MetreBarState extends State<MetreBarWidget>
       child: Text(index.toString()),
     );
 */
+
+    Widget wix;
+    if (accentOptionCount == 1)
+    {
+      wix = accentTakts[0];
+    }
+    else
+    {
+      wix = new ListView(
+        scrollDirection: Axis.vertical,
+        controller: _controllerV,
+        physics: _physicsV,
+        itemExtent: widget.size.height,
+        //itemCount: accentOptionCount,
+        children: accentTakts,
+      );
+    }
+
     // Need size here to be defined
     return new Container(
       //color: Colors.blue,
@@ -165,14 +210,7 @@ class MetreBarState extends State<MetreBarWidget>
       alignment: Alignment.center,
       //padding: EdgeInsets.symmetric(horizontal: 5),
       // TODO
-      child: Row(
-        //mainAxisAlignment: MainAxisAlignment.center,
-        children: notes
-      ),
-    );
-    return new FittedBox(
-        fit: BoxFit.contain,
-        child: Wrap(children: notes),
+      child: wix,
     );
   }
 
@@ -259,11 +297,13 @@ return Container(
           //Provider.of<MetronomeState>(context, listen: false)
           //.setActiveState(widget.id, widget.subbeatCount);
         },
+/*
         onVerticalDragEnd: (DragEndDetails details) {
           print("onVerticalDragEndonVerticalDragEnd");
           widget?.onOptionChanged(!widget.pivoVodochka);
           //setState(() {});
         },
+ */
         onDoubleTap: () {
           print("onDoubleTaponDoubleTap");
           widget?.onOptionChanged(!widget.pivoVodochka);
