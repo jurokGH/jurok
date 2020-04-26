@@ -214,6 +214,7 @@ class OwlGrid extends StatefulWidget
   final bool playing;
   final List<int> accents;
   final int animationType;
+  final int maxAccent;
 
   final ValueChanged2<int, int> onChanged;
   //final ValueChanged<int> onCountChanged;
@@ -225,6 +226,7 @@ class OwlGrid extends StatefulWidget
     this.playing = false,
     this.onChanged, this.onAccentChanged,
     this.animationType = 0,
+    this.maxAccent,
     //this.width,
     });
 
@@ -355,7 +357,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           id: k,
           accent: accent,
           nAccent: nAccent,
-          maxAccent: 3,
+          maxAccent: widget.maxAccent,
           active: k == widget.activeBeat,
           activeSubbeat: k == widget.activeBeat ? widget.activeSubbeat : -1,
           subbeatCount: widget.beat.subBeats[k],

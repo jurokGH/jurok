@@ -797,6 +797,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       activeSubbeat: _activeSubbeat,
       noteValue: _noteValue,
       accents: _beat.accents,
+      maxAccent: _metreList[_activeMetre].maxAccent,
       //width: _widthSquare,
       //childSize: childSize,
       animationType: _animationType,
