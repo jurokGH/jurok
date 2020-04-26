@@ -113,9 +113,9 @@ class MetreBarState extends State<MetreBarWidget>
     final List<int> metres = widget.metres[index].simpleMetres();
     final List<int> accents = widget.metres[index].accents;
 
-    print('metreBuilder $index');
-    print(accents);
-    print(metres);
+    //print('metreBuilder $index');
+    //print(accents);
+    //print(metres);
 
     final List<Widget> notes = new List<Widget>();
     int j = 0;  // Simple metre 1st note index

@@ -832,11 +832,11 @@ class NotePainter extends CustomPainter
   @override
   bool shouldRepaint(NotePainter oldDelegate)
   {
-    bool accentsChanged = equalLists(accents, oldDelegate.accents);
+    bool sameAccents = equalLists(accents, oldDelegate.accents);
     return this.denominator != oldDelegate.denominator ||
       this.subDiv != oldDelegate.subDiv ||
       this.active != oldDelegate.active ||
-      accentsChanged ||
+      !sameAccents ||
       this.maxAccentCount != oldDelegate.maxAccentCount ||
       this.colorPast != oldDelegate.colorPast ||
       this.colorNow != oldDelegate.colorNow ||

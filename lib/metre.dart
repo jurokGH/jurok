@@ -68,6 +68,9 @@ class MetreBar extends Metre
   {
     for (int i = 1; i < accents.length; i++)
       accents[i] = _regularAccents[i];
+    // TODO Should change? Should use for?
+    //_regularAccents = Prosody.getAccents(beats, true);  //TODO Define as regular if pivoVodochka = true?
+    //accents = new List.from(_regularAccents);
   }
 
   void setPlainAccent()

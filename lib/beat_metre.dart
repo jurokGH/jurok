@@ -122,8 +122,9 @@ class BeatMetre
 
   void setRegularAccent()
   {
-    for (int i = 1; i < accents.length; i++)
-      accents[i] = _regularAccents[i];
+    // TODO Should change? Should use for?
+    _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
+    accents = new List.from(_regularAccents);
   }
 
   ///TODO For now Remove?
