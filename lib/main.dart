@@ -63,14 +63,16 @@ const int _cMaxSubBeatCount = 8;
 /// Note value min/max
 const int _cMinNoteValue = 2;
 const int _cMaxNoteValue = 16;
+//const int _cIniNoteValue = 4;
 /// Min tempo
 const int _cMinTempo = 1;
 /// Absolute max tempo. Больше него не ставим, даже если позволяет сочетание схемы и метра.
-const int _cMaxTempo = 800;  //500-5000
+const int _cMaxTempo = 1000;  //500-5000
 /// Initial tempo
 const int _cIniTempo = 120;  //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
+const double _cTempoKnobSweepAngle = 2.5 * 360.0 + 2 * _cTempoKnobAngle;
 
 /// Debug on different devices/resolutions
 final bool _debugDevices = false;
@@ -205,12 +207,30 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   BeatMetre _beat;// = new BeatMetre();
   BeatSound _soundConfig = new BeatSound();
 
-  /// Metre denominator
-  int _noteValue = 4;
-  /// Current playing beat
-  int _activeBeat = -1;
-  /// Current playing subbeat of current beat
-  int _activeSubbeat = -1;
+  /// Initial note value (denominator)
+  //final int _noteValue = _cIniNoteValue;
+
+  /// Sorted metre list to switch between metres
+  /// Includes predefined ('standard') metres
+  /// Initially filled with predefined ('standard') metres
+  /// User defined metre is inserted into this list in its sorted position
+  List<MetreBar> _metreList =
+  [
+    MetreBar(2, 2),
+    MetreBar(3, 4),
+    MetreBar(4, 4),
+    MetreBar(6, 8),
+    MetreBar(9, 8),
+    MetreBar(12, 16),
+    MetreBar(5, 8),  // 3+2/8
+  ];
+  /// Index of current active metre
+  int _activeMetre = 1;
+  /// Index of current user defined metre
+  /// -1 - if there are not user metre
+  int _userMetre = -1;
+
+  MetreBar get activeMatre => _metreList[_activeMetre];
 
   double _volume = 100;
   bool _mute = false;
@@ -218,11 +238,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Переменная, ограничивающся максимальную скорость при данной музыкальной схеме и метре
   int _tempoBpmMax = maxTempo;
 
-  // int latency = 0;
-  // int warmupFrames = 0;
-  String _infoMsg = '';
-  bool _screenOn = true;
+  /// Shows weather to update MetreWidget (if true)
+  bool _updateMetre = false;
+  /// Shows weather to update MetreBarWidget (if true)
+  bool _updateMetreBar = false;
+  /// Playing state flag
   bool _playing;
+  /// Keep screen on while playing (if true)
+  bool _screenOn = true;
 
   /// Пение рокочущих сов
   /// ToDo: Сколько всего их, какие у них имена, иконки и может что еще
@@ -230,6 +253,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _activeSoundScheme = 0;
   List<String> _soundSchemes = [];
 
+  /// Animation
   bool redraw = false;
   bool hideCtrls = false;
   AnimationController _controller;
@@ -245,82 +269,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _outerRadius = 2;
   //double _knobSize = 150;
   static const double initKnobAngle = 0;
-
   KnobValue _knobValue;
-  bool _updateMetre = false;
-  bool _updateMetreBar = false;
-
-  List<MetreBar> _metreList =
-  [
-    MetreBar(2, 2),
-    MetreBar(3, 4),
-    MetreBar(4, 4),
-    MetreBar(5, 8),  // 3+2/8
-    MetreBar(6, 8),
-    MetreBar(9, 8),
-    MetreBar(12, 16),
-  ];
-  int _activeMetre = 2;
-  int _userMetre = -1;
-
-  int metreIndex(int beats, int note) {
-    if (_metreList.length == 0 || beats < _metreList[0].beats)
-      return 0;
-    int i = 0;
-    while (i < _metreList.length && beats > _metreList[i].beats ||
-        (beats == _metreList[i].beats && note > _metreList[i].note)) {
-      print(i);
-      i++;
-    }
-
-    if (0 < i && i < _metreList.length &&
-        !(beats == _metreList[i].beats && note == _metreList[i].beats)) {
-      //print("-- $i");
-      //i--;
-    }
-    return i;
-  }
-
-  bool insertMetre(int beats, int note)
-  {
-    bool activeChanged = true;
-    print('insertMetre - $beats - $note');
-    int index = metreIndex(beats, note);
-    if (index < _metreList.length &&
-      beats == _metreList[index].beats && note == _metreList[index].beats)
-    {
-      if (index == _activeMetre)
-        activeChanged = false;
-      _activeMetre = index;
-      print('insertMetre_= - $index');
-    }
-    else
-    {
-      if (index == _userMetre)
-      {
-        print('insertMetre_user - $index');
-        _metreList[_userMetre] = MetreBar(beats, note);
-      }
-      else
-      {
-        print('insertMetre_insert - $index');
-        // Insert shifts right all elements including [index]
-        _metreList.insert(index, MetreBar(beats, note));
-        // Remove previous User Metre if existed
-        if (_userMetre != -1)
-        {
-          print('insertMetre_remove - $index - ${_userMetre + (_userMetre >= index ? 1 : 0)}');
-          _metreList.removeAt(_userMetre + (_userMetre >= index ? 1 : 0));
-          // Correct new index after removing
-          if (_userMetre < index)
-            index--;
-        }
-      }
-      _activeMetre = _userMetre = index;
-    }
-    print('insertMetre - $_activeMetre');
-    return activeChanged;
-  }
 
   /// /////////////////////////////////////////////////////////////////////////
 
@@ -362,10 +311,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _playing = false;
 
     _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
-    insertMetre(_beat.beatCount, _noteValue);
+    //TODO insertMetre(_beat.beatCount, _cIniNoteValue);
 
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
   }
 
   @override
@@ -373,6 +322,50 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     _controller.dispose();
     super.dispose();
+  }
+
+  /// /////////////////////////////////////////////////////////////////////////
+
+  /// (Re)Insert metre (beast, note) into _sorted_ metre list
+  bool insertMetre(int beats, int note)
+  {
+    bool activeChanged = true;
+    print('insertMetre - $beats - $note');
+    int index = metreIndex(_metreList, beats, note);
+    if (index < _metreList.length &&
+        beats == _metreList[index].beats && note == _metreList[index].note)
+    {
+      if (index == _activeMetre)
+        activeChanged = false;
+      _activeMetre = index;
+      print('insertMetre_= - $index');
+    }
+    else
+    {
+      if (index == _userMetre)
+      {
+        print('insertMetre_user - $index');
+        _metreList[_userMetre] = MetreBar(beats, note);
+      }
+      else
+      {
+        print('insertMetre_insert - $index');
+        // Insert shifts right all elements including [index]
+        _metreList.insert(index, MetreBar(beats, note));
+        // Remove previous User Metre if existed
+        if (_userMetre != -1)
+        {
+          print('insertMetre_remove - $index - ${_userMetre + (_userMetre >= index ? 1 : 0)}');
+          _metreList.removeAt(_userMetre + (_userMetre >= index ? 1 : 0));
+          // Correct new index after removing
+          if (_userMetre < index)
+            index--;
+        }
+      }
+      _activeMetre = _userMetre = index;
+    }
+    print('insertMetre - $_activeMetre');
+    return activeChanged;
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -490,12 +483,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
-      bool changed = insertMetre(beats, _noteValue);
+      bool changed = insertMetre(beats, activeMatre.note);
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-          _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
       print('_onBeatChanged2');
       setState(() { _updateMetreBar = changed; });  //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
@@ -503,7 +496,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void _onNoteChanged(int noteValue)
   {
-    _noteValue = noteValue;  // Does not affect sound
+    //_noteValue = noteValue;  // Does not affect sound
     bool changed = insertMetre(_beat.beatCount, noteValue);
 
     print('_onNoteChanged');
@@ -518,9 +511,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-          _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     }
-    _noteValue = noteValue;  // Does not affect sound
+    //_noteValue = noteValue;  // Does not affect sound
     insertMetre(beats, noteValue);
 
     print('onMetreChanged');
@@ -537,9 +530,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-          _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     }
-    _noteValue = _metreList[index].note;  // Does not affect sound
+    //_noteValue = _metreList[index].note;  // Does not affect sound
     _activeMetre = index;
 
     print('onMetreBarChanged');
@@ -553,7 +546,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
   }
 
@@ -564,7 +557,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
   }
 
@@ -572,67 +565,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     assert(id < _beat.subBeats.length);
     _beat.setAccent(id, accent);
-    _metreList[_activeMetre].setAccent(id, accent);
+    activeMatre.setAccent(id, accent);
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
-  }
-
-  /// /////////////////////////////////////////////////////////////////////////
-
-  /// Calculate tempo knob radius depending on control area size and other sizes
-  /// width, height - control area size
-  /// radiusT - radius of play button
-  /// sidePadding - min (x, y) padding between all controls and area edges
-  /// knobPadding - min (x, y) padding around knob
-  /// dist0 - min padding between knob and play button
-  List<double> knobRadius(double width, double height, double radiusT,
-      Offset sidePadding, Offset knobPadding, double dist0, double radiusBtn)
-  {
-    double padX = sidePadding.dx;
-    double padY = sidePadding.dy;
-    double padX0 = knobPadding.dx;
-    double padY0 = knobPadding.dy;
-
-    double x = 0.5 * width - radiusT - padX;
-    double y = 0.5 * height - radiusT - padY;
-    double radius1 = sqrt(x * x + y * y) - dist0 - radiusT;
-
-    double y1 = height - padY0 - radiusT - padY;
-    double a = radiusT + dist0;
-    print('$x - $y - $y1 - $a - $radiusT');
-    double radius2 = 0.5 * (x * x + y1 * y1 - a * a) / (a + y1);
-
-    double radius = min(0.5 * height - padY0, 0.5 * width - padX0);
-    //print('${0.5 * height - padY0} - ${0.5 * width - padX0}');
-    //print('$radius - $radius1 - $radius2 - $width - $height');
-
-    //if (radius > radius1)
-      //radius = radius1;
-    if (radius > radius2)
-      radius = radius2;
-    print('$radius');
-
-    double x2 = 0.5 * width - 2 * padX;
-    double y2 = radius + padY0 < 0.5 * height ? radius + padY0 : 0.5 * height;
-    y2 -= padY;
-    //double y2 = 0.5 * height - padY;
-    double z2 = radius + dist0;
-    //(radius + dist0 + radiusBtn)**2 = (0.5 * width - 3 * radiusBtn - 2 * padX)**2 + (0.5 * height - radiusBtn - padY)**2;
-    //9 * xx * xx - 2 * xx * (3 * x2 + y2 + z2) + x2 * x2 + y2 * y2 - z2 * z2 = 0;
-    double b = (3 * x2 + y2 + z2) / 9;
-    double d = b * b - (x2 * x2 + y2 * y2 - z2 * z2) / 9;
-    if (d >= 0)
-      d = sqrt(d);
-    else
-      print("D < 0");
-    double xx1 = b + d;
-    double xx2 = b - d;
-    double xx = xx1 < radius ? xx1 : xx2;
-    //print("Button $radius - $xx1 - $xx2 - $radiusBtn");
-
-    return [radius, xx];
   }
 
   /// /////////////////////////////////////////////////////////////////////////
@@ -656,7 +593,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     if (_textStyle == null)
       _textStyle = Theme.of(context).textTheme.display1
-          .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
+        .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
 
 //    MediaQuery.of(context).removePadding(
 //      removeTop: true,
@@ -698,7 +635,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _paddingBtn = new Offset(btnPadding, btnPadding);
 
     // Vertical/portrait
-    if (portrait) {
+    if (portrait)
+    {
       /// Owl square and controls
       final List<Widget> innerUI = <Widget>[
         _buildOwlenome(portrait, sizeOwlenome),
@@ -787,17 +725,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Square section with metronome itself
   Widget _buildOwlenome(bool portrait, Size size)
   {
+    //TODO MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+
     ///widget Owls
     final Widget wixOwls = OwlGrid(
       playing: _playing,
       beat: _beat,
-      activeBeat: _activeBeat,  //TODO Move to _beat??
-      activeSubbeat: _activeSubbeat,
-      noteValue: _noteValue,
+      activeBeat: -1,//state.activeBeat,
+      activeSubbeat: -1,//state.activeSubbeat,
+      noteValue: activeMatre.note,
       accents: _beat.accents,
-      maxAccent: _metreList[_activeMetre].maxAccent,
-      //width: _widthSquare,
-      //childSize: childSize,
+      maxAccent: activeMatre.maxAccent,
       animationType: _animationType,
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
@@ -848,7 +786,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       beats: _beat.beatCount,
       minBeats: minBeatCount,
       maxBeats: maxBeatCount,
-      note: _noteValue,
+      note: activeMatre.note,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
       width: 0.25 * _sizeCtrls.width,
@@ -896,13 +834,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onSelectedChanged: onMetreBarChanged,
       onOptionChanged: (bool pivoVodochka) {
         _beat.setAccentOption(pivoVodochka);
-        if (_metreList[_activeMetre].setAccentOption(pivoVodochka ? 0 : 1))
+        if (activeMatre.setAccentOption(pivoVodochka ? 0 : 1))
         {
           setState(() {});
         }
       },
       onResetMetre: () {
-        _metreList[_activeMetre].setRegularAccent();
+        activeMatre.setRegularAccent();
         _beat.setRegularAccent();
         setState(() { _updateMetreBar = true; });
       },
@@ -929,15 +867,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
-      noteValue: _noteValue,
+      noteValue: activeMatre.note,
       color: _textColor,
       textStyle: _textStyle,
       size: subbeatSize,
       onChanged: onSubbeatChanged,
     );
+
     final NoteTempoWidget noteTempo = new NoteTempoWidget(
       tempo: _tempoBpm,
-      noteValue: _noteValue,
+      noteValue: activeMatre.note,
       color: Colors.white,
       size: new Size(0.12 * barSize.width, 0.9 * barSize.height),
       textStyle: TextStyle(fontSize: 20, color: Colors.white),
@@ -1164,7 +1103,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       minAngle: -_cTempoKnobAngle,
       maxAngle: _cTempoKnobAngle,
       turnCount: _cTempoKnobTurns,
-      sweepAngle: _cTempoKnobTurns * 360.0 + 2 * _cTempoKnobAngle,
+      sweepAngle: _cTempoKnobSweepAngle,
       dialDivisions: 12,
       limit: _tempoBpmMax.toDouble(),
       radiusButton: 0.1,
@@ -1208,7 +1147,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
-      noteValue: _noteValue,
+      noteValue: activeMatre.note,
       color: _textColor,
       textStyle: _textStyle,
       size: subbeatSize,
@@ -1557,7 +1496,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       beats: _beat.beatCount,
       minBeats: minBeatCount,
       maxBeats: maxBeatCount,
-      note: _noteValue,
+      note: activeMatre.note,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
       width: width,

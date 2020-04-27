@@ -128,3 +128,17 @@ class MetreBar extends Metre
     return super.toString() + '-' + accentOption.toString();
   }
 }
+
+/// Search (beast, note) in _sorted_ metre list
+/// return:
+///   metre index if found
+///   index where insert new metre if (beast, note) not found in list
+int metreIndex(List<MetreBar> metreList, int beats, int note) {
+  if (metreList.length == 0 || beats < metreList[0].beats)
+    return 0;
+  int i = 0;
+  while (i < metreList.length && beats > metreList[i].beats ||
+      (beats == metreList[i].beats && note > metreList[i].note))
+    i++;
+  return i;
+}

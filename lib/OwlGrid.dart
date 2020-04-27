@@ -198,8 +198,6 @@ class _OwlLayout extends MultiChildLayoutDelegate
   @override
   bool shouldRelayout(_OwlLayout oldDelegate) {
     return count != oldDelegate.count ||
-    //final Size childSize;
-    //final double width;
       aspect != oldDelegate.aspect ||
       padding != oldDelegate.padding;
   }
@@ -227,7 +225,6 @@ class OwlGrid extends StatefulWidget
     this.onChanged, this.onAccentChanged,
     this.animationType = 0,
     this.maxAccent,
-    //this.width,
     });
 
   @override
