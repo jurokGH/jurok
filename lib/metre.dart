@@ -7,7 +7,9 @@ import 'util.dart';
 
 class Metre
 {
+  /// Beat count (nominator)
   final int beats;
+  /// Note value (denominator)
   final int note;
 
   Metre(this.beats, this.note);
@@ -18,10 +20,16 @@ class Metre
   }
 }
 
+/// Metre bar configuration
+
 class MetreBar extends Metre
 {
-  int accentOption;
+  /// Beat accents
+  /// accents.length == beats
   List<int> accents;
+  /// Pivo-vodochka accentation option (>= 0)
+  int accentOption;
+  /// Store here to not compute every time
   List<int> _regularAccents;
 
   MetreBar(int beats, int note, [this.accentOption = 0, this.accents]): super(beats, note)
@@ -30,7 +38,7 @@ class MetreBar extends Metre
     _regularAccents = Prosody.getAccents(beats, true);  //TODO Define as regular if pivoVodochka = true?
   }
 
-  List<int> simpleMetres([int dir = 1])
+  List<int> simpleMetres()
   {
     return Prosody.getSimpleMetres(beats, accentOption == 0);
   }

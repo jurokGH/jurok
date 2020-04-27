@@ -34,7 +34,7 @@ class BeatMetre
 
   /// Subdivision of beat melody to simple metres (rows)
   /// notes.length - number of simple metres in metronome beat melody
-  List<int> metres;
+  List<int> _metres;
 
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
@@ -52,7 +52,7 @@ class BeatMetre
     subBeats = new List<int>.from(_initSubBeats, growable: true);
     _beatCount = subBeats.length;
     _subBeatCount = 1;
-    metres = new List<int>.filled(1, _beatCount, growable: true);
+    _metres = new List<int>.filled(1, _beatCount, growable: true);
     accents = Prosody.getAccents(_beatCount, pivoVodochka);
     _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
 
@@ -165,6 +165,7 @@ class BeatMetre
   }
 
   /// Return pair (beat, subBeat) by overall beat index
+  /* Not used
   List<int> beatPair(int index)
   {
     //beatOrder %= _beatCount;
@@ -195,10 +196,11 @@ class BeatMetre
       count += subBeats[i];
     return count;
   }
+  */
 
   /// Start time (in seconds) of [beat, subbeat] sound relating to begin of this beat metre
   /// bpm - tempo, beats per minute
-
+/* Not used
   double timeOfBeat(int tempoBpm, int beat, int subbeat)
   {
     double bps = tempoBpm / 60;
@@ -206,7 +208,6 @@ class BeatMetre
     //assert(subbeat < subBeats[beat]);
     return (beat + subbeat / subBeats[beat]) / bps;
   }
-
   /// time - time from begin in seconds
   List<int> timePosition(double time, int beatsPerMinute)
   {
@@ -232,4 +233,5 @@ class BeatMetre
 
     return [beat, subbeat];
   }
+*/
 }

@@ -15,16 +15,19 @@ class Cauchy
   Cauchy(this.timeOrg, this.bpm, this.timesToChangeTime);
 }
 
-/// State of current metronome activity
+/// State of current metronome (playing) activity
 
 class MetronomeState with ChangeNotifier
 {
   BeatMetre beatMetre = new BeatMetre();
-  /// Active BeatMetre (note)
+  /// Active beat (note)
   int _activeBeat = -1;
   /// Active subbeat
   int _activeSubbeat = -1;
 
+  int get activeBeat => _activeBeat;
+  int get activeSubbeat => _activeSubbeat;
+  
   ///  start time of A first beat (in microseconds)
   int _timeOrg;
 
@@ -32,9 +35,9 @@ class MetronomeState with ChangeNotifier
   ///Пока не наступило - не анимируемся (еще не отыгран буфер тишины)
   ///Используется лишь один раз
   ///(и может быть полезно для статистики).
-  int timeOfTheFirstBeat = (2<<53); //end of time
+  int _timeOfTheFirstBeat = (2<<53); //end of time
 
-  int beatsPerMinute;
+  int _beatsPerMinute;
 
   /// Помимо синхронизации начального времени, есть  следующая (небольшая, но забавная) проблема.
   /**
@@ -74,7 +77,7 @@ class MetronomeState with ChangeNotifier
    */
 
   ///Новые времена и нравы (скорости), и когда они применимы. Пока время не пришло - ничего не меняем.
-  List<Cauchy> conditions;
+  List<Cauchy> _conditions;
   //bool bWaitingForNewBPM;
 
   //AccentBeat melody; //IS: Why?
@@ -87,8 +90,6 @@ class MetronomeState with ChangeNotifier
   //UnmodifiableListView<Int32> get list => UnmodifiableListView<Int32>(_list);
 
   //BeatMetre get BeatMetre => _beat;
-  int get activeBeat => _activeBeat;
-  int get activeSubbeat => _activeSubbeat;
 
   MetronomeState()
   {
@@ -104,7 +105,7 @@ class MetronomeState with ChangeNotifier
   {
     _activeBeat = -1;
     _activeSubbeat = -1;
-    conditions = new List<Cauchy>();
+    _conditions = new List<Cauchy>();
   }
 
   ///Вызываем, когда разогрелись и точно знаем звучание первого бита.
@@ -112,9 +113,9 @@ class MetronomeState with ChangeNotifier
   void startAfterWarm(int initTime, int bpm)
   {
     //_timeOrg = DateTime.now().microsecondsSinceEpoch;  //IS: No((( Злой латенси еще...
-    timeOfTheFirstBeat = initTime;
+    _timeOfTheFirstBeat = initTime;
     _timeOrg = initTime;
-    beatsPerMinute = bpm;
+    _beatsPerMinute = bpm;
     /*
     _timer.reset();
     __time0 = _timer.elapsedMicroseconds;
@@ -147,7 +148,7 @@ class MetronomeState with ChangeNotifier
   void sync(int initTime, int newBpm, int timeToChangeTime)
   {
     Cauchy condition=new Cauchy(initTime,newBpm,timeToChangeTime);
-    conditions.add(condition);
+    _conditions.add(condition);
 
     /* ОДНОГО НАБОРА УСЛОВИЙ НЕ ХВАТИТ, если злой пользователь зажмет ручку скорости
     bWaitingForNewBPM=true;
@@ -157,14 +158,14 @@ class MetronomeState with ChangeNotifier
     */
     /*
     //test
-    int l=conditions.length;
+    int l=_conditions.length;
     print('Sync length: $l');
 
     String s='Sync delta times (from now) : ';
     int prevTm=DateTime.now().microsecondsSinceEpoch;
-    for (int i = 0; i<conditions.length; i++){
-      int t=conditions[i].timesToChangeTime-prevTm;
-      prevTm=conditions[i].timesToChangeTime;
+    for (int i = 0; i<_conditions.length; i++){
+      int t=_conditions[i].timesToChangeTime-prevTm;
+      prevTm=_conditions[i].timesToChangeTime;
       s+=t.toString()+'; ';
     }
     print(s);*/
@@ -186,7 +187,7 @@ class MetronomeState with ChangeNotifier
     //TODO Use pair/tuple
     List<int> pair = beatMetre.beatPair(index);
     // Correct reference sync time as a beat metre start time
-    double t = beatMetre.timeOfBeat( beatsPerMinute, pair[0], pair[1]);
+    double t = beatMetre.timeOfBeat( _beatsPerMinute, pair[0], pair[1]);
     _timeOrg -= (1e+6 * (t + offset)) ~/ 1; //IS:   ??
     //VG Do we need to use Java current beat state?
     //_activeBeat = pair[0];
@@ -202,25 +203,25 @@ class MetronomeState with ChangeNotifier
 
     int time = DateTime.now().microsecondsSinceEpoch;
 
-    if (time < timeOfTheFirstBeat)
+    if (time < _timeOfTheFirstBeat)
       return changed;  //IS: звука пока нет. Пока просто молчим.
     //Нужно что-то поумнее придумать в этот период. Новости там пользователю
     //предложить почитать или что еще... Закрытые глаза спящих сов стали полуоткрыты?
     //Совы вздрогнули?//ToDo
 
-    while (conditions.length > 0 && time >= conditions[0].timesToChangeTime)
+    while (_conditions.length > 0 && time >= _conditions[0].timesToChangeTime)
     {
       // пришло время жить с новой скоростью
-      _timeOrg = conditions[0].timeOrg;
-      beatsPerMinute = conditions[0].bpm;
-      conditions.removeAt(0);  //IS: FiFo... Не знаю, как умно это сделать в dart
+      _timeOrg = _conditions[0].timeOrg;
+      _beatsPerMinute = _conditions[0].bpm;
+      _conditions.removeAt(0);  //IS: FiFo... Не знаю, как умно это сделать в dart
 
       String s = 'SYNC UPDATE: Delta times (from now) : ';
       int prevTm = DateTime.now().microsecondsSinceEpoch;
-      for (int i = 0; i < conditions.length; i++)
+      for (int i = 0; i < _conditions.length; i++)
       {
-        int t = conditions[i].timesToChangeTime - prevTm;
-        prevTm = conditions[i].timesToChangeTime;
+        int t = _conditions[i].timesToChangeTime - prevTm;
+        prevTm = _conditions[i].timesToChangeTime;
         s += t.toString() + '; ';
       }
       print(s);
@@ -238,12 +239,12 @@ class MetronomeState with ChangeNotifier
     if (bWaitingForNewBPM&&(time>=timeToChangeTime)){//пришло время жить с новой скоростью
       bWaitingForNewBPM=false;
       _timeOrg=_newTimeOrg;
-      beatsPerMinute=newBPM;
+      _beatsPerMinute=newBPM;
     }*/
 
     double dt = 1e-6 * (time - _timeOrg);  // in seconds
 
-    List<int> pair = beatMetre.timePosition(dt, beatsPerMinute);
+    List<int> pair = timePosition(dt, _beatsPerMinute);
     int curBeat = pair[0];
     int curSubbeat = pair[1];
 
@@ -255,6 +256,34 @@ class MetronomeState with ChangeNotifier
       //debugPrint('Active (beat, subbeat): $_activeBeat - $activeSubbeat');
     }
     return changed;
+  }
+
+  /// Start time (in seconds) of [beat, subbeat] sound relating to begin of this beat metre
+  /// bpm - tempo, beats per minute
+  /// time - time from begin in seconds
+  List<int> timePosition(double time, int bpm)
+  {
+    double duration = beatMetre.beatCount * 60.0 / bpm;
+    //Position pos = new Position(0, 0);
+    //int cycle = time ~/ duration;
+    if (time < 0) {} //Такое может быть! Если latency большое, то легко.
+    //time = -time;//IS:  это неверно. Даёт забавный эффект  -
+    // если сделать к примеру размер большого буфера 300мс, то будем назад ехать:)
+
+    //print('timePosition0 $duration');
+
+    double timeInBeat = time % duration;
+    duration /= beatMetre.beatCount;  // Duration of 1 beat
+    int beat = timeInBeat ~/ duration;
+    //print('timePosition1 $duration - $timeInBeat - $beat - ${subBeats[beat]}');
+    double time1 = timeInBeat % duration;
+    duration /= beatMetre.subBeats[beat];  // Duration of 1 subbeat of a given beat
+    int subbeat = time1 ~/ duration;
+    double offset = time1 % duration;
+
+    //print('timePosition $time1 - $duration - offset $beat - $subbeat - ${subBeats[beat]}');
+
+    return [beat, subbeat];
   }
 
   /* //IS:прикрыл, чтобы разобраться в коде.
@@ -283,7 +312,7 @@ class MetronomeState with ChangeNotifier
   /*
   void setTempo(int tempoBpm/*, int noteValue*/)
   {
-    beatsPerMinute = tempoBpm;
+    _beatsPerMinute = tempoBpm;
     //tempo.denominator = noteValue;
 
   //  int _bars = 1;
