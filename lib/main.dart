@@ -202,7 +202,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Size _sizeCtrls;
   double _sizeCtrlsShortest;
 
-  BeatMetre _beat = new BeatMetre();
+  BeatMetre _beat;// = new BeatMetre();
   BeatSound _soundConfig = new BeatSound();
 
   /// Metre denominator
@@ -331,16 +331,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     super.initState();
 
-    _knobValue = KnobValue(
-      absoluteAngle: initKnobAngle,
-      value: _tempoBpm.toDouble(),
-      tapAngle: null,
-      //deltaAngle:0,
-    );
-
-    // Channel callback from hardware Java code
+    /// Init channel callback from hardware Java code
     _channel = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
-
+    /// Get sound schemes (async) and set active scheme
+    _channel.getSoundSchemes(_activeSoundScheme).then((List<String> soundSchemes) {
+      _soundSchemes = soundSchemes;
+      if (_soundSchemes.isEmpty)
+        _activeSoundScheme = -1;
+      else if (_activeSoundScheme == -1)
+        _activeSoundScheme = 0;  // Set default 0 scheme
+    });
+    /// Init animation
     _controller = new AnimationController(
       vsync: this,
       duration: new Duration(milliseconds: _period),
@@ -351,20 +352,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //_animation = new Tween<double>(begin: 1, end: 0).animate(_controller);
     //_animation = new Tween<double> CurvedAnimation(parent: _controller, curve: Curves.linear);
 
-    /// Get sound schemes and set active scheme
-    _channel.getSoundSchemes(_activeSoundScheme).then((List<String> soundSchemes) {
-      _soundSchemes = soundSchemes;
-      if (_soundSchemes.isEmpty)
-        _activeSoundScheme = -1;
-      else if (_activeSoundScheme == -1)
-        _activeSoundScheme = 0;  // Set default 0 scheme
-    });
-
-    insertMetre(_beat.beatCount, _noteValue);
+    _knobValue = KnobValue(
+      absoluteAngle: initKnobAngle,
+      value: _tempoBpm.toDouble(),
+      tapAngle: null,
+      //deltaAngle:0,
+    );
 
     _playing = false;
 
-    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
+    _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
+    insertMetre(_beat.beatCount, _noteValue);
+
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
         _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
   }
@@ -494,7 +493,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       bool changed = insertMetre(beats, _noteValue);
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
           _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
       print('_onBeatChanged2');
@@ -517,7 +516,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     {
       _beat.beatCount = beats;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
           _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     }
@@ -536,7 +535,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _beat.beatCount = beats;
       _beat.accents = _metreList[index].accents;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
           _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     }
@@ -552,7 +551,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO
     _beat.subBeatCount = subbeatCount;//nextSubbeat(_beat.subBeatCount);
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
         _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
@@ -563,7 +562,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     assert(id < _beat.subBeats.length);
     _beat.subBeats[id] = subCount;
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
         _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
@@ -574,7 +573,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     assert(id < _beat.subBeats.length);
     _beat.setAccent(id, accent);
     _metreList[_activeMetre].setAccent(id, accent);
-    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
         _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
     setState(() {});
@@ -869,7 +868,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     final Size barSize = Size((portrait ? 0.45 : 0.4) * _sizeCtrls.width, 0.16 * _sizeCtrls.height);
 
-    final Widget accentMetre = new AccentMetreWidget(
+/*    final Widget accentMetre = new AccentMetreWidget(
       beats: _beat.beatCount,
       noteValue: _noteValue,
       accents: _beat.accents,
@@ -881,23 +880,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         _beat.setAccentOption(pivoVodochka);
         setState(() {});
       },
-    );
+    );*/
 
     bool updateMetreBar = _updateMetreBar;
     _updateMetreBar = false;
 
     final Widget metreBar = new MetreBarWidget(
       update: updateMetreBar,
-      beats: _beat.beatCount,
-      noteValue: _noteValue,
-      //accents: _beat.accents,
-      pivoVodochka: _beat.pivoVodochka, //?
-      activeMetre: _activeMetre,
       metres: _metreList,
+      activeMetre: _activeMetre,
       size: barSize,
-      //color: _beat.regular ? _cWhiteColor : Colors.orangeAccent,
       color: _clrRegularBar,
-      colorIrregular: _clrIrregularBar, // Switched off
+      colorIrregular: _clrIrregularBar, // Currently switched off
+      noteColor: Colors.black,
       onSelectedChanged: onMetreBarChanged,
       onOptionChanged: (bool pivoVodochka) {
         _beat.setAccentOption(pivoVodochka);
@@ -991,7 +986,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         Padding(
                           padding: EdgeInsets.only(top: 2),//(bottom: 0.05 * _sizeCtrls.height),//20
                           child: metreBar
-                          //child: accentMetre
                         ),
                         BarBracketWidget(
                           direction: BarBracketDirection.right,
@@ -1068,7 +1062,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   //Flexible(child:
                   Padding(
                     padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
-                    child: accentMetre
+                    child: metreBar
                   ),
                 ]
               ),
