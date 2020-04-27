@@ -202,11 +202,9 @@ class MetreBarState extends State<MetreBarWidget>
       //TODO Need?
       final int activeMetre = clampLoop(widget.activeMetre, 0, widget.metres.length - 1);
       _controller.jumpTo(widget.size.width * activeMetre);
-      finishUpdate(0);
     }
-    if (_controller != null && _controller.hasClients)
+    if (false && _controller != null && _controller.hasClients)
     {
-      //&& _controller.position?.haveDimensions)
       double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
       print('MetreBar::_physics $dimension - $_itemExtent');
       if (_itemExtent != dimension)
@@ -222,6 +220,9 @@ class MetreBarState extends State<MetreBarWidget>
       itemCount: widget.metres.length,
       itemBuilder: metreBuilder,
     );
+
+    if (widget.update)
+      finishUpdate(0);
 
     /*
 return Container(
