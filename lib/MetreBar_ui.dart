@@ -22,33 +22,25 @@ int _getItemFromOffset({
 class MetreBarWidget extends StatefulWidget
 {
   bool update;
-  final int beats;
-  final int noteValue;
-  final bool pivoVodochka;
-  //final List<int> accents;
-  final int activeMetre;
   final List<MetreBar> metres;
+  final int activeMetre;
   final Size size;
   final Color color;
   final Color colorIrregular;
+  final Color noteColor;
   final ValueChanged<int> onSelectedChanged;
-  //final ValueChanged2<int, int> onMetreChanged;
   final ValueChanged<bool> onOptionChanged;
   final Function onResetMetre;
 
   MetreBarWidget({
     this.update = false,
-    this.beats,
-    this.noteValue,
-    this.activeMetre,
     this.metres,
-    //this.accents,
-    this.pivoVodochka = true,
+    this.activeMetre,
     this.size,
     this.color,
     this.colorIrregular,
+    this.noteColor = Colors.black,
     this.onSelectedChanged,
-    //@required this.onMetreChanged,
     this.onOptionChanged,
     this.onResetMetre,
   });
@@ -59,25 +51,14 @@ class MetreBarWidget extends StatefulWidget
 
 class MetreBarState extends State<MetreBarWidget>
 {
-/*
-  static List<MetreBar> _metreList =
-  [
-    MetreBar(2, 2),
-    MetreBar(3, 4),
-    MetreBar(4, 4),
-    MetreBar(6, 8),
-    MetreBar(9, 8),
-    MetreBar(12, 16),
-    MetreBar(5, 8),  // 3+2/8
-  ];
-  int _activeMetre = 0;
-*/
-  final int duration = 1000;
-  bool _notify = true;
+  // Moved out static List<MetreBar> _metreList;
+  // int _activeMetre = 0;
+  // final int duration = 1000;
 
-  double _itemExtent;
   ScrollController _controller;
   CustomScrollPhysics _physics;
+  double _itemExtent;  /// List item width
+  bool _notify = true;
 
   MetreBarState();
 
@@ -88,8 +69,8 @@ class MetreBarState extends State<MetreBarWidget>
   }
 
   @override
-  void initState() {
-    // TODO: implement initState
+  void initState()
+  {
     super.initState();
 
     _controller = new ScrollController(initialScrollOffset: widget.activeMetre * widget.size.width);
@@ -107,11 +88,11 @@ class MetreBarState extends State<MetreBarWidget>
 
   Widget metreBuilder(BuildContext context, int index)
   {
-    final int beats = widget.metres[index].beats;
-    //final List<int> metres = Prosody.getSimpleMetres(widget.beats, widget.pivoVodochka);
+    final MetreBar metreBar = widget.metres[widget.activeMetre];
+    final int beats = metreBar.beats;
     // Simple metre array
-    final List<int> metres = widget.metres[index].simpleMetres();
-    final List<int> accents = widget.metres[index].accents;
+    final List<int> metres = metreBar.simpleMetres();
+    final List<int> accents = metreBar.accents;
 
     //print('metreBuilder $index');
     //print(accents);
@@ -121,27 +102,27 @@ class MetreBarState extends State<MetreBarWidget>
     int j = 0;  // Simple metre 1st note index
     for (int i = 0; i < metres.length; i++)
     {
-      //final List<int> accents = widget.accents?.sublist(j, j + metres[i]);
+      // Build note with subbeats
       final List<int> accents1 = accents.sublist(j, j + metres[i]);
       j += metres[i];
 
       //TODO Width
       double width = widget.size.width * metres[i] / beats;
 
-      //print('widget.accents $index - $i - ${metres[i]} - ${widget.noteValue}');
+      //print('widget.accents $index - $i - ${metres[i]} - ${metreBar.note}');
       //print(accents1);
 
       final Widget wix = new NoteWidget(
         subDiv: metres[i],
-        denominator: widget.noteValue,
+        denominator: metreBar.note,
         active: -2,
-        colorPast: Colors.black,
+        colorPast: widget.noteColor,
         colorNow: Colors.black,
         colorFuture: Colors.black,
         colorInner: Colors.black,
         accents: accents1,
         maxAccentCount: 3,
-        coverWidth: widget.beats > 5,// true,
+        coverWidth: beats > 5,// true,
         showTuplet: false,
         showAccent: true,
         size: new Size(width, widget.size.height),
@@ -157,38 +138,25 @@ class MetreBarState extends State<MetreBarWidget>
       child: Text(index.toString()),
     );
 */
-    // Need size here to be defined
+    // Need size to be defined here!
     return new Container(
       //color: Colors.blue,
       width: widget.size.width,
       height: widget.size.height,
       alignment: Alignment.center,
       //padding: EdgeInsets.symmetric(horizontal: 5),
-      // TODO
+      // TODO LayoutBuilder
       child: Row(
-        //mainAxisAlignment: MainAxisAlignment.center,
         children: notes
       ),
-    );
-    return new FittedBox(
-        fit: BoxFit.contain,
-        child: Wrap(children: notes),
     );
   }
 
   @override
   Widget build(BuildContext context)
   {
-    double width = widget.size.width / widget.metres.length;
-    if (widget.beats == 2)
-      width /= 3;
-    else if (widget.beats == 3)
-      width /= 2;
-    else if (widget.beats == 4)
-      width /= 1.5;
-    width = widget.size.width;
-
-    print("MetreBar::build - ${widget.activeMetre} - ${widget.beats} - ${widget.noteValue} - ${widget.pivoVodochka} - ${widget.size}");
+    final MetreBar metreBar = widget.metres[widget.activeMetre];
+    print("MetreBar::build - ${widget.activeMetre} - ${metreBar.beats} - ${metreBar.note} - ${metreBar.accentOption} - ${widget.size}");
     print(widget.metres);
     //print(widget.accents);
     //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
@@ -198,18 +166,17 @@ class MetreBarState extends State<MetreBarWidget>
     if (widget.update)
     {
       _notify = false;
-      print('MetreBar::update1 ${widget.beats}');
       //TODO Need?
       final int activeMetre = clampLoop(widget.activeMetre, 0, widget.metres.length - 1);
+      print('MetreBar::update1 $activeMetre');
       _controller.jumpTo(widget.size.width * activeMetre);
     }
     if (false && _controller != null && _controller.hasClients)
     {
       double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
-      print('MetreBar::_physics $dimension - $_itemExtent');
+      print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
       if (_itemExtent != dimension)
         _physics?.itemDimension = dimension;
-      //_controller.jumpTo(widget.size.width * widget.activeMetre);
     }
 
     final ListView listView = new ListView.builder(
@@ -224,27 +191,13 @@ class MetreBarState extends State<MetreBarWidget>
     if (widget.update)
       finishUpdate(0);
 
-    /*
-return Container(
-    width: widget.size.width,
-    height: widget.size.height,
-    child: ListView.builder(
-    scrollDirection: Axis.horizontal,
-    //controller: _controller,
-    //physics: _physics,
-    itemExtent: 50,//widget.size.width,
-    itemCount: 5,//widget.metres.length,
-    itemBuilder: metreBuilder,
-    ));
-*/
-
     return Container(
-        width: widget.size.width,
-        height: widget.size.height,
-        //TODO color: widget.metres[widget.activeMetre].regularAccent ? widget.color : widget.colorIrregular,
-        child:
-      GestureDetector(
-        onTap: () {
+      width: widget.size.width,
+      height: widget.size.height,
+      //TODO color: widget.metres[widget.activeMetre].regularAccent ? widget.color : widget.colorIrregular,
+      child: GestureDetector(
+        onTap: ()
+        {
           int currentIndex = widget.activeMetre + 1;
           if (currentIndex >= widget.metres.length)
             currentIndex = 0;
@@ -255,19 +208,19 @@ return Container(
           _controller.jumpTo(widget.size.width * currentIndex);
           _notify = true;
           print("MetreBar::onTap2 $currentIndex");
-
-          //setState(() {});
-          //Provider.of<MetronomeState>(context, listen: false)
-          //.setActiveState(widget.id, widget.subbeatCount);
+          //TODO setState(() {});
+          //TODO Provider.of<MetronomeState>(context, listen: false)
         },
-        onVerticalDragEnd: (DragEndDetails details) {
+/*      onVerticalDragEnd: (DragEndDetails details) {
           print("onVerticalDragEndonVerticalDragEnd");
-          widget?.onOptionChanged(!widget.pivoVodochka);
+          final int accentOption = widget.metres[widget.activeMetre].accentOption;
+          widget?.onOptionChanged(!);
           //setState(() {});
-        },
+        },*/
         onDoubleTap: () {
           print("onDoubleTaponDoubleTap");
-          widget?.onOptionChanged(!widget.pivoVodochka);
+          final bool pivoVodochka = widget.metres[widget.activeMetre].accentOption == 0;
+          widget?.onOptionChanged(!pivoVodochka);
         },
         onLongPressStart: (LongPressStartDetails details) {
           print("onLongPress");
@@ -304,37 +257,10 @@ return Container(
         ),
       )
     );
-/*
-          onSelectedItemChanged: (int index) {
-            print(index);
-            if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
-            {
-              _activeMetre = index;
-              widget.onChanged(_metreList[index].beats, _metreList[index].note);
-            }
-            //setState(() {});
-          },
-          clipToSize: true,
-          renderChildrenOutsideViewport: false,
-          childDelegate: ListWheelChildListDelegate(children: wixMetres),
-*/
-/*
-          onSelectedItemChanged: (int index) {
-            print(index);
-            if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
-            {
-              _activeMetre = index;
-              widget.onChanged(_metreList[index].beats, _metreList[index].note);
-            }
-            //setState(() {});
-          },
-          clipToSize: true,
-          renderChildrenOutsideViewport: false,
-          childDelegate: ListWheelChildListDelegate(children: wixMetres),
-*/
   }
 }
 
+/// Scroll physics to return to current item on half swipe
 class CustomScrollPhysics extends ScrollPhysics
 {
   double itemDimension;
@@ -343,8 +269,7 @@ class CustomScrollPhysics extends ScrollPhysics
 
   @override
   CustomScrollPhysics applyTo(ScrollPhysics ancestor) {
-    return CustomScrollPhysics(
-        itemDimension: itemDimension, parent: buildParent(ancestor));
+    return CustomScrollPhysics(itemDimension: itemDimension, parent: buildParent(ancestor));
   }
 
   double _getPage(ScrollPosition position) {
@@ -355,20 +280,19 @@ class CustomScrollPhysics extends ScrollPhysics
     return page * itemDimension;
   }
 
-  double _getTargetPixels(
-      ScrollPosition position, Tolerance tolerance, double velocity) {
+  double _getTargetPixels(ScrollPosition position, Tolerance tolerance, double velocity)
+  {
     double page = _getPage(position);
-    if (velocity < -tolerance.velocity) {
+    if (velocity < -tolerance.velocity)
       page -= 0.5;
-    } else if (velocity > tolerance.velocity) {
+    else if (velocity > tolerance.velocity)
       page += 0.5;
-    }
     return _getPixels(page.roundToDouble());
   }
 
   @override
-  Simulation createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
+  Simulation createBallisticSimulation(ScrollMetrics position, double velocity)
+  {
     print('createBallisticSimulation');
     // If we're out of range and not headed back in range, defer to the parent
     // ballistics, which should put us back in range at a page boundary.
@@ -379,7 +303,7 @@ class CustomScrollPhysics extends ScrollPhysics
     final double target = _getTargetPixels(position, tolerance, velocity);
     if (target != position.pixels)
       return ScrollSpringSimulation(spring, position.pixels, target, velocity,
-          tolerance: tolerance);
+        tolerance: tolerance);
     return null;
   }
 
