@@ -270,7 +270,8 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   }
 
   @override
-  void dispose() {
+  void dispose()
+  {
     _controller.dispose();
     super.dispose();
   }
@@ -320,7 +321,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     ticks = timer.elapsedTicks;
     sec = ticks / timer.frequency;
     debugPrint('ReLoading Images : $sec - ${timer.frequency}');
-    tm=DateTime.now().microsecondsSinceEpoch-tm;
+    tm = DateTime.now().microsecondsSinceEpoch-tm;
     debugPrint('ReLoading Images etc in OwlGribBild in microseconds: $tm');
     //TODO
     // IS:  Кажется, то, что выше, можно не повротять, когда число сов не менялось
@@ -331,8 +332,9 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
-    int maxCountX = maxValue(beatRows);
-    maxCountX = 4;
+    //final int maxCountX = maxValue(beatRows);
+    //maxCountX = 4;
+    final int currentMaxAccent = maxValue(widget.accents);
 
     //TODO Recreate only on beatRows change
     final List<Widget> wOwls = List<Widget>();
@@ -353,7 +355,10 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           denominator: widget.noteValue,
           animation: _controller.view,
           images: _skin.images,//[accent ? 0 : 1]),
-          getImageIndex: _skin.getImageIndex,
+          getImageIndex: (int accent, int subbeat, int subbeatCount) {
+            // Need to pass currentMaxAccent onto Skin::getImageIndex
+            return _skin.getImageIndex(accent, subbeat, currentMaxAccent, subbeatCount);
+          },
           onTap: (int id, int accent) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;

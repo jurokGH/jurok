@@ -63,12 +63,13 @@ class OwlSkin
       //debugPrint('!Owl:active $active ${widget.active}');
 */
 
-  int getImageIndex(int accent, int subbeat, int subbeatCount)
+  int getImageIndex(int accent, int subbeat, int maxAccent, int subbeatCount)
   {
     int indexImage = 0;
     if (accent >= 0)  // Select image with switched ON owl
     {
-      indexImage = 2 + frameCount * accent;
+      // Show 'strong' owl for maximum accent
+      indexImage = 2 + frameCount * (accent < maxAccent || maxAccent == 0 ? accent : kindCount - 2);
       if (subbeat >= 0)  // Select image with active owl
       {
         subbeat = subbeat % subbeatCount;
@@ -99,7 +100,7 @@ class OwlSkin
       }
     }
     else
-      indexImage = 0;
+      indexImage = 0;  // Image with switched OFF owl
     return indexImage;
   }
 
