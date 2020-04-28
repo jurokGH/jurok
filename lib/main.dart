@@ -230,7 +230,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Initial note value (denominator)
   //final int _noteValue = _cIniNoteValue;
 
-  /// Sorted metre list to switch between metres
+  /// Partly-sorted metre list to switch between metres
   /// Includes predefined ('standard') metres
   /// Initially filled with predefined ('standard') metres
   /// User defined metre is inserted into this list in its sorted position
@@ -242,6 +242,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     MetreBar(6, 8),
     MetreBar(9, 8),
     MetreBar(12, 16),
+    // 'Unsorted' metres go in the end
     MetreBar(5, 8),  // 3+2/8
   ];
   /// Index of current active metre
