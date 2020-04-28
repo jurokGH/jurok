@@ -59,7 +59,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
    * установки. Это не значит, что она играется прямо сейчас.
    */
   AccentedMelodyMix beatMelody = null;
-  MetroAudioMix metroAudio;
+  MetroAudioMix metroAudio = null;
 
   // Sound schemes
   // Сюда собираем пары звуков.
@@ -79,22 +79,22 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     initSoundSchemes();
 
-
     // Receive messages from audio playing thread
     Handler handler = new Handler(Looper.getMainLooper())
     {
-
       /**
        *  Отладочное. Если сделать true, то будет играться только звук.
        *  (управления из флаттер кроме старт не будет).
        *  Используется для проверки нагрузки на процессор, создаваемой аудиопотоком.
        */
-      boolean noGraphic=false;
+      boolean noGraphic = false;
 
       @Override
       public void handleMessage(Message msg)
       {
-        if (noGraphic) return;
+        // Rightfully assume metroAudio != null
+        if (noGraphic)
+          return;
         //int whtmsg.what & 0x3
         if (msg.what == MetroAudioMix.STATE_PLAYING)
         {
@@ -103,7 +103,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             //STATE_STARTING
             System.out.println("WARMEDUP");
             //channel.invokeMethod("warm", msg.arg1);
-            long toSend=metroAudio.timeOfVeryFirstBipMcs;
+            long toSend = metroAudio.timeOfVeryFirstBipMcs;
             channel.invokeMethod("warm", toSend);
 
             /*
@@ -129,17 +129,17 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             Map<String, Object> args = new HashMap<>();
             int bpm=msg.arg1; // metroAudio.getTempo();
             args.put("bpm", bpm);//новая скорость
-            long time0=metroAudio.timeOfSomeFirstBipMcs;
+            long time0 = metroAudio.timeOfSomeFirstBipMcs;
             args.put("nt", time0);//новое время
-            Long lastSampleToPlay= metroAudio.timeOfLastSampleToPlay;
+            Long lastSampleToPlay = metroAudio.timeOfLastSampleToPlay;
             args.put("dt", lastSampleToPlay);//Когда начинать играть с новой скоростью
 
             channel.invokeMethod("Cauchy", args);
 
             //test
-            Long lost=metroAudio.totalLostFrames;
-            if(lost>0)//ToDo: нужно громко заявить
-                 Log.d("MsgTest", String.format("Lost samples: %d",  lost));
+            Long lost = metroAudio.totalLostFrames;
+            if (lost > 0)//ToDo: нужно громко заявить
+               Log.d("MsgTest", String.format("Lost samples: %d",  lost));
 
             /*
             //test
@@ -240,29 +240,33 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       int _cnt=0;*/
     };
 
+    // We use AudioTrack which needs API 21
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+    {
+      metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
+        120,//TODO: TEST: 1000; //00;
+        // 160 - основной кандидат (8 моих буферов)
+        // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
+        handler);
+    }
 
-    metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
-            120,//TODO: TEST: 1000; //00;
-            // 160 - основной кандидат (8 моих буферов)
-            // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
-            handler);
-
+    // Activity::onCreate called before Flutter State::initState
+    // hence Java channel initializes before Flutter channel
     channel = new MethodChannel(getFlutterView(), SOUND_CHANNEL);
     channel.setMethodCallHandler(this);
-    //IS:  А в какой плсдедовательности запускаются эта процедура и
-    //  init во флаттере?
   }
 
 
   @Override
   public void onMethodCall(MethodCall methodCall, MethodChannel.Result result)
   {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+    // We use AudioTrack which needs API 21
+    // TODO Build.VERSION_CODES.KITKAT
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
     {
       result.notImplemented();
       return;
-    }//IS: Why? We cannot use this anyway
-
+    }
 
     //BeatMetre beat = new BeatMetre();
 
@@ -510,9 +514,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
       //  realTempo = metroAudio.getTempo();
     }
-
-    //if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-
     //return realTempo;
   }
 

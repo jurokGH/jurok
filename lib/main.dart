@@ -300,7 +300,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState()
   {
     super.initState();
-
     /// Init channel callback from hardware Java code
     _channel = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
     /// Get sound schemes (async) and set active scheme

@@ -15,6 +15,7 @@
 
 package com.owlenome.owlenome;
 
+import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTimestamp;
@@ -22,7 +23,6 @@ import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-
 import java.nio.ByteBuffer;
 
 ///ToDo:
@@ -34,7 +34,7 @@ public class MetroAudioMix
 {
     // Initial constants
     //private final static int cTempoBpM = 60; // Определяется в accentedMelody по defaultTempo
-    private final static int cNnoteValue = 4;
+    // Not used private final static int cNnoteValue = 4;
     private final static int cMinTempoBpm = 1;//20;
 
 
@@ -206,6 +206,7 @@ public class MetroAudioMix
         if (newVolume != _volume)
         {
             _volume = newVolume;
+            // setVolume: Gain values are clamped to the closed interval [0.0, max]
             if (audioTrack != null)
                 audioTrack.setVolume(_volume);
         }
@@ -488,53 +489,23 @@ public class MetroAudioMix
     public void initTrack()
     {
         //TODO: Завернуть всё в проверку Build.VERSION.SDK_INT , чтобы не было ругани на deprecated.
-      /*
-      //CHECK API LEVEL!!! 21 (подходит для Lollipop)  23 (marshmallow)
-      //Пробовал, отличия от new AudioTrack не видно
-      //Api: 23
-       audioTrack = new AudioTrack.Builder()
-              .setAudioAttributes(new AudioAttributes.Builder()
-                      .setUsage(AudioAttributes.USAGE_MEDIA)
-                      .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                      .build())
-              .setAudioFormat(new AudioFormat.Builder()
-                      .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                      .setSampleRate(nativeSampleRate)
-                      .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
-              .setBufferSizeInBytes(centerInFrames*2*2)
-              .setTransferMode(AudioTrack.MODE_STREAM)
-              .build();
-          */
-
-
-        ///ToDo
-        ///Некоторые параметры не до конца понятны. См. ниже.
-      /*
-      AudioFormat audioFormat= new AudioFormat.Builder()
-              .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-              .setSampleRate(nativeSampleRate)
-              .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build();
-
-
-      audioTrack = new AudioTrack(
-              new AudioAttributes.Builder()
-                      .setUsage(AudioAttributes.USAGE_GAME) //USAGE_GAME???? USAGE_MEDIA
-                      .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                      .build(),
-              audioFormat, ///AudioManager.STREAM_MUSIC,???
-              centerInFrames*2*2,
-              AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);*/
-
-        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                nativeSampleRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                centerInFrames * 2 * 2,
-                AudioTrack.MODE_STREAM);
+        // TODO На эмуляторе J1 с api 22 штампов нет
+        // API level >= 21
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        audioTrack = new AudioTrack(
+            new AudioAttributes.Builder().
+                setUsage(AudioAttributes.USAGE_MEDIA).
+                setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).
+                build(),
+            new AudioFormat.Builder().
+                setChannelMask(AudioFormat.CHANNEL_OUT_MONO).
+                setEncoding(AudioFormat.ENCODING_PCM_16BIT).
+                setSampleRate(nativeSampleRate).
+                build(),
+            centerInFrames * 2 * 2,
+            AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);
 
         // ToDo: проверить, что он создался.
-        // На эмуляторе J1 с api 22 штампов нет
-
 
         // Вот какой прекрасныый совет :):):) даётся тут,  https://tekeye.uk/archive/android/avd-sound:
         // Is the PC volume turned up and sound muting off?
