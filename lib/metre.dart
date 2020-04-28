@@ -3,7 +3,7 @@ import 'dart:core';
 import 'prosody.dart';
 import 'util.dart';
 
-/// Metre melody configuration
+/// Metre melody configuration: beats/note
 
 class Metre
 {
@@ -14,10 +14,7 @@ class Metre
 
   Metre(this.beats, this.note);
 
-  String toString()
-  {
-    return beats.toString() + '/' + note.toString();
-  }
+  String toString() => beats.toString() + '/' + note.toString();
 }
 
 /// Metre bar configuration
@@ -34,15 +31,18 @@ class MetreBar extends Metre
 
   MetreBar(int beats, int note, [this.accentOption = 0, this.accents]): super(beats, note)
   {
-    accents = Prosody.getAccents(beats, accentOption == 0);
-    _regularAccents = Prosody.getAccents(beats, true);  //TODO Define as regular if pivoVodochka = true?
+    accents = Prosody.getAccents(beats, accentOption != 0);
+    //TODO Define as regular if pivoVodochka = false?
+    _regularAccents = Prosody.getAccents(beats, false);
   }
 
+  /// Get simple metre division
   List<int> simpleMetres()
   {
-    return Prosody.getSimpleMetres(beats, accentOption == 0);
+    return Prosody.getSimpleMetres(beats, accentOption != 0);
   }
 
+  /// Check if metre has regular accent scheme
   bool get regularAccent
   {
     //TODO only if _beatCount < 12
@@ -62,16 +62,18 @@ class MetreBar extends Metre
     return true;
   }
 
-  /// Test if this metre has plain accent scheme: [1, 0, 0, ..]
+  /// Check if metre has plain accent scheme: [1, 0, 0, ..]
   bool get plainAccent
   {
     return accents.isEmpty || (accents.length == 1 && accents[0] == 0) ||
       (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
   }
 
+  /// Maximum accent
   //TODO Change to var?
   int get maxAccent =>  beats > 3 ? 3 : beats - 1;
 
+  /// Set regular accent scheme
   void setRegularAccent()
   {
     for (int i = 1; i < accents.length; i++)
@@ -81,6 +83,7 @@ class MetreBar extends Metre
     //accents = new List.from(_regularAccents);
   }
 
+  /// Set plain accent scheme: [1, 0, 0, ..]
   void setPlainAccent()
   {
     for (int i = 1; i < accents.length; i++)
@@ -89,6 +92,7 @@ class MetreBar extends Metre
       accents[0] = accents.length > 1 ? 1 : 0;
   }
 
+  /// Set beat accent
   void setAccent(int beat, int accent)
   {
     assert(0 <= beat && beat < beats);
@@ -96,6 +100,7 @@ class MetreBar extends Metre
       accents[beat] = accent;
   }
 
+  /// Change beat accent by +-step
   void accentUp(int beat, int step)
   {
     assert(0 <= beat && beat < beats);
@@ -105,6 +110,7 @@ class MetreBar extends Metre
       accents[beat] = clamp(accents[beat] + step, 0, maxAccent);
   }
 
+  /// Set accentation option (>= 0)
   bool setAccentOption(int option)
   {
     //TODO
@@ -116,6 +122,7 @@ class MetreBar extends Metre
     return false;
   }
 
+  /// Change accentation option by +-dir
   bool nextAccentOption([int dir = 1])
   {
     accentOption = accentOption == 0 ? 1 : 0;
@@ -123,10 +130,7 @@ class MetreBar extends Metre
     return true;
   }
 
-  String toString()
-  {
-    return super.toString() + '-' + accentOption.toString();
-  }
+  String toString() => super.toString() + '-' + accentOption.toString();
 }
 
 /// Search (beast, note) in _sorted_ metre list

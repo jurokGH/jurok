@@ -19,7 +19,7 @@ class Cauchy
 
 class MetronomeState with ChangeNotifier
 {
-  BeatMetre beatMetre = new BeatMetre();
+  BeatMetre beatMetre;
   /// Current active (playing) beat (note)
   int _activeBeat = -1;
   /// Current active (playing) subbeat of current beat
@@ -91,8 +91,9 @@ class MetronomeState with ChangeNotifier
 
   //BeatMetre get BeatMetre => _beat;
 
-  MetronomeState()
+  MetronomeState(List<int> subBeats0, List<int> accents0)
   {
+    beatMetre = new BeatMetre(subBeats0, accents0);
     reset();
     //tempo = new Tempo();
     //pos = new Position(-1, 0);

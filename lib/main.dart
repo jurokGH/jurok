@@ -64,6 +64,26 @@ const int _cMaxSubBeatCount = 8;
 const int _cMinNoteValue = 2;
 const int _cMaxNoteValue = 16;
 //const int _cIniNoteValue = 4;
+
+/// Initial metre (beat, note) index from _metreList
+/// !!!ATTENTION!!! Make it compatible with next subbeat/accent lists
+const int _cIniActiveMetre = 1;
+/// Initial subbeats
+const List<int> _cIniSubBeats = [
+  1, 1, 1,
+  //1,3,1,3,1,1, 1,3,1,3,3,3 // Fancy; Bolero; needs accents
+  //2, 2, 4, 2, 4, 2,  // Fancy
+  //2,2,4,2,4,2,6,1,
+  //1,1,1,1,1,1,1,1,1,1,1,1
+];
+/// Initial accents
+const List<int> _cIniAccents = [
+  1, 0, 0,
+  //2, 0, 1, 0,
+  //2, 0, 1, 0,  1, 0, 2, 0, 1, 0,  1, 0,//Bolero
+  //ToDo: fancy Bolero ;
+];
+
 /// Min tempo
 const int _cMinTempo = 1;
 /// Absolute max tempo. Больше него не ставим, даже если позволяет сочетание схемы и метра.
@@ -88,7 +108,7 @@ void main()
     return runApp(
       DevicePreview(builder: (context) =>
         ChangeNotifierProvider(
-          create: (_) => new MetronomeState(),
+          create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
           child: App()
         )
         //new App()
@@ -99,7 +119,7 @@ void main()
 
   return runApp(
     ChangeNotifierProvider(
-      create: (_) => new MetronomeState(),
+      create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
       child: App()
     )
   );
@@ -204,7 +224,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Size _sizeCtrls;
   double _sizeCtrlsShortest;
 
-  BeatMetre _beat;// = new BeatMetre();
+  BeatMetre _beat;//TODO vs MetronomeState // = new BeatMetre();
   BeatSound _soundConfig = new BeatSound();
 
   /// Initial note value (denominator)
@@ -225,12 +245,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     MetreBar(5, 8),  // 3+2/8
   ];
   /// Index of current active metre
-  int _activeMetre = 1;
+  int _activeMetre = _cIniActiveMetre;
   /// Index of current user defined metre
   /// -1 - if there are not user metre
   int _userMetre = -1;
 
-  MetreBar get activeMatre => _metreList[_activeMetre];
+  MetreBar get activeMetre => _metreList[_activeMetre];
 
   double _volume = 100;
   bool _mute = false;
@@ -314,7 +334,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO insertMetre(_beat.beatCount, _cIniNoteValue);
 
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(activeMetre.accents));
   }
 
   @override
@@ -483,12 +503,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
-      bool changed = insertMetre(beats, activeMatre.note);
+      bool changed = insertMetre(beats, activeMetre.note);
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(activeMetre.accents));
       print('_onBeatChanged2');
       setState(() { _updateMetreBar = changed; });  //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
@@ -505,16 +525,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void onMetreChanged(int beats, int noteValue)
   {
+    //_noteValue = noteValue;  // Does not affect sound
+    // Change active metre at first
+    insertMetre(beats, noteValue);
     if (_beat.beatCount != beats)
     {
       _beat.beatCount = beats;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(activeMetre.accents));
     }
-    //_noteValue = noteValue;  // Does not affect sound
-    insertMetre(beats, noteValue);
 
     print('onMetreChanged');
     setState(() { _updateMetre = true; });
@@ -522,18 +543,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void onMetreBarChanged(int index)
   {
+    _activeMetre = index;
     int beats = _metreList[index].beats;
-    if (_beat.beatCount != beats || !equalLists(_metreList[index].accents, _beat.accents))
+    if (_beat.beatCount != beats || !equalLists(_metreList[index].accents, _metreList[index].accents))
     {
       _beat.beatCount = beats;
-      _beat.accents = _metreList[index].accents;
+      //_beat.accents = _metreList[index].accents;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+        _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_metreList[index].accents));
     }
     //_noteValue = _metreList[index].note;  // Does not affect sound
-    _activeMetre = index;
 
     print('onMetreBarChanged');
     setState(() { _updateMetre = true; });
@@ -546,7 +567,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(activeMetre.accents));
     setState(() {});
   }
 
@@ -557,18 +578,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(activeMetre.accents));
     setState(() {});
   }
 
   void onAccentChanged(int id, int accent)
   {
     assert(id < _beat.subBeats.length);
-    _beat.setAccent(id, accent);
-    activeMatre.setAccent(id, accent);
+    //_beat.setAccent(id, accent);
+    activeMetre.setAccent(id, accent);
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
     _channel.setBeat(_beat.beatCount, _beat.subBeatCount, _tempoBpm,
-      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(_beat.accents));
+      _activeSoundScheme, _beat.subBeats, Prosody.reverseAccents(activeMetre.accents));
     setState(() {});
   }
 
@@ -733,9 +754,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       beat: _beat,
       activeBeat: -1,//state.activeBeat,
       activeSubbeat: -1,//state.activeSubbeat,
-      noteValue: activeMatre.note,
-      accents: _beat.accents,
-      maxAccent: activeMatre.maxAccent,
+      noteValue: activeMetre.note,
+      accents: activeMetre.accents,
+      maxAccent: activeMetre.maxAccent,
       animationType: _animationType,
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
@@ -786,7 +807,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       beats: _beat.beatCount,
       minBeats: minBeatCount,
       maxBeats: maxBeatCount,
-      note: activeMatre.note,
+      note: activeMetre.note,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
       width: 0.25 * _sizeCtrls.width,
@@ -798,7 +819,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           fontWeight: FontWeight.w800,
           fontSize: _textStyle.fontSize + 2,
           height: 1,
-          color: _beat.regularAccent ? _cWhiteColor : _clrIrregularMetre
+          color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre
       ),
       onBeatChanged: _onBeatChanged,
       onNoteChanged: _onNoteChanged,
@@ -833,15 +854,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       noteColor: Colors.black,
       onSelectedChanged: onMetreBarChanged,
       onOptionChanged: (bool pivoVodochka) {
-        _beat.setAccentOption(pivoVodochka);
-        if (activeMatre.setAccentOption(pivoVodochka ? 0 : 1))
+        //_beat.setAccentOption(pivoVodochka);
+        if (activeMetre.setAccentOption(pivoVodochka ? 0 : 1))
         {
           setState(() {});
         }
       },
       onResetMetre: () {
-        activeMatre.setRegularAccent();
-        _beat.setRegularAccent();
+        activeMetre.setRegularAccent();
+        //_beat.setRegularAccent();
         setState(() { _updateMetreBar = true; });
       },
     );
@@ -867,7 +888,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
-      noteValue: activeMatre.note,
+      noteValue: activeMetre.note,
       color: _textColor,
       textStyle: _textStyle,
       size: subbeatSize,
@@ -876,7 +897,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     final NoteTempoWidget noteTempo = new NoteTempoWidget(
       tempo: _tempoBpm,
-      noteValue: activeMatre.note,
+      noteValue: activeMetre.note,
       color: Colors.white,
       size: new Size(0.12 * barSize.width, 0.9 * barSize.height),
       textStyle: TextStyle(fontSize: 20, color: Colors.white),
@@ -907,7 +928,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Container(
-                  color: _beat.regularAccent ? _clrRegularBar : _clrIrregularBar,
+                  color: activeMetre.regularAccent ? _clrRegularBar : _clrIrregularBar,
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 0.5 * btnPadding),
                     child: Row(
@@ -990,7 +1011,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
             Container(
-            color: _beat.regularAccent ? _clrRegularBar : _clrIrregularBar,
+            color: activeMetre.regularAccent ? _clrRegularBar : _clrIrregularBar,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1147,7 +1168,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
-      noteValue: activeMatre.note,
+      noteValue: activeMetre.note,
       color: _textColor,
       textStyle: _textStyle,
       size: subbeatSize,
@@ -1496,7 +1517,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       beats: _beat.beatCount,
       minBeats: minBeatCount,
       maxBeats: maxBeatCount,
-      note: activeMatre.note,
+      note: activeMetre.note,
       minNote: minNoteValue,
       maxNote: maxNoteValue,
       width: width,
@@ -1508,7 +1529,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           fontWeight: FontWeight.w800,
           fontSize: textStyle.fontSize + 2,
           height: 1,
-          color: _beat.regularAccent ? _cWhiteColor : _clrIrregularMetre
+          color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre
       ),
       onBeatChanged: _onBeatChanged,
       onNoteChanged: _onNoteChanged,

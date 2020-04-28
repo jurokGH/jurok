@@ -6,6 +6,7 @@ import 'metronome_state.dart';
 import 'OwlWidget.dart';
 import 'beat_metre.dart';
 import 'skin.dart';
+import 'util.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
@@ -28,15 +29,6 @@ List<int> beatRowsList(int beatCount)
   else
     beatRows = [];
   return beatRows;
-}
-
-int maxValue(List<int> list)
-{
-  int value = 0;
-  for (int i = 0; i < list.length; i++)
-    if (value < list[i])
-      value = list[i];
-  return value;
 }
 
 class _OwlLayout extends MultiChildLayoutDelegate

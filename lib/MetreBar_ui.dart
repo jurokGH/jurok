@@ -1,35 +1,42 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'util.dart';
+
 import 'NoteWidget.dart';
 import 'metre.dart';
-import 'prosody.dart';
+import 'util.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
 int _getItemFromOffset({
-  double offset,
-  double itemExtent,
-  double minScrollExtent,
-  double maxScrollExtent,
-})
+  double offset, double itemExtent,
+  double minScrollExtent, double maxScrollExtent,})
 {
   return (min(max(offset, minScrollExtent), maxScrollExtent) / itemExtent).round();
 }
 
+/// Metre bar widget
 
 class MetreBarWidget extends StatefulWidget
 {
+  /// TODO Update flag
   bool update;
+  /// Metre list to display
   final List<MetreBar> metres;
+  /// Current active metre in list
   final int activeMetre;
+  /// Widget size
   final Size size;
+  /// Background color of regular metre
   final Color color;
+  /// Background color of irregular metre
   final Color colorIrregular;
+  /// Notes color
   final Color noteColor;
+  /// Current metre changed callback
   final ValueChanged<int> onSelectedChanged;
+  /// Accentation option changed callback
   final ValueChanged<bool> onOptionChanged;
+  /// Reset metre to regular callback
   final Function onResetMetre;
 
   MetreBarWidget({
@@ -198,6 +205,7 @@ class MetreBarState extends State<MetreBarWidget>
       child: GestureDetector(
         onTap: ()
         {
+          /// Select and display next metre in list
           int currentIndex = widget.activeMetre + 1;
           if (currentIndex >= widget.metres.length)
             currentIndex = 0;
@@ -244,6 +252,7 @@ class MetreBarState extends State<MetreBarWidget>
               );
               print("NotificationListener currentIndex: $currentIndex - $_notify");
 
+              // Change current selected metre
               if (currentIndex != widget.activeMetre && _notify)
               {
                 print("NotificationListener 2");

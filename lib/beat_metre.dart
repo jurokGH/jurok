@@ -8,21 +8,6 @@ import 'util.dart';
 
 class BeatMetre
 {
-  static const List<int> _initSubBeats = [
-    1, 1, 1, 1,
-    //1,3,1,3,1,1, 1,3,1,3,3,3 // Fancy; Bolero; needs accents
-    //2, 2, 4, 2, 4, 2,  // Fancy
-    //2,2,4,2,4,2,6,1,
-    //1,1,1,1,1,1,1,1,1,1,1,1
-  ];
-
-  static const List<int> _initAccents=[
-    2, 0, 1, 0,
-    //2, 0, 1, 0,  1, 0, 2, 0, 1, 0,  1, 0,//Bolero
-  ];
-
-  //ToDo: fancy Bolero ;
-
   /// Number of beats
   int _beatCount;
   /// Number of subbeats if they are the same for all beats
@@ -38,37 +23,34 @@ class BeatMetre
 
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
-  List<int> accents;
-  List<int> _regularAccents;
-  bool pivoVodochka = false;  // false - чтобы распевней
+  //List<int> accents;
+  //List<int> _regularAccents;
+  //bool pivoVodochka = false;  // false - чтобы распевней
 
   // Unused
   /// notes[i] - i-th notes (bips)
   /// notes[i][j] - musical char of j-th subdivision of i-th note (bip)
   //List<List<int>> notes;
 
-  BeatMetre()
+  BeatMetre(List<int> subBeats0, List<int> accents0)
   {
-    subBeats = new List<int>.from(_initSubBeats, growable: true);
+    subBeats = new List<int>.from(subBeats0, growable: true);
     _beatCount = subBeats.length;
     _subBeatCount = 1;
     _metres = new List<int>.filled(1, _beatCount, growable: true);
-    accents = Prosody.getAccents(_beatCount, pivoVodochka);
-    _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
 
     //TODO
+    //accents = Prosody.getAccents(_beatCount, pivoVodochka);
+    //_regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
     //Попытка настройки начальной мелодии.
-    if (subBeats.length == _initAccents.length)
-      accents = new List<int>.from(_initAccents, growable: true);
-
-    //accents[0] = -1;
-    //subBeats[0] = 1;
+    //if (subBeats.length == accents0.length)
+      //accents = new List<int>.from(accents0, growable: true);
 
     //subBeats.length = _beatCount;
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
-
+/*
   bool get regularAccent
   {
     //TODO only if _beatCount < 12
@@ -129,7 +111,7 @@ class BeatMetre
 
   ///TODO For now Remove?
   int get accent => accents.length > 0 ? accents[0] : 0;
-
+*/
   int get beatCount => _beatCount;
   set beatCount(int count)
   {
@@ -146,9 +128,11 @@ class BeatMetre
         newAccents[i] = accents[i];
       accents = newAccents;
 */
+/*
       accents = Prosody.getAccents(_beatCount, pivoVodochka);
       if (_beatCount != 5 && _beatCount != 7 && _beatCount != 11)
         _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
+*/
     }
   }
 

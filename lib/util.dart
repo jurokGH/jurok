@@ -9,11 +9,13 @@ T loop<T>(T x, T left, T right)
 }
 */
 
+/// Clamp x into [left, right]
 int clamp(int x, int left, int right)
 {
   return x > right ? right : (x < left ? left : x);
 }
 
+/// Clamp x into [left, right] as a loop
 int clampLoop(int x, int left, int right)
 {
   return x > right ? left : (x < left ? right : x);
@@ -43,6 +45,7 @@ int index2noteValue(int index)
   return index >= 0 ? noteValue : -1;
 }
 
+/// Compare 2 lists of integers
 bool equalLists(List<int> a, List<int> b)
 {
   if (a == null && b == null)
@@ -58,6 +61,16 @@ bool equalLists(List<int> a, List<int> b)
   }
   else
     return false;
+}
+
+/// Return maximum value in list
+int maxValue(List<int> list)
+{
+  int value = 0;
+  for (int i = 0; i < list.length; i++)
+    if (value < list[i])
+      value = list[i];
+  return value;
 }
 
 /// /////////////////////////////////////////////////////////////////////////
