@@ -31,7 +31,7 @@ class MetreBar extends Metre
 
   MetreBar(int beats, int note, [this.accentOption = 0, this.accents]): super(beats, note)
   {
-    accents = Prosody.getAccents(beats, accentOption != 0);
+    accents = Prosody.getAccents(beats, accentOption == 0);
     //TODO Define as regular if pivoVodochka = false?
     _regularAccents = Prosody.getAccents(beats, false);
   }
@@ -39,7 +39,7 @@ class MetreBar extends Metre
   /// Get simple metre division
   List<int> simpleMetres()
   {
-    return Prosody.getSimpleMetres(beats, accentOption != 0);
+    return Prosody.getSimpleMetres(beats, accentOption == 0);
   }
 
   /// Check if metre has regular accent scheme
