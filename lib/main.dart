@@ -67,20 +67,20 @@ const int _cMaxNoteValue = 16;
 
 /// Initial metre (beat, note) index from _metreList
 /// !!!ATTENTION!!! Make it compatible with next subbeat/accent lists
-const int _cIniActiveMetre = 1;
+const int _cIniActiveMetre = 3;
 /// Initial subbeats
 const List<int> _cIniSubBeats = [
-  1, 1, 1,
-  //1,3,1,3,1,1, 1,3,1,3,3,3 // Fancy; Bolero; needs accents
+  1, 1, 1, 1, 1, 1,
+  //1,3,1,3,1,1, 1,3,1,3,3,3  // Fancy; Bolero; needs accents
   //2, 2, 4, 2, 4, 2,  // Fancy
   //2,2,4,2,4,2,6,1,
-  //1,1,1,1,1,1,1,1,1,1,1,1
+  //1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 ];
 /// Initial accents
 const List<int> _cIniAccents = [
-  1, 0, 0,
+  2, 0, 0, 1, 0, 0,
   //2, 0, 1, 0,
-  //2, 0, 1, 0,  1, 0, 2, 0, 1, 0,  1, 0,//Bolero
+  //2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 1, 0,  //Bolero
   //ToDo: fancy Bolero ;
 ];
 
@@ -92,7 +92,7 @@ const int _cMaxTempo = 1000;  //500-5000
 const int _cIniTempo = 120;  //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
-const double _cTempoKnobSweepAngle = 2.5 * 360.0 + 2 * _cTempoKnobAngle;
+const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
 
 /// Debug on different devices/resolutions
 final bool _debugDevices = false;
@@ -243,7 +243,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     MetreBar(9, 8),
     MetreBar(12, 16),
     // 'Unsorted' metres go in the end
-    MetreBar(5, 8),  // 3+2/8
+    //MetreBar(5, 8),  // 3+2/8
+    MetreBar(12, 16),  // Bolero
   ];
   /// Index of current active metre
   int _activeMetre = _cIniActiveMetre;
