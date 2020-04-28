@@ -825,7 +825,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onNoteChanged: _onNoteChanged,
     );
 
-    final Size barSize = Size((portrait ? 0.45 : 0.4) * _sizeCtrls.width, 0.16 * _sizeCtrls.height);
+    final Size barSize = Size((portrait ? 0.7 : 0.4) * _sizeCtrls.width, 0.16 * _sizeCtrls.height);
 
 /*    final Widget accentMetre = new AccentMetreWidget(
       beats: _beat.beatCount,
@@ -932,26 +932,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 0.5 * btnPadding),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,  //spaceBetween, for brackets
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                       //Container(width: 0.02 * _sizeCtrls.width,),
-                        BarBracketWidget(
-                          direction: BarBracketDirection.left,
-                          color: Colors.black,
-                          size: bracketSize,
-                        ),
+//                        BarBracketWidget(
+//                          direction: BarBracketDirection.left,
+//                          color: Colors.black,
+//                          size: bracketSize,
+//                        ),
                         ///widget Subbeat widget
-                        //Flexible(child:
+                        // Remove Flexible for BarBracketWidget usage here
+                        Flexible(child:
                         Padding(
                           padding: EdgeInsets.only(top: 2),//(bottom: 0.05 * _sizeCtrls.height),//20
                           child: metreBar
                         ),
-                        BarBracketWidget(
-                          direction: BarBracketDirection.right,
-                          color: Colors.black,
-                          size: bracketSize
                         ),
+//                        BarBracketWidget(
+//                          direction: BarBracketDirection.right,
+//                          color: Colors.black,
+//                          size: bracketSize
+//                        ),
                       ]
                     ),
                   ),

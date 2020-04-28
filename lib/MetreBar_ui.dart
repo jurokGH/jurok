@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import 'BarBracket.dart';
 import 'NoteWidget.dart';
 import 'metre.dart';
 import 'util.dart';
@@ -106,6 +107,20 @@ class MetreBarState extends State<MetreBarWidget>
     //print(metres);
 
     final List<Widget> notes = new List<Widget>();
+
+    final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
+    final Size bracketSize = new Size(3.0 * btnPadding, widget.size.height);
+    // Add left bracket
+    notes.add(new Container(
+      width: 0.5 * bracketSize.width,
+      height: bracketSize.height,
+    ));
+    notes.add(new BarBracketWidget(
+        direction: BarBracketDirection.left,
+        color: Colors.black,
+        size: bracketSize
+    ));
+
     int j = 0;  // Simple metre 1st note index
     for (int i = 0; i < metres.length; i++)
     {
@@ -114,7 +129,7 @@ class MetreBarState extends State<MetreBarWidget>
       j += metres[i];
 
       //TODO Width
-      double width = widget.size.width * metres[i] / beats;
+      double width = (widget.size.width - 3 * bracketSize.width) * metres[i] / beats;
 
       //print('widget.accents $index - $i - ${metres[i]} - ${metreBar.note}');
       //print(accents1);
@@ -136,6 +151,18 @@ class MetreBarState extends State<MetreBarWidget>
       );
       notes.add(wix);
     }
+
+    // Add right bracket
+    notes.add(new BarBracketWidget(
+        direction: BarBracketDirection.right,
+        color: Colors.black,
+        size: bracketSize
+    ));
+    notes.add(new Container(
+      width: 0.5 * bracketSize.width,
+      height: bracketSize.height,
+    ));
+
 /*
     return Container(
       width: widget.size.width,
@@ -154,6 +181,7 @@ class MetreBarState extends State<MetreBarWidget>
       //padding: EdgeInsets.symmetric(horizontal: 5),
       // TODO LayoutBuilder
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: notes
       ),
     );

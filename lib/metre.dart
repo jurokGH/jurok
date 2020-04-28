@@ -48,17 +48,10 @@ class MetreBar extends Metre
     //TODO only if _beatCount < 12
     if (beats == 5 || beats == 7 || beats == 11 ||
         accents.length != _regularAccents.length)
-    {
-      print('regular:false 1');
       return false;
-    }
     for (int i = 0; i < accents.length; i++)
       if (accents[i] != _regularAccents[i])
-      {
-        print('regular:false 2');
         return false;
-      }
-    print('regular:true');
     return true;
   }
 
