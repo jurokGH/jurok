@@ -25,9 +25,6 @@ import android.os.Handler;
 import android.os.Message;
 import java.nio.ByteBuffer;
 
-//import android.annotation.SuppressLint;
-//import android.annotation.TargetApi;
-
 ///ToDo:
 ///Уровень API >= 21 (возможно, 19, но не проверял).
 ///
