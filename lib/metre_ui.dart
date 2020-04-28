@@ -174,7 +174,10 @@ class MetreState extends State<MetreWidget>
           child:
           Text(noteValue.toString(),
             textAlign: TextAlign.center,
-            style: i + widget.minNoteIndex == widget.noteIndex ? widget.textStyleSelected : widget.textStyle,
+            style: i + widget.minNoteIndex == widget.noteIndex ?
+              widget.textStyle.copyWith(fontWeight: FontWeight.bold) : widget.textStyle,
+            // To Change color for irregular metre:
+            // style: i + widget.minNoteIndex == widget.noteIndex ? widget.textStyleSelected : widget.textStyle,
           )
         );
       }
