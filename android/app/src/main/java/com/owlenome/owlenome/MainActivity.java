@@ -270,7 +270,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     //BeatMetre beat = new BeatMetre();
 
-    if (methodCall.method.equals("start"))
+    if (methodCall.method.equals("ver"))
+    {
+      String version = getResources().getString(R.string.gitRevision);
+      result.success(version);
+    }
+    else if (methodCall.method.equals("start"))
     {
       int _beatsPerMinute = methodCall.argument("tempo");
       int screenOn = methodCall.argument("screen");

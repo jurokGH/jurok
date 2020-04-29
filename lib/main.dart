@@ -170,7 +170,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Configuration constants
   bool _useNewKnob = false;
   bool _showKnobDialText = true;
-  bool _showNoteTempo = false;
+  bool _showNoteTempo = true;
+  bool _showVersion = true;
+
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
   static const int maxBeatCount = _cMaxBeatCount;
@@ -275,6 +277,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   int _activeSoundScheme = 0;
   List<String> _soundSchemes = [];
 
+  String _version = '';
+
   /// Animation
   bool redraw = false;
   bool hideCtrls = false;
@@ -303,6 +307,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     super.initState();
     /// Init channel callback from hardware Java code
     _channel = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
+    _channel.getVersion().then((String version) {
+      setState(() { _version = version; });
+    });
     /// Get sound schemes (async) and set active scheme
     _channel.getSoundSchemes(_activeSoundScheme).then((List<String> soundSchemes) {
       _soundSchemes = soundSchemes;
@@ -605,6 +612,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.shortestSide;
 
+    if (_version.isNotEmpty)
+      print("Version: $_version");
+
     if (_screenSize.width > _screenSize.height)
       _sizeCtrls = new Size(_screenSize.width - _sideSquare, _screenSize.height);
     else
@@ -687,7 +697,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   bottom: _showAds ? _heightAds[0] + _paddingBtn.dy : _paddingBtn.dy,
                   child: _buildVolumeBtn(_smallBtnSize,//0.05 * _sizeCtrlsShortest
                     _sizeCtrlsShortest)
-                )
+                ),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: _showVersion ? Text(_version,
+                      style: Theme.of(context).textTheme.body1.copyWith(color: Colors.white))
+                      : Container(),
+                ),
               ]
           )
       );

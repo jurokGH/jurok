@@ -78,6 +78,20 @@ class PlatformSvc
     return new Future.value('');
   }
 
+  Future<String> getVersion() async
+  {
+    String version = '';
+    try
+    {
+      version =  await _channel.invokeMethod('ver');
+    }
+    on PlatformException
+    {
+      _infoMsg = 'Exception: Failed to get version';
+    }
+    return new Future.value(version);
+  }
+
   Future<int> togglePlay(int tempoBpm, int beatCount, bool screenOn) async
   {
     int res = 0;
