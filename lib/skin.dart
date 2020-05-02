@@ -131,7 +131,7 @@ class OwlSkin
       {
         _images[iImage] = new Image.asset(_fileBase + '$i-$j.png',
           width: size.width,
-          //height: size.height,
+          height: aspect * size.width,
           fit: BoxFit.contain,
           filterQuality: FilterQuality.medium, //TODO Choose right one
           /// !!! To prevent flickering of first owls !!!
