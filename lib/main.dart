@@ -18,6 +18,7 @@ import 'metre.dart';
 import 'beat_metre.dart';
 import 'beat_sound.dart';
 import 'OwlGrid.dart';
+import 'OwlGridRot.dart';
 import 'Metre_ui.dart';
 import 'Subbeat_ui.dart';
 import 'TempoList_ui.dart';
@@ -723,13 +724,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             children: <Widget>[
               //Positioned.fill(
                 //child:
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    _buildBar(portrait),
-                    _buildControls(portrait),
-                  ]
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                //mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  _buildBar(portrait, metreBarSize),
+                  //Container(height: metreBarSize.height, width: metreBarSize.width),
+                  _buildControls(portrait, metreBarSize.height),
+                ]
                 //),
                 //),
               ),
@@ -1056,7 +1058,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   /////TODO !!!
                   //Flexible(child:
                   Padding(
-                    padding: EdgeInsets.only(bottom: 0.05 * _sizeCtrls.height),//20
+                    padding: EdgeInsets.zero,//EdgeInsets.only(bottom: 0.05 * size.height),//20
                     child: metreBar
                   ),
                 ]
@@ -1550,6 +1552,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 //      .copyWith(color: Colors.white70, height: 1),//16
     bool update = _updateMetre;
     _updateMetre = false;
+
+    print('Font ${textStyle.fontSize}');
 
     return new MetreWidget(
       update: update,

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'metronome_state.dart';
-import 'OwlWidget.dart';
+import 'HeadOwlWidget.dart';
 import 'beat_metre.dart';
-import 'skin.dart';
+import 'SkinRot.dart';
 import 'util.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
@@ -41,7 +41,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
   //final Size childSize;
   //final double width;
   final double aspect;
-  final Size padding = new Size(10, 0);
+  final Size padding = new Size(0, 0);//Size(10, 0)
 
   /// _layout[i] - number of Owls in each i-th row
   List<int> _layout;
@@ -101,7 +101,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
       w = maxWidth;
       h = aspect * maxWidth;
     }
-    //debugPrint('calcImageSize $size - $w - $h');
+    debugPrint('calcImageSize $size - $w - $h');
 
     return new Size(w, h);
   }
@@ -195,7 +195,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
   }
 }
 
-class OwlGrid extends StatefulWidget
+class OwlGridRot extends StatefulWidget
 {
   BeatMetre beat;
   final int noteValue;
@@ -210,34 +210,38 @@ class OwlGrid extends StatefulWidget
   //final ValueChanged<int> onCountChanged;
   final ValueChanged2<int, int> onAccentChanged;
 
-  OwlGrid({@required this.beat, this.noteValue,
+  OwlGridRot({
+    @required this.beat,
+    this.noteValue,
     this.accents,
-    this.activeBeat, this.activeSubbeat,
+    this.activeBeat,
+    this.activeSubbeat,
     this.playing = false,
-    this.onChanged, this.onAccentChanged,
+    this.onChanged,
+    this.onAccentChanged,
     this.animationType = 0,
     this.maxAccent,
     });
 
   @override
-  OwlGridState createState() => OwlGridState();
+  OwlGridRotState createState() => OwlGridRotState();
 }
 
-class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<OwlGrid>
+class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMixin<OwlGridRot>
 {
   AnimationController _controller;
   int _period = 60000;
   //duration: new Duration(days: 3653)
 
-  OwlSkin _skin;
+  OwlSkinRot _skin;
 
   //int subCount;
   //int subCur;
   //bool active;
 
-  OwlGridState()
+  OwlGridRotState()
   {
-    _skin = new OwlSkin();
+    _skin = new OwlSkinRot();
   }
 
   void toggleAnimation()
@@ -291,7 +295,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       return Container();
 
     double aspect = _skin.aspect;
-    aspect *= 1.7;//1.8;  // for NoteWidget
+    //aspect *= 1.7;//1.8;  // for NoteWidget
 
     _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
@@ -299,10 +303,19 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       //1.75 * 306 / 250 //2 * 668 / 546,
     );
 
+    double _imageNoteAspect = 0.7;
     // TODO Check image size
-    Size imageSize = layout.calcImageSize(size);
+    Size owlSize = layout.calcImageSize(size);
+    double w = owlSize.width;
+    double h = _imageNoteAspect * owlSize.height;
+    if (aspect > h / w)
+      w = h / aspect;
+    else
+      h = w * aspect;
+    Size imageSize = new Size(w, h);
     //TODO Test: Move loadImages to initState, but keep precacheImages here?
     _skin.cacheImages(context, imageSize);
+    print('OwlGrid $imageSize - $aspect - $owlSize');
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
     //final int maxCountX = maxValue(beatRows);
@@ -317,7 +330,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       {
         bool accent = k == 0;
         int nAccent = widget.accents[k];
-        OwlWidget w = new OwlWidget(
+        HeadOwlWidget w = new HeadOwlWidget(
           id: k,
           accent: accent,
           nAccent: nAccent,
@@ -328,6 +341,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
           denominator: widget.noteValue,
           animation: _controller.view,
           images: _skin.images,//[accent ? 0 : 1]),
+          headImages: _skin.headImages,//[accent ? 0 : 1]),
           getImageIndex: (int accent, int subbeat, int subbeatCount) {
             // Need to pass currentMaxAccent onto Skin::getImageIndex
             return _skin.getImageIndex(accent, subbeat, currentMaxAccent, subbeatCount);
@@ -355,5 +369,19 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       children: wOwls,
       delegate: layout,
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    print("Head:didChangeDependencies");
+  }
+
+  @override
+  void didUpdateWidget(OwlGridRot oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    print("Head:didUpdateWidget");
   }
 }

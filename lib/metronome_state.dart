@@ -24,10 +24,11 @@ class MetronomeState with ChangeNotifier
   int _activeBeat = -1;
   /// Current active (playing) subbeat of current beat
   int _activeSubbeat = -1;
+  int _activeTime = 0;
 
   int get activeBeat => _activeBeat;
   int get activeSubbeat => _activeSubbeat;
-  
+
   ///  start time of A first beat (in microseconds)
   int _timeOrg;
 
@@ -248,6 +249,7 @@ class MetronomeState with ChangeNotifier
     List<int> pair = timePosition(dt, _beatsPerMinute);
     int curBeat = pair[0];
     int curSubbeat = pair[1];
+    _activeTime = pair[2];
 
     if (curBeat != _activeBeat || curSubbeat != _activeSubbeat)
     {
@@ -264,7 +266,7 @@ class MetronomeState with ChangeNotifier
   /// time - time from begin in seconds
   List<int> timePosition(double time, int bpm)
   {
-    double duration = beatMetre.beatCount * 60.0 / bpm;
+    double duration = beatMetre.beatCount * 60.0 / bpm;  // in seconds
     //Position pos = new Position(0, 0);
     //int cycle = time ~/ duration;
     if (time < 0) {} //Такое может быть! Если latency большое, то легко.
@@ -273,18 +275,23 @@ class MetronomeState with ChangeNotifier
 
     //print('timePosition0 $duration');
 
-    double timeInBeat = time % duration;
-    duration /= beatMetre.beatCount;  // Duration of 1 beat
-    int beat = timeInBeat ~/ duration;
+    double timeInMetre = time % duration;
+    duration /= beatMetre.beatCount;  // Duration of a beat
+    int beat = timeInMetre ~/ duration;  // Active beat number
     //print('timePosition1 $duration - $timeInBeat - $beat - ${subBeats[beat]}');
-    double time1 = timeInBeat % duration;
-    duration /= beatMetre.subBeats[beat];  // Duration of 1 subbeat of a given beat
-    int subbeat = time1 ~/ duration;
-    double offset = time1 % duration;
+    double timeInBeat = timeInMetre % duration;
+    double timeInBeatRel = (timeInMetre % duration) / duration;
+    duration /= beatMetre.subBeats[beat];  // Duration of a subbeat of an active beat
+    int subbeat = timeInBeat ~/ duration;  // Active subbeat number
+    double offset = timeInBeat % duration;
+
+    double timeInSubbeat = (timeInBeat % duration) / duration;
+
+    //for (int i = 0; i < beatMetre.beatCount; i++)
 
     //print('timePosition $time1 - $duration - offset $beat - $subbeat - ${subBeats[beat]}');
-
-    return [beat, subbeat];
+    double msec = timeInBeatRel * 1000000;  // in microseconds
+    return [beat, subbeat, msec.toInt()];
   }
 
   /* //IS:прикрыл, чтобы разобраться в коде.
@@ -328,6 +335,11 @@ class MetronomeState with ChangeNotifier
   int getActiveSubbeat(int id)
   {
     return id == _activeBeat ? _activeSubbeat : -1;
+  }
+
+  int getActiveTime(int id)
+  {
+    return id == _activeBeat ? _activeTime : 0;
   }
 
   int getActiveState()
