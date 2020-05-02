@@ -109,6 +109,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   int turn;
   bool pressed = false;
   bool tap = false;
+  bool dialing = false;
 
   final Color clrAnimRing1 = Colors.pink[400].withOpacity(0.5);
   final Color clrAnimRing2 = Colors.purple[800].withOpacity(0.5);
@@ -121,9 +122,10 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   int _time = 5000;
   double _tangential;
 
-  double flingVelocity = 1.5;
-  double _friction = 0.1;//0.05;
-  double _accel = 800;
+  double _flingVelocity = 1.5;
+  double _tangentAmplifier = 0.25;
+  double _friction = 50;
+  double _accel = 1;
 
   Image _image;  /// Knob image
   Size _imageSize = Size.zero;
@@ -166,8 +168,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
     // a0 + v * t - k * t * t * 0.5
     double t = 0.001 * _animation.value;  // in sec
-    _friction = 0.25;
-    double angle = _prevAngle + _friction * (_tangential * t - _tangential.sign * 0.5 * _accel * t * t);
+    double angle = _prevAngle +  _tangentAmplifier * _tangential * t - _tangential.sign * _friction * 0.5 * _accel * t * t;
 
     double value = widget.min + (widget.max - widget.min) * (angle - widget.minAngle) / widget.sweepAngle;
 
@@ -355,7 +356,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     double v = velocity.distance;
     //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
-    if (_prevPos == null || _prevAngle == null)
+    if (_prevPos == null || _prevAngle == null || dialing)
     {
       //debugPrint('onPanEnd Error ${velocity.toString()} - $v - $_prevPos - $_prevAngle');
       _startPos = null;
@@ -372,7 +373,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
 
     double tangentialAbs = tangential.abs();
     _time = 1000;  // in msec
-    _time = tangentialAbs ~/ flingVelocity;  // in msec
+    _time = tangentialAbs ~/ _flingVelocity;  // in msec
     _accel = 1000 * tangentialAbs / _time;
     //_time = (tangentialAbs * 1000) ~/ _accel;  // in msec
     // Knob turns CW to higher values
@@ -442,8 +443,13 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               _controller.stop();
 
             double radius = size / 2;
+            double radius2 = radius * radius;
+            double radiusDial2 = widget.radiusDial * widget.radiusDial * radius2;
+
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
             tap = pos.distance <= (widget.radiusButton * radius);
+            double distance2 = pos.distanceSquared;//TODO Opt
+            dialing = pos.distanceSquared <= radiusDial2;
             // For arrow buttons
             setState(() {
               _prevPos = pos;
@@ -564,7 +570,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                 child: Text(widget.value.toInt().toString(),
                   style: widget.textStyle.copyWith(
                     color: Colors.purple[100],
-                    fontSize: 0.6 * (1 - widget.radiusDial) * widget.diameter,
+                    fontSize: 0.5 * (1 - widget.radiusDial) * widget.diameter,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
