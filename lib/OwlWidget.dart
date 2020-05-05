@@ -215,7 +215,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
                   boxShadow: [BoxShadow(
-                color: Colors.deepPurple.withOpacity(0.7),
+                color: Colors.black.withOpacity(0.7),
                 offset: Offset.zero,
                 blurRadius: 5.0,
                 spreadRadius: 0.0,
@@ -238,7 +238,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 ),
               ),
             ),
-              //),
+//),
 
   //            RepaintBoundary(child:
             //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:

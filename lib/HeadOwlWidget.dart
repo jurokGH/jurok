@@ -25,6 +25,10 @@ class HeadOwlWidget extends StatefulWidget
   final Animation<double> animation;
   final List<Image> images;
   final List<Image> headImages;
+  final double anchorRatio = 0.01;//-0.08;//for 310
+  final double imageHeightRatio;
+  final double maxAngle;
+  final Size size;
 
   //final double width;
 
@@ -47,6 +51,9 @@ class HeadOwlWidget extends StatefulWidget
     @required this.animation,
     @required this.images,
     @required this.headImages,
+    @required this.imageHeightRatio,
+    @required this.size,
+    this.maxAngle = 1,
   });
   //:assert(subbeatCount > 0);
 
@@ -66,7 +73,6 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
   int activeSubbeat;
   int _time;
   double _angle = 0;
-  double maxAngle = 1;
 
   int activeHash;
   Animation<double> _controller;
@@ -86,9 +92,9 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     //debugPrint('AnimationController ${widget.id} $_counter $hash');
     _counter++;
 
-    bool newActive = state.isActiveBeat(widget.id);
-    int newActiveSubbeat = state.getActiveSubbeat(widget.id);
-    int t = state.getActiveTime(widget.id);
+    final bool newActive = state.isActiveBeat(widget.id);
+    final int newActiveSubbeat = state.getActiveSubbeat(widget.id);
+    final int t = state.getActiveTime(widget.id);
     //if (hash != activeHash)
     if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
@@ -97,11 +103,12 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
       setState((){
         activeHash = hash;
         //maxAngle = 2;
-        _angle = maxAngle * sin(2 * pi * 0.000001 * t);
+        _angle = widget.maxAngle * sin(2 * pi * 0.000001 * t);
         active = newActive;
         activeSubbeat = newActiveSubbeat;
       });
     }
+    _time = t;
     //    final int beat0 = activeHash >> 16;
     //    final int activeSubbeat0 = activeHash & 0xFFFF;
     //final bool active = widget.id == activeBeat;
@@ -147,12 +154,20 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     //maxDragY = widget.images[indexImage].height / 4;
 
     Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
+    //imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].width);
 //    if (imageSize.height == null)
 //      imageSize = new Size(imageSize.width, 1.2 * imageSize.width);
     final double aspect = imageSize.height / imageSize.width;
-    print('OwlWidget $imageSize - $maxDragX - $aspect');
 
-    Size noteSize = new Size(imageSize.width, 0.3 / 0.7 * imageSize.height);
+    Size noteSize = new Size(imageSize.width, (1.0 - widget.imageHeightRatio) * 330/250*imageSize.width);
+    //noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height);
+    //Size noteSize = new Size(imageSize.width, 0.3 / 0.7 * imageSize.height);
+    print('OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
+    Size sz2 = new Size(imageSize.width, 330 / 240 * imageSize.width);
+    double ww = widget.headImages[0].width;
+    double hh = widget.headImages[0].height;
+    print('OwlWidget22 ${widget.size} - $imageSize - $noteSize - $sz2 - $ww - $hh');
+    print('OwlWidget23 ${widget.images[0].width} - ${widget.images[0].height}');
 
     final NoteWidget noteWidget = new NoteWidget(
       subDiv: widget.subbeatCount,
@@ -171,10 +186,11 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
       size: noteSize,
     );
 
-    //_angle = 0;
-
     //TODO 1 vs 2 RepaintBoundary in Column
     return RepaintBoundary(
+//      child: Container(
+//        width: widget.size.width,
+//        height: widget.size.height,
       child: GestureDetector(
         onHorizontalDragStart: (DragStartDetails details) {
           _dragStart = details.localPosition.dx;
@@ -215,7 +231,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
           }
         },
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
 //              RepaintBoundary(child:
             GestureDetector(
@@ -230,8 +246,12 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
 //                aspectRatio: 1.7,   //1.2,//3.5 / 3,
                 //width: 0.9 * widget.width,
                 //height: 0.9 * widget.width,
-              child: noteWidget,
-//              ),
+              child: Container(
+//                width: noteSize.width,
+//                height: noteSize.height,
+                //color: Colors.green,
+                child: noteWidget,
+              ),
             ),
 
   //            RepaintBoundary(child:
@@ -246,25 +266,41 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                 widget.onTap(widget.id, accent);
               },
               child:
+              Container(
+                //color: Colors.amber,
+                width: imageSize.width,
+                height: 330 / 250 * imageSize.width,
+                alignment: Alignment.bottomCenter,
+
+                child:
+//                  Image.asset('images/owl6-1.png',
+//                    width: imageSize.width,
+//                    //height: imageSize.height,
+//                    fit: BoxFit.contain,)
               Stack(
                 //fit: StackFit.passthrough,
-                alignment: AlignmentDirectional.topCenter,
+                //alignment: Alignment.bottomCenter,
                 overflow: Overflow.visible,
                 children: <Widget>[
                   Align(
                     alignment: Alignment.bottomCenter,
                     child:
 //                AspectRatio( // This gives size to NoteWidget
-//                    aspectRatio: aspect,   //1.2,//3.5 / 3,
-//                    child:
+//                    aspectRatio: 240 / 250,   //1.2,//3.5 / 3,
+                Container(
+                    //color: Colors.blue,
+                    width: imageSize.width,
+                    height: 240 / 250 * imageSize.width,
+                    child:
                     widget.images[indexImage],
 //                    Container(color: Colors.blue,
 //                      width: widget.images[indexImage].width,
 //                    height: widget.images[indexImage].height,
 //                    child: widget.images[indexImage])//widget.images[indexImage],
                   ),
+                  ),
                   Positioned(
-                    top: -30,
+                    top: widget.anchorRatio * 240 / 250 * imageSize.width,
                     //alignment: Alignment(1, -1),
                     //alignment: Alignment.bottomCenter,
                     child:
@@ -272,15 +308,30 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                       angle: _angle,
                       //origin: new Offset(0, 0),
                       //alignment: Alignment.topCenter,
-                      child: widget.headImages[indexImageRot],
+                      child:
+//                      Container(
+//                        color: Colors.pinkAccent,
+                        //width: imageSize.width,
+                        //height: 205 / 250 * imageSize.width,
+                        //alignment: Alignment.bottomCenter,
+
+//                        child:
+//                  Image.asset('images/owl6h-0-0.png',
+//                    width: widget.images[0].width,
+//                    height: widget.images[0].height,
+//                    fit: BoxFit.none,)
+                    widget.headImages[indexImageRot],
+//                      ),
                     ),
                   ),
                 ]
+              ),
               ),
             ),
           ],
         ),
       ),
+      //),
     );
   }
 }

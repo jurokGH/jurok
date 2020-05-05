@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -34,19 +35,21 @@ List<int> beatRowsList(int beatCount)
 class _OwlLayout extends MultiChildLayoutDelegate
 {
   /// Maximum owl size over size when there are 4 owls in row
-  static final double maxCoef4 = 1.5;//1.5;
+  //static final double maxCoef4 = 1.5;//1.5;
   //static final double minPaddingX = 10;
 
   final int count;
   //final Size childSize;
   //final double width;
   final double aspect;
-  final Size padding = new Size(0, 0);//Size(10, 0)
+  final double maxCoef4;
+  final Size spacing = new Size(10, 0);
+  //final EdgeInsetsGeometry padding;
 
   /// _layout[i] - number of Owls in each i-th row
   List<int> _layout;
 
-  _OwlLayout({@required this.count, @required this.aspect,
+  _OwlLayout({@required this.count, @required this.aspect, this.maxCoef4 = 1.5
     /*, Size this.padding*/}):
       assert(0 < count && count <= 12)
   {
@@ -65,14 +68,14 @@ class _OwlLayout extends MultiChildLayoutDelegate
     int yCount = _layout.length;
 
     // Size is (0, 0) if display does not show (e.g. locked)
-    double w = size.width > 0 ? (size.width - padding.width * (xCount - 1)) / xCount : 0;
-    double h = size.height > 0 ? (size.height - padding.height * (yCount - 1)) / yCount : 0;
+    double w = size.width > 0 ? (size.width - spacing.width * (xCount - 1)) / xCount : 0;
+    double h = size.height > 0 ? (size.height - spacing.height * (yCount - 1)) / yCount : 0;
 
     // Width of 4 owls in row if constrained by width
-    double width4 = (size.width - padding.width * 3) / 4;
+    double width4 = (size.width - spacing.width * 3) / 4;
     // Width of 4 owls in row if constrained by height
-    double width4h = (size.height - padding.height ) / (4 * aspect);
-    width4h = size.height / aspect;
+    double width4h = (size.height - spacing.height) / (4 * aspect);
+    width4h = size.height / (4 * aspect);
     // Choose minimum of 2 widths
     double maxWidth = width4 > width4h ? width4h : width4;
     // Max owl width
@@ -91,12 +94,12 @@ class _OwlLayout extends MultiChildLayoutDelegate
     {
       w = h / aspect;
       y0 = 0;
-      dy = h + padding.height;
+      dy = h + spacing.height;
     }
 
     //TODO
     // Limit owl size by maxCoef4 coefficient
-    if (maxCoef4 > 0  && w > maxWidth)
+    if (maxCoef4 > 0  && w > maxWidth && yCount == 1)
     {
       w = maxWidth;
       h = aspect * maxWidth;
@@ -110,7 +113,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
   void performLayout(Size size)
   {
     //assert(count == _layout.length);
-    //debugPrint('performLayout $size');
+    print('performLayout $size');
 
     double x0, y0;
     x0 = y0 = 0;
@@ -119,11 +122,12 @@ class _OwlLayout extends MultiChildLayoutDelegate
     int yCount = _layout.length;
 
     // Size is (0, 0) if display does not show (e.g. locked)
-    double w = size.width > 0 ? (size.width - padding.width * (xCount - 1)) / xCount : 0;
-    double h = size.height > 0 ? (size.height - padding.height * (yCount - 1)) / yCount : 0;
+    double w = size.width > 0 ? (size.width - spacing.width * (xCount - 1)) / xCount : 0;
+    double h = size.height > 0 ? (size.height - spacing.height * (yCount - 1)) / yCount : 0;
     // Width of 4 owls in row
-    double width4 = (size.width - padding.width * 3) / 4;
-    double width4h = (size.height - padding.height) / (4 * aspect);
+    double width4 = (size.width - spacing.width * 3) / 4;
+    double width4h = (size.height - spacing.height) / (4 * aspect);
+    width4h = size.height / (4 * aspect);
     // Choose minimum of 2 widths
     double maxWidth = width4 > width4h ? width4h : width4;
     maxWidth *= maxCoef4;
@@ -136,23 +140,33 @@ class _OwlLayout extends MultiChildLayoutDelegate
       h = aspect * w;
       y0 = (size.height - yCount * h) / (2 * yCount);
       dy = h + 2 * y0;
+      print('vert');
     }
     else
     {
       w = h / aspect;
       y0 = 0;
-      dy = h + padding.height;
+      print('horz');
+      if (yCount == 1) {
+        y0 = (size.height - h) / 2;
+        print('horz $y0 - $h');
+      }
+      dy = h + spacing.height;
     }
 
     //debugPrint('Layout $maxWidth - $w - $h');
     //TODO
     // Limit owl size by maxCoef4 coefficient
-    if (maxCoef4 > 0  && w > maxWidth)
+    if (maxCoef4 > 0  && w > maxWidth && yCount == 1)
     {
-      //w = maxWidth;
-      //h = aspect * maxWidth;
+      w = maxWidth;
+      h = aspect * maxWidth;
+
+      y0 = (size.height - h) / 2;
+      //dy = h + 2 * y0;
+      print('maxCoef4');
     }
-    //debugPrint('maxWidth123 $w - $h');
+    print('maxWidth123 $w - $h');
 
     int k = 0;
     for (int i = 0; i < _layout.length; i++)
@@ -177,10 +191,10 @@ class _OwlLayout extends MultiChildLayoutDelegate
         if (hasChild(k))  // Need it?
         {
           Size sz = layoutChild(k, BoxConstraints.tight(new Size(w, h)));
-          //debugPrint('performLayout $w - $h - $sz');
 
           double x = x0 + j * dx;
           Offset offset = new Offset(x, y);
+          debugPrint('performLayout $w - $h - $sz = $offset');
 
           positionChild(k, offset);
         }
@@ -191,7 +205,8 @@ class _OwlLayout extends MultiChildLayoutDelegate
   bool shouldRelayout(_OwlLayout oldDelegate) {
     return count != oldDelegate.count ||
       aspect != oldDelegate.aspect ||
-      padding != oldDelegate.padding;
+      spacing != oldDelegate.spacing ||
+      maxCoef4 != oldDelegate.maxCoef4;
   }
 }
 
@@ -205,6 +220,8 @@ class OwlGridRot extends StatefulWidget
   final List<int> accents;
   final int animationType;
   final int maxAccent;
+  final EdgeInsetsGeometry padding;
+  final OwlSkinRot skin;
 
   final ValueChanged2<int, int> onChanged;
   //final ValueChanged<int> onCountChanged;
@@ -221,6 +238,8 @@ class OwlGridRot extends StatefulWidget
     this.onAccentChanged,
     this.animationType = 0,
     this.maxAccent,
+    this.skin,
+    this.padding = EdgeInsets.zero,
     });
 
   @override
@@ -233,7 +252,8 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
   int _period = 60000;
   //duration: new Duration(days: 3653)
 
-  OwlSkinRot _skin;
+  //OwlSkinRot widget.skin;
+  double _imageHeightRatio = 0.6;  // 0.7;//3/7.0
 
   //int subCount;
   //int subCur;
@@ -241,7 +261,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
 
   OwlGridRotState()
   {
-    _skin = new OwlSkinRot();
+    //widget.skin = new OwlSkinRot();
   }
 
   void toggleAnimation()
@@ -270,7 +290,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     );
     //TODO ..addListener(onTimer);
 
-    _skin.init();
+    //widget.skin.init();
   }
 
   @override
@@ -283,7 +303,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context)
   {
-    _skin.animationType = widget.animationType;
+    widget.skin.animationType = widget.animationType;
 
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
@@ -294,28 +314,32 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     if (widthSquare == 0)
       return Container();
 
-    double aspect = _skin.aspect;
+    double aspect = widget.skin.aspect / _imageHeightRatio;
     //aspect *= 1.7;//1.8;  // for NoteWidget
 
     _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
-      aspect: aspect
+      aspect: aspect,
+      maxCoef4: 3,
       //1.75 * 306 / 250 //2 * 668 / 546,
     );
 
-    double _imageNoteAspect = 0.7;
     // TODO Check image size
     Size owlSize = layout.calcImageSize(size);
+
     double w = owlSize.width;
-    double h = _imageNoteAspect * owlSize.height;
-    if (aspect > h / w)
-      w = h / aspect;
-    else
-      h = w * aspect;
+    double h = _imageHeightRatio * owlSize.height;
+//    if (aspect > h / w)
+//      w = h / aspect;
+//    else
+//      h = w * aspect;
+    //Size imageSize = new Size(w, widget.skin.aspect * w);
     Size imageSize = new Size(w, h);
     //TODO Test: Move loadImages to initState, but keep precacheImages here?
-    _skin.cacheImages(context, imageSize);
+    widget.skin.cacheImages(context, imageSize);
     print('OwlGrid $imageSize - $aspect - $owlSize');
+    int n = widget.skin.images.length;
+    print('widget.skin.images $n - ${widget.skin.images}');
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
     //final int maxCountX = maxValue(beatRows);
@@ -340,11 +364,14 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
           subbeatCount: widget.beat.subBeats[k],
           denominator: widget.noteValue,
           animation: _controller.view,
-          images: _skin.images,//[accent ? 0 : 1]),
-          headImages: _skin.headImages,//[accent ? 0 : 1]),
+          imageHeightRatio: _imageHeightRatio,
+          maxAngle: 40 / 180.0 * pi,  // in radians
+          size: owlSize,
+          images: widget.skin.images,//[accent ? 0 : 1]),
+          headImages: widget.skin.headImages,//[accent ? 0 : 1]),
           getImageIndex: (int accent, int subbeat, int subbeatCount) {
             // Need to pass currentMaxAccent onto Skin::getImageIndex
-            return _skin.getImageIndex(accent, subbeat, currentMaxAccent, subbeatCount);
+            return widget.skin.getImageIndex(accent, subbeat, currentMaxAccent, subbeatCount);
           },
           onTap: (int id, int accent) {
             //assert(id < widget.beat.subBeats.length);

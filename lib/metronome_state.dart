@@ -25,6 +25,7 @@ class MetronomeState with ChangeNotifier
   /// Current active (playing) subbeat of current beat
   int _activeSubbeat = -1;
   int _activeTime = 0;
+  List<int> _activeTimes;
 
   int get activeBeat => _activeBeat;
   int get activeSubbeat => _activeSubbeat;
@@ -96,6 +97,7 @@ class MetronomeState with ChangeNotifier
   {
     beatMetre = new BeatMetre(subBeats0, accents0);
     reset();
+    _activeTimes = new List<int>.filled(subBeats0.length, 0);
     //tempo = new Tempo();
     //pos = new Position(-1, 0);
     //_timer = new Stopwatch();
@@ -251,6 +253,10 @@ class MetronomeState with ChangeNotifier
     int curSubbeat = pair[1];
     _activeTime = pair[2];
 
+//    if (_activeTimes.length != beatMetre.beatCount)
+//      _activeTimes.length = beatMetre.beatCount;
+//    for (int i = 0; i < _activeTimes.length; i++)
+
     if (curBeat != _activeBeat || curSubbeat != _activeSubbeat)
     {
       changed = true;
@@ -290,7 +296,7 @@ class MetronomeState with ChangeNotifier
     //for (int i = 0; i < beatMetre.beatCount; i++)
 
     //print('timePosition $time1 - $duration - offset $beat - $subbeat - ${subBeats[beat]}');
-    double msec = timeInBeatRel * 1000000;  // in microseconds
+    double msec = timeInSubbeat * 1000000;  // in microseconds
     return [beat, subbeat, msec.toInt()];
   }
 

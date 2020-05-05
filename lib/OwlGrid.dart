@@ -356,4 +356,18 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       delegate: layout,
     );
   }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    print("OwlGrid:didChangeDependencies");
+  }
+
+  @override
+  void didUpdateWidget(OwlGrid oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    print("OwlGrid:didUpdateWidget");
+  }
 }

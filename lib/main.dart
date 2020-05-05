@@ -12,6 +12,7 @@ import 'package:owlenome/prosody.dart';
 import 'package:owlenome/util.dart';
 import 'PlatformSvc.dart';
 import 'BarBracket.dart';
+import 'SkinRot.dart';
 import 'arrow.dart';
 import 'metronome_state.dart';
 import 'metre.dart';
@@ -56,7 +57,9 @@ const Color _clrIrregularMetre = Color(0xFFFFA000);  // Colors.amber[600];
 /// Tempo List text color
 final Color _cTempoList = Colors.white;
 
-const double cBarHeightVert = 0.32;
+/// 48 - minimum recommended target size of 7mm regardless of what screen they are displayed on
+const double cMinTapSize = 48;
+const double cBarHeightVert = 0.28;
 const double cBarHeightHorz = 0.2;
 
 /// Beat count min/max
@@ -71,10 +74,12 @@ const int _cMaxNoteValue = 16;
 
 /// Initial metre (beat, note) index from _metreList
 /// !!!ATTENTION!!! Make it compatible with next subbeat/accent lists
-const int _cIniActiveMetre = 3;
+const int _cIniActiveMetre = 1;//3
 /// Initial subbeats
 const List<int> _cIniSubBeats = [
-  1, 1, 1, 1, 1, 1,
+  1, 1, 1,
+  //1, 1, 1, 1, 1, 1,
+
   //1,3,1,3,1,1, 1,3,1,3,3,3  // Fancy; Bolero; needs accents
   //2, 2, 4, 2, 4, 2,  // Fancy
   //2,2,4,2,4,2,6,1,
@@ -82,7 +87,9 @@ const List<int> _cIniSubBeats = [
 ];
 /// Initial accents
 const List<int> _cIniAccents = [
-  2, 0, 0, 1, 0, 0,
+  1, 0, 0,
+  //2, 0, 0, 1, 0, 0,
+
   //2, 0, 1, 0,
   //2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 1, 0,  //Bolero
   //ToDo: fancy Bolero ;
@@ -209,6 +216,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   double _borderRadius = 12;
   double _borderWidth = 3;
   double _smallBtnSize0 = 24;
+  /// Size of small buttons
   double _smallBtnSize = 24;
   Offset _paddingBtn = new Offset(8, 8);//Size(24, 36);
   /// Controls opacity
@@ -275,6 +283,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Keep screen on while playing (if true)
   bool _screenOn = true;
 
+  OwlSkinRot _skin;
+
   /// Пение рокочущих сов
   /// ToDo: Сколько всего их, какие у них имена, иконки и может что еще
   /// Active sound scheme can be stored and set up on app init
@@ -322,6 +332,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       else if (_activeSoundScheme == -1)
         _activeSoundScheme = 0;  // Set default 0 scheme
     });
+
+    _skin = new OwlSkinRot();
+    _skin.init().then((_) {
+      setState(() {});
+    });
+
     /// Init animation
     _controller = new AnimationController(
       vsync: this,
@@ -613,11 +629,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final MediaQueryData mediaQueryData = MediaQuery.of(context);
+//    mediaQueryData.devicePixelRatio = 1.0,
+//    mediaQueryData.textScaleFactor = 1.0,
+//    mediaQueryData.padding = EdgeInsets.zero,
+//    mediaQueryData.viewInsets = EdgeInsets.zero,
+//    mediaQueryData.systemGestureInsets = EdgeInsets.zero,
+//    mediaQueryData.viewPadding = EdgeInsets.zero,
+//    mediaQueryData.disableAnimations = false,
+//    mediaQueryData.boldText = false,
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.shortestSide;
 
-    if (_version.isNotEmpty)
-      print("Version: $_version");
+//    if (!portrait)
+//      _sideSquare -= mediaQueryData.padding.top + mediaQueryData.padding.bottom;
+
+    print('mediaQueryData ${mediaQueryData.padding} - ${mediaQueryData.viewInsets} - ${mediaQueryData.viewPadding}');
 
     if (_screenSize.width > _screenSize.height)
       _sizeCtrls = new Size(_screenSize.width - _sideSquare, _screenSize.height);
@@ -625,10 +651,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _sizeCtrls = new Size(_screenSize.width, _screenSize.height - _sideSquare);
     _sizeCtrlsShortest = _sizeCtrls.shortestSide;
 
-    debugPrint('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio} - ${1 / _screenSize.aspectRatio}');
+    //Theme.of(context).materialTapTargetSize;
+
+    debugPrint('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio} - ${1 / _screenSize.aspectRatio} - $_sideSquare');
 
     if (_textStyle == null)
-      _textStyle = Theme.of(context).textTheme.display1
+      _textStyle = Theme.of(context).textTheme.headline4
         .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
 
     if (_screenSize.width <= 0 || _screenSize.height <= 0)  //TODO
@@ -648,7 +676,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget orientationBuilder(BuildContext context, Orientation orientation)
   {
+    //_showAds = false;
     final bool portrait = orientation == Orientation.portrait;
+
     final double aspect = 1 / _screenSize.aspectRatio;
     final double aspectCtrls = (_showAds ? _sizeCtrls.height - _heightAds[portrait ? 0 : 1] :
       _sizeCtrls.height) / _sizeCtrls.width;
@@ -659,14 +689,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       portrait ? _sideSquare : wScale * _sideSquare,
       portrait ? hScale * _sideSquare : _sideSquare - (_showAds ? _heightAds[1] : 0));
       //_sideSquare);
-    print('_heightAds - ${_heightAds[0]}');
 
+    _smallBtnSize = Theme.of(context).buttonTheme.height;
     _smallBtnSize0 = 1.2 * Theme.of(context).buttonTheme.height;//1.2
     double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     _paddingBtn = new Offset(btnPadding, btnPadding);
 
-    final double _barHeight = portrait ? cBarHeightVert : cBarHeightHorz;
-    final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight * _sizeCtrls.height);
+    double _barHeight = (portrait ? cBarHeightVert : cBarHeightHorz) * _sizeCtrls.height;
+    if (_barHeight < cMinTapSize)
+      _barHeight = cMinTapSize;
+    final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
 
     // Vertical/portrait
     if (portrait)
@@ -718,6 +750,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final Widget innerUI = new Row(
         children: <Widget>[
           _buildOwlenome(portrait, sizeOwlenome),
+          //Container(color: Colors.red, height: sizeOwlenome.height, width: sizeOwlenome.width),
           Expanded(child:
           Stack(
             //fit: StackFit.expand,
@@ -740,9 +773,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 bottom: _paddingBtn.dy,
                 //bottom: _showAds ? _heightAds[1] + _paddingBtn.dy : _paddingBtn.dy,
                 child: _buildVolumeBtn(
-                  Theme.of(context).buttonTheme.height,//0.05 * _sizeCtrlsShortest
+                  _smallBtnSize,//0.05 * _sizeCtrlsShortest
                   _sizeCtrlsShortest)
+              ),
+              /// Git revision number
+              _showVersion ? Align(
+                alignment: Alignment.topRight,
+                child: Text(_version,
+                  style: Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.white))
               )
+              : Container(),
             ]
           ),
           ),
@@ -775,10 +815,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Square section with metronome itself
   Widget _buildOwlenome(bool portrait, Size size)
   {
-    //TODO MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    if (!_skin.isInit)
+      return Container(
+        width: size.width,
+        height: size.height,
+      );
 
+    //TODO MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    print('_buildOwlenome $size');
     ///widget Owls
-    final Widget wixOwls = OwlGrid(
+    final Widget wixOwls = new OwlGrid(
       playing: _playing,
       beat: _beat,
       activeBeat: -1,//state.activeBeat,
@@ -790,9 +836,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
     );
+    final Widget wixOwlsRot = new OwlGridRot(
+      playing: _playing,
+      beat: _beat,
+      activeBeat: -1,//state.activeBeat,
+      activeSubbeat: -1,//state.activeSubbeat,
+      noteValue: activeMetre.note,
+      accents: activeMetre.accents,
+      maxAccent: activeMetre.maxAccent,
+      animationType: _animationType,
+      skin: _skin,
+      onChanged: onOwlChanged,
+      onAccentChanged: onAccentChanged,
+    );
 
     // TODO VG
-    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
+    final double paddingX = 0;//_beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
       //0.03 * _widthSquare : 0;
     final double paddingY = _beat.beatCount > 4 ? 0.02 * _sideSquare : 0;
 
@@ -814,7 +873,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
        // )
       ),
 */
-      child: wixOwls
+      //child: wixOwls
+      child: wixOwlsRot
     );
   }
 
@@ -826,14 +886,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     final Size metreSize = Size((portrait ? 0.25 : 0.25) * size.width, size.height);
-    final double itemExtent = 0.67 * metreSize.width;//44,
+    double itemExtent = 0.5 * metreSize.width;//44,
 
-    print('metreSize $metreSize');
-    final Size barSize = Size((portrait ? 0.7 : 0.7) * size.width, 0.5 * size.height);
+    print('metreSize $metreSize - $itemExtent');
+    //itemExtent = 44;
+    final Size barSize = Size((portrait ? 0.70 : 0.70) * size.width, 0.5 * size.height);
     final Size listTempoSize = new Size((portrait ? 0.88 : 0.88) * barSize.width, barSize.height);
     final Size noteTempoSize = new Size(0.12 * barSize.width, 0.9 * barSize.height);
     //final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
-    final Size subbeatSize = new Size(barSize.height, barSize.height);
+//    final Size subbeatSize = new Size(barSize.height, barSize.height);
     //0.02 * _sizeCtrls.width,
     final Size bracketSize = new Size(3.2 * btnPadding, 0.16 * _sizeCtrls.height);
 
@@ -920,13 +981,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       TempoListWidget(//TODO Limit
         tempo: _tempoBpm,
         width: listTempoSize.width,
-        textStyle: Theme.of(context).textTheme.display1
+        textStyle: Theme.of(context).textTheme.headline4
           .copyWith(color: _cTempoList, height: 1),//TODO
           //.copyWith(color: _cTempoList, fontSize: 0.07 * _sizeCtrls.height, height: 1),//TODO
         onChanged: _setTempo
       )
     );
-
+/*
     final Widget btnSubbeat = new SubbeatWidget(
       subbeatCount: _beat.subBeatCount,
       noteValue: activeMetre.note,
@@ -935,7 +996,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       size: subbeatSize,
       onChanged: onSubbeatChanged,
     );
-
+*/
     final NoteTempoWidget noteTempo = new NoteTempoWidget(
       tempo: _tempoBpm,
       noteValue: activeMetre.note,
@@ -953,12 +1014,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          //btnSubbeat,
           barSpacer,
-          metre,  ///widget Metre
+          //Flexible(
+            //flex: 25,
+            //child:
+            metre,  ///widget Metre
+          //),
           barSpacer,
 
-          Flexible(
+          Expanded(
+            //flex: 75,
             //fit: FlexFit.tight,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -966,8 +1031,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 Container(
                   color: activeMetre.regularAccent ? _clrRegularBar : _clrIrregularBar,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 0.5 * btnPadding),
+                    padding: EdgeInsets.zero,//symmetric(horizontal: 0.5 * btnPadding),
                     child: Row(
+                      //mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.center,  //spaceBetween, for brackets
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
@@ -1125,7 +1191,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _layoutControls(BuildContext context, BoxConstraints constraints, bool portrait, double barHeight)
   {
     double minSquare = constraints.maxWidth > constraints.maxHeight ? constraints.maxHeight : constraints.maxWidth;
-    //print("minSquare $constraints");
+    print("minSquare $constraints - $barHeight");
 
     final TextStyle textStyleTimer = _textStyle.copyWith(fontSize: 20);
 
@@ -1133,17 +1199,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
 
-    double playBtnSize = barHeight;
-    final Size subbeatSize = new Size(barHeight, barHeight);
-    double dist0 = _paddingBtn.dx;
-    Offset sidePadding = _paddingBtn;
-    Offset knobPadding = _paddingBtn;//const Offset(0, 0);
+    // 48 - minimum recommended target size of 7mm regardless of what screen they are displayed on
+    // 48 <= buttonSize <= 1.5 * 48
+    final double playBtnSize = barHeight > 1.5 * cMinTapSize ? 1.5 * cMinTapSize : (barHeight < cMinTapSize ? cMinTapSize : barHeight);
+    final Size subbeatSize = new Size(playBtnSize, playBtnSize);
+    final double dist0 = _paddingBtn.dx;
+    final Offset sidePadding = _paddingBtn;
+    final Offset knobPadding = _paddingBtn;//const Offset(0, 0);
     //sidePadding = const Offset(0, 0);
     //knobPadding = const Offset(0, 0);
     //dist0 = 0;
-    List<double> res = knobRadius(constraints.maxWidth, constraints.maxHeight,
+    final List<double> res = knobRadius(constraints.maxWidth, constraints.maxHeight,
         0.5 * playBtnSize, sidePadding, knobPadding, dist0, _smallBtnSize0);
-    double diameter = 2 * res[0];
+    final double diameter = 2 * res[0];
     _smallBtnSize = 2 * res[1] < _smallBtnSize0 ? 2 * res[1] : _smallBtnSize0;
     _smallBtnSize = 2 * res[1];
 
@@ -1247,15 +1315,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //child: Container(),
           child: btnSubbeat,
         ),
-        Positioned(
-          bottom: _paddingBtn.dx,
-          left: _paddingBtn.dy,
-          child:
-            Container(
-              width: _smallBtnSize,
-              height: _smallBtnSize,
-            ),
-        ),
+        Container(),
+//        Positioned(
+//          bottom: _paddingBtn.dx,
+//          left: _paddingBtn.dy,
+//          child:
+//            Container(
+//              width: 10,//_smallBtnSize,
+//              height: 10,//_smallBtnSize,
+//            ),
+//        ),
         Positioned(
           bottom: knobPadding.dy,
           left: 0.5 * (constraints.maxWidth - diameter),
