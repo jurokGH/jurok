@@ -15,6 +15,72 @@ class WheelScrollController extends FixedExtentScrollController
   }
 }
 
+class LimitSizeText extends StatelessWidget
+{
+  final String text;
+  final TextAlign textAlign;
+  final TextStyle style;
+  final String template;
+  final TextStyle templateStyle;
+
+  LimitSizeText({
+    @required this.text,
+    this.textAlign,
+    @required this.style,
+    this.template,
+    this.templateStyle
+  });
+
+  Size _textSize(String str, TextStyle style)
+  {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(text: str, style: style), maxLines: 1,
+      textDirection: TextDirection.ltr,
+      textAlign: textAlign == null ? TextAlign.center : textAlign)
+      ..layout(minWidth: 0, maxWidth: double.infinity);
+    return textPainter.size;
+  }
+
+  double maxFontSize(String text, TextStyle style, Size size)
+  {
+    for (double fontSize = style.fontSize; fontSize > 0; fontSize--)
+    {
+      Size textSize = _textSize(text, style.copyWith(fontSize: fontSize));
+      bool fit = textSize.width <= size.width && textSize.height <= size.height;
+      //print('textSize1 - $fontSize - $textSize - $size');
+      if (fit)
+        return fontSize;
+    }
+    // TODO
+    return 1;
+  }
+
+  Widget _builder(BuildContext context, BoxConstraints constraints)
+  {
+    final double fontSize = maxFontSize(template == null ? text : template,
+        templateStyle == null ? style : templateStyle,
+        constraints.biggest);
+
+    if (fontSize != style.fontSize)
+      print('LimitSizeText limit to $fontSize');
+
+    return Text(text,
+      textAlign: textAlign,
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      //style: widget.textStyle
+      style: style.copyWith(fontSize: fontSize)
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: _builder
+    );
+  }
+}
+
 class MetreWidget extends StatefulWidget
 {
   bool update;
@@ -158,7 +224,7 @@ class MetreState extends State<MetreWidget>
         },
  */
     final double fontSize = 0.7 * height;//6
-    final double fontSizeHi = 0.8 * height;//65
+    final double fontSizeHi = 0.7 * height;//65
     final TextStyle textStyle = widget.textStyle.copyWith(fontSize: fontSize);
     final TextStyle textStyleHi = widget.textStyleSelected.copyWith(fontSize: fontSizeHi);
     final TextStyle textStyleHiB = textStyle.copyWith(fontSize: fontSizeHi, fontWeight: FontWeight.bold);
@@ -170,10 +236,13 @@ class MetreState extends State<MetreWidget>
 //        FittedBox(
 //          fit: BoxFit.fitHeight,
 //          child:
-        Text((i + widget.minBeats).toString(),
+        LimitSizeText(
+          text: (i + widget.minBeats).toString(),
           textAlign: TextAlign.center,
           //textScaleFactor: 1.5,
           style: i + widget.minBeats == widget.beats ? textStyleHi : textStyle,
+          template: '12',
+          templateStyle: textStyleHi,
         ),
 //        ),
       )
@@ -188,11 +257,14 @@ class MetreState extends State<MetreWidget>
 //          FittedBox(
 //            fit: BoxFit.fitHeight,
 //            child:
-          Text(noteValue.toString(),
+            LimitSizeText(
+            text: noteValue.toString(),
             textAlign: TextAlign.center,
             style: i + widget.minNoteIndex == widget.noteIndex ? textStyleHiB : textStyle,
             // To Change color for irregular metre:
             // style: i + widget.minNoteIndex == widget.noteIndex ? widget.textStyleSelected : widget.textStyle,
+            template: '16',
+            templateStyle: textStyleHiB,
           ),
 //          ),
         );

@@ -129,10 +129,11 @@ class TempoListState extends State<TempoListWidget>
     //noteController = new FixedExtentScrollController(initialItem: widget.noteIndex - widget.minNoteIndex);
   }
 
-  Size _textSize(String text, TextStyle style)
+  Size _textSize(String str, TextStyle style)
   {
     final TextPainter textPainter = TextPainter(
-        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: TextDirection.ltr, textAlign: TextAlign.center)
+        text: TextSpan(text: str, style: style), maxLines: 1,
+        textDirection: TextDirection.ltr, textAlign: TextAlign.center)
       ..layout(minWidth: 0, maxWidth: double.infinity);
     return textPainter.size;
   }
@@ -313,7 +314,7 @@ class TempoListState extends State<TempoListWidget>
           onSelectedItemChanged: (int index) {
             print(index);
             if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
-                {
+            {
               _index = index;
               widget.onChanged(tempoList[index].tempo);
             }
@@ -379,9 +380,13 @@ class TempoListState extends State<TempoListWidget>
       //widget.update = false;
     }
 
+    return LayoutBuilder(
+      builder: _builder
+    );
+
     final List<Widget> wixTempo = new List<Widget>.generate(
       tempoList.length,
-      (int i) => new RotatedBox(
+          (int i) => new RotatedBox(
         quarterTurns: 1,
 /*
         child:
@@ -394,15 +399,11 @@ class TempoListState extends State<TempoListWidget>
         child: FittedBox(
           fit: BoxFit.contain,
           child: Text(tempoList[i].name,
-            textAlign: TextAlign.center,
-            style: widget.textStyle
+              textAlign: TextAlign.center,
+              style: widget.textStyle
           ),
         ),
       ),
-    );
-
-    return LayoutBuilder(
-      builder: _builder
     );
 
     return RotatedBox(
