@@ -14,6 +14,7 @@ import 'PlatformSvc.dart';
 import 'BarBracket.dart';
 import 'SkinRot.dart';
 import 'arrow.dart';
+import 'help.dart';
 import 'metronome_state.dart';
 import 'metre.dart';
 import 'beat_metre.dart';
@@ -1324,16 +1325,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           //child: Container(),
           child: btnSubbeat,
         ),
-        Container(),
-//        Positioned(
-//          bottom: _paddingBtn.dx,
-//          left: _paddingBtn.dy,
-//          child:
-//            Container(
-//              width: 10,//_smallBtnSize,
-//              height: 10,//_smallBtnSize,
-//            ),
-//        ),
+//        Container(),
+        Positioned(
+          bottom: _paddingBtn.dx,
+          left: _paddingBtn.dy,
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: _smallBtnSize,
+                height: _smallBtnSize,
+              ),
+            Container(width: _paddingBtn.dx),
+              _buildSoundBtn(_smallBtnSize),
+          ]
+        ),
+        ),
         Positioned(
           bottom: knobPadding.dy,
           left: 0.5 * (constraints.maxWidth - diameter),
@@ -1349,7 +1355,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           bottom: _paddingBtn.dy,
           child: Row(
             children: <Widget>[
-              _buildSoundBtn(_smallBtnSize),
+              _buildHelpBtn(_smallBtnSize),
               Container(width: _paddingBtn.dx),
               _buildSettingsBtn(_smallBtnSize),
             ]
@@ -1543,6 +1549,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  ///widget Settings
+  Widget _buildHelpBtn(double size)
+  {
+    return new RawMaterialButton(
+      child: Icon(Icons.help_outline,
+        size: size),
+      shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+      constraints: BoxConstraints(
+        minWidth: size,
+        minHeight: size,
+      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,  // Make button of exact size
+      enableFeedback: !_playing,
+      onPressed: () {
+        _showHelp(context);
+      },
+    );
+  }
+
   Widget _buildAds(bool portrait)
   {
     return Container(
@@ -1604,6 +1629,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       }
     );
    */
+  }
+
+  void _showHelp(BuildContext context) async
+  {
+    await Navigator.push(context,
+      MaterialPageRoute(builder: (context) => HelpWidget()));
   }
 
   ///widget Plate under controls

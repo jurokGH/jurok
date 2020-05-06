@@ -10,24 +10,6 @@ class Settings
   Settings({this.animationType, this.activeScheme, this.soundSchemes, this.useKnob});
 }
 
-/*
-class TempoDef
-{
-  String name;
-  int tempo;
-  int minTempo;
-  int maxTempo;
-
-  TempoDef([name, minTempo, maxTempo, tempo])
-  {
-    this.name = name;
-    this.minTempo = minTempo;
-    this.maxTempo = maxTempo;
-    this.tempo = tempo == null ? minTempo : tempo;
-  }
-}
-*/
-
 class SettingsWidget extends StatelessWidget
 {
   final Settings settings;
@@ -49,7 +31,7 @@ class SettingsWidget extends StatelessWidget
     //List<Widget> radioSoundSchemes = new List<Widget>();
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: Text('Settings')),
       body: Center(
         child: ListView(
         children: List<Widget>.generate(1, (int index) =>

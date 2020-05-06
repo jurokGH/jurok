@@ -119,6 +119,7 @@ flutter:
     - images/sound1.png
     - images/sound2.png
     - images/sound3.png
+    - images/help.jpg
     - images/Ad-1.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
