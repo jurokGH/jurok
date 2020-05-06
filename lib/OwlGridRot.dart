@@ -197,6 +197,7 @@ class OwlGridRot extends StatefulWidget
   final Offset spacing;
   final EdgeInsetsGeometry padding;  //TODO
   final OwlSkinRot skin;
+  final Size size;//TODO
 
   final ValueChanged2<int, int> onChanged;
   //final ValueChanged<int> onCountChanged;
@@ -213,6 +214,7 @@ class OwlGridRot extends StatefulWidget
     this.onAccentChanged,
     this.maxAccent,
     this.skin,
+    this.size,
     this.spacing = Offset.zero,
     this.padding = EdgeInsets.zero,
     });
@@ -279,10 +281,9 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
   Widget build(BuildContext context)
   {
     //assert(widget.subBeatCount > 0);
-    Size size = MediaQuery.of(context).size;
-    //debugPrint('OwlGridState $size');
+    final Size size = widget.size;
     double widthSquare = size.width > size.height ? size.height : size.width;
-    size = new Size.square(widthSquare);
+    //size = new Size.square(widthSquare);
 
     if (widthSquare == 0)
       return Container();

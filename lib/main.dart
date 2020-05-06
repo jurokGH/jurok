@@ -641,9 +641,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.shortestSide;
 
-//    if (!portrait)
-//      _sideSquare -= mediaQueryData.padding.top + mediaQueryData.padding.bottom;
-
     print('mediaQueryData ${mediaQueryData.padding} - ${mediaQueryData.viewInsets} - ${mediaQueryData.viewPadding}');
 
     if (_screenSize.width > _screenSize.height)
@@ -669,7 +666,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         //appBar: AppBar(title: Text(widget.title),),
         body: SafeArea(
           child: OrientationBuilder(
-            builder: orientationBuilder
+            builder: (BuildContext context, Orientation orientation) {
+              final bool portrait = orientation == Orientation.portrait;
+              if (!portrait)
+                _sideSquare -= mediaQueryData.padding.vertical;
+              return orientationBuilder(context, orientation);
+            }
           ),
         ),
       );
@@ -859,6 +861,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       spacing: spacing,
       padding: padding,
       skin: _skin,
+      size: size,
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
     );
