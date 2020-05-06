@@ -148,16 +148,16 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
   {
     final List<int> indices = widget.getImageIndex(widget.nAccent, activeSubbeat, widget.subbeatCount);
     final int indexImage = indices[0];
-    final int indexImageRot = indices[1];
-
-    maxDragX = widget.images[indexImage].width / 4;
-    //maxDragY = widget.images[indexImage].height / 4;
+    final int indexImageHead = indices[1];
 
     final Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
     final double yOffset = widget.anchorRatio * imageSize.height;
 
     final Size owlSize = new Size(widget.size.width, widget.imageHeightRatio * widget.size.height);
     final Size noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height);
+
+    maxDragX = imageSize.width / 4;
+    //maxDragY = widget.images[indexImage].height / 4;
 
     final double aspect = imageSize.height / imageSize.width;
     print('OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
@@ -235,16 +235,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
-//              child: AspectRatio( // This gives size to NoteWidget
-//                aspectRatio: 1.7,   //1.2,//3.5 / 3,
-                //width: 0.9 * widget.width,
-                //height: 0.9 * widget.width,
-//              child: Container(
-//                width: noteSize.width,
-//                height: noteSize.height,
-//                color: Colors.green,
-                child: noteWidget,
-//              ),
+              child: noteWidget,
             ),
 
   //            RepaintBoundary(child:
@@ -270,39 +261,19 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: widget.images[indexImage],
-//                child: Container(
-//                    color: Colors.blue,
-//                    width: widget.images[indexImage].width,
-//                    height: widget.images[indexImage].height,
-//                    child: widget.images[indexImage],
                     ),
-                Transform(
-                  transform: Matrix4.rotationZ(_angle)..setTranslationRaw(0, yOffset, 0),
-                  alignment: Alignment.center,
-                  //origin: new Offset(0, 0),
-//                Transform.translate(
-//                    transform: Matrix4.translationValues(0, yOffset, 0.0).rotationZ(angle)
-//                    offset: Offset(0, widget.anchorRatio * 240 / 250 * imageSize.width),
-//                    child: Transform.rotate( angle: _angle,
-                      child:
-//                      Container(
-//                        color: Colors.pinkAccent,
-                        //width: imageSize.width,
-                        //height: 205 / 250 * imageSize.width,
-                        //alignment: Alignment.bottomCenter,
-
-//                        child:
-                    widget.headImages[indexImageRot],
-//                      ),
-                  ),
-                ]
-              ),
+                    Transform(
+                      transform: Matrix4.rotationZ(_angle)..setTranslationRaw(0, yOffset, 0),
+                      alignment: Alignment.center,
+                      child: widget.headImages[indexImageHead],
+                    ),
+                  ]
+                ),
               ),
             ),
           ],
         ),
       ),
-      //),
     );
   }
 }
