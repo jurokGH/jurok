@@ -1285,13 +1285,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
     );
 
-    final Widget btnSubbeat = new SubbeatWidget(
-      subbeatCount: _beat.subBeatCount,
-      noteValue: activeMetre.note,
-      color: _textColor,
-      textStyle: _textStyle,
-      size: subbeatSize,
-      onChanged: onSubbeatChanged,
+    final Widget btnSubbeat = new Tooltip(
+      message: 'Press to divide beats to equal sub-beats',
+      child: SubbeatWidget(
+        subbeatCount: _beat.subBeatCount,
+        noteValue: activeMetre.note,
+        color: _textColor,
+        textStyle: _textStyle,
+        size: subbeatSize,
+        onChanged: onSubbeatChanged,
+      ),
     );
 
     // On app startup: _soundSchemes == null
