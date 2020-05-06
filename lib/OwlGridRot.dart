@@ -34,67 +34,67 @@ List<int> beatRowsList(int beatCount)
 
 class _OwlLayout extends MultiChildLayoutDelegate
 {
-  /// Maximum owl size over size when there are 4 owls in row
-  //static final double maxCoef4 = 1.5;//1.5;
-  //static final double minPaddingX = 10;
-
   final int count;
-  //final Size childSize;
-  //final double width;
   final double aspect;
+  /// Maximum owl size over size when there are 4 owls in row
   final double maxCoef4;
-  final Size spacing = new Size(10, 0);
-  //final EdgeInsetsGeometry padding;
+  final Offset spacing;
+  final EdgeInsets padding;
+  /// layout[i] - number of Owls in each i-th row
+  final List<int> layout;
 
-  /// _layout[i] - number of Owls in each i-th row
-  List<int> _layout;
+  Size widgetSize;
+  bool _horizontalBound;
 
-  _OwlLayout({@required this.count, @required this.aspect, this.maxCoef4 = 1.5
-    /*, Size this.padding*/}):
-      assert(0 < count && count <= 12)
-  {
-    //if (padding == null)
-    //  padding = new Size(10, 10);
-    _layout = beatRowsList(count);
-  }
+  _OwlLayout({
+    @required this.count,
+    @required this.aspect,
+    @required this.layout,
+    this.maxCoef4 = 0,
+    this.spacing = Offset.zero,
+    this.padding = EdgeInsets.zero,
+  }): assert(0 < count && count <= 12);
 
+  /// Find Owl's rectangle occupied size
   Size calcImageSize(Size size)
   {
-    double x0, y0;
-    x0 = y0 = 0;
-
     // Grid: xCount x yCount
-    int xCount = maxValue(_layout);
-    int yCount = _layout.length;
+    final int xCount = maxValue(layout);
+    final int yCount = layout.length;
+    if (xCount <= 0 || yCount <= 0)
+      return widgetSize = Size.zero;
 
     // Size is (0, 0) if display does not show (e.g. locked)
-    double w = size.width > 0 ? (size.width - spacing.width * (xCount - 1)) / xCount : 0;
-    double h = size.height > 0 ? (size.height - spacing.height * (yCount - 1)) / yCount : 0;
+    double w = (size.width - (xCount - 1) * spacing.dx - padding.horizontal) / xCount;
+    double h = (size.height - (yCount - 1) * spacing.dy - padding.vertical) / yCount;
+    if (w <= 0 || h <= 0)
+      return widgetSize = Size.zero;
 
-    // Width of 4 owls in row if constrained by width
-    double width4 = (size.width - spacing.width * 3) / 4;
-    // Width of 4 owls in row if constrained by height
-    double width4h = (size.height - spacing.height) / (4 * aspect);
-    width4h = size.height / (4 * aspect);
-    // Choose minimum of 2 widths
-    double maxWidth = width4 > width4h ? width4h : width4;
-    // Max owl width
-    maxWidth *= maxCoef4;
+    // Width of 4 owls in a row if constrained by overall grid width
+    double width4 = (size.width - 3 * spacing.dx - padding.horizontal) / 4;
+    // Width of 4 owls in a row if constrained by overall grid height
+    double width4h = (size.height - padding.vertical) / (4 * aspect);
+    // Max owl width is no more than maxCoef4 * (minimum of 2 widths)
+    double maxWidth = maxCoef4 * (width4 > width4h ? width4h : width4);
 
+    double x0, y0;
+    x0 = y0 = 0;
     double dy;
 
-    bool vertical = h > aspect * w;
-    if (vertical)
+    // Y > X
+    _horizontalBound = h > aspect * w;
+    if (_horizontalBound)  // Horizontally bound
     {
       h = aspect * w;
       y0 = (size.height - yCount * h) / (2 * yCount);
       dy = h + 2 * y0;
     }
-    else
+    else  // Vertically bound
     {
       w = h / aspect;
       y0 = 0;
-      dy = h + spacing.height;
+      dy = h + spacing.dy;
+      print('vert');
     }
 
     //TODO
@@ -106,95 +106,66 @@ class _OwlLayout extends MultiChildLayoutDelegate
     }
     debugPrint('calcImageSize $size - $w - $h');
 
-    return new Size(w, h);
+    // TODO Cache-check with size?
+    return widgetSize = new Size(w, h);
   }
 
   @override
   void performLayout(Size size)
   {
-    //assert(count == _layout.length);
+    //assert(count == layout.length);
     print('performLayout $size');
 
-    double x0, y0;
-    x0 = y0 = 0;
-
-    int xCount = maxValue(_layout);
-    int yCount = _layout.length;
-
-    // Size is (0, 0) if display does not show (e.g. locked)
-    double w = size.width > 0 ? (size.width - spacing.width * (xCount - 1)) / xCount : 0;
-    double h = size.height > 0 ? (size.height - spacing.height * (yCount - 1)) / yCount : 0;
-    // Width of 4 owls in row
-    double width4 = (size.width - spacing.width * 3) / 4;
-    double width4h = (size.height - spacing.height) / (4 * aspect);
-    width4h = size.height / (4 * aspect);
-    // Choose minimum of 2 widths
-    double maxWidth = width4 > width4h ? width4h : width4;
-    maxWidth *= maxCoef4;
-
-    double dy;
-
-    bool vertical = h > aspect * w;
-    if (vertical)
+    double y0, dy;
+    final int yCount = layout.length;
+    final bool horizontalBound = widgetSize.height * yCount <
+      size.height - (yCount - 1) * spacing.dy - padding.vertical;
+    if (_horizontalBound)  // Horizontally bound
     {
-      h = aspect * w;
-      y0 = (size.height - yCount * h) / (2 * yCount);
-      dy = h + 2 * y0;
+      // MainAxisAlignment.spaceAround logic
+      y0 = (size.height - yCount * widgetSize.height) / (2 * yCount);
+      dy = widgetSize.height + 2 * y0;
       print('vert');
     }
-    else
+    else  // Vertically bound
     {
-      w = h / aspect;
-      y0 = 0;
-      print('horz');
-      if (yCount == 1) {
-        y0 = (size.height - h) / 2;
-        print('horz $y0 - $h');
-      }
-      dy = h + spacing.height;
+      y0 = yCount == 1 ? (size.height - widgetSize.height) / 2 : padding.top;
+      dy = widgetSize.height + spacing.dy;
+      print('horz $y0 - ${widgetSize.height}');
     }
 
-    //debugPrint('Layout $maxWidth - $w - $h');
-    //TODO
-    // Limit owl size by maxCoef4 coefficient
-    if (maxCoef4 > 0  && w > maxWidth && yCount == 1)
-    {
-      w = maxWidth;
-      h = aspect * maxWidth;
-
-      y0 = (size.height - h) / 2;
-      //dy = h + 2 * y0;
-      print('maxCoef4');
-    }
-    print('maxWidth123 $w - $h');
+    //debugPrint('Layout widgetSize - $w - $h');
 
     int k = 0;
-    for (int i = 0; i < _layout.length; i++)
+    for (int i = 0; i < layout.length; i++)
     {
-      double dx = size.width / _layout[i];
+      double x0, dx;
+      final xCount = layout[i];
+      final double spaceWidth = size.width - xCount * widgetSize.width;
+      double w = (size.width - (xCount - 1) * spacing.dx - padding.horizontal) / xCount;
       // TODO! Remove case??
-      if (!vertical)
+      if (spaceWidth > (xCount - 1) * spacing.dx + padding.horizontal)
       {
-        x0 = (size.width - _layout[i] * w) / (2 * _layout[i]);
-        dx = w + 2 * x0;
+        // MainAxisAlignment.spaceAround logic
+        x0 = spaceWidth / (2 * xCount);
+        dx = widgetSize.width + 2 * x0;
       }
-      else
+      else  // Horizontally bound
       {
-        x0 = (size.width - _layout[i] * w) / (2 * _layout[i]);
-        //dx = w + padding.width;
-        dx = w + 2 * x0;
+        x0 = padding.left;
+        dx = widgetSize.width + spacing.dx;
       }
 
-      double y = y0 + dy * i;
+      final double y = y0 + dy * i;
 
-      for (int j = 0; j < _layout[i]; j++, k++)
+      for (int j = 0; j < layout[i]; j++, k++)
         if (hasChild(k))  // Need it?
         {
-          Size sz = layoutChild(k, BoxConstraints.tight(new Size(w, h)));
+          final Size sz = layoutChild(k, BoxConstraints.tight(widgetSize));
 
-          double x = x0 + j * dx;
-          Offset offset = new Offset(x, y);
-          debugPrint('performLayout $w - $h - $sz = $offset');
+          final double x = x0 + j * dx;
+          final Offset offset = new Offset(x, y);
+          debugPrint('performLayout $widgetSize - $sz = $widgetSize - $offset');
 
           positionChild(k, offset);
         }
@@ -202,11 +173,15 @@ class _OwlLayout extends MultiChildLayoutDelegate
   }
 
   @override
-  bool shouldRelayout(_OwlLayout oldDelegate) {
+  bool shouldRelayout(_OwlLayout oldDelegate)
+  {
     return count != oldDelegate.count ||
       aspect != oldDelegate.aspect ||
       spacing != oldDelegate.spacing ||
-      maxCoef4 != oldDelegate.maxCoef4;
+      maxCoef4 != oldDelegate.maxCoef4 ||
+      spacing != oldDelegate.spacing ||
+      padding != oldDelegate.padding ||
+      !equalLists(layout, oldDelegate.layout);
   }
 }
 
@@ -218,9 +193,9 @@ class OwlGridRot extends StatefulWidget
   final int activeSubbeat;
   final bool playing;
   final List<int> accents;
-  final int animationType;
   final int maxAccent;
-  final EdgeInsetsGeometry padding;
+  final Offset spacing;
+  final EdgeInsetsGeometry padding;  //TODO
   final OwlSkinRot skin;
 
   final ValueChanged2<int, int> onChanged;
@@ -236,9 +211,9 @@ class OwlGridRot extends StatefulWidget
     this.playing = false,
     this.onChanged,
     this.onAccentChanged,
-    this.animationType = 0,
     this.maxAccent,
     this.skin,
+    this.spacing = Offset.zero,
     this.padding = EdgeInsets.zero,
     });
 
@@ -253,7 +228,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
   //duration: new Duration(days: 3653)
 
   //OwlSkinRot widget.skin;
-  double _imageHeightRatio = 0.6;  // 0.7;//3/7.0
+  double _imageHeightRatio = 0.67;  // 0.7;//3/7.0
 
   //int subCount;
   //int subCur;
@@ -303,8 +278,6 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context)
   {
-    widget.skin.animationType = widget.animationType;
-
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
     //debugPrint('OwlGridState $size');
@@ -314,18 +287,23 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     if (widthSquare == 0)
       return Container();
 
-    double aspect = widget.skin.aspect / _imageHeightRatio;
+    final double aspect = widget.skin.aspect / _imageHeightRatio;
     //aspect *= 1.7;//1.8;  // for NoteWidget
+    final int currentMaxAccent = maxValue(widget.accents);
+    final List<int> beatRows = beatRowsList(widget.beat.beatCount);//TODO
 
-    _OwlLayout layout = new _OwlLayout(
+    final _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
       aspect: aspect,
+      layout: beatRows,
       maxCoef4: 3,
       //1.75 * 306 / 250 //2 * 668 / 546,
+      spacing: widget.spacing,
+      padding: widget.padding,
     );
 
     // TODO Check image size
-    Size owlSize = layout.calcImageSize(size);
+    final Size owlSize = layout.calcImageSize(size);
 
     double w = owlSize.width;
     double h = _imageHeightRatio * owlSize.height;
@@ -340,11 +318,6 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     print('OwlGrid $imageSize - $aspect - $owlSize');
     int n = widget.skin.images.length;
     print('widget.skin.images $n - ${widget.skin.images}');
-
-    List<int> beatRows = beatRowsList(widget.beat.beatCount);
-    //final int maxCountX = maxValue(beatRows);
-    //maxCountX = 4;
-    final int currentMaxAccent = maxValue(widget.accents);
 
     //TODO Recreate only on beatRows change
     final List<Widget> wOwls = List<Widget>();

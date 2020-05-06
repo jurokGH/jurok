@@ -153,21 +153,14 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     maxDragX = widget.images[indexImage].width / 4;
     //maxDragY = widget.images[indexImage].height / 4;
 
-    Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
-    //imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].width);
-//    if (imageSize.height == null)
-//      imageSize = new Size(imageSize.width, 1.2 * imageSize.width);
-    final double aspect = imageSize.height / imageSize.width;
+    final Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
+    final double yOffset = widget.anchorRatio * imageSize.height;
 
-    Size noteSize = new Size(imageSize.width, (1.0 - widget.imageHeightRatio) * 330/250*imageSize.width);
-    //noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height);
-    //Size noteSize = new Size(imageSize.width, 0.3 / 0.7 * imageSize.height);
+    final Size owlSize = new Size(widget.size.width, widget.imageHeightRatio * widget.size.height);
+    final Size noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height);
+
+    final double aspect = imageSize.height / imageSize.width;
     print('OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
-    Size sz2 = new Size(imageSize.width, 330 / 240 * imageSize.width);
-    double ww = widget.headImages[0].width;
-    double hh = widget.headImages[0].height;
-    print('OwlWidget22 ${widget.size} - $imageSize - $noteSize - $sz2 - $ww - $hh');
-    print('OwlWidget23 ${widget.images[0].width} - ${widget.images[0].height}');
 
     final NoteWidget noteWidget = new NoteWidget(
       subDiv: widget.subbeatCount,
@@ -246,12 +239,12 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
 //                aspectRatio: 1.7,   //1.2,//3.5 / 3,
                 //width: 0.9 * widget.width,
                 //height: 0.9 * widget.width,
-              child: Container(
+//              child: Container(
 //                width: noteSize.width,
 //                height: noteSize.height,
-                //color: Colors.green,
+//                color: Colors.green,
                 child: noteWidget,
-              ),
+//              ),
             ),
 
   //            RepaintBoundary(child:
@@ -265,49 +258,32 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                 });
                 widget.onTap(widget.id, accent);
               },
-              child:
-              Container(
-                //color: Colors.amber,
-                width: imageSize.width,
-                height: 330 / 250 * imageSize.width,
+              child: Container(
+                width: owlSize.width,
+                height: owlSize.height,
                 alignment: Alignment.bottomCenter,
-
-                child:
-//                  Image.asset('images/owl6-1.png',
-//                    width: imageSize.width,
-//                    //height: imageSize.height,
-//                    fit: BoxFit.contain,)
-              Stack(
-                //fit: StackFit.passthrough,
-                //alignment: Alignment.bottomCenter,
-                overflow: Overflow.visible,
-                children: <Widget>[
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child:
-//                AspectRatio( // This gives size to NoteWidget
-//                    aspectRatio: 240 / 250,   //1.2,//3.5 / 3,
-                Container(
-                    //color: Colors.blue,
-                    width: imageSize.width,
-                    height: 240 / 250 * imageSize.width,
-                    child:
-                    widget.images[indexImage],
-//                    Container(color: Colors.blue,
-//                      width: widget.images[indexImage].width,
+                child: Stack(
+                  //fit: StackFit.passthrough,
+                  //alignment: Alignment.bottomCenter,
+                  overflow: Overflow.visible,
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: widget.images[indexImage],
+//                child: Container(
+//                    color: Colors.blue,
+//                    width: widget.images[indexImage].width,
 //                    height: widget.images[indexImage].height,
-//                    child: widget.images[indexImage])//widget.images[indexImage],
-                  ),
-                  ),
-                  Positioned(
-                    top: widget.anchorRatio * 240 / 250 * imageSize.width,
-                    //alignment: Alignment(1, -1),
-                    //alignment: Alignment.bottomCenter,
-                    child:
-                    Transform.rotate(
-                      angle: _angle,
-                      //origin: new Offset(0, 0),
-                      //alignment: Alignment.topCenter,
+//                    child: widget.images[indexImage],
+                    ),
+                Transform(
+                  transform: Matrix4.rotationZ(_angle)..setTranslationRaw(0, yOffset, 0),
+                  alignment: Alignment.center,
+                  //origin: new Offset(0, 0),
+//                Transform.translate(
+//                    transform: Matrix4.translationValues(0, yOffset, 0.0).rotationZ(angle)
+//                    offset: Offset(0, widget.anchorRatio * 240 / 250 * imageSize.width),
+//                    child: Transform.rotate( angle: _angle,
                       child:
 //                      Container(
 //                        color: Colors.pinkAccent,
@@ -316,13 +292,8 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                         //alignment: Alignment.bottomCenter,
 
 //                        child:
-//                  Image.asset('images/owl6h-0-0.png',
-//                    width: widget.images[0].width,
-//                    height: widget.images[0].height,
-//                    fit: BoxFit.none,)
                     widget.headImages[indexImageRot],
 //                      ),
-                    ),
                   ),
                 ]
               ),

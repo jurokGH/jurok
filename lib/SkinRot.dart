@@ -31,9 +31,9 @@ class OwlSkinRot
   double aspect = 310.0 / 250.0;
   bool _isInit = false;
 
-  int animationType = 0;
+  int animationType;
 
-  OwlSkinRot();
+  OwlSkinRot([this.animationType = 0]);
 
   List<Image> get images => new List<Image>.unmodifiable(_images);
   List<Image> get headImages => new List<Image>.unmodifiable(_headImages);
@@ -59,7 +59,7 @@ class OwlSkinRot
       _isInit = true;
       //aspect = _imageSize0.width > 0 ? _imageSize0.height / _imageSize0.width : 310 / 250.0;
       return new Future.value(true);
-    }).catchError(() {
+    }).catchError((Object err) {
       return new Future.value(false);
     });
   }

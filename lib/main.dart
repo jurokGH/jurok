@@ -210,6 +210,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   TextStyle _textStyle;
   double _textSize = 28;
 
+  // TODO Remove?
   int _animationType = 0;
 
   /// Controls border parameters
@@ -333,7 +334,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         _activeSoundScheme = 0;  // Set default 0 scheme
     });
 
-    _skin = new OwlSkinRot();
+    _skin = new OwlSkinRot(_animationType);
     _skin.init().then((_) {
       setState(() {});
     });
@@ -815,16 +816,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   ///widget Square section with metronome itself
   Widget _buildOwlenome(bool portrait, Size size)
   {
-    if (!_skin.isInit)
+    if (!_skin.isInit || size.isEmpty)
       return Container(
+        //color: Colors.orange,
         width: size.width,
         height: size.height,
       );
 
     //TODO MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     print('_buildOwlenome $size');
+
+    // TODO VG
+    final double paddingX = 0;//_beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
+    //0.03 * _widthSquare : 0;
+    final double paddingY = _beat.beatCount > 4 ? 0.02 * _sideSquare : 0;
+    final EdgeInsets padding = portrait ? new EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX) :
+      new EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX);
+    final Offset spacing = new Offset(10, 0);
+
     ///widget Owls
-    final Widget wixOwls = new OwlGrid(
+    final Widget wixOwls1 = new OwlGrid(
       playing: _playing,
       beat: _beat,
       activeBeat: -1,//state.activeBeat,
@@ -836,7 +847,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
     );
-    final Widget wixOwlsRot = new OwlGridRot(
+
+    final Widget wixOwls = new OwlGridRot(
       playing: _playing,
       beat: _beat,
       activeBeat: -1,//state.activeBeat,
@@ -844,22 +856,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       noteValue: activeMetre.note,
       accents: activeMetre.accents,
       maxAccent: activeMetre.maxAccent,
-      animationType: _animationType,
+      spacing: spacing,
+      padding: padding,
       skin: _skin,
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
     );
 
-    // TODO VG
-    final double paddingX = 0;//_beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
-      //0.03 * _widthSquare : 0;
-    final double paddingY = _beat.beatCount > 4 ? 0.02 * _sideSquare : 0;
-
+    /// Do not use padding here!
     return Container(
       width: size.width,
       height: size.height,
-      padding: portrait ? EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX) :
-        EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX),
       ///widget Background
 /*
       decoration: BoxDecoration(
@@ -873,8 +880,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
        // )
       ),
 */
-      //child: wixOwls
-      child: wixOwlsRot
+      child: wixOwls
     );
   }
 
@@ -1575,6 +1581,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       }
       setState(() {
         _animationType = res.animationType;
+        _skin.animationType = _animationType;
         _useNewKnob = res.useKnob;
       });
     }
