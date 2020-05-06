@@ -119,12 +119,14 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   Animation<Color> _animColor;
   ColorTween _tweenColor;
   Color _colorRing;
-  int _time = 5000;
+  int _time = 0;
   double _tangential;
 
-  double _flingVelocity = 1.5;
-  double _tangentAmplifier = 0.25;
-  double _friction = 50;
+  /// Velocity conversion coefficient pix/sec -> radian/sec
+  double _velocityPix2Rad = 0.2;
+  /// Initial acceleration in radian/sec^2
+  double _flingAcceleration = 0.2 * 1000;//1.5;
+  double _friction = 1;//200;//50;
   double _accel = 1;
 
   Image _image;  /// Knob image
@@ -167,15 +169,16 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     //_controller.value;
 
     // a0 + v * t - k * t * t * 0.5
-    double t = 0.001 * _animation.value;  // in sec
-    double angle = _prevAngle +  _tangentAmplifier * _tangential * t - _tangential.sign * _friction * 0.5 * _accel * t * t;
+    final double t = 0.001 * _animation.value;  // in sec
+    final double angle = _prevAngle +  _tangential * t - _tangential.sign * _friction * 0.5 * _accel * t * t;
 
-    double value = widget.min + (widget.max - widget.min) * (angle - widget.minAngle) / widget.sweepAngle;
+    final double value = widget.min + (widget.max - widget.min) * (angle - widget.minAngle) / widget.sweepAngle;
 
-    double clipped = min(max(value, widget.min), min(widget.limit, widget.max));
+    final double clipped = min(max(value, widget.min), min(widget.limit, widget.max));
     //    double normalized = (clipped - widget.min)/(widget.max - widget.min);
     //    double angle = (widget.minAngle + normalized * widget.sweepAngle) * pi / 180;
-    //debugPrint('onTimer ${_animation.value.toInt()} - $_prevAngle - $angle - $value');
+
+    //debugPrint('onTimer ${_animation.value.toInt()} - $_prevAngle - $angle - $value - $clipped - $t');
 
     _colorRing = _tweenColor.lerp(sin(0.004 * 2 * pi * _animation.value));
 
@@ -248,7 +251,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       {
         dir = _prevAngle > 0 ? -1  : 1;
         turn -= dir;
-        debugPrint('Turnaround - $dir - $turn - $alpha - $_prevAngle');
+        //debugPrint('Turnaround - $dir - $turn - $alpha - $_prevAngle');
       }
 
       double alphaFull = alpha + 360 * turn;
@@ -260,7 +263,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
           dir = alpha < _prevAngle ? 1 : -1;
       }
       bool dirChanged = _prevDir != 0 && dir != _prevDir;
-      print('Knob:Dir $dir - $_prevDir - $dirChanged - $alpha - $_prevAngle');
+      //print('Knob:Dir $dir - $_prevDir - $dirChanged - $alpha - $_prevAngle');
       if (dir != 0)
         _prevDir = dir;
 
@@ -297,7 +300,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       //TODO
       assert(widget.min <= maxValue);
       bool updateStart = false;
-      print('Knob:newValue $newValue - $maxValue');
+      //print('Knob:newValue $newValue - $maxValue');
       if (newValue < widget.min)
       {
         _outLimit = true;
@@ -305,7 +308,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
         if (!widget.firmKnob && dirChanged && dir == 1)
         {
           newValue = widget.min - (alpha - _prevAngle) * k;
-          print('Knob:correctMin $newValue');
+          //print('Knob:correctMin $newValue');
           updateStart = true;
         }
       }
@@ -316,7 +319,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
         if (!widget.firmKnob && dirChanged && dir == -1)
         {
           newValue = maxValue + (alpha - _prevAngle) * k;
-          print('Knob:correctMax $newValue');
+          //print('Knob:correctMax $newValue');
           updateStart = true;
         }
       }
@@ -326,7 +329,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       final double clipped = min(max(newValue, widget.min), min(widget.limit, widget.max));
       if (updateStart)
       {
-        print('Knob:updateStart - $newValue - $alpha - $_startValue - $_startAngle');
+        //print('Knob:updateStart - $newValue - $alpha - $_startValue - $_startAngle');
         _startValue = newValue;
         _startAngle = alphaFull;
       }
@@ -353,7 +356,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   void onPanEnd(DragEndDetails details, double radius)
   {
     final Offset velocity = details.velocity.pixelsPerSecond;
-    double v = velocity.distance;
+    final double v = velocity.distance;
     //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
     if (_prevPos == null || _prevAngle == null || dialing)
@@ -363,22 +366,23 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       setState(() {});
       return;
     }
+    //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
     _prevAngle = widget.minAngle + widget.sweepAngle * (_value - widget.min) / (widget.max - widget.min);
 
-    double alpha = _prevPos.direction;
+    final double alpha = _prevPos.direction;
     // velocity.dy has opposite direction to y-axis
-    double tangential = - velocity.dx * sin(alpha) - velocity.dy * cos(alpha);
+    final double tangential = - velocity.dx * sin(alpha) - velocity.dy * cos(alpha);
     // Tangential velocity
     final Offset velocityTang = new Offset(- tangential * sin(alpha), tangential * cos(alpha));
 
-    double tangentialAbs = tangential.abs();
+    _tangential = - _velocityPix2Rad * tangential;
+    final double tangentialAbs = _tangential.abs();
     _time = 1000;  // in msec
-    _time = tangentialAbs ~/ _flingVelocity;  // in msec
-    _accel = 1000 * tangentialAbs / _time;
+    _time = 1000 * tangentialAbs ~/ _flingAcceleration;  // in msec
+    _accel = tangentialAbs / _time;
     //_time = (tangentialAbs * 1000) ~/ _accel;  // in msec
     // Knob turns CW to higher values
-    _tangential = - tangential;
     //debugPrint('Velocity $_tangential - $_accel - $_time - $_prevAngle');
 
     _startPos = _prevPos = null;
@@ -388,10 +392,11 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       _controller.stop();
     if (tangentialAbs > 0)
     {
+      //debugPrint('onPanEnd Start - $tangentialAbs - $_time');
       _controller.reset();
       _controller.duration = new Duration(milliseconds: _time);
       _animation = new Tween<double>(begin: 0, end: _time.toDouble())
-          .chain(CurveTween(curve: Curves.linear)).animate(_controller);
+        .chain(CurveTween(curve: Curves.linear)).animate(_controller);
 
       _controller.forward(); //TODO .orCancel ??
     }
@@ -571,7 +576,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                 child: Text(widget.value.toInt().toString(),
                   style: widget.textStyle.copyWith(
                     color: Colors.purple[100],
-                    fontSize: 0.5 * (1 - widget.radiusDial) * widget.diameter,
+                    fontSize: 0.5 * (1 - widget.radiusDial) * widget.diameter, // was 0.6
                     fontWeight: FontWeight.bold,
                   ),
                 ),
