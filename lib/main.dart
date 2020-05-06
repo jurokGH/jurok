@@ -830,8 +830,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     print('_buildOwlenome $size');
 
     // TODO VG
-    final double paddingX = 0;//_beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;
-    //0.03 * _widthSquare : 0;
+    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4 ? 10 : 0;  //0.03 * _widthSquare : 0;
     final double paddingY = _beat.beatCount > 4 ? 0.02 * _sideSquare : 0;
     final EdgeInsets padding = portrait ? new EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX) :
       new EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX);

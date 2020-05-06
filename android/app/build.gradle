@@ -63,7 +63,7 @@ dependencies {
 
 def gitRevision() {
     def revision = ""
-    def proc = "git.exe rev-parse --short=4 HEAD".execute()
+    def proc = "git rev-parse --short=4 HEAD".execute()
     proc.in.eachLine { line -> revision = line }
     proc.err.eachLine { line -> println line }
     proc.waitFor()

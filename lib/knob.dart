@@ -360,6 +360,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     {
       //debugPrint('onPanEnd Error ${velocity.toString()} - $v - $_prevPos - $_prevAngle');
       _startPos = null;
+      setState(() {});
       return;
     }
 
@@ -449,7 +450,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
             tap = pos.distance <= (widget.radiusButton * radius);
             double distance2 = pos.distanceSquared;//TODO Opt
-            dialing = pos.distanceSquared <= radiusDial2;
+            dialing = pos.distanceSquared >= radiusDial2;
             // For arrow buttons
             setState(() {
               _prevPos = pos;
