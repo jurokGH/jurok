@@ -46,15 +46,15 @@ class LimitSizeText extends StatelessWidget
         templateStyle == null ? style : templateStyle,
         constraints.biggest);
 
-    if (fontSize != style.fontSize)
-      print('LimitSizeText limit to $fontSize');
+    if (fontSize < style.fontSize)
+      debugPrint('LimitSizeText limit to $fontSize from ${style.fontSize}');
 
     return Text(text,
       textAlign: textAlign,
       textDirection: TextDirection.ltr,
       maxLines: 1,
       //style: widget.textStyle
-      style: style.copyWith(fontSize: fontSize)
+      style: fontSize < style.fontSize ? style.copyWith(fontSize: fontSize) : style,
     );
   }
 
