@@ -13,7 +13,7 @@ class HelpWidget extends StatelessWidget
         onTap: () {
           Navigator.pop(context);
         },
-        child: Center(
+        child: Center(  // TODO Decide if need
           child: SingleChildScrollView(
             child: Image.asset('images/help.jpg',
               fit: BoxFit.contain)
