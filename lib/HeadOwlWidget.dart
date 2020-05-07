@@ -96,13 +96,15 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     final int newActiveSubbeat = state.getActiveSubbeat(widget.id);
     final int t = state.getActiveTime(widget.id);
     //if (hash != activeHash)
-    if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
+//    if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
+    if (t != _time)
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
     {
       //debugPrint('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
       setState((){
         activeHash = hash;
         //maxAngle = 2;
+        //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
         _angle = widget.maxAngle * sin(2 * pi * 0.000001 * t);
         active = newActive;
         activeSubbeat = newActiveSubbeat;
