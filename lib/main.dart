@@ -655,7 +655,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     debugPrint('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio} - ${1 / _screenSize.aspectRatio} - $_sideSquare');
 
     if (_textStyle == null)
-      _textStyle = Theme.of(context).textTheme.display1
+      _textStyle = Theme.of(context).textTheme.headline4
         .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
 
     if (_screenSize.width <= 0 || _screenSize.height <= 0)  //TODO
@@ -740,7 +740,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             _showVersion ? Align(
               alignment: Alignment.topLeft,
               child: Text(_version,
-                style: Theme.of(context).textTheme.body1.copyWith(color: Colors.white))
+                style: Theme.of(context).textTheme.bodyText1.copyWith(color: Colors.white))
             )
             : Container(),
           ]
@@ -784,7 +784,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               _showVersion ? Align(
                 alignment: Alignment.topRight,
                 child: Text(_version,
-                  style: Theme.of(context).textTheme.body1.copyWith(color: Colors.white))
+                  style: Theme.of(context).textTheme.bodyText1.copyWith(color: Colors.white))
               )
               : Container(),
             ]
@@ -990,7 +990,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       TempoListWidget(//TODO Limit
         tempo: _tempoBpm,
         width: listTempoSize.width,
-        textStyle: Theme.of(context).textTheme.display1
+        textStyle: Theme.of(context).textTheme.headline4
           .copyWith(color: _cTempoList, height: 1),//TODO
           //.copyWith(color: _cTempoList, fontSize: 0.07 * _sizeCtrls.height, height: 1),//TODO
         onChanged: _setTempo
@@ -1450,7 +1450,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             fit: BoxFit.contain,
           ),
           Text(strScheme,
-            style: Theme.of(context).textTheme.headline
+            style: Theme.of(context).textTheme.headline5
               .copyWith(fontSize: 0.9 * size,
                 fontWeight: FontWeight.bold, color: Colors.white), //fontSize: 28
           ),
@@ -1461,7 +1461,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         children: <Widget>[
           Icon(Icons.music_note, size: 0.5 * sizeButton, color: _cWhiteColor),
           Text(strScheme,
-            style: Theme.of(context).textTheme.headline
+            style: Theme.of(context).textTheme.headline5
                 .copyWith(fontSize: 0.5 * size,
                 fontWeight: FontWeight.bold, color: Colors.white), //fontSize: 28
           ),
