@@ -35,6 +35,22 @@ int posInArrow(Offset pos, double radius2, double radiusDial2, int dialDivisions
   return arrow;
 }
 
+int posInArrow2(Offset pos, double radius2, double radiusDial2, double radiusArrow2, int dialDivisions)
+{
+  int arrow = 0;
+  double distance2 = pos.distanceSquared;//TODO Opt
+  if (distance2 >= radiusDial2 && distance2 <= radiusArrow2)
+  {
+    final double angle = pos.direction.abs();
+    final double divAngle = 2 * pi / dialDivisions;
+    if (angle < divAngle)
+      arrow = 1;
+    else if (angle > pi - divAngle)
+      arrow = -1;
+  }
+  return arrow;
+}
+
 class Knob extends StatefulWidget
 {
   final double value;
@@ -51,6 +67,7 @@ class Knob extends StatefulWidget
   final double diameter;
   final double radiusButton;
   final double radiusDial;
+  final double radiusArrow = 1.2;
   final Color color;
   final Color colorOutLimit;
   final TextStyle textStyle;
@@ -437,8 +454,8 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       if (_outLimit)
         textStyle = widget.textStyle.copyWith(color: widget.colorOutLimit);
 
-      return Center(child:
-      Container(
+      return Center(
+        child: Container(
         width: size,
         height: size,
         child: GestureDetector(
@@ -490,7 +507,23 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               widget.onPressed();  //TODO Should place it inside setState?
               tap = false;
             }
-            int arrow = posInArrow(pos, radius2, radiusDial2, widget.dialDivisions);
+            int arrow = posInArrow2(pos, radius2, radiusDial2, radius2 * widget.radiusArrow * widget.radiusArrow, widget.dialDivisions);
+            if (arrow == 0)
+            {
+              double radiusDial2 = widget.radiusDial * widget.radiusDial * radius2;
+              final Offset center = new Offset(size / 2, size / 2);
+              final double angleDiv = 2 * pi / widget.dialDivisions;
+              final double coef = 0.75;
+              final double xCenter = (1 - coef + coef * widget.radiusDial) * radius;
+
+              final Path right1 = KnobPainter.arrowPath2(1, center, radius, angleDiv, xCenter, widget.radiusArrow);
+              final Path left1 = KnobPainter.arrowPath2(-1, center, radius, angleDiv, xCenter, widget.radiusArrow);
+              if (pos.dx > center.dx && right1.contains(pos))
+                arrow = 1;
+              else if (pos.dx < center.dx && left1.contains(pos))
+                arrow = -1;
+            }
+
             if (arrow != 0)
             {
               //debugPrint('TapRing $arrow');
@@ -549,7 +582,10 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               ),
 
               CustomPaint(
-                painter: KnobPainter(widget.radiusDial, widget.radiusButton,
+                painter: KnobPainter(
+                  widget.radiusDial,
+                  widget.radiusButton,
+                  widget.radiusArrow,
                   _prevPos, widget.dialDivisions,
                   pressed,
                   widget.showText,
@@ -558,7 +594,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                   //_controller.isAnimating ? _animColor.value : Colors.purple.withOpacity(0.25),
                   _controller.isAnimating ? _colorRing : Colors.purple.withOpacity(0.25),
                   /// Arrows color
-                  Colors.purpleAccent[400],//Colors.white,
+                  Colors.deepPurple[300],  //Colors.purpleAccent[400],//Colors.white,
                   /// Arrows pressed color
                   Colors.purpleAccent.withOpacity(0.5),
                   /// Press spot on outer ring color
@@ -620,6 +656,7 @@ class KnobPainter extends CustomPainter
   final double radiusDial;
   final double radiusButton;
   final double radiusDot = 5;
+  final double radiusArrow;
   final Offset pos;
   /// Outer ring dot color
   final Color colorDot;
@@ -637,7 +674,9 @@ class KnobPainter extends CustomPainter
   final bool showDialText;
   final int dialDivisions;
 
-  KnobPainter(this.radiusDial, this.radiusButton,
+  KnobPainter(this.radiusDial,
+    this.radiusButton,
+    this.radiusArrow,
     this.pos, this.dialDivisions,
     this.drawCenter,
     this.showText,
@@ -659,6 +698,25 @@ class KnobPainter extends CustomPainter
     path.lineTo(center.dx + direction * xCenter, center.dy);
     path.lineTo(center.dx + direction * x, center.dy - y);
     path.close();
+    return path;
+  }
+
+  static Path arrowPath2(int direction, Offset center, double radius, double deltaAngle, double xCenter, double radiusArrow)
+  {
+    final double x = radiusArrow * radius * cos(deltaAngle);
+    final double y = radiusArrow * radius * sin(deltaAngle);
+    final double x0 = radius * cos(deltaAngle);
+    final double y0 = radius * sin(deltaAngle);
+    final double xc = radiusArrow * radius;
+    final double yc = radiusArrow * radius * sin(deltaAngle);
+    Path path = new Path();
+    path.moveTo(center.dx + direction * xc, center.dy);
+    path.lineTo(center.dx + direction * x0, center.dy + y0);
+    path.arcTo(Rect.fromCircle(center: center, radius: radius),
+      direction > 0 ? deltaAngle : pi - deltaAngle,
+      - direction * 2 * deltaAngle, true);
+    path.lineTo(center.dx + direction * xc, center.dy);
+    //path.close();
     return path;
   }
 
@@ -748,16 +806,29 @@ class KnobPainter extends CustomPainter
     canvas.drawPath(right, paintArrow);
     canvas.drawPath(left, paintArrow);
 
+    final Path right1 = arrowPath2(1, center, radius, angleDiv, xCenter, radiusArrow);
+    final Path left1 = arrowPath2(-1, center, radius, angleDiv, xCenter, radiusArrow);
+    canvas.drawPath(right1, paintArrow);
+    canvas.drawPath(left1, paintArrow);
+
     if (pos != null)
     {
       //debugPrint('posInArrow');
-      int arrow = posInArrow(pos, radius2, radiusDial2, dialDivisions);
+      int arrow = posInArrow2(pos, radius2, radiusDial2, radius2 * radiusArrow * radiusArrow, dialDivisions);
+      if (arrow == 0)
+      {
+        if (pos.dx > center.dx && right1.contains(pos))
+          arrow = 1;
+        else if (pos.dx < center.dx && left1.contains(pos))
+          arrow = -1;
+      }
       if (arrow == 1)
       {
         //int div = dialDivisions ~/ 4;
         canvas.drawPath(divisionPath(dialDivisions - 1, center, radius, angleDiv), paintArrowHi);
         canvas.drawPath(divisionPath(0, center, radius, angleDiv), paintArrowHi);
         //canvas.drawPath(right, paintArrowHi);
+        canvas.drawPath(right1, paintArrowHi);
       }
       else if (arrow == -1)
       {
@@ -765,6 +836,7 @@ class KnobPainter extends CustomPainter
         canvas.drawPath(divisionPath(div - 1, center, radius, angleDiv), paintArrowHi);
         canvas.drawPath(divisionPath(div, center, radius, angleDiv), paintArrowHi);
         //canvas.drawPath(left, paintArrowHi);
+        canvas.drawPath(left1, paintArrowHi);
       }
     }
 
