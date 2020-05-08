@@ -80,7 +80,8 @@ class Knob extends StatefulWidget
   final ValueChanged<double> onChanged;
   final OnPressedCallback onPressed;
 
-  Knob({@required this.value,
+  Knob({
+    @required this.value,
     this.min = 0, this.max = 1,
     this.limit = 0,
     this.dialDivisions = 10,
@@ -100,7 +101,9 @@ class Knob extends StatefulWidget
     this.firmKnob = true,
     this.debug = false,
     @required this.textStyle,
-    @required this.onChanged, @required this.onPressed});
+    @required this.onChanged,
+    @required this.onPressed
+  });
 
   @override
   State<StatefulWidget> createState() => KnobState();
@@ -507,8 +510,9 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               widget.onPressed();  //TODO Should place it inside setState?
               tap = false;
             }
-            int arrow = posInArrow2(pos, radius2, radiusDial2, radius2 * widget.radiusArrow * widget.radiusArrow, widget.dialDivisions);
-            if (arrow == 0)
+            int arrow = posInArrow(pos, radius2, 0.25 * radiusDial2, widget.dialDivisions);
+
+            if (arrow == 0)  // TODO Doesn't wark
             {
               double radiusDial2 = widget.radiusDial * widget.radiusDial * radius2;
               final Offset center = new Offset(size / 2, size / 2);
@@ -516,11 +520,14 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               final double coef = 0.75;
               final double xCenter = (1 - coef + coef * widget.radiusDial) * radius;
 
+              final Offset pos1 = new Offset(center.dx + pos.dx, center.dy - pos.dy);
               final Path right1 = KnobPainter.arrowPath2(1, center, radius, angleDiv, xCenter, widget.radiusArrow);
               final Path left1 = KnobPainter.arrowPath2(-1, center, radius, angleDiv, xCenter, widget.radiusArrow);
-              if (pos.dx > center.dx && right1.contains(pos))
+              //print('Knob:pos - $pos - $pos1');
+              //print(right1);
+              if (pos.dx > 0 && right1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
                 arrow = 1;
-              else if (pos.dx < center.dx && left1.contains(pos))
+              else if (pos.dx < 0 && left1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
                 arrow = -1;
             }
 
@@ -806,6 +813,31 @@ class KnobPainter extends CustomPainter
     canvas.drawPath(right, paintArrow);
     canvas.drawPath(left, paintArrow);
 
+    final double radius1 = 0.5;
+    final dy = radius * sin(angleDiv);
+    final Offset off1 = new Offset(center.dx + radius1 * radius * cos(angleDiv),
+      center.dy + radius1 * dy);
+    final Offset off2 = new Offset(center.dx + radiusDial * radius * cos(angleDiv),
+      center.dy + radiusDial * dy);
+    canvas.drawLine(
+      off1, off2,
+      paintArrow);
+    canvas.drawLine(
+      Offset(off1.dx, center.dy - radius1 * dy),
+      Offset(off2.dx, center.dy - radiusDial * dy),
+      paintArrow);
+    final Offset off3 = new Offset(center.dx - radius1 * radius * cos(angleDiv),
+      center.dy + radius1 * dy);
+    final Offset off4 = new Offset(center.dx - radiusDial * radius * cos(angleDiv),
+      center.dy + radiusDial * dy);
+    canvas.drawLine(
+      off3, off4,
+      paintArrow);
+    canvas.drawLine(
+      Offset(off3.dx, center.dy - radius1 * dy),
+      Offset(off4.dx, center.dy - radiusDial * dy),
+      paintArrow);
+
     final Path right1 = arrowPath2(1, center, radius, angleDiv, xCenter, radiusArrow);
     final Path left1 = arrowPath2(-1, center, radius, angleDiv, xCenter, radiusArrow);
     canvas.drawPath(right1, paintArrow);
@@ -817,9 +849,9 @@ class KnobPainter extends CustomPainter
       int arrow = posInArrow2(pos, radius2, radiusDial2, radius2 * radiusArrow * radiusArrow, dialDivisions);
       if (arrow == 0)
       {
-        if (pos.dx > center.dx && right1.contains(pos))
+        if (pos.dx > 0 && right1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
           arrow = 1;
-        else if (pos.dx < center.dx && left1.contains(pos))
+        else if (pos.dx < 0 && left1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
           arrow = -1;
       }
       if (arrow == 1)
