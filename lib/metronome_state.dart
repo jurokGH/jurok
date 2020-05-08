@@ -297,7 +297,7 @@ class MetronomeState with ChangeNotifier
 
     //print('timePosition $time1 - $duration - offset $beat - $subbeat - ${subBeats[beat]}');
     //double msec = timeInSubbeat * 1000000;  // in microseconds
-    double msec = (time % (duration * beatMetre.beatCount)) * 1000000;  // in microseconds
+    double msec = (time % (2 * duration * beatMetre.beatCount)) * 1000000;  // in microseconds
 
     return [beat, subbeat, msec.toInt()];
   }
@@ -347,7 +347,7 @@ class MetronomeState with ChangeNotifier
 
   int getActiveTime(int id)
   {
-    double period = 60.0 / _beatsPerMinute;  // in seconds
+    double period = 120.0 / _beatsPerMinute;  // in seconds
     int t = _activeTime;
     t = ((_activeTime - 1000000 * period * id) / (beatMetre.beatCount * period)).round();
     return t;
