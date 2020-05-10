@@ -180,10 +180,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  bool _useNewKnob = false;
-  bool _showKnobDialText = true;
+  bool _useNewKnob = true;
+  bool _showKnobDialText = false;
   bool _showNoteTempo = true;
-  bool _showVersion = false;
+  bool _showVersion = true;
 
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
