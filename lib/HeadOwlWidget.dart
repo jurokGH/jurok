@@ -96,8 +96,10 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     final int newActiveSubbeat = state.getActiveSubbeat(widget.id);
     final int t = state.getActiveTime(widget.id);
     //if (hash != activeHash)
-//    if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
-    if (t != _time)
+
+    // Active vs all owls swing their heads
+    if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
+//    if (t != _time)
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
     {
       //debugPrint('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
