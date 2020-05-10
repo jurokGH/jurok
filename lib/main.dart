@@ -182,8 +182,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Configuration constants
   bool _useNewKnob = false;
   bool _showKnobDialText = true;
-  bool _showNoteTempo = false;
-  bool _showVersion = true;
+  bool _showNoteTempo = true;
+  bool _showVersion = false;
 
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
