@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'metre.dart';
 import 'metronome_state.dart';
+import 'LimitSizeText.dart';
 import 'util.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
@@ -48,7 +49,7 @@ class MetreWidget extends StatefulWidget
     this.itemExtent = 40,
     this.color = Colors.white,
     @required this.textStyle,
-    this.textStyleSelected
+    @required this.textStyleSelected
   }): noteIndex = noteValue2index(note),
       minNoteIndex = noteValue2index(minNote),
       maxNoteIndex = noteValue2index(maxNote);
@@ -106,6 +107,10 @@ class MetreState extends State<MetreWidget>
   Widget build(BuildContext context)
   {
     //TODO final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    double width = widget.width;
+    double height = 0.5 * widget.height - 2;
+
+    print('Metre::build ${widget.beats}');
 
     // To prevent reenter via widget.onBeat/NoteChanged::setState
     // when position is changing via jumpToItem/animateToItem
@@ -153,16 +158,29 @@ class MetreState extends State<MetreWidget>
           widget.onChanged(_metreList[_iMetre].beats, _metreList[_iMetre].note);
         },
  */
+    final double fontSize = 0.7 * height;//6
+    final double fontSizeHi = 0.7 * height;//65
+    final TextStyle textStyle = widget.textStyle;//.copyWith(fontSize: fontSize);
+    final TextStyle textStyleHi = widget.textStyleSelected;//.copyWith(fontSize: fontSizeHi);
+    final TextStyle textStyleHiB = textStyle.copyWith(fontWeight: FontWeight.bold);
+    //final TextStyle textStyleHiB = textStyle.copyWith(fontSize: fontSizeHi, fontWeight: FontWeight.bold);
 
     final List<Widget> wixBeats = new List<Widget>.generate(widget.maxBeats - widget.minBeats + 1,
       (int i) => new RotatedBox(
         quarterTurns: 1,
         child:
-        Text((i + widget.minBeats).toString(),
+//        FittedBox(
+//          fit: BoxFit.fitHeight,
+//          child:
+        LimitSizeText(
+          text: (i + widget.minBeats).toString(),
           textAlign: TextAlign.center,
           //textScaleFactor: 1.5,
-          style: i + widget.minBeats == widget.beats ? widget.textStyleSelected : widget.textStyle,
-        )
+          style: i + widget.minBeats == widget.beats ? textStyleHi : textStyle,
+          template: '12',
+          templateStyle: textStyleHi,
+        ),
+//        ),
       )
     );
 
@@ -172,21 +190,22 @@ class MetreState extends State<MetreWidget>
         return new RotatedBox(
           quarterTurns: 1,
           child:
-          Text(noteValue.toString(),
+//          FittedBox(
+//            fit: BoxFit.fitHeight,
+//            child:
+            LimitSizeText(
+            text: noteValue.toString(),
             textAlign: TextAlign.center,
-            style: i + widget.minNoteIndex == widget.noteIndex ?
-              widget.textStyle.copyWith(fontWeight: FontWeight.bold) : widget.textStyle,
+            style: i + widget.minNoteIndex == widget.noteIndex ? textStyleHiB : textStyle,
             // To Change color for irregular metre:
             // style: i + widget.minNoteIndex == widget.noteIndex ? widget.textStyleSelected : widget.textStyle,
-          )
+            template: '16',
+            templateStyle: textStyleHiB,
+          ),
+//          ),
         );
       }
     );
-
-    double width = widget.width;
-    double height = 0.5 * widget.height - 2;
-
-    print('Metre::build ${widget.beats}');
 
     return
       Column(
@@ -294,7 +313,7 @@ class MetreState extends State<MetreWidget>
                     itemExtent: widget.itemExtent,
                     squeeze: 1.5,
                     onSelectedItemChanged: (int index) {
-                      print(index);
+                      //print(index);
                       if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
                         widget.onNoteChanged(index2noteValue(index + widget.minNoteIndex));
                       //setState(() {});

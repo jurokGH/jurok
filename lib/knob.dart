@@ -35,6 +35,22 @@ int posInArrow(Offset pos, double radius2, double radiusDial2, int dialDivisions
   return arrow;
 }
 
+int posInArrow2(Offset pos, double radius2, double radiusDial2, double radiusArrow2, int dialDivisions)
+{
+  int arrow = 0;
+  double distance2 = pos.distanceSquared;//TODO Opt
+  if (distance2 >= radiusDial2 && distance2 <= radiusArrow2)
+  {
+    final double angle = pos.direction.abs();
+    final double divAngle = 2 * pi / dialDivisions;
+    if (angle < divAngle)
+      arrow = 1;
+    else if (angle > pi - divAngle)
+      arrow = -1;
+  }
+  return arrow;
+}
+
 class Knob extends StatefulWidget
 {
   final double value;
@@ -51,6 +67,7 @@ class Knob extends StatefulWidget
   final double diameter;
   final double radiusButton;
   final double radiusDial;
+  final double radiusArrow = 1.2;
   final Color color;
   final Color colorOutLimit;
   final TextStyle textStyle;
@@ -63,7 +80,8 @@ class Knob extends StatefulWidget
   final ValueChanged<double> onChanged;
   final OnPressedCallback onPressed;
 
-  Knob({@required this.value,
+  Knob({
+    @required this.value,
     this.min = 0, this.max = 1,
     this.limit = 0,
     this.dialDivisions = 10,
@@ -83,7 +101,9 @@ class Knob extends StatefulWidget
     this.firmKnob = true,
     this.debug = false,
     @required this.textStyle,
-    @required this.onChanged, @required this.onPressed});
+    @required this.onChanged,
+    @required this.onPressed
+  });
 
   @override
   State<StatefulWidget> createState() => KnobState();
@@ -109,6 +129,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   int turn;
   bool pressed = false;
   bool tap = false;
+  bool dialing = false;
 
   final Color clrAnimRing1 = Colors.pink[400].withOpacity(0.5);
   final Color clrAnimRing2 = Colors.purple[800].withOpacity(0.5);
@@ -118,12 +139,15 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   Animation<Color> _animColor;
   ColorTween _tweenColor;
   Color _colorRing;
-  int _time = 5000;
+  int _time = 0;
   double _tangential;
 
-  double flingVelocity = 1.5;
-  double _friction = 0.1;//0.05;
-  double _accel = 800;
+  /// Velocity conversion coefficient pix/sec -> radian/sec
+  double _velocityPix2Rad = 0.2;
+  /// Initial acceleration in radian/sec^2
+  double _flingAcceleration = 0.2 * 1000;//1.5;
+  double _friction = 1;//200;//50;
+  double _accel = 1;
 
   Image _image;  /// Knob image
   Size _imageSize = Size.zero;
@@ -165,16 +189,16 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
     //_controller.value;
 
     // a0 + v * t - k * t * t * 0.5
-    double t = 0.001 * _animation.value;  // in sec
-    _friction = 0.25;
-    double angle = _prevAngle + _friction * (_tangential * t - _tangential.sign * 0.5 * _accel * t * t);
+    final double t = 0.001 * _animation.value;  // in sec
+    final double angle = _prevAngle +  _tangential * t - _tangential.sign * _friction * 0.5 * _accel * t * t;
 
-    double value = widget.min + (widget.max - widget.min) * (angle - widget.minAngle) / widget.sweepAngle;
+    final double value = widget.min + (widget.max - widget.min) * (angle - widget.minAngle) / widget.sweepAngle;
 
-    double clipped = min(max(value, widget.min), min(widget.limit, widget.max));
+    final double clipped = min(max(value, widget.min), min(widget.limit, widget.max));
     //    double normalized = (clipped - widget.min)/(widget.max - widget.min);
     //    double angle = (widget.minAngle + normalized * widget.sweepAngle) * pi / 180;
-    //debugPrint('onTimer ${_animation.value.toInt()} - $_prevAngle - $angle - $value');
+
+    //debugPrint('onTimer ${_animation.value.toInt()} - $_prevAngle - $angle - $value - $clipped - $t');
 
     _colorRing = _tweenColor.lerp(sin(0.004 * 2 * pi * _animation.value));
 
@@ -247,7 +271,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       {
         dir = _prevAngle > 0 ? -1  : 1;
         turn -= dir;
-        debugPrint('Turnaround - $dir - $turn - $alpha - $_prevAngle');
+        //debugPrint('Turnaround - $dir - $turn - $alpha - $_prevAngle');
       }
 
       double alphaFull = alpha + 360 * turn;
@@ -259,7 +283,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
           dir = alpha < _prevAngle ? 1 : -1;
       }
       bool dirChanged = _prevDir != 0 && dir != _prevDir;
-      print('Knob:Dir $dir - $_prevDir - $dirChanged - $alpha - $_prevAngle');
+      //print('Knob:Dir $dir - $_prevDir - $dirChanged - $alpha - $_prevAngle');
       if (dir != 0)
         _prevDir = dir;
 
@@ -296,7 +320,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       //TODO
       assert(widget.min <= maxValue);
       bool updateStart = false;
-      print('Knob:newValue $newValue - $maxValue');
+      //print('Knob:newValue $newValue - $maxValue');
       if (newValue < widget.min)
       {
         _outLimit = true;
@@ -304,7 +328,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
         if (!widget.firmKnob && dirChanged && dir == 1)
         {
           newValue = widget.min - (alpha - _prevAngle) * k;
-          print('Knob:correctMin $newValue');
+          //print('Knob:correctMin $newValue');
           updateStart = true;
         }
       }
@@ -315,7 +339,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
         if (!widget.firmKnob && dirChanged && dir == -1)
         {
           newValue = maxValue + (alpha - _prevAngle) * k;
-          print('Knob:correctMax $newValue');
+          //print('Knob:correctMax $newValue');
           updateStart = true;
         }
       }
@@ -325,7 +349,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       final double clipped = min(max(newValue, widget.min), min(widget.limit, widget.max));
       if (updateStart)
       {
-        print('Knob:updateStart - $newValue - $alpha - $_startValue - $_startAngle');
+        //print('Knob:updateStart - $newValue - $alpha - $_startValue - $_startAngle');
         _startValue = newValue;
         _startAngle = alphaFull;
       }
@@ -352,31 +376,33 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
   void onPanEnd(DragEndDetails details, double radius)
   {
     final Offset velocity = details.velocity.pixelsPerSecond;
-    double v = velocity.distance;
+    final double v = velocity.distance;
     //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
-    if (_prevPos == null || _prevAngle == null)
+    if (_prevPos == null || _prevAngle == null || dialing)
     {
       //debugPrint('onPanEnd Error ${velocity.toString()} - $v - $_prevPos - $_prevAngle');
       _startPos = null;
+      setState(() {});
       return;
     }
+    //debugPrint('onPanEnd ${velocity.toString()} - $v');
 
     _prevAngle = widget.minAngle + widget.sweepAngle * (_value - widget.min) / (widget.max - widget.min);
 
-    double alpha = _prevPos.direction;
+    final double alpha = _prevPos.direction;
     // velocity.dy has opposite direction to y-axis
-    double tangential = - velocity.dx * sin(alpha) - velocity.dy * cos(alpha);
+    final double tangential = - velocity.dx * sin(alpha) - velocity.dy * cos(alpha);
     // Tangential velocity
     final Offset velocityTang = new Offset(- tangential * sin(alpha), tangential * cos(alpha));
 
-    double tangentialAbs = tangential.abs();
+    _tangential = - _velocityPix2Rad * tangential;
+    final double tangentialAbs = _tangential.abs();
     _time = 1000;  // in msec
-    _time = tangentialAbs ~/ flingVelocity;  // in msec
-    _accel = 1000 * tangentialAbs / _time;
+    _time = 1000 * tangentialAbs ~/ _flingAcceleration;  // in msec
+    _accel = tangentialAbs / _time;
     //_time = (tangentialAbs * 1000) ~/ _accel;  // in msec
     // Knob turns CW to higher values
-    _tangential = - tangential;
     //debugPrint('Velocity $_tangential - $_accel - $_time - $_prevAngle');
 
     _startPos = _prevPos = null;
@@ -386,10 +412,11 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       _controller.stop();
     if (tangentialAbs > 0)
     {
+      //debugPrint('onPanEnd Start - $tangentialAbs - $_time');
       _controller.reset();
       _controller.duration = new Duration(milliseconds: _time);
       _animation = new Tween<double>(begin: 0, end: _time.toDouble())
-          .chain(CurveTween(curve: Curves.linear)).animate(_controller);
+        .chain(CurveTween(curve: Curves.linear)).animate(_controller);
 
       _controller.forward(); //TODO .orCancel ??
     }
@@ -430,8 +457,8 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
       if (_outLimit)
         textStyle = widget.textStyle.copyWith(color: widget.colorOutLimit);
 
-      return Center(child:
-      Container(
+      return Center(
+        child: Container(
         width: size,
         height: size,
         child: GestureDetector(
@@ -442,8 +469,13 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               _controller.stop();
 
             double radius = size / 2;
+            double radius2 = radius * radius;
+            double radiusDial2 = widget.radiusDial * widget.radiusDial * radius2;
+
             Offset pos = new Offset(details.localPosition.dx - radius, radius - details.localPosition.dy);
             tap = pos.distance <= (widget.radiusButton * radius);
+            double distance2 = pos.distanceSquared;//TODO Opt
+            dialing = pos.distanceSquared >= radiusDial2;
             // For arrow buttons
             setState(() {
               _prevPos = pos;
@@ -478,7 +510,27 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               widget.onPressed();  //TODO Should place it inside setState?
               tap = false;
             }
-            int arrow = posInArrow(pos, radius2, radiusDial2, widget.dialDivisions);
+            int arrow = posInArrow(pos, radius2, 0.25 * radiusDial2, widget.dialDivisions);
+
+            if (arrow == 0)  // TODO Doesn't wark
+            {
+              double radiusDial2 = widget.radiusDial * widget.radiusDial * radius2;
+              final Offset center = new Offset(size / 2, size / 2);
+              final double angleDiv = 2 * pi / widget.dialDivisions;
+              final double coef = 0.75;
+              final double xCenter = (1 - coef + coef * widget.radiusDial) * radius;
+
+              final Offset pos1 = new Offset(center.dx + pos.dx, center.dy - pos.dy);
+              final Path right1 = KnobPainter.arrowPath2(1, center, radius, angleDiv, xCenter, widget.radiusArrow);
+              final Path left1 = KnobPainter.arrowPath2(-1, center, radius, angleDiv, xCenter, widget.radiusArrow);
+              //print('Knob:pos - $pos - $pos1');
+              //print(right1);
+              if (pos.dx > 0 && right1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
+                arrow = 1;
+              else if (pos.dx < 0 && left1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
+                arrow = -1;
+            }
+
             if (arrow != 0)
             {
               //debugPrint('TapRing $arrow');
@@ -537,7 +589,10 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
               ),
 
               CustomPaint(
-                painter: KnobPainter(widget.radiusDial, widget.radiusButton,
+                painter: KnobPainter(
+                  widget.radiusDial,
+                  widget.radiusButton,
+                  widget.radiusArrow,
                   _prevPos, widget.dialDivisions,
                   pressed,
                   widget.showText,
@@ -546,7 +601,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                   //_controller.isAnimating ? _animColor.value : Colors.purple.withOpacity(0.25),
                   _controller.isAnimating ? _colorRing : Colors.purple.withOpacity(0.25),
                   /// Arrows color
-                  Colors.purpleAccent[400],//Colors.white,
+                  Colors.deepPurple[300],  //Colors.purpleAccent[400],//Colors.white,
                   /// Arrows pressed color
                   Colors.purpleAccent.withOpacity(0.5),
                   /// Press spot on outer ring color
@@ -564,7 +619,7 @@ class KnobState extends State<Knob> with SingleTickerProviderStateMixin<Knob>
                 child: Text(widget.value.toInt().toString(),
                   style: widget.textStyle.copyWith(
                     color: Colors.purple[100],
-                    fontSize: 0.6 * (1 - widget.radiusDial) * widget.diameter,
+                    fontSize: 0.5 * (1 - widget.radiusDial) * widget.diameter, // was 0.6
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -608,6 +663,7 @@ class KnobPainter extends CustomPainter
   final double radiusDial;
   final double radiusButton;
   final double radiusDot = 5;
+  final double radiusArrow;
   final Offset pos;
   /// Outer ring dot color
   final Color colorDot;
@@ -625,7 +681,9 @@ class KnobPainter extends CustomPainter
   final bool showDialText;
   final int dialDivisions;
 
-  KnobPainter(this.radiusDial, this.radiusButton,
+  KnobPainter(this.radiusDial,
+    this.radiusButton,
+    this.radiusArrow,
     this.pos, this.dialDivisions,
     this.drawCenter,
     this.showText,
@@ -647,6 +705,25 @@ class KnobPainter extends CustomPainter
     path.lineTo(center.dx + direction * xCenter, center.dy);
     path.lineTo(center.dx + direction * x, center.dy - y);
     path.close();
+    return path;
+  }
+
+  static Path arrowPath2(int direction, Offset center, double radius, double deltaAngle, double xCenter, double radiusArrow)
+  {
+    final double x = radiusArrow * radius * cos(deltaAngle);
+    final double y = radiusArrow * radius * sin(deltaAngle);
+    final double x0 = radius * cos(deltaAngle);
+    final double y0 = radius * sin(deltaAngle);
+    final double xc = radiusArrow * radius;
+    final double yc = radiusArrow * radius * sin(deltaAngle);
+    Path path = new Path();
+    path.moveTo(center.dx + direction * xc, center.dy);
+    path.lineTo(center.dx + direction * x0, center.dy + y0);
+    path.arcTo(Rect.fromCircle(center: center, radius: radius),
+      direction > 0 ? deltaAngle : pi - deltaAngle,
+      - direction * 2 * deltaAngle, true);
+    path.lineTo(center.dx + direction * xc, center.dy);
+    //path.close();
     return path;
   }
 
@@ -736,16 +813,54 @@ class KnobPainter extends CustomPainter
     canvas.drawPath(right, paintArrow);
     canvas.drawPath(left, paintArrow);
 
+    final double radius1 = 0.5;
+    final dy = radius * sin(angleDiv);
+    final Offset off1 = new Offset(center.dx + radius1 * radius * cos(angleDiv),
+      center.dy + radius1 * dy);
+    final Offset off2 = new Offset(center.dx + radiusDial * radius * cos(angleDiv),
+      center.dy + radiusDial * dy);
+    canvas.drawLine(
+      off1, off2,
+      paintArrow);
+    canvas.drawLine(
+      Offset(off1.dx, center.dy - radius1 * dy),
+      Offset(off2.dx, center.dy - radiusDial * dy),
+      paintArrow);
+    final Offset off3 = new Offset(center.dx - radius1 * radius * cos(angleDiv),
+      center.dy + radius1 * dy);
+    final Offset off4 = new Offset(center.dx - radiusDial * radius * cos(angleDiv),
+      center.dy + radiusDial * dy);
+    canvas.drawLine(
+      off3, off4,
+      paintArrow);
+    canvas.drawLine(
+      Offset(off3.dx, center.dy - radius1 * dy),
+      Offset(off4.dx, center.dy - radiusDial * dy),
+      paintArrow);
+
+    final Path right1 = arrowPath2(1, center, radius, angleDiv, xCenter, radiusArrow);
+    final Path left1 = arrowPath2(-1, center, radius, angleDiv, xCenter, radiusArrow);
+    canvas.drawPath(right1, paintArrow);
+    canvas.drawPath(left1, paintArrow);
+
     if (pos != null)
     {
       //debugPrint('posInArrow');
-      int arrow = posInArrow(pos, radius2, radiusDial2, dialDivisions);
+      int arrow = posInArrow2(pos, radius2, radiusDial2, radius2 * radiusArrow * radiusArrow, dialDivisions);
+      if (arrow == 0)
+      {
+        if (pos.dx > 0 && right1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
+          arrow = 1;
+        else if (pos.dx < 0 && left1.contains(new Offset(center.dx + pos.dx, center.dy - pos.dy)))
+          arrow = -1;
+      }
       if (arrow == 1)
       {
         //int div = dialDivisions ~/ 4;
         canvas.drawPath(divisionPath(dialDivisions - 1, center, radius, angleDiv), paintArrowHi);
         canvas.drawPath(divisionPath(0, center, radius, angleDiv), paintArrowHi);
         //canvas.drawPath(right, paintArrowHi);
+        canvas.drawPath(right1, paintArrowHi);
       }
       else if (arrow == -1)
       {
@@ -753,6 +868,7 @@ class KnobPainter extends CustomPainter
         canvas.drawPath(divisionPath(div - 1, center, radius, angleDiv), paintArrowHi);
         canvas.drawPath(divisionPath(div, center, radius, angleDiv), paintArrowHi);
         //canvas.drawPath(left, paintArrowHi);
+        canvas.drawPath(left1, paintArrowHi);
       }
     }
 

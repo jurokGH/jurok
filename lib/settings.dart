@@ -10,24 +10,6 @@ class Settings
   Settings({this.animationType, this.activeScheme, this.soundSchemes, this.useKnob});
 }
 
-/*
-class TempoDef
-{
-  String name;
-  int tempo;
-  int minTempo;
-  int maxTempo;
-
-  TempoDef([name, minTempo, maxTempo, tempo])
-  {
-    this.name = name;
-    this.minTempo = minTempo;
-    this.maxTempo = maxTempo;
-    this.tempo = tempo == null ? minTempo : tempo;
-  }
-}
-*/
-
 class SettingsWidget extends StatelessWidget
 {
   final Settings settings;
@@ -49,24 +31,13 @@ class SettingsWidget extends StatelessWidget
     //List<Widget> radioSoundSchemes = new List<Widget>();
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: Text('Settings')),
       body: Center(
         child: ListView(
-        children: List<Widget>.generate(settings.soundSchemes.length, (int index) =>
+        children: List<Widget>.generate(1, (int index) =>
           //RadioListTile<SingingCharacter>(
-          new RadioListTile<int>(
-            value: index,
-            title: Text(settings.soundSchemes[index]),
-            groupValue: settings.activeScheme,
-            onChanged: (int value) {
-              //setState(() { _character = value; });
-              settings.activeScheme = value;
-              Navigator.pop(context, settings);
-            },
-          )
-        )
-        ..add(new Divider())
-        ..add(new ListTile(
+        new ListTile(
+          dense: true,
           //leading: icon,
           title: Text('Animation type'),
           //dense: true,
@@ -74,6 +45,7 @@ class SettingsWidget extends StatelessWidget
         ..addAll(List<Widget>.generate(5, (int index) =>
             //RadioListTile<SingingCharacter>(
             new RadioListTile<int>(
+              dense: true,
               title: Text(animations[index]),
               value: index,
               groupValue: settings.animationType,
@@ -85,14 +57,16 @@ class SettingsWidget extends StatelessWidget
             )
           )
         )
-        ..add(new Divider())
+        ..add(new Divider(color: Colors.deepPurple))
         ..add(new ListTile(
+          dense: true,
           //leading: icon,
           title: Text('Other options'),
           //dense: true,
         ))
         ..add(
           new SwitchListTile(
+            dense: true,
             title: Text('New knob'),
             value: settings.useKnob,
             onChanged: (bool value) {
@@ -101,9 +75,28 @@ class SettingsWidget extends StatelessWidget
               Navigator.pop(context, settings);
             },
         ))
-        ..add(new Divider())
+        ..add(new Divider(color: Colors.deepPurple))
+        ..add(new ListTile(
+          dense: true,
+          //leading: icon,
+          title: Text('Sound'),
+          //dense: true,
+        ))
+        ..addAll(List<Widget>.generate(settings.soundSchemes.length, (int index) =>
+          new RadioListTile<int>(
+            dense: true,
+            value: index,
+            title: Text(settings.soundSchemes[index]),
+            groupValue: settings.activeScheme,
+            onChanged: (int value) {
+              //setState(() { _character = value; });
+              settings.activeScheme = value;
+              Navigator.pop(context, settings);
+            },
+          )
+        )
+        ..add(new Divider(color: Colors.deepPurple))
         ..add(new AboutListTile()),
-
 /*          CheckboxListTile(
             title: Text('Text'),
             value: true,
@@ -128,6 +121,7 @@ class SettingsWidget extends StatelessWidget
           )
         ]
  */
+          ),
         ),
       ),
     );

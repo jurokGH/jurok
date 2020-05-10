@@ -281,20 +281,6 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
   {
     _skin.animationType = widget.animationType;
 
-    Stopwatch timer = new Stopwatch();
-    timer.start();
-
-    int tm = DateTime.now().microsecondsSinceEpoch;
-    timer.stop();
-    int ticks = timer.elapsedTicks;
-    double sec = ticks / timer.frequency;
-    debugPrint('DateTime.now: $sec - ${timer.frequency}');
-    timer.start();
-
-    //DateTime.now().microsecondsSinceEpoch;
-    //tm=DateTime.now().microsecondsSinceEpoch;
-    //debugPrint('DateTime now: $tm');
-
     //assert(widget.subBeatCount > 0);
     Size size = MediaQuery.of(context).size;
     //debugPrint('OwlGridState $size');
@@ -305,7 +291,7 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       return Container();
 
     double aspect = _skin.aspect;
-    aspect *= 1.5;//1.8;  // for NoteWidget
+    aspect *= 1.7;//1.8;  // for NoteWidget
 
     _OwlLayout layout = new _OwlLayout(
       count: widget.beat.beatCount,
@@ -313,23 +299,10 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
       //1.75 * 306 / 250 //2 * 668 / 546,
     );
 
+    // TODO Check image size
     Size imageSize = layout.calcImageSize(size);
     //TODO Test: Move loadImages to initState, but keep precacheImages here?
     _skin.cacheImages(context, imageSize);
-
-    timer.stop();
-    ticks = timer.elapsedTicks;
-    sec = ticks / timer.frequency;
-    debugPrint('ReLoading Images : $sec - ${timer.frequency}');
-    tm = DateTime.now().microsecondsSinceEpoch-tm;
-    debugPrint('ReLoading Images etc in OwlGribBild in microseconds: $tm');
-    //TODO
-    // IS:  Кажется, то, что выше, можно не повротять, когда число сов не менялось
-    // LoadImage занимает лишь лишник 10-15 мкс (20-25 вместе с долгой процедурой DateTime.now(),
-    //которая сама ест около 10  мс).
-    // Но всё вместе - вызывается многократно и занимает тучу времени, до нескольких миллисекунд!
-    // Можно ли эту рутину с раскладкой делать один раз?
-
 
     List<int> beatRows = beatRowsList(widget.beat.beatCount);
     //final int maxCountX = maxValue(beatRows);
@@ -378,29 +351,23 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
 
     toggleAnimation();
 
-    //return Consumer<MetronomeState>(
-    //TODO Gesture
-/*
-      //builder: (BuildContext context, MetronomeState metronome, Widget child) {
-        return GestureDetector(
-          //onHorizontalDragStart,
-          //onHorizontalDragUpdate: (DragUpdateDetails details) {},
-          //onHorizontalDragEnd,
-          //onHorizontalDragCancel,
-          onTap: () {
-            //debugPrint('onTaponTaponTap');
-            //debugPrint(count);
-
-            //widget.onCountChanged(widget.beat.beatCount + 1);
-            //setState(() {});
-            //Provider.of<MetronomeState>(context, listen: false)
-            //.setActiveState(widget.id, widget.subbeatCount);
-            //widget.onTap(widget.id, widget.subbeatCount);
-          },
-*/
     return CustomMultiChildLayout(
       children: wOwls,
       delegate: layout,
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    print("OwlGrid:didChangeDependencies");
+  }
+
+  @override
+  void didUpdateWidget(OwlGrid oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    print("OwlGrid:didUpdateWidget");
   }
 }

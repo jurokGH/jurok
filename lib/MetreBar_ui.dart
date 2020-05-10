@@ -26,7 +26,7 @@ class MetreBarWidget extends StatefulWidget
   /// Current active metre in list
   final int activeMetre;
   /// Widget size
-  final Size size;
+  Size size;
   /// Background color of regular metre
   final Color color;
   /// Background color of irregular metre
@@ -65,7 +65,7 @@ class MetreBarState extends State<MetreBarWidget>
 
   ScrollController _controller;
   CustomScrollPhysics _physics;
-  double _itemExtent;  /// List item width
+  double _itemExtent = 0;  /// List item width
   bool _notify = true;
 
   MetreBarState();
@@ -80,16 +80,21 @@ class MetreBarState extends State<MetreBarWidget>
   void initState()
   {
     super.initState();
+    //_itemExtent = 288;
+    //_physics = CustomScrollPhysics(itemDimension: _itemExtent);
 
     _controller = new ScrollController(initialScrollOffset: widget.activeMetre * widget.size.width);
     _controller.addListener(() {
+      print('CustomScrollPhysics ${widget.size.width}');
       if (_controller.position.haveDimensions && _physics == null && widget.metres.length > 1)
       {
-        setState(() {
+        print('CustomScrollPhysics 2');
+        //setState(() {
           double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
-          _itemExtent = dimension;
-          _physics = CustomScrollPhysics(itemDimension: dimension);
-        });
+          _itemExtent = widget.size.width;
+          print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
+          _physics = CustomScrollPhysics(itemDimension: _itemExtent/**/);
+        //});
       }
     });
   }
@@ -102,14 +107,15 @@ class MetreBarState extends State<MetreBarWidget>
     final List<int> metres = metreBar.simpleMetres();
     final List<int> accents = metreBar.accents;
 
-    //print('metreBuilder $index');
-    //print(accents);
-    //print(metres);
+    print('metreBuilder $index');
+    print(accents);
+    print(metres);
 
     final List<Widget> notes = new List<Widget>();
 
     final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     final Size bracketSize = new Size(3.0 * btnPadding, widget.size.height);
+    print('bracketSize $bracketSize');
     // Add left bracket
     notes.add(new Container(
       width: 0.5 * bracketSize.width,
@@ -130,7 +136,9 @@ class MetreBarState extends State<MetreBarWidget>
 
       //TODO Width
       double width = (widget.size.width - 3 * bracketSize.width) * metres[i] / beats;
+      //width = (widget.size.width) * metres[i] / beats;
 
+      print('metreBuilder:width $width');
       //print('widget.accents $index - $i - ${metres[i]} - ${metreBar.note}');
       //print(accents1);
 
@@ -190,110 +198,130 @@ class MetreBarState extends State<MetreBarWidget>
   @override
   Widget build(BuildContext context)
   {
-    final MetreBar metreBar = widget.metres[widget.activeMetre];
-    print("MetreBar::build - ${widget.activeMetre} - ${metreBar.beats} - ${metreBar.note} - ${metreBar.accentOption} - ${widget.size}");
-    print(widget.metres);
-    //print(widget.accents);
-    //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
+    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+      //widget.size = new Size(0.9 * constraints.maxWidth, widget.size.height);
 
-    // To prevent reenter via widget.onBeat/NoteChanged::setState
-    // when position is changing via jumpToItem/animateToItem
-    if (widget.update)
-    {
-      _notify = false;
-      //TODO Need?
-      final int activeMetre = clampLoop(widget.activeMetre, 0, widget.metres.length - 1);
-      print('MetreBar::update1 $activeMetre');
-      _controller.jumpTo(widget.size.width * activeMetre);
-    }
-    if (false && _controller != null && _controller.hasClients)
-    {
-      double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
-      print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
-      if (_itemExtent != dimension)
-        _physics?.itemDimension = dimension;
-    }
+      final MetreBar metreBar = widget.metres[widget.activeMetre];
+      print("MetreBar::build - ${widget.activeMetre} - ${metreBar.beats} - ${metreBar.note} - ${metreBar.accentOption} - ${widget.size}");
+      print(widget.metres);
+      //print(widget.accents);
+      //TextStyle textStyleColor = widget.textStyle.copyWith(color: widget.color);
 
-    final ListView listView = new ListView.builder(
-      scrollDirection: Axis.horizontal,
-      controller: _controller,
-      physics: _physics,
-      itemExtent: widget.size.width,
-      itemCount: widget.metres.length,
-      itemBuilder: metreBuilder,
-    );
+      // To prevent reenter via widget.onBeat/NoteChanged::setState
+      // when position is changing via jumpToItem/animateToItem
+      if (widget.update)
+      {
+        _notify = false;
+        //TODO Need?
+        final int activeMetre = clampLoop(widget.activeMetre, 0, widget.metres.length - 1);
+        print('MetreBar::update1 $activeMetre');
+        _controller.jumpTo(widget.size.width * activeMetre);
+      }
 
-    if (widget.update)
-      finishUpdate(0);
+      if (false && _controller != null && _controller.hasClients)
+      {
+        double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
+        //print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
+        if (_itemExtent != dimension) {
+          print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
+          ;//_physics?.itemDimension = dimension;
+        }
+      }
+      final ListView listView = new ListView.builder(
+        scrollDirection: Axis.horizontal,
+        controller: _controller,
+        physics: _physics,
+        itemExtent: widget.size.width,
+        itemCount: widget.metres.length,
+        itemBuilder: metreBuilder,
+      );
 
-    return Container(
-      width: widget.size.width,
-      height: widget.size.height,
-      //TODO color: widget.metres[widget.activeMetre].regularAccent ? widget.color : widget.colorIrregular,
-      child: GestureDetector(
-        onTap: ()
-        {
-          /// Select and display next metre in list
-          int currentIndex = widget.activeMetre + 1;
-          if (currentIndex >= widget.metres.length)
-            currentIndex = 0;
-          print("MetreBar::onTap $currentIndex - ${widget.metres[currentIndex].beats} - ${widget.metres[currentIndex].note}");
-          widget?.onSelectedChanged(currentIndex);
-          print("MetreBar::onTap1 $currentIndex");
-          _notify = false;
-          _controller.jumpTo(widget.size.width * currentIndex);
-          _notify = true;
-          print("MetreBar::onTap2 $currentIndex");
-          //TODO setState(() {});
-          //TODO Provider.of<MetronomeState>(context, listen: false)
-        },
-/*      onVerticalDragEnd: (DragEndDetails details) {
-          print("onVerticalDragEndonVerticalDragEnd");
-          final int accentOption = widget.metres[widget.activeMetre].accentOption;
-          widget?.onOptionChanged(!);
-          //setState(() {});
-        },*/
-        onDoubleTap: () {
-          print("onDoubleTaponDoubleTap");
-          final bool pivoVodochka = widget.metres[widget.activeMetre].accentOption == 0;
-          widget?.onOptionChanged(!pivoVodochka);
-        },
-        onLongPressStart: (LongPressStartDetails details) {
-          print("onLongPress");
-          widget?.onResetMetre();
-        },
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification notification)
-          {
-            //ScrollStartNotification, ScrollEndNotification
-            print("NotificationListener 1");
-            if (notification.depth == 0 &&
-              widget.onSelectedChanged != null &&
-              notification is ScrollUpdateNotification)
+      if (widget.update)
+        finishUpdate(0);
+
+      return Container(
+          width: widget.size.width,
+          height: widget.size.height,
+          //TODO color: widget.metres[widget.activeMetre].regularAccent ? widget.color : widget.colorIrregular,
+          child: GestureDetector(
+            onTap: ()
             {
-              final ScrollMetrics metrics = notification.metrics;
-              final int currentIndex = _getItemFromOffset(
-                offset: metrics.pixels,
-                itemExtent: _itemExtent,
-                minScrollExtent: metrics.minScrollExtent,
-                maxScrollExtent: metrics.maxScrollExtent,
-              );
-              print("NotificationListener currentIndex: $currentIndex - $_notify");
-
-              // Change current selected metre
-              if (currentIndex != widget.activeMetre && _notify)
+              /// Select and display next metre in list
+              int currentIndex = widget.activeMetre + 1;
+              if (currentIndex >= widget.metres.length)
+                currentIndex = 0;
+              print("MetreBar::onTap $currentIndex - ${widget.metres[currentIndex].beats} - ${widget.metres[currentIndex].note}");
+              widget?.onSelectedChanged(currentIndex);
+              print("MetreBar::onTap1 $currentIndex ${widget.size.width}");
+              _notify = false;
+              _controller.jumpTo(widget.size.width * currentIndex);
+              _notify = true;
+              print("MetreBar::onTap2 $currentIndex");
+              //TODO setState(() {});
+              //TODO Provider.of<MetronomeState>(context, listen: false)
+            },
+            onDoubleTap: () {
+              print("onDoubleTaponDoubleTap");
+              final bool pivoVodochka = widget.metres[widget.activeMetre].accentOption == 0;
+              widget?.onOptionChanged(!pivoVodochka);
+            },
+            onLongPressStart: (LongPressStartDetails details) {
+              print("onLongPress");
+              widget?.onResetMetre();
+            },
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification notification)
               {
-                print("NotificationListener 2");
-                widget?.onSelectedChanged(currentIndex);
-              }
-              return true;
-            }
-            return false;
-          },
-          child: listView,
-        ),
-      )
-    );
+                //ScrollStartNotification, ScrollEndNotification
+                if (notification.depth == 0 &&
+                    notification is ScrollStartNotification)
+                {
+                  print("ScrollStartNotification");
+                  return false;
+                }
+                print("NotificationListener 1");
+                if (notification.depth == 0 &&
+                    widget.onSelectedChanged != null &&
+                    notification is ScrollUpdateNotification)
+                {
+                  final ScrollMetrics metrics = notification.metrics;
+                  final int currentIndex = _getItemFromOffset(
+                    offset: metrics.pixels,
+                    itemExtent: _itemExtent,
+                    minScrollExtent: metrics.minScrollExtent,
+                    maxScrollExtent: metrics.maxScrollExtent,
+                  );
+                  print("NotificationListener currentIndex: $currentIndex - $_notify");
+
+                  // Change current selected metre
+                  if (currentIndex != widget.activeMetre && _notify)
+                  {
+                    print("NotificationListener 2");
+                    widget?.onSelectedChanged(currentIndex);
+                  }
+                  return true;
+                }
+                return false;
+              },
+              child: listView,
+            ),
+          )
+      );
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    print("didChangeDependencies");
+  }
+
+  @override
+  void didUpdateWidget(MetreBarWidget oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    print("didUpdateWidget");
   }
 }
 

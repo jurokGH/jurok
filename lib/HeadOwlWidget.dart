@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:owlenome/util.dart';
 import 'package:provider/provider.dart';
@@ -8,9 +10,9 @@ import 'prosody.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
-typedef ImageIndexCallback = int Function(int accent, int subbeat, int subbeatCount);
+typedef ImageIndexCallback2 = List<int> Function(int accent, int subbeat, int subbeatCount);
 
-class OwlWidget extends StatefulWidget
+class HeadOwlWidget extends StatefulWidget
 {
   final int id;
   final bool accent;
@@ -22,14 +24,19 @@ class OwlWidget extends StatefulWidget
   final int denominator;
   final Animation<double> animation;
   final List<Image> images;
+  final List<Image> headImages;
+  final double anchorRatio = 0.01;//-0.08;//for 310
+  final double imageHeightRatio;
+  final double maxAngle;
+  final Size size;
 
   //final double width;
 
   final ValueChanged2<int, int> onTap;
   final ValueChanged2<int, int> onNoteTap;
-  final ImageIndexCallback getImageIndex;
+  final ImageIndexCallback2 getImageIndex;
 
-  OwlWidget({
+  HeadOwlWidget({
     @required this.id,
     @required this.onTap,
     @required this.onNoteTap,
@@ -43,14 +50,18 @@ class OwlWidget extends StatefulWidget
     @required this.subbeatCount,
     @required this.animation,
     @required this.images,
+    @required this.headImages,
+    @required this.imageHeightRatio,
+    @required this.size,
+    this.maxAngle = 1,
   });
   //:assert(subbeatCount > 0);
 
   @override
-  OwlState createState() => OwlState(active, activeSubbeat, animation);
+  HeadOwlState createState() => HeadOwlState(active, activeSubbeat, animation);
 }
 
-class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlWidget>
+class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMixin<HeadOwlWidget>
 {
   static final bool drawSubOwls = false;
   //static final int maxSubCount = 8;
@@ -60,6 +71,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   //int subbeatCount;
   bool active;
   int activeSubbeat;
+  int _time;
+  double _angle = 0;
 
   int activeHash;
   Animation<double> _controller;
@@ -69,7 +82,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   double _dragStartY = 0;
   double maxDragY = 25;
 
-  OwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
+  HeadOwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
 
   void onRedraw()
   {
@@ -79,19 +92,25 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
     //debugPrint('AnimationController ${widget.id} $_counter $hash');
     _counter++;
 
-    bool newActive = state.isActiveBeat(widget.id);
-    int newActiveSubbeat = state.getActiveSubbeat(widget.id);
+    final bool newActive = state.isActiveBeat(widget.id);
+    final int newActiveSubbeat = state.getActiveSubbeat(widget.id);
+    final int t = state.getActiveTime(widget.id);
     //if (hash != activeHash)
-    if (active != newActive || activeSubbeat != newActiveSubbeat)
+//    if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
+    if (t != _time)
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
     {
       //debugPrint('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
       setState((){
         activeHash = hash;
+        //maxAngle = 2;
+        //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
+        _angle = widget.maxAngle * sin(2 * pi * 0.000001 * t);
         active = newActive;
         activeSubbeat = newActiveSubbeat;
       });
     }
+    _time = t;
     //    final int beat0 = activeHash >> 16;
     //    final int activeSubbeat0 = activeHash & 0xFFFF;
     //final bool active = widget.id == activeBeat;
@@ -129,15 +148,21 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
   @override
   Widget build(BuildContext context)
   {
-    int indexImage = widget.getImageIndex(widget.nAccent, activeSubbeat, widget.subbeatCount);
+    final List<int> indices = widget.getImageIndex(widget.nAccent, activeSubbeat, widget.subbeatCount);
+    final int indexImage = indices[0];
+    final int indexImageHead = indices[1];
 
-    maxDragX = widget.images[indexImage].width / 4;
+    final Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
+    final double yOffset = widget.anchorRatio * imageSize.height;
+
+    final Size owlSize = new Size(widget.size.width, widget.imageHeightRatio * widget.size.height);
+    final Size noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height);
+
+    maxDragX = imageSize.width / 4;
     //maxDragY = widget.images[indexImage].height / 4;
 
-    Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
-    if (imageSize.height == null)
-      imageSize = new Size(imageSize.width, 1.2 * imageSize.width);
-    //print('OwlWidget $imageSize - $maxDragX');
+    final double aspect = imageSize.height / imageSize.width;
+    print('OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
 
     final NoteWidget noteWidget = new NoteWidget(
       subDiv: widget.subbeatCount,
@@ -153,11 +178,14 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
       colorInner: Colors.white,
       showShadow: true,
       colorShadow: Colors.white.withOpacity(1),
-      //size: imageSize,
+      size: noteSize,
     );
 
     //TODO 1 vs 2 RepaintBoundary in Column
     return RepaintBoundary(
+//      child: Container(
+//        width: widget.size.width,
+//        height: widget.size.height,
       child: GestureDetector(
         onHorizontalDragStart: (DragStartDetails details) {
           _dragStart = details.localPosition.dx;
@@ -198,7 +226,7 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
           }
         },
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
 //              RepaintBoundary(child:
             GestureDetector(
@@ -209,36 +237,8 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
-              child:
-/*
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  boxShadow: [BoxShadow(
-                color: Colors.black.withOpacity(0.7),
-                offset: Offset.zero,
-                blurRadius: 5.0,
-                spreadRadius: 0.0,
-                  )],
-                ),
-                child:
-*/
-              AspectRatio( // This gives size to NoteWidget
-                aspectRatio: 1.7,//1.2,//3.5 / 3,
-                //width: 0.9 * widget.width,
-                //height: 0.9 * widget.width,
-                child: Container(
-                  //width: imageSize.width,
-                  //height: imageSize.height,
-  //                  decoration: BoxDecoration(
-  //                    shadow:
-  //                  ),
-                  padding: EdgeInsets.only(bottom: 0),
-                  child: noteWidget,
-                ),
-              ),
+              child: noteWidget,
             ),
-//),
 
   //            RepaintBoundary(child:
             //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:
@@ -251,45 +251,31 @@ class OwlState extends State<OwlWidget> with SingleTickerProviderStateMixin<OwlW
                 });
                 widget.onTap(widget.id, accent);
               },
-              child: widget.images[indexImage],
+              child: Container(
+                width: owlSize.width,
+                height: owlSize.height,
+                alignment: Alignment.bottomCenter,
+                child: Stack(
+                  //fit: StackFit.passthrough,
+                  //alignment: Alignment.bottomCenter,
+                  overflow: Overflow.visible,
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: widget.images[indexImage],
+                    ),
+                    Transform(
+                      transform: Matrix4.rotationZ(_angle)..setTranslationRaw(0, yOffset, 0),
+                      alignment: Alignment.center,
+                      child: widget.headImages[indexImageHead],
+                    ),
+                  ]
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-// Boilerplate
-// Maybe somewhen in future try to paint images for optimization
-class OwlPainter extends CustomPainter
-{
-  int id;
-  bool active;
-
-  OwlPainter({this.id, this.active});
-
-@override
-  void paint(Canvas canvas, Size size) {
-    debugPrint('paint $id - $size');
-
-    Paint paint = new Paint()
-      ..color = active ? Colors.red : Colors.blue;
-
-    canvas.drawRect(Offset.zero & size, paint);
-  }
-
-  @override
-  bool shouldRepaint(OwlPainter oldDelegate) {
-    // TODO: implement shouldRepaint
-    debugPrint('shouldRepaint $id - $active - ${oldDelegate.active}');
-    return oldDelegate.active != active;
-  }
-
-  @override
-  bool shouldRebuildSemantics(CustomPainter oldDelegate) {
-    // TODO: implement shouldRebuildSemantics
-    //return false;
-    return super.shouldRebuildSemantics(oldDelegate);
   }
 }
