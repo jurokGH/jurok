@@ -180,7 +180,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  bool _useNewKnob = false;
+  bool _useNewKnob = true;
   bool _showKnobDialText = true;
   bool _showNoteTempo = true;
   bool _showVersion = false;
