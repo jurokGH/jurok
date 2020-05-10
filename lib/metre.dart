@@ -36,6 +36,11 @@ class MetreBar extends Metre
     _regularAccents = Prosody.getAccents(beats, false);
   }
 
+  int get accentOptionCount
+  {
+    return beats == 5 || beats == 7 || beats == 10 || beats == 11 ? 2 : 1;
+  }
+
   /// Get simple metre division
   List<int> simpleMetres()
   {
@@ -60,6 +65,21 @@ class MetreBar extends Metre
   {
     return accents.isEmpty || (accents.length == 1 && accents[0] == 0) ||
       (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
+  }
+
+  List<int> getPlainAccents()
+  {
+    List<int> accents = List<int>.filled(beats, 0);
+    if (beats > 0)
+      accents[1] = 1;
+    return accents;
+  }
+
+  /// Get accentation option (>= 0)
+  List<int> getAccents(int option)
+  {
+    //TODO
+    return Prosody.getAccents(beats, accentOption == 0);
   }
 
   /// Maximum accent
