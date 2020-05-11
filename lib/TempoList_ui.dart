@@ -4,15 +4,18 @@ import 'util.dart';
 class TempoListWidget extends StatefulWidget
 {
   final int tempo;  // bpm
+  final int maxTempo;  // bpm
   final double width;
   final TextStyle textStyle;
   final ValueChanged<int> onChanged;
 
   TempoListWidget({
     this.tempo,
+    this.maxTempo,
     this.width,
     @required this.textStyle,
-    this.onChanged});
+    this.onChanged
+  });
 
   @override
   State<StatefulWidget> createState() => TempoListState();
@@ -270,10 +273,9 @@ class TempoListState extends State<TempoListWidget>
       child:
       GestureDetector(
         onTap: () {
-          print('TempoList:onTap');
           int index = _index + 1;
-          //loopClamp(widget.noteIndex + 1, widget.minNoteIndex, widget.maxNoteIndex);
-          if (index >= tempoList.length)
+          // Cycle back to 0 if limited by maximum tempo
+          if (index >= tempoList.length || tempoList[index].minTempo > widget.maxTempo)
             index = 0;
           controller.jumpToItem(index);
 //          _index = index;
@@ -312,13 +314,14 @@ class TempoListState extends State<TempoListWidget>
           itemExtent: widget.width,
           squeeze: 0.88,
           onSelectedItemChanged: (int index) {
-            print(index);
-            if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
+            // To prevent reentering via widget.onChanged::setState
+            // Limit by maximum tempo
+            if (_notify && tempoList[index].minTempo <= widget.maxTempo)
             {
               _index = index;
               widget.onChanged(tempoList[index].tempo);
+              // TODO setState(() {});
             }
-            //setState(() {});
           },
           clipToSize: true,
           renderChildrenOutsideViewport: false,

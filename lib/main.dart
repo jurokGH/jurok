@@ -989,6 +989,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       child:
       TempoListWidget(//TODO Limit
         tempo: _tempoBpm,
+        maxTempo: _tempoBpmMax,
         width: listTempoSize.width,
         textStyle: Theme.of(context).textTheme.headline4
           .copyWith(color: _cTempoList, height: 1),//TODO
