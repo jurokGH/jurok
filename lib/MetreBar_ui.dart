@@ -84,19 +84,22 @@ class MetreBarState extends State<MetreBarWidget>
     //_physics = CustomScrollPhysics(itemDimension: _itemExtent);
 
     _controller = new ScrollController(initialScrollOffset: widget.activeMetre * widget.size.width);
-    _controller.addListener(() {
-      print('CustomScrollPhysics ${widget.size.width}');
-      if (_controller.position.haveDimensions && _physics == null && widget.metres.length > 1)
-      {
-        print('CustomScrollPhysics 2');
-        //setState(() {
-          double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
-          _itemExtent = widget.size.width;
-          print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
-          _physics = CustomScrollPhysics(itemDimension: _itemExtent/**/);
-        //});
-      }
-    });
+    _controller.addListener(updateExtent);
+  }
+
+  void updateExtent()
+  {
+    if (_controller.position.haveDimensions && widget.metres.length > 1 &&
+      (_physics == null || _itemExtent != widget.size.width) )
+    {
+      //setState(() {
+      // TODO
+      double dimension = widget.metres.length > 1 ? _controller.position.maxScrollExtent / (widget.metres.length - 1) : 1;
+      _itemExtent = widget.size.width;
+      print('MetreBarState::updateExtent $dimension - $_itemExtent - ${widget.size}');
+      _physics = CustomScrollPhysics(itemDimension: _itemExtent);
+      //});
+    }
   }
 
   Widget metreBuilder(BuildContext context, int index)
@@ -279,8 +282,8 @@ class MetreBarState extends State<MetreBarWidget>
                   print("ScrollStartNotification");
                   return false;
                 }
-                print("NotificationListener 1");
-                if (notification.depth == 0 &&
+                print("NotificationListener $_notify");
+                if (_notify && notification.depth == 0 &&
                     widget.onSelectedChanged != null &&
                     notification is ScrollUpdateNotification)
                 {
@@ -294,9 +297,8 @@ class MetreBarState extends State<MetreBarWidget>
                   print("NotificationListener currentIndex: $currentIndex - $_notify");
 
                   // Change current selected metre
-                  if (currentIndex != widget.activeMetre && _notify)
+                  if (currentIndex != widget.activeMetre)
                   {
-                    print("NotificationListener 2");
                     widget?.onSelectedChanged(currentIndex);
                   }
                   return true;
@@ -373,5 +375,5 @@ class CustomScrollPhysics extends ScrollPhysics
   }
 
   @override
-  bool get allowImplicitScrolling => false;
+  bool get allowImplicitScrolling => true;
 }
