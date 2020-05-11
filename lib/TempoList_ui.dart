@@ -320,7 +320,6 @@ class TempoListState extends State<TempoListWidget>
             {
               _index = index;
               widget.onChanged(tempoList[index].tempo);
-              // TODO setState(() {});
             }
           },
           clipToSize: true,

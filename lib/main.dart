@@ -1323,6 +1323,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Stack(
       children: <Widget>[
         Positioned(
+          bottom: knobPadding.dy,
+          left: 0.5 * (constraints.maxWidth - diameter),
+          child: (_useNewKnob ? knobTempoNew : knobTempo),
+        ),
+        Positioned(
           left: _paddingBtn.dx,
           top: _paddingBtn.dy,
           //child: Container(),
@@ -1342,11 +1347,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               _buildSoundBtn(_smallBtnSize),
           ]
         ),
-        ),
-        Positioned(
-          bottom: knobPadding.dy,
-          left: 0.5 * (constraints.maxWidth - diameter),
-          child: (_useNewKnob ? knobTempoNew : knobTempo),
         ),
         Positioned(
           right: _paddingBtn.dx,
