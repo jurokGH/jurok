@@ -163,6 +163,8 @@ class App extends StatelessWidget {
 }
 
 
+bool bOuterSpaceScrollDebug=false;//ToDo
+
 class HomePage extends StatefulWidget {
   HomePage({Key key, this.title}) : super(key: key);
 
@@ -214,6 +216,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // TODO Remove?
   int _animationType = 0;
 
+  ///ISH: ToDo: Aaaa, Zebra must by quarantined!
   /// Controls border parameters
   double _borderRadius = 12;
   double _borderWidth = 3;
