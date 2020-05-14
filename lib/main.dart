@@ -750,7 +750,7 @@ class _HomePageState extends State<HomePage>
   Size safeAreaOfBuilder;
   Widget orientationBuilder(BuildContext context, Orientation orientation) {
 
-    safeAreaOfBuilder=MediaQuery.of(context).size;
+    safeAreaOfBuilder=MediaQuery.of(context).size;//ISH: Does't work... the same as screenSize... Why?
     //_showAds = false;
     final bool portrait = orientation == Orientation.portrait;
 
@@ -966,6 +966,9 @@ class _HomePageState extends State<HomePage>
 
   //Область метронома: совы и контролы
   Widget MetronomeArea(Size size) {
+
+
+
     //Область нашего метронома, всего вместе
     double totalWidth = size.width;
     double totalHeight = size.height;
