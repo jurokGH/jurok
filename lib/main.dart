@@ -63,15 +63,13 @@ const Color _clrIrregularMetre = Color(0xFFFFA000); // Colors.amber[600];
 final Color _cTempoList = Colors.white;
 
 /// 48 - minimum recommended target size of 7mm regardless of what screen they are displayed on
-/// ISH: Но там же не то написано:
-/// В этой книге по дизайну ( Revista Lennken) в главе 7 Metrics сказано, что
-/// 7мм рекомендовано, и зачастую это даёт 48 юнитов. Но это не значит, что значение
-/// 48 юнитов надо ставить как минимальное!
+/// ISH:  Я нашел это в этой книге по дизайну ( Revista Lennken) в главе 7 Metrics.
+///Что такое размер плоского объекта в мм - не очень понятно.
 ///
 ///Из "официального"
 ///https://flutter.dev/docs/development/ui/layout/responsive
 ///- см. ссылки там, в частности:
-///  !!! "Э"In responsive UI we don’t use hard-coded values for dimension and positions."  !!!
+///  !!! "In responsive UI we don’t use hard-coded values for dimension and positions."  !!!
 ///
 const double cMinTapSize = 48;
 const double cBarHeightVert = 0.28;
@@ -248,7 +246,7 @@ class _HomePageState extends State<HomePage>
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
   double reservedHeightBottom = 0;
-  final double maxReservedHeightBottom = 90.0;
+  final double maxReservedHeightBottom = 85.0;
 
   ///Put 100 and shrink it to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
 
@@ -258,8 +256,7 @@ class _HomePageState extends State<HomePage>
   /// (I used it to  to catch  theoretical zebras.)
   bool bOuterSpaceScrollDebug = true; //ToDo
 
-
-  final double pixelWidth=432;
+  final double pixelWidth = 432;
 
   ///<<<<<< JG!
 
@@ -346,7 +343,7 @@ class _HomePageState extends State<HomePage>
 
   //IS: my knob constants
   double _sensitivity = 2;
-  double _innerRadius = 0.1;
+  double _innerRadius = 0.2;
   double _outerRadius = 2;
   //double _knobSize = 150;
   static const double initKnobAngle = 0;
@@ -726,7 +723,6 @@ class _HomePageState extends State<HomePage>
           .headline4
           .copyWith(color: _textColor, /*fontSize: _textSize, */ height: 1);
 
-
     if (_screenSize.width <= 0 || _screenSize.height <= 0) //TODO
       return Container();
     else
@@ -738,9 +734,10 @@ class _HomePageState extends State<HomePage>
         body: SafeArea(
           child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-            final Orientation orientation= MediaQuery.of(context).orientation;
+            final Orientation orientation = MediaQuery.of(context).orientation;
             final bool portrait = orientation == Orientation.portrait;
-            final Size ourAreaSize= Size(constraints.maxWidth,constraints.maxHeight);
+            final Size ourAreaSize =
+                Size(constraints.maxWidth, constraints.maxHeight);
             if (!portrait) _sideSquare -= mediaQueryData.padding.vertical;
 
             return orientationBuilder(context, orientation, ourAreaSize);
@@ -749,10 +746,8 @@ class _HomePageState extends State<HomePage>
       );
   }
 
-
-
-  Widget orientationBuilder(BuildContext context, Orientation orientation, Size ourAreaSize) {
-
+  Widget orientationBuilder(
+      BuildContext context, Orientation orientation, Size ourAreaSize) {
     debugPrint("total area accessible for us :  $ourAreaSize");
 
     //_showAds = false;
@@ -782,7 +777,6 @@ class _HomePageState extends State<HomePage>
         (portrait ? cBarHeightVert : cBarHeightHorz) * _sizeCtrls.height;
     if (_barHeight < cMinTapSize) _barHeight = cMinTapSize;
     final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
-
 
     // Vertical/portrait
     if (portrait) {
@@ -893,7 +887,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  ///ISH:OLD COMMENT, ignore. My portrait layout; use bOuterSpaceScrollDebug to play with different ratios (within one phone).
+  ///ISH: My portrait layout; use bOuterSpaceScrollDebug to play with different ratios (within one phone).
   ///This consists of the metronome itself, plus any other stuff (perhaps something else, if we need it once ); it is only
   ///our area, in particular the app bar is not here.
   ///If bOuterSpaceScrollDebug, the area of metronome will be controlled by a scroll.
@@ -968,34 +962,44 @@ class _HomePageState extends State<HomePage>
   }
 
   //Область метронома: совы и контролы
-  Widget MetronomeArea(Size size) {
-
-
-
+  Widget MetronomeArea(Size allowedSize) {
     //Область нашего метронома, всего вместе
-    double totalWidth = size.width;
-    double totalHeight = size.height;
-    if ((size.width==0)||(size.height==0)) return Container();
+    double totalWidth = allowedSize.width;
+    double totalHeight = allowedSize.height;
+    if ((totalWidth == 0) || (totalHeight == 0)) return Container();
 
     ///Это худшая из реальных (насколько я проверил отношения сторон на имеющихся телефонах) ситуаций.
     ///Обыкновенно пространства больше, чем мы предусматриваем в этом, худшем, случае, и
     ///мы адаптируемся, разреживая строки. //ToDo
     ///Если же его меньше (в каких-то квадратных уродах, скажем), то мы "вписываемся" в него искусственно - идеально не будет,
     ///но работать будет.
-    final double minimalRatio = (800 - 50) / 480;
+    ///
+    /// Такое решение: на Юрином телефоне будет чуть всё сжато по горизонтали (это даже хорошо,
+    /// поскольку слева плохо крутятся колёса). Его значение с рекламой - это 458/320, 1,43125
+    /// На Pixel с рекламой - 1.83+1/3.
+    ///
+    /// Беру золотую середину - 1.6
+    final double minimalRatio = 1.5;
 
     final bool bDecreaseWidth = (totalHeight / totalWidth < minimalRatio);
 
     if (bDecreaseWidth) //Ужимаемся, если совсем плохо всё. Не должно случится на извествных телефонах.
       totalWidth = totalHeight / minimalRatio;
 
-    /// Owl square and controls
-    final List<Widget> innerUI = <Widget>[
-      _AreaOfOwls(true, Size(totalWidth, totalWidth)),
+    ///Разбиваем на три области
+    final double c1 = 0.9;
+    final double c2 = 0.3;
+    final double c3 = minimalRatio - (c1 + c2);
+
+    /*final int nOfSpacec=5;
+    final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
+
+    final List<Widget> metrMainAreas = <Widget>[
+      _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       //_buildBar(true, metreBarSize),
-      _buildBarU(true, Size(totalWidth, totalWidth * 0.2)),
+      _knobAndStartArea(true, Size(totalWidth, totalWidth * c2)),
       //_buildControls(true, totalWidth * 0.3),
-      _buildControlsU(true, totalWidth * 0.2),
+      _buildControlsU(true, Size(totalWidth, totalWidth * c3)),
     ];
 
     Widget metronome = Align(
@@ -1027,16 +1031,16 @@ class _HomePageState extends State<HomePage>
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: Text("bootom of the metronme area",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1
-                                  .copyWith(color: Colors.amberAccent)),
+                              style: TextStyle(
+                                  fontSize: 20 * totalWidth / pixelWidth,
+                                  color: Colors.amberAccent)),
                         ),
                       )
                     : Container(),
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: innerUI,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: metrMainAreas,
                 ),
                 Positioned(
                   //ToDo: кнопку перенсти, где ей и место
@@ -1048,9 +1052,9 @@ class _HomePageState extends State<HomePage>
                       _smallBtnSize, //0.05 * _sizeCtrlsShortest
                       _sizeCtrlsShortest),
                 ),
+                // Positioned(), //ToDo: KNOB IS HERE
               ],
             )));
-
     return metronome;
   }
 
@@ -1130,6 +1134,18 @@ class _HomePageState extends State<HomePage>
 
   ///widget Square section with metronome itself. ToDo
   Widget _AreaOfOwls(bool portrait, Size size) {
+    return Container(
+      //padding: EdgeInsets.all(_heightAds[0] * 0.1),
+      width: size.width,
+      height: size.height,
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.5),
+        border: Border.all(
+          color: Colors.black, //
+        ),
+      ),
+    );
+
     if (!_skin.isInit || size.isEmpty)
       return Container(
         //color: Colors.orange,
@@ -1497,282 +1513,60 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  Widget BorderedContainer(Size size) {
+    return Container(
+      width: size.width,
+      height: size.height,
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.5),
+        border: Border.all(
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+
   ///widget Metre-bar section
-  Widget _buildBarU(bool portrait, Size size) {
-    final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
-    final Size metreSize =
-        Size((portrait ? 0.25 : 0.25) * size.width, size.height);
-    double itemExtent = 0.5 * metreSize.width; //44,
-
-    print('metreSize $metreSize - $itemExtent');
-    //itemExtent = 44;
-    final Size barSize =
-        Size((portrait ? 0.70 : 0.70) * size.width, 0.5 * size.height);
-    final Size listTempoSize =
-        new Size((portrait ? 0.88 : 0.88) * barSize.width, barSize.height);
-    final Size noteTempoSize =
-        new Size(0.12 * barSize.width, 0.9 * barSize.height);
-    //final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
-//    final Size subbeatSize = new Size(barSize.height, barSize.height);
-    //0.02 * _sizeCtrls.width,
-    final Size bracketSize =
-        new Size(3.2 * btnPadding, 0.16 * _sizeCtrls.height);
-
-    print('Font ${_textStyle.fontSize}');
+  Widget _knobAndStartArea(bool portrait, Size size) {
+   // return BorderedContainer(size);
 
 
-    final Widget barSpacer = new Container(
-      width: btnPadding,
-    );
-
-    bool updateMetre = _updateMetre;
-    _updateMetre = false;
-
-    final MetreWidget metre = new MetreWidget(
-      update: updateMetre,
-      beats: _beat.beatCount,
-      minBeats: minBeatCount,
-      maxBeats: maxBeatCount,
-      note: activeMetre.note,
-      minNote: minNoteValue,
-      maxNote: maxNoteValue,
-      width: metreSize.width,
-      height: metreSize.height,
-      itemExtent: itemExtent,
-      color: Colors.deepPurple,
-      textStyle: _textStyle,
-      textStyleSelected: _textStyle.copyWith(
-          fontWeight: FontWeight.w800,
-          fontSize: _textStyle.fontSize + 2,
-          height: 1,
-          color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
-      onBeatChanged: _onBeatChanged,
-      onNoteChanged: _onNoteChanged,
-    );
-
-
-    bool updateMetreBar = _updateMetreBar;
-    _updateMetreBar = false;
-
-    final Widget metreBar = new MetreBarWidget(
-      update: updateMetreBar,
-      metres: _metreList,
-      activeMetre: _activeMetre,
-      size: barSize,
-      color: _clrRegularBar,
-      colorIrregular: _clrIrregularBar, // Currently switched off
-      noteColor: Colors.black,
-      onSelectedChanged: onMetreBarChanged,
-      onOptionChanged: (bool pivoVodochka) {
-        //_beat.setAccentOption(pivoVodochka);
-        if (activeMetre.setAccentOption(pivoVodochka ? 0 : 1)) {
-          setState(() {});
-        }
+    _knobValue.value = _tempoBpm.toDouble();
+    Widget knobTuned = new KnobTuned(
+      knobValue: _knobValue,
+      minValue: minTempo.toDouble(),
+      maxValue: _tempoBpmMax.toDouble(),
+      sensitivity: _sensitivity,
+      onChanged: (KnobValue newVal) {
+        _knobValue = newVal;
+        _setTempo(newVal.value.round());
+        //_tempoBpm = newVal.value.round();
+        //if (_playing)
+        //_setTempo(_tempoBpm);
+        setState(() {});
       },
-      onResetMetre: () {
-        activeMetre.setRegularAccent();
-        //_beat.setRegularAccent();
-        setState(() {
-          _updateMetreBar = true;
-        });
-      },
+      diameter: size.height * 0.9,
+      innerRadius: _innerRadius,
+      outerRadius: _outerRadius,
+      textStyle:
+          _textStyle.copyWith(fontSize: 0.1 * size.width, color: Colors.white),
     );
 
-    ///widget Tempo list
-    final Widget listTempo = new Container(
-        //color: Colors.orange,
-        //width: 80,
-        height: listTempoSize.height,
-        padding: EdgeInsets.only(
-            top: 0.0 * _sizeCtrls.height, bottom: 0.0 * _sizeCtrls.height),
-        //padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
-        child: TempoListWidget(
-            //TODO Limit
-            tempo: _tempoBpm,
-            maxTempo: _tempoBpmMax,
-            width: listTempoSize.width,
-            textStyle: Theme.of(context)
-                .textTheme
-                .headline4
-                .copyWith(color: _cTempoList, height: 1), //TODO
-            //.copyWith(color: _cTempoList, fontSize: 0.07 * _sizeCtrls.height, height: 1),//TODO
-            onChanged: _setTempo));
-/*
-    final Widget btnSubbeat = new SubbeatWidget(
-      subbeatCount: _beat.subBeatCount,
-      noteValue: activeMetre.note,
-      color: _textColor,
-      textStyle: _textStyle,
-      size: subbeatSize,
-      onChanged: onSubbeatChanged,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          child: knobTuned,
+          width: size.width * 2 / 3,
+        ),
+        //BorderedContainer(Size(size.width*1/3,size.height)),
+        Container(
+          child: _buildPlayBtn1(size.width * 1 / 6),
+          width: size.width * 1 / 3,
+        ),
+      ],
     );
-*/
-    final NoteTempoWidget noteTempo = new NoteTempoWidget(
-      tempo: _tempoBpm,
-      noteValue: activeMetre.note,
-      color: Colors.white,
-      size: noteTempoSize,
-      textStyle: TextStyle(fontSize: 20*size.width/pixelWidth, color: Colors.white),
-    );
-
-    if (portrait) {
-      ///widget Metre row
-      final Widget rowBar = new Padding(
-          padding: EdgeInsets
-              .zero, //only(top: paddingY, left: _padding.dx, right: _padding.dx),
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                barSpacer,
-                //Flexible(
-                //flex: 25,
-                //child:
-                metre,
-
-                ///widget Metre
-                //),
-                barSpacer,
-
-                Expanded(
-                  //flex: 75,
-                  //fit: FlexFit.tight,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        color: activeMetre.regularAccent
-                            ? _clrRegularBar
-                            : _clrIrregularBar,
-                        child: Padding(
-                          padding: EdgeInsets
-                              .zero, //symmetric(horizontal: 0.5 * btnPadding),
-                          child: Row(
-                              //mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment
-                                  .center, //spaceBetween, for brackets
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                //Container(width: 0.02 * _sizeCtrls.width,),
-//                        BarBracketWidget(
-//                          direction: BarBracketDirection.left,
-//                          color: Colors.black,
-//                          size: bracketSize,
-//                        ),
-                                ///widget Subbeat widget
-                                // Remove Flexible for BarBracketWidget usage here
-                                Flexible(
-                                  child: Padding(
-                                      padding: EdgeInsets.only(
-                                          top:
-                                              2), //(bottom: 0.05 * _sizeCtrls.height),//20
-                                      child: metreBar),
-                                ),
-//                        BarBracketWidget(
-//                          direction: BarBracketDirection.right,
-//                          color: Colors.black,
-//                          size: bracketSize
-//                        ),
-                              ]),
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 4),
-                        color: Colors.deepPurple.withOpacity(0.8),
-                        child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              _showNoteTempo ? noteTempo : Container(),
-
-                              ///widget Note=tempo
-                              Expanded(
-                                child:
-                                    //                        ClipRect(child:
-                                    listTempo,
-
-                                ///widget Tempo list
-                              ),
-                            ]),
-                      ),
-                    ],
-                  ),
-                ),
-                //btnSubbeat,
-                barSpacer,
-              ]));
-
-//            AnimatedOpacity(
-//              duration: new Duration(seconds: 1),
-//              opacity: _subbeatWidth,
-//              child: _buildSubbeat(_textStyle),
-//            )
-//            AnimatedContainer(
-//              duration: new Duration(seconds: 1),
-//              width: _subbeatWidth,
-//              child:
-//            _buildSubbeat(_textStyle),
-//            )
-
-      return rowBar;
-    } else {
-      ///widget Metre row
-      final Widget rowBar = Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center, // start,
-          children: <Widget>[
-            ///widget Metre
-            metre,
-            barSpacer,
-
-            Flexible(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      color: activeMetre.regularAccent
-                          ? _clrRegularBar
-                          : _clrIrregularBar,
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            ///widget Subbeat widget
-                            /////TODO !!!
-                            //Flexible(child:
-                            Padding(
-                                padding: EdgeInsets
-                                    .zero, //EdgeInsets.only(bottom: 0.05 * size.height),//20
-                                child: metreBar),
-                          ]),
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(top: 4),
-                      color: Colors.deepPurple.withOpacity(0.8),
-                      child: Row(
-                          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: <Widget>[
-                            _showNoteTempo ? noteTempo : Container(),
-
-                            ///widget Note=tempo
-                            Expanded(
-                              child:
-//                        ClipRect(child:
-                                  listTempo,
-                            ),
-                          ]),
-                    ),
-                  ]),
-            ),
-            //btnSubbeat,
-            //listTempo,
-            //accentMetre,
-          ]);
-
-      return rowBar;
-    }
   }
 
   Widget _buildControls(bool portrait, double barHeight) {
@@ -1803,7 +1597,21 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildControlsU(bool portrait, double barHeight) {
+  Widget _buildControlsU(bool portrait, Size size) {
+    return Container(
+      //padding: EdgeInsets.all(_heightAds[0] * 0.1),
+      width: size.width,
+      height: size.height,
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.5),
+        border: Border.all(
+          color: Colors.black, //
+        ),
+      ),
+    );
+
+    /*
+
     // Fill up the remaining screen as the last widget in column/row
     return
         //Container(
@@ -1828,7 +1636,7 @@ class _HomePageState extends State<HomePage>
         },
       ),
       //child: rowButtons
-    );
+    );*/
   }
 
   // Remaining section with controls
@@ -2005,6 +1813,28 @@ class _HomePageState extends State<HomePage>
         ]),
       ),
     ]);
+  }
+
+  Widget _buildPlayBtn1(double diameter) {
+    final Widget icon =
+        Icon(_playing ? Icons.pause : Icons.play_arrow, size: 1 * diameter);
+    final Widget icon1 = Stack(alignment: Alignment.center, children: <Widget>[
+      Image.asset('images/owl-btn.png', height: diameter, fit: BoxFit.contain),
+      icon,
+    ]);
+
+    return  InkWell( //ISH: I do not use  material button here
+      //(it has some pudding requirements that I do not need)
+      child: icon1,
+        //Text("Play",
+         // style: TextStyle(fontSize: 20 * diameter / pixelWidth,color: Colors.amberAccent)),
+      customBorder: CircleBorder(
+        //borderRadius: new BorderRadius.circular(18.0),
+          side: BorderSide(color: _ctrlColor, width: _borderWidth)),
+      //tooltip: _soundSchemes[_activeSoundScheme],
+      enableFeedback: false,
+      onTap: _play,
+    );
   }
 
   Widget _buildPlayBtn(double diameter, bool portrait) {
