@@ -736,21 +736,25 @@ class _HomePageState extends State<HomePage>
             .deepPurple, //Color.fromARGB(0xFF, 0x45, 0x1A, 0x24),  //TODO: need?
         //appBar: AppBar(title: Text(widget.title),),
         body: SafeArea(
-          child: OrientationBuilder(
-              builder: (BuildContext context, Orientation orientation) {
+          child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+            final Orientation orientation= MediaQuery.of(context).orientation;
             final bool portrait = orientation == Orientation.portrait;
+            final Size ourAreaSize= Size(constraints.maxWidth,constraints.maxHeight);
             if (!portrait) _sideSquare -= mediaQueryData.padding.vertical;
-            return orientationBuilder(context, orientation);
+
+            return orientationBuilder(context, orientation, ourAreaSize);
           }),
         ),
       );
   }
 
 
-  Size safeAreaOfBuilder;
-  Widget orientationBuilder(BuildContext context, Orientation orientation) {
 
-    safeAreaOfBuilder=MediaQuery.of(context).size;//ISH: Does't work... the same as screenSize... Why?
+  Widget orientationBuilder(BuildContext context, Orientation orientation, Size ourAreaSize) {
+
+    debugPrint("total area accessible for us :  $ourAreaSize");
+
     //_showAds = false;
     final bool portrait = orientation == Orientation.portrait;
 
@@ -780,11 +784,9 @@ class _HomePageState extends State<HomePage>
     final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
 
 
-
-
     // Vertical/portrait
     if (portrait) {
-      return PortraitU();
+      return PortraitU(ourAreaSize);
 
       /// Owl square and controls
       final List<Widget> innerUI = <Widget>[
@@ -891,13 +893,14 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  ///ISH: My portrait layout; use bOuterSpaceScrollDebug to play with different ratios (within one phone).
-  ///This consists of the metronome itself, plus any other stuff (like AD, and perhaps something else, if we need it once ).
+  ///ISH:OLD COMMENT, ignore. My portrait layout; use bOuterSpaceScrollDebug to play with different ratios (within one phone).
+  ///This consists of the metronome itself, plus any other stuff (perhaps something else, if we need it once ); it is only
+  ///our area, in particular the app bar is not here.
   ///If bOuterSpaceScrollDebug, the area of metronome will be controlled by a scroll.
-  Widget PortraitU() {
-    ///Резервируем снизу место, units; например,  для рекламы или любых иных целей.
+  Widget PortraitU(Size ourAreaSize) {
+    ///Резервируем снизу место, units; например,  для рекламы, или любых иных целей.
     final double bottomReserved = bOuterSpaceScrollDebug
-        ? reservedHeightBottom * 0.01 * _screenSize.height
+        ? reservedHeightBottom * 0.01 * ourAreaSize.height
         : (_showAds ? _heightAds[0] : 0);
 
     return Container(
@@ -909,7 +912,7 @@ class _HomePageState extends State<HomePage>
         )),
         child: Stack(children: <Widget>[
           MetronomeArea(
-              Size(_screenSize.width, _screenSize.height - bottomReserved)),
+              Size(ourAreaSize.width, ourAreaSize.height - bottomReserved)),
           /*   Positioned(
               //ToDo: MOVE
               left: _paddingBtn.dx,
