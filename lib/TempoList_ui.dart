@@ -262,7 +262,9 @@ class TempoListState extends State<TempoListWidget>
               textDirection: TextDirection.ltr,
               maxLines: 1,
               //style: widget.textStyle
-              style: widget.textStyle.copyWith(fontSize: fontSize)
+              //style: widget.textStyle.copyWith(fontSize: fontSize)
+              style: widget.textStyle ///ISH: теперь я размер шрифта определяю внешним образом, чтобы
+            ///получить согласованность с соседними текстовыми элементами
           ),
         ),
       ),

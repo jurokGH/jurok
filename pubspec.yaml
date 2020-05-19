@@ -48,7 +48,13 @@ flutter:
   assets:
     # Portrait background
     - images/BackgV.jpg
+    - images/BackgPlyV.jpg
+    - images/icplay.png
+    - images/icstop.png
+    - images/but-note-1.png
     # Landscape background
+    - images/butowl4.png
+    - images/knob4.png
     - images/BackgH.jpg
     - images/Backg-Up-1.jpg
     - images/Backg-Dn-1.jpg

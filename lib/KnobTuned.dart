@@ -140,7 +140,7 @@ class KnobTunedState extends State<KnobTuned> {
   void initState() {
     super.initState();
 
-    _image = new Image.asset('images/TempoKnobT.png',
+    _image = new Image.asset('images/knob4.png',
       fit: BoxFit.cover,
       filterQuality: FilterQuality.medium,
     );

@@ -30,6 +30,7 @@ import 'knob.dart';
 import 'KnobTuned.dart';
 import 'timer_ui.dart';
 import 'NoteTempo.dart';
+import 'NoteWidget.dart';
 
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
@@ -256,6 +257,8 @@ class _HomePageState extends State<HomePage>
   /// (I used it to  to catch  theoretical zebras.)
   bool bOuterSpaceScrollDebug = true; //ToDo
 
+  // bool bShowBoundariesDebug=true;
+
   final double pixelWidth = 432;
 
   ///<<<<<< JG!
@@ -342,7 +345,7 @@ class _HomePageState extends State<HomePage>
   int _period = 1000;
 
   //IS: my knob constants
-  double _sensitivity = 2;
+  double _sensitivity = 5;
   double _innerRadius = 0.2;
   double _outerRadius = 2;
   //double _knobSize = 150;
@@ -901,7 +904,7 @@ class _HomePageState extends State<HomePage>
         //Фактическая область, доступная для приложения (метроном вместе с рекламой или чем-то еще)
         decoration: BoxDecoration(
             image: DecorationImage(
-          image: AssetImage('images/BackgV.jpg'),
+          image: AssetImage('images/BackgPlyV.jpg'),
           fit: BoxFit.cover,
         )),
         child: Stack(children: <Widget>[
@@ -940,9 +943,9 @@ class _HomePageState extends State<HomePage>
                   child: Container(
                       //padding: EdgeInsets.all(_heightAds[0] * 0.1),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.5),
+                        //color: Colors.grey.withOpacity(0.5),
                         border: Border.all(
-                          color: Colors.black, //
+                          color: Colors.green, //
                         ),
                       ),
                       height: _heightAds[0],
@@ -959,103 +962,6 @@ class _HomePageState extends State<HomePage>
                 )
               : Container(),
         ]));
-  }
-
-  //Область метронома: совы и контролы
-  Widget MetronomeArea(Size allowedSize) {
-    //Область нашего метронома, всего вместе
-    double totalWidth = allowedSize.width;
-    double totalHeight = allowedSize.height;
-    if ((totalWidth == 0) || (totalHeight == 0)) return Container();
-
-    ///Это худшая из реальных (насколько я проверил отношения сторон на имеющихся телефонах) ситуаций.
-    ///Обыкновенно пространства больше, чем мы предусматриваем в этом, худшем, случае, и
-    ///мы адаптируемся, разреживая строки. //ToDo
-    ///Если же его меньше (в каких-то квадратных уродах, скажем), то мы "вписываемся" в него искусственно - идеально не будет,
-    ///но работать будет.
-    ///
-    /// Такое решение: на Юрином телефоне будет чуть всё сжато по горизонтали (это даже хорошо,
-    /// поскольку слева плохо крутятся колёса). Его значение с рекламой - это 458/320, 1,43125
-    /// На Pixel с рекламой - 1.83+1/3.
-    ///
-    /// Беру золотую середину - 1.6
-    final double minimalRatio = 1.5;
-
-    final bool bDecreaseWidth = (totalHeight / totalWidth < minimalRatio);
-
-    if (bDecreaseWidth) //Ужимаемся, если совсем плохо всё. Не должно случится на извествных телефонах.
-      totalWidth = totalHeight / minimalRatio;
-
-    ///Разбиваем на три области
-    final double c1 = 0.9;
-    final double c2 = 0.3;
-    final double c3 = minimalRatio - (c1 + c2);
-
-    /*final int nOfSpacec=5;
-    final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
-
-    final List<Widget> metrMainAreas = <Widget>[
-      _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
-      //_buildBar(true, metreBarSize),
-      _knobAndStartArea(true, Size(totalWidth, totalWidth * c2)),
-      //_buildControls(true, totalWidth * 0.3),
-      _buildControlsU(true, Size(totalWidth, totalWidth * c3)),
-    ];
-
-    Widget metronome = Align(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-            width: totalWidth,
-            height: totalHeight,
-            child: Stack(
-              children: <Widget>[
-                bOuterSpaceScrollDebug
-                    ? Container(
-                        decoration: BoxDecoration(
-                          border: bDecreaseWidth
-                              ? Border(
-                                  top: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                  left: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                  right: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                  bottom: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                )
-                              : Border(
-                                  bottom: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                ),
-                        ),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Text("bootom of the metronme area",
-                              style: TextStyle(
-                                  fontSize: 20 * totalWidth / pixelWidth,
-                                  color: Colors.amberAccent)),
-                        ),
-                      )
-                    : Container(),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: metrMainAreas,
-                ),
-                Positioned(
-                  //ToDo: кнопку перенсти, где ей и место
-                  left: _paddingBtn.dx,
-                  bottom: _showAds
-                      ? _heightAds[0] + _paddingBtn.dy
-                      : _paddingBtn.dy,
-                  child: _buildVolumeBtn(
-                      _smallBtnSize, //0.05 * _sizeCtrlsShortest
-                      _sizeCtrlsShortest),
-                ),
-                // Positioned(), //ToDo: KNOB IS HERE
-              ],
-            )));
-    return metronome;
   }
 
   ///widget Square section with metronome itself
@@ -1134,17 +1040,7 @@ class _HomePageState extends State<HomePage>
 
   ///widget Square section with metronome itself. ToDo
   Widget _AreaOfOwls(bool portrait, Size size) {
-    return Container(
-      //padding: EdgeInsets.all(_heightAds[0] * 0.1),
-      width: size.width,
-      height: size.height,
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.5),
-        border: Border.all(
-          color: Colors.black, //
-        ),
-      ),
-    );
+    //return BorderedContainer(size);
 
     if (!_skin.isInit || size.isEmpty)
       return Container(
@@ -1201,20 +1097,7 @@ class _HomePageState extends State<HomePage>
     return Container(
         width: size.width,
         height: size.height,
-
-        ///widget Background
-/*
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [_primaryColor, _accentColor])
-       // image: DecorationImage(
-        //  image: AssetImage('images/Backg-Up-1.jpg'),
-         // fit: BoxFit.cover
-       // )
-      ),
-*/
+        //decoration:  decorTmp(Colors.black),
         child: wixOwls);
   }
 
@@ -1345,6 +1228,7 @@ class _HomePageState extends State<HomePage>
       onChanged: onSubbeatChanged,
     );
 */
+
     final NoteTempoWidget noteTempo = new NoteTempoWidget(
       tempo: _tempoBpm,
       noteValue: activeMetre.note,
@@ -1513,7 +1397,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  Widget BorderedContainer(Size size) {
+  Widget borderedContainer(Size size) {
     return Container(
       width: size.width,
       height: size.height,
@@ -1523,49 +1407,6 @@ class _HomePageState extends State<HomePage>
           color: Colors.black,
         ),
       ),
-    );
-  }
-
-  ///widget Metre-bar section
-  Widget _knobAndStartArea(bool portrait, Size size) {
-   // return BorderedContainer(size);
-
-
-    _knobValue.value = _tempoBpm.toDouble();
-    Widget knobTuned = new KnobTuned(
-      knobValue: _knobValue,
-      minValue: minTempo.toDouble(),
-      maxValue: _tempoBpmMax.toDouble(),
-      sensitivity: _sensitivity,
-      onChanged: (KnobValue newVal) {
-        _knobValue = newVal;
-        _setTempo(newVal.value.round());
-        //_tempoBpm = newVal.value.round();
-        //if (_playing)
-        //_setTempo(_tempoBpm);
-        setState(() {});
-      },
-      diameter: size.height * 0.9,
-      innerRadius: _innerRadius,
-      outerRadius: _outerRadius,
-      textStyle:
-          _textStyle.copyWith(fontSize: 0.1 * size.width, color: Colors.white),
-    );
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Container(
-          child: knobTuned,
-          width: size.width * 2 / 3,
-        ),
-        //BorderedContainer(Size(size.width*1/3,size.height)),
-        Container(
-          child: _buildPlayBtn1(size.width * 1 / 6),
-          width: size.width * 1 / 3,
-        ),
-      ],
     );
   }
 
@@ -1597,46 +1438,13 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildControlsU(bool portrait, Size size) {
-    return Container(
-      //padding: EdgeInsets.all(_heightAds[0] * 0.1),
-      width: size.width,
-      height: size.height,
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.5),
-        border: Border.all(
-          color: Colors.black, //
-        ),
+  BoxDecoration decorTmp(Color color) {
+    return BoxDecoration(
+      // color: color.withOpacity(0.5),
+      border: Border.all(
+        color: color,
       ),
     );
-
-    /*
-
-    // Fill up the remaining screen as the last widget in column/row
-    return
-        //Container(
-        //        width: _sizeCtrls.width,
-        //        height: _sizeCtrls.height - 24,
-        //  padding: const EdgeInsets.all(8.0),
-        /// Background
-        /*
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
-                end: portrait ? Alignment.topCenter : Alignment.bottomCenter,
-                colors: [_primaryColor, _accentColor])
-        ),
-      */
-        Expanded(
-      child: //TODO Without Expanded in portrait mode: constraints.height == infinity
-          LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          return _layoutControls(context, constraints, portrait, barHeight);
-          //return Placeholder(fallbackWidth: constraints.maxWidth, fallbackHeight: constraints.maxHeight, color: Colors.red);
-        },
-      ),
-      //child: rowButtons
-    );*/
   }
 
   // Remaining section with controls
@@ -1654,7 +1462,6 @@ class _HomePageState extends State<HomePage>
     double width = portrait ? _sideSquare : _screenSize.width - _sideSquare;
 
     // 48 - minimum recommended target size of 7mm regardless of what screen they are displayed on
-    // ISH: Where? I know that it is recommended 7mm as min, why 48 unit? //TODO
     // 48 <= buttonSize <= 1.5 * 48
     final double playBtnSize = barHeight > 1.5 * cMinTapSize
         ? 1.5 * cMinTapSize
@@ -1813,28 +1620,6 @@ class _HomePageState extends State<HomePage>
         ]),
       ),
     ]);
-  }
-
-  Widget _buildPlayBtn1(double diameter) {
-    final Widget icon =
-        Icon(_playing ? Icons.pause : Icons.play_arrow, size: 1 * diameter);
-    final Widget icon1 = Stack(alignment: Alignment.center, children: <Widget>[
-      Image.asset('images/owl-btn.png', height: diameter, fit: BoxFit.contain),
-      icon,
-    ]);
-
-    return  InkWell( //ISH: I do not use  material button here
-      //(it has some pudding requirements that I do not need)
-      child: icon1,
-        //Text("Play",
-         // style: TextStyle(fontSize: 20 * diameter / pixelWidth,color: Colors.amberAccent)),
-      customBorder: CircleBorder(
-        //borderRadius: new BorderRadius.circular(18.0),
-          side: BorderSide(color: _ctrlColor, width: _borderWidth)),
-      //tooltip: _soundSchemes[_activeSoundScheme],
-      enableFeedback: false,
-      onTap: _play,
-    );
   }
 
   Widget _buildPlayBtn(double diameter, bool portrait) {
@@ -2179,4 +1964,533 @@ class _HomePageState extends State<HomePage>
       },
     );
   }
+
+  //===================================================
+  //
+  // ISH: виджеты без hard-coded values
+
+  Widget testWidget(Size size) {
+    TextStyle textStyle = Theme.of(context).textTheme.headline4.copyWith(
+        color: Colors.black,
+        fontSize:
+            size.height / 5); //ISH: Не знаю, что это, следую Витиной практике
+    return Container(
+      width: size.width,
+      height: size.height / 2,
+      decoration: decorTmp(Colors.black),
+      //color:Colors.cyan,
+      /*decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.5),
+            border: Border.all(
+              color: Colors.white,
+            ),
+           ),*/
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: Colors.black,
+            ),
+          ),
+          Expanded(
+            flex: 8,
+            child: Container(
+              decoration: decorTmp(Colors.green),
+              child: _tempoListFinallyGotLaid(textStyle, 0.95),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  ///Скролл темпов.
+  ///
+  ///Витин скролл темпов, завернутый в LayoutBuilder, чтобы знать собственную ширину,
+  ///и чуть ужатый по горизонтали, чтобы не цепляться за края окружающей кнопки
+  Widget _tempoListFinallyGotLaid(TextStyle textStyle, double horShrink) {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      double width = constraints.maxWidth * horShrink;
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          //decoration: decorTmp(Colors.black),
+          width: width,
+          child: TempoListWidget(
+              //TODO Limit
+              tempo: _tempoBpm,
+              maxTempo: _tempoBpmMax,
+              width: width,
+              textStyle: textStyle,
+              onChanged: _setTempo),
+        ),
+      );
+    });
+  }
+
+  ///Область метронома: совы и контролы
+  Widget MetronomeArea(Size allowedSize) {
+    //Область нашего метронома, всего вместе
+    double totalWidth = allowedSize.width;
+    double totalHeight = allowedSize.height;
+    if ((totalWidth == 0) || (totalHeight == 0)) return Container();
+
+    ///Это худшая из реальных (насколько я проверил отношения сторон на имеющихся телефонах) ситуаций.
+    ///Обыкновенно пространства больше, чем мы предусматриваем в этом, худшем, случае, и
+    ///мы адаптируемся, разреживая строки. //ToDo
+    ///Если же его меньше (в каких-то квадратных уродах, скажем), то мы "вписываемся" в него искусственно - идеально не будет,
+    ///но работать будет.
+    ///
+    /// Такое решение: на Юрином телефоне будет чуть всё сжато по горизонтали (это даже хорошо,
+    /// поскольку слева плохо крутятся колёса). Его значение с рекламой - это 458/320, 1,43125
+    /// На Pixel с рекламой - 1.83+1/3.
+    ///
+    /// Беру золотую середину - 1.6
+    final double minimalRatio = 1.5;
+
+    final bool bDecreaseWidth = (totalHeight / totalWidth < minimalRatio);
+
+    if (bDecreaseWidth) //Ужимаемся, если совсем плохо всё. Не должно случится на извествных телефонах.
+      totalWidth = totalHeight / minimalRatio;
+
+    ///Разбиваем на три области
+    final double c1 = 0.9;
+    final double c2 = 0.3;
+    final double c3 = minimalRatio - (c1 + c2);
+
+    /*final int nOfSpacec=5;
+    final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
+
+    bool bTest = false; //tmp
+    final List<Widget> metrMainAreas = <Widget>[
+      _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
+      //_buildBar(true, metreBarSize),
+      (!bTest)
+          ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
+          : testWidget(Size(totalWidth, totalWidth * c2)),
+
+      //_buildControls(true, totalWidth * 0.3),
+      _rowControlsArea(true, Size(totalWidth, totalWidth * c3)),
+    ];
+
+    Widget metronome = Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+            width: totalWidth,
+            height: totalHeight,
+            child: Stack(
+              children: <Widget>[
+                bOuterSpaceScrollDebug
+                    ? Container(
+                        decoration: BoxDecoration(
+                          border: bDecreaseWidth
+                              ? Border(
+                                  top: BorderSide(
+                                      width: 1.0, color: Colors.amberAccent),
+                                  left: BorderSide(
+                                      width: 1.0, color: Colors.amberAccent),
+                                  right: BorderSide(
+                                      width: 1.0, color: Colors.amberAccent),
+                                  bottom: BorderSide(
+                                      width: 1.0, color: Colors.amberAccent),
+                                )
+                              : Border(
+                                  bottom: BorderSide(
+                                      width: 1.0, color: Colors.amberAccent),
+                                ),
+                        ),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Text("bootom of the metronme area",
+                              style: TextStyle(
+                                  fontSize: 20 * totalWidth / pixelWidth,
+                                  color: Colors.amberAccent)),
+                        ),
+                      )
+                    : Container(),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: metrMainAreas,
+                ),
+                Positioned(
+                  //ToDo: кнопку перенсти, где ей и место
+                  left: _paddingBtn.dx,
+                  bottom: _showAds
+                      ? _heightAds[0] + _paddingBtn.dy
+                      : _paddingBtn.dy,
+                  child: _buildVolumeBtn(
+                      _smallBtnSize, //0.05 * _sizeCtrlsShortest
+                      _sizeCtrlsShortest),
+                ),
+                // Positioned(), //ToDo: KNOB IS HERE
+              ],
+            )));
+    return metronome;
+  }
+
+  ///widget Metre-bar section
+  Widget _knobAndStartArea(bool portrait, Size size) {
+    // return BorderedContainer(size);
+
+    _knobValue.value = _tempoBpm.toDouble();
+    Widget knobTuned = new KnobTuned(
+      knobValue: _knobValue,
+      minValue: minTempo.toDouble(),
+      maxValue: _tempoBpmMax.toDouble(),
+      sensitivity: _sensitivity,
+      onChanged: (KnobValue newVal) {
+        _knobValue = newVal;
+        _setTempo(newVal.value.round());
+        //_tempoBpm = newVal.value.round();
+        //if (_playing)
+        //_setTempo(_tempoBpm);
+        setState(() {});
+      },
+      diameter: size.height * 0.9,
+      innerRadius: _innerRadius,
+      outerRadius: _outerRadius,
+      textStyle:
+          _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          child: knobTuned,
+          width: size.width * 2 / 4,
+        ),
+        //BorderedContainer(Size(size.width*1/3,size.height)),
+        Align(
+          alignment: Alignment.center,
+          child: Container(
+            child: _buildPlayBtn1(size.height * 0.75),
+            width: size.width * 1 / 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _rowControlsArea(bool portrait, Size size) {
+    TextStyle _textStyleTempoRow =
+        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+            .textTheme
+            .headline4
+            .copyWith(color: Colors.black, fontSize: size.height / 5.2);
+
+    Widget musicSchemeRaw = Container(
+      width: size.width,
+      color: Colors.blue,
+      child: Text("musicScheme",
+          textAlign: TextAlign.left,
+          style: TextStyle(
+              fontSize: 20 * size.width / pixelWidth,
+              color: Colors.amberAccent)),
+    );
+
+    Widget auxRaw = Flexible(
+        flex: 1,
+        fit: FlexFit.tight,
+        child: Container(
+          width: size.width,
+          color: Colors.green,
+        ));
+
+    double leftRightPadding = size.width * 0.02;
+
+    return Container(
+      width: size.width,
+      height: size.height,
+      padding: EdgeInsets.symmetric(horizontal: leftRightPadding),
+      child: Column(
+        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: tempoRow(_textStyleTempoRow),
+          ),
+          Flexible(
+            flex: 2,
+            fit: FlexFit.tight,
+            child: signatureRaw(),
+          ),
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: musicSchemeRaw,
+          ),
+          //auxRaw//ToDo: добавим в конец схем
+        ],
+      ),
+    );
+  }
+
+  Widget signatureRaw() {
+    return Container(
+        decoration: decorTmp(Colors.blue),
+        child: Row(children: [
+          Expanded(
+            //Звуковая схема
+            flex: 8,
+            child: Container(
+              decoration: decorTmp(Colors.blue),
+              child:_buildSoundBtnU(),
+            ),
+          ),
+          Expanded(//Колонка колёс метра
+            flex: 15,
+            child: Column(//Колонка колёс метра
+                children: [
+              Expanded(
+                //ритмы
+                flex: 7,
+                child: Container(
+                  decoration: decorTmp(Colors.green),
+                ),
+              ),
+              Expanded(
+                //спайс
+                flex: 1,
+                child: Container(
+                  decoration: decorTmp(Colors.blue),
+                ),
+              ),
+            Expanded(
+              //спайс
+                flex: 7,
+                child: Container(
+                  decoration: decorTmp(Colors.green),
+                ),
+            ),
+            ]),
+          ),
+          Expanded(
+            //Звуковая схема
+            flex: 20,
+            child: Container(
+              decoration: decorTmp(Colors.blue),
+            ),
+          ),
+          Expanded(
+              flex: 20,
+              child: Column(//Колонка справа (ритмы и регулятор-сова
+                  children: [
+                Expanded(
+                  //ритмы
+                  flex: 7,
+                  child: Container(
+                    decoration: decorTmp(Colors.green),
+                  ),
+                ),
+                Expanded(
+                  //спайс
+                  flex: 1,
+                  child: Container(
+                    decoration: decorTmp(Colors.green),
+                  ),
+                ),
+                Expanded(
+                  //сова-регулятор поддолей
+                  //Звуковая схема
+                  flex: 7,
+                  child: btnSubBeatU(),
+                ),
+              ])),
+        ]));
+  }
+
+  Widget btnSubBeatU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      Size size = Size(constraints.maxWidth, constraints.maxHeight);
+      return SubbeatWidget(
+        subbeatCount: _beat.subBeatCount,
+        noteValue: activeMetre.note,
+        color: _textColor,
+        textStyle: _textStyle,
+        size: size,
+        onChanged: onSubbeatChanged,
+      );
+    });
+  }
+
+  ///
+  /// Масштабируемый виджет "Нота = темп";   убрана проблема с налезанием хвоста на равенство
+  ///
+  /// Выравнивается слева. Всё отрисованное (общая ширина, размер шрифта)  зависит от высоты  отведенной  области.
+  /// В частности, размер шрифта зависит от высоты.
+  ///
+  /// Чтобы этот виджет отцентрировать (если вдруг захотим), нужно будет померять реальное отношение отрисованного к высоте
+  /// (но длина текста может меняться в зависимости от значения темпа, так что надо аккуратно)
+  Widget noteAndTempo(TextStyle textStyle) {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      double noteH = constraints.maxHeight;
+      Size noteSize = Size(noteH * 0.3, noteH);
+      //Отрисовка ноты отпределяется её высотой, привязываемся к ней
+      return Align(
+          //Чтобы можно было сделать меньше, чем доступная область, заворачиваем в Align (см. документацию)
+          child: Row(
+        //mainAxisAlignment: MainAxisAlignment.
+        //crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+              height: noteSize.height,
+              width: noteSize.width,
+              /*decoration: BoxDecoration(
+                        color: Colors.green,
+                        border: Border.all(
+                          color: Colors.red,
+                        ),
+                      ),*/
+              child: NoteWidget(
+                subDiv: 1,
+                denominator: activeMetre.note,
+                active: -1,
+                accents: [],
+                showAccent: false,
+                showTuplet: false,
+                coverWidth: true,
+                colorPast: Colors.black,
+                colorNow: Colors.black,
+                colorFuture: Colors.black,
+                colorInner: Colors.black,
+              )),
+          Container(
+              width: noteSize.width *
+                  1.2), //Размер хвостика нотки не должен цеплять равенство
+          Align(
+              alignment: Alignment.center,
+              child: Text("= " + _tempoBpm.toString(), style: textStyle)),
+          //Размер хвостика нотки не должен цеплять равенство
+        ],
+      ));
+    });
+  }
+
+  Widget _buildPlayBtn1(double diameter) {
+    final Widget icon = Icon(
+      _playing ? Icons.pause : Icons.play_arrow,
+      size: 1 * diameter,
+      color: Colors.brown,
+    );
+    //Icon(Icons.pause, size: 1 * diameter, color: Colors.brown,);
+    final Widget icon1 = Stack(alignment: Alignment.center, children: <Widget>[
+      Image.asset('images/butowl4.png', height: diameter, fit: BoxFit.contain),
+      icon,
+    ]);
+    final Widget icon2 = Image.asset(
+        _playing ? 'images/icstop.png' : 'images/icplay.png',
+        height: diameter,
+        fit: BoxFit.contain);
+
+    return InkWell(
+      //ISH: I do not use  material button here
+      //(it has some pudding requirements that I do not need)
+      child: icon2,
+      enableFeedback: false,
+      onTap: _play,
+    );
+  }
+
+  Widget tempoRow(TextStyle _textStyleTempoRow) {
+    return Container(
+      //decoration: decorTmp(Colors.yellow),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 48,
+            child: Container(
+              //decoration: decorTmp(Colors.cyan),
+              child: noteAndTempo(_textStyleTempoRow),
+            ),
+          ),
+          Expanded(
+              flex: 160,
+              child: Container(
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                  //image: AssetImage('images/but-note-1.png'),
+                  image: AssetImage('images/Metre.png'),
+                  fit: BoxFit.cover,
+                )),
+                //decoration: decorTmp(Colors.green),
+                child: _tempoListFinallyGotLaid(_textStyleTempoRow, 0.95),
+              ))
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSoundBtnU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints)
+    {
+      Size sizzze = Size(constraints.maxWidth, constraints.maxHeight);
+      int soundScheme = _activeSoundScheme;
+      final int imageIndex = soundScheme < 3 ? soundScheme : 3;
+      final String schemeName = 'images/sound' + imageIndex.toString() + '.png';
+
+
+      final String strScheme = (soundScheme + 1).toString();
+      final double sizeButton = sizzze.width;
+
+      final Widget icon = new Image.asset(
+        schemeName,
+        width: sizeButton,
+        height: sizeButton,
+        fit: BoxFit.contain,
+      );
+
+      final Widget icon2 = new Row(children: <Widget>[
+        Icon(Icons.music_note, size: 0.5 * sizeButton, color: _cWhiteColor),
+        Text(
+          strScheme,
+          style: Theme
+              .of(context)
+              .textTheme
+              .headline5
+              .copyWith(
+              fontSize: 0.5 * sizzze.width,
+              fontWeight: FontWeight.bold,
+              color: Colors.white), //fontSize: 28
+        ),
+      ]);
+
+      return new RawMaterialButton(
+        //FlatButton
+        //padding: EdgeInsets.all(10),
+        child: imageIndex == 3 ? icon2 : icon,
+        shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+        constraints: BoxConstraints(
+          minWidth: sizeButton,
+          minHeight: sizeButton,
+          //maxWidth: sizeButton,
+          //maxHeight: sizeButton,
+        ),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        //tooltip: _soundSchemes[_activeSoundScheme],
+        enableFeedback: !_playing,
+        onPressed: () {
+          if (_soundSchemes?.length > 0) {
+            _activeSoundScheme =
+                (_activeSoundScheme + 1) % _soundSchemes.length;
+            // setState() is called in onLimitTempo() call
+            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+              setState(() {});
+            });
+          }
+        },
+      );
+    });
+  }
+
+
 }
