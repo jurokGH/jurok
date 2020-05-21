@@ -64,7 +64,7 @@ class MetreState extends State<MetreWidget>
 {
   static List<Metre> _metreList =
   [
-    Metre(2, 2),
+    Metre(2, 4),
     Metre(2, 4),
     Metre(4, 4),
     Metre(3, 4),
@@ -106,9 +106,11 @@ class MetreState extends State<MetreWidget>
   @override
   Widget build(BuildContext context)
   {
+
+    double spaceBetween=widget.height/50;
     //TODO final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
     double width = widget.width;
-    double height = 0.5 * widget.height - 2;
+    double height = 0.5 * (widget.height - spaceBetween);
 
     print('Metre::build ${widget.beats}');
 
@@ -270,7 +272,8 @@ class MetreState extends State<MetreWidget>
 
           Container(
             //width: 0.3 * _sizeCtrls.height,
-            height: 4,
+            //height: 4,
+            height: spaceBetween,
           ),
 
           Container(

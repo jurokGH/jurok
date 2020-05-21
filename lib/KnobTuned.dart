@@ -284,6 +284,8 @@ class KnobTunedState extends State<KnobTuned> {
               angle: widget.knobValue.absoluteAngle,
               child: ClipOval(
                   child: Container(
+                      height: size,
+                      width: size,
 //                color: widget.color,
                       child: _image
                   )

@@ -48,10 +48,16 @@ flutter:
   assets:
     # Portrait background
     - images/BackgV.jpg
+    - images/back-v4.jpg
     - images/BackgPlyV.jpg
     - images/icplay.png
     - images/icstop.png
     - images/but-note-1.png
+    - images/ic0.png
+    - images/ic1.png
+    - images/ic2.png
+    - images/ic3.png
+    - images/ictempo.png
     # Landscape background
     - images/butowl4.png
     - images/knob4.png

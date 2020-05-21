@@ -1,8 +1,10 @@
+import 'dart:html';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:owlenome/MetreBar_ui.dart';
+import 'package:owlenome/volume_uiTmp.dart';
 import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 //import 'package:wheel_chooser/wheel_chooser.dart';
@@ -27,7 +29,9 @@ import 'TempoList_ui.dart';
 import 'volume_ui.dart';
 import 'settings.dart';
 import 'knob.dart';
-import 'KnobTuned.dart';
+//import 'KnobTuned.dart';
+import 'KnobResizable.dart';
+
 import 'timer_ui.dart';
 import 'NoteTempo.dart';
 import 'NoteWidget.dart';
@@ -242,7 +246,7 @@ class _HomePageState extends State<HomePage>
   Offset _padding = new Offset(4, 4); //Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = false;
+  bool _showAds = true;
   final List<double> _heightAds = [50, 32];
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
@@ -904,7 +908,7 @@ class _HomePageState extends State<HomePage>
         //Фактическая область, доступная для приложения (метроном вместе с рекламой или чем-то еще)
         decoration: BoxDecoration(
             image: DecorationImage(
-          image: AssetImage('images/BackgPlyV.jpg'),
+          image: AssetImage('images/back-v4.jpg'),
           fit: BoxFit.cover,
         )),
         child: Stack(children: <Widget>[
@@ -1527,7 +1531,7 @@ class _HomePageState extends State<HomePage>
     );
 
     _knobValue.value = _tempoBpm.toDouble();
-    Widget knobTempoNew = new KnobTuned(
+    Widget knobTempoNew = new KnobResizable(
       knobValue: _knobValue,
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
@@ -1969,39 +1973,46 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
+
+
   Widget testWidget(Size size) {
-    TextStyle textStyle = Theme.of(context).textTheme.headline4.copyWith(
-        color: Colors.black,
-        fontSize:
-            size.height / 5); //ISH: Не знаю, что это, следую Витиной практике
     return Container(
       width: size.width,
-      height: size.height / 2,
+      height: size.height,
       decoration: decorTmp(Colors.black),
-      //color:Colors.cyan,
-      /*decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.5),
-            border: Border.all(
-              color: Colors.white,
-            ),
-           ),*/
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Container(
-              color: Colors.black,
-            ),
-          ),
-          Expanded(
-            flex: 8,
-            child: Container(
-              decoration: decorTmp(Colors.green),
-              child: _tempoListFinallyGotLaid(textStyle, 0.95),
-            ),
-          ),
-        ],
-      ),
+      child:
+      Scaffold( body: Builder(
+          builder: (context) => Align(
+      alignment: Alignment.bottomRight,
+      child:InkWell(
+          child: Icon(Icons.help_outline, size: size.height/3),
+          enableFeedback: !_playing,
+          onTap: () {
+              showBottomSheet(
+                  context: context,
+                  builder: (context) => Container(
+                    color: Colors.red,
+                  ));
+          },
+    ),),),),
+      /*
+      child:    LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      double diam = constraints.maxHeight;
+      return new  VolumeButtonTmp(
+        value: _volume,
+        min: 0,
+        max: 100,
+        //mute = false,
+        msec: 250,
+        onChanged: _setVolume,
+        diameter: diam,
+        height: diam*7,
+        color: _cWhiteColor,
+        enableFeedback: !_playing,
+      );
+    })
+        */
     );
   }
 
@@ -2048,7 +2059,7 @@ class _HomePageState extends State<HomePage>
     /// На Pixel с рекламой - 1.83+1/3.
     ///
     /// Беру золотую середину - 1.6
-    final double minimalRatio = 1.5;
+    final double minimalRatio = 1.55;
 
     final bool bDecreaseWidth = (totalHeight / totalWidth < minimalRatio);
 
@@ -2063,7 +2074,7 @@ class _HomePageState extends State<HomePage>
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
-    bool bTest = false; //tmp
+    bool bTest =true; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       //_buildBar(true, metreBarSize),
@@ -2084,23 +2095,7 @@ class _HomePageState extends State<HomePage>
               children: <Widget>[
                 bOuterSpaceScrollDebug
                     ? Container(
-                        decoration: BoxDecoration(
-                          border: bDecreaseWidth
-                              ? Border(
-                                  top: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                  left: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                  right: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                  bottom: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                )
-                              : Border(
-                                  bottom: BorderSide(
-                                      width: 1.0, color: Colors.amberAccent),
-                                ),
-                        ),
+                        decoration: decorTmp(Colors.black),
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: Text("bootom of the metronme area",
@@ -2115,7 +2110,7 @@ class _HomePageState extends State<HomePage>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: metrMainAreas,
                 ),
-                Positioned(
+                /*Positioned(
                   //ToDo: кнопку перенсти, где ей и место
                   left: _paddingBtn.dx,
                   bottom: _showAds
@@ -2125,6 +2120,7 @@ class _HomePageState extends State<HomePage>
                       _smallBtnSize, //0.05 * _sizeCtrlsShortest
                       _sizeCtrlsShortest),
                 ),
+                */
                 // Positioned(), //ToDo: KNOB IS HERE
               ],
             )));
@@ -2136,7 +2132,7 @@ class _HomePageState extends State<HomePage>
     // return BorderedContainer(size);
 
     _knobValue.value = _tempoBpm.toDouble();
-    Widget knobTuned = new KnobTuned(
+    Widget knobTuned = new KnobResizable(
       knobValue: _knobValue,
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
@@ -2176,83 +2172,34 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _rowControlsArea(bool portrait, Size size) {
-    TextStyle _textStyleTempoRow =
-        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-            .textTheme
-            .headline4
-            .copyWith(color: Colors.black, fontSize: size.height / 5.2);
-
-    Widget musicSchemeRaw = Container(
-      width: size.width,
-      color: Colors.blue,
-      child: Text("musicScheme",
-          textAlign: TextAlign.left,
-          style: TextStyle(
-              fontSize: 20 * size.width / pixelWidth,
-              color: Colors.amberAccent)),
-    );
-
-    Widget auxRaw = Flexible(
-        flex: 1,
-        fit: FlexFit.tight,
-        child: Container(
-          width: size.width,
-          color: Colors.green,
-        ));
-
-    double leftRightPadding = size.width * 0.02;
-
+  Widget signatureRaw(double totalWidht) {
+    double globalYPadding = totalWidht * 0.005;
+    double localXPadding = totalWidht * 0.01;
     return Container(
-      width: size.width,
-      height: size.height,
-      padding: EdgeInsets.symmetric(horizontal: leftRightPadding),
-      child: Column(
-        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: tempoRow(_textStyleTempoRow),
-          ),
-          Flexible(
-            flex: 2,
-            fit: FlexFit.tight,
-            child: signatureRaw(),
-          ),
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: musicSchemeRaw,
-          ),
-          //auxRaw//ToDo: добавим в конец схем
-        ],
-      ),
-    );
-  }
-
-  Widget signatureRaw() {
-    return Container(
+        padding: EdgeInsets.symmetric(vertical: globalYPadding),
         decoration: decorTmp(Colors.blue),
         child: Row(children: [
           Expanded(
             //Звуковая схема
             flex: 8,
             child: Container(
+              padding: EdgeInsets.only(right: localXPadding),
               decoration: decorTmp(Colors.blue),
-              child:_buildSoundBtnU(),
+              child: _buildSoundBtnU(),
             ),
           ),
-          Expanded(//Колонка колёс метра
-            flex: 15,
-            child: Column(//Колонка колёс метра
+          Expanded(
+            //Колонка колёс метра
+            flex: 12,
+            child: metreU(),
+            /*Column(//Колонка колёс метра
                 children: [
               Expanded(
-                //ритмы
+                //числитель
                 flex: 7,
                 child: Container(
                   decoration: decorTmp(Colors.green),
+                  child: Text("num"),
                 ),
               ),
               Expanded(
@@ -2262,26 +2209,29 @@ class _HomePageState extends State<HomePage>
                   decoration: decorTmp(Colors.blue),
                 ),
               ),
-            Expanded(
-              //спайс
+              Expanded(
+                //знаменатель
                 flex: 7,
                 child: Container(
                   decoration: decorTmp(Colors.green),
+                  child: Text("denom"),
                 ),
-            ),
-            ]),
+              ),
+            ]),            */
           ),
           Expanded(
-            //Звуковая схема
-            flex: 20,
+            //Строка акцентов
+            flex: 24,
             child: Container(
-              decoration: decorTmp(Colors.blue),
+              decoration: decorTmp(Colors.yellow),
+              child: metreBarU(),
+              // child: metreU(), //_buildBar(true, Size(150,150)),
             ),
           ),
           Expanded(
-              flex: 20,
-              child: Column(//Колонка справа (ритмы и регулятор-сова
-                  children: [
+              //Колонка справа (ритмы и регулятор-сова)
+              flex: 12,
+              child: Column(children: [
                 Expanded(
                   //ритмы
                   flex: 7,
@@ -2344,12 +2294,6 @@ class _HomePageState extends State<HomePage>
           Container(
               height: noteSize.height,
               width: noteSize.width,
-              /*decoration: BoxDecoration(
-                        color: Colors.green,
-                        border: Border.all(
-                          color: Colors.red,
-                        ),
-                      ),*/
               child: NoteWidget(
                 subDiv: 1,
                 denominator: activeMetre.note,
@@ -2406,7 +2350,7 @@ class _HomePageState extends State<HomePage>
       child: Row(
         children: [
           Expanded(
-            flex: 48,
+            flex: 55,
             child: Container(
               //decoration: decorTmp(Colors.cyan),
               child: noteAndTempo(_textStyleTempoRow),
@@ -2418,8 +2362,8 @@ class _HomePageState extends State<HomePage>
                 decoration: BoxDecoration(
                     image: DecorationImage(
                   //image: AssetImage('images/but-note-1.png'),
-                  image: AssetImage('images/Metre.png'),
-                  fit: BoxFit.cover,
+                  image: AssetImage('images/ictempo.png'),
+                  fit: BoxFit.fill,
                 )),
                 //decoration: decorTmp(Colors.green),
                 child: _tempoListFinallyGotLaid(_textStyleTempoRow, 0.95),
@@ -2431,13 +2375,11 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildSoundBtnU() {
     return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints)
-    {
+        builder: (BuildContext context, BoxConstraints constraints) {
       Size sizzze = Size(constraints.maxWidth, constraints.maxHeight);
       int soundScheme = _activeSoundScheme;
       final int imageIndex = soundScheme < 3 ? soundScheme : 3;
-      final String schemeName = 'images/sound' + imageIndex.toString() + '.png';
-
+      final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
 
       final String strScheme = (soundScheme + 1).toString();
       final double sizeButton = sizzze.width;
@@ -2450,31 +2392,35 @@ class _HomePageState extends State<HomePage>
       );
 
       final Widget icon2 = new Row(children: <Widget>[
-        Icon(Icons.music_note, size: 0.5 * sizeButton, color: _cWhiteColor),
+        // Icon(Icons.music_note, size: 0.5 * sizeButton, color: _cWhiteColor),
         Text(
           strScheme,
-          style: Theme
-              .of(context)
-              .textTheme
-              .headline5
-              .copyWith(
-              fontSize: 0.5 * sizzze.width,
+          style: Theme.of(context).textTheme.headline5.copyWith(
+              fontSize: 0.7 * sizzze.width,
               fontWeight: FontWeight.bold,
-              color: Colors.white), //fontSize: 28
+              color: Colors.black),
         ),
       ]);
 
       return new RawMaterialButton(
-        //FlatButton
-        //padding: EdgeInsets.all(10),
-        child: imageIndex == 3 ? icon2 : icon,
-        shape: CircleBorder(side: BorderSide(width: 2, color: _cWhiteColor)),
+        /*child: imageIndex == 3 ? icon2 : icon,
         constraints: BoxConstraints(
           minWidth: sizeButton,
           minHeight: sizeButton,
-          //maxWidth: sizeButton,
-          //maxHeight: sizeButton,
-        ),
+        ),*/
+        child: Stack(alignment: Alignment.center, children: [
+          //decoration: decorTmp(Colors.green),
+          icon,
+          imageIndex == 3
+              ? Text(
+                  strScheme,
+                  style: Theme.of(context).textTheme.headline5.copyWith(
+                      fontSize: 0.4 * sizzze.width,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                )
+              : Container(),
+        ]),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         //tooltip: _soundSchemes[_activeSoundScheme],
         enableFeedback: !_playing,
@@ -2492,5 +2438,215 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+  Widget _rowControlsArea(bool portrait, Size size) {
+    double fontSizeTempo = size.height / 6;
+    double fontSizeMusicScheme = fontSizeTempo / 1.5;
+    TextStyle _textStyleTempoRow =
+        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+            .textTheme
+            .headline4
+            .copyWith(color: Colors.black, fontSize: fontSizeTempo);
 
+    TextStyle _textStyleSchemeRow = Theme.of(context)
+        .textTheme
+        .headline4
+        .copyWith(color: Colors.brown, fontSize: fontSizeMusicScheme);
+
+    double leftRightPadding = size.width * 0.02;
+
+    return Container(
+      width: size.width,
+      height: size.height,
+      padding: EdgeInsets.symmetric(horizontal: leftRightPadding),
+      child: Column(
+        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: tempoRow(_textStyleTempoRow),
+          ),
+          Flexible(
+            flex: 2,
+            fit: FlexFit.tight,
+            child: signatureRaw(size.width),
+          ),
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: musicSchemeRaw(_textStyleSchemeRow, size.width),
+          ),
+          //auxRaw//ToDo: добавим в конец схем
+        ],
+      ),
+    );
+  }
+
+  Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
+    double inkWellBetweenPadding=totalWidth*0.01;
+    return Container(
+      decoration: decorTmp(Colors.yellow),
+      child: Row(
+        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _soundSchemes != null &&
+                        _activeSoundScheme < _soundSchemes.length
+                    ? _soundSchemes[_activeSoundScheme]
+                    : "[no sound sheme loaded]",
+                style: textStyle,
+              ),
+            ),
+          ),
+          Container(
+            decoration: decorTmp(Colors.blue),
+            child: Row(
+                //mainAxisAlignment: MainAxisAlignment.spaceAround,
+                //mainAxisAlignment: MainAxisAlignment.end,
+                //crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(child: _buildSettingsBtnU(),
+                    padding: EdgeInsets.only(right:inkWellBetweenPadding),
+                    //decoration: decorTmp(Colors.blue),
+                  ),
+                  Container(//child:_buildVolumeBtnU(),
+                    padding: EdgeInsets.symmetric(horizontal:inkWellBetweenPadding),
+                    decoration: decorTmp(Colors.white),
+                  ),
+                  Container(child: _buildHelpBtnU(),
+                    padding: EdgeInsets.only(left:inkWellBetweenPadding),
+                    //decoration: decorTmp(Colors.white),
+                  ),
+
+                ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  ///Витин метр завернутый во внешний размер
+  Widget metreU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      Size metreSize = Size(constraints.maxWidth, constraints.maxHeight);
+      double itemExtent = 0.5 * metreSize.width; //44,
+      bool updateMetre = _updateMetre; //ISH: не уверен, что это
+      _updateMetre = false;
+      return MetreWidget(
+        update: updateMetre,
+        beats: _beat.beatCount,
+        minBeats: minBeatCount,
+        maxBeats: maxBeatCount,
+        note: activeMetre.note,
+        minNote: minNoteValue,
+        maxNote: maxNoteValue,
+        width: metreSize.width,
+        height: metreSize.height,
+        itemExtent: itemExtent,
+        color: Colors.deepPurple,
+        textStyle: _textStyle,
+        textStyleSelected: _textStyle.copyWith(
+            fontWeight: FontWeight.w800,
+            fontSize: _textStyle.fontSize + 2,
+
+            ///ISH:Is this Zebra dangerous? Does not look like.
+            height: 1,
+            //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
+            color: _cWhiteColor),
+        onBeatChanged: _onBeatChanged,
+        onNoteChanged: _onNoteChanged,
+      );
+    });
+  }
+
+  Widget metreBarU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      Size metreBarSize = Size(constraints.maxWidth, constraints.maxHeight);
+
+      bool updateMetreBar = _updateMetreBar; //ISH: не уверен, что это
+      _updateMetreBar = false;
+      return MetreBarWidget(
+        update: updateMetreBar,
+        metres: _metreList,
+        activeMetre: _activeMetre,
+        size: metreBarSize,
+        color: _clrRegularBar,
+        colorIrregular: _clrIrregularBar, // Currently switched off
+        noteColor: Colors.black,
+        onSelectedChanged: onMetreBarChanged,
+        onOptionChanged: (bool pivoVodochka) {
+          //_beat.setAccentOption(pivoVodochka);
+          if (activeMetre.setAccentOption(pivoVodochka ? 0 : 1)) {
+            setState(() {});
+          }
+        },
+        onResetMetre: () {
+          activeMetre.setRegularAccent();
+          //_beat.setRegularAccent();
+          setState(() {
+            _updateMetreBar = true;
+          });
+        },
+      );
+    });
+  }
+
+  ///widget Settings
+  Widget _buildHelpBtnU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      double size = constraints.maxHeight;
+      return new InkWell(
+        child: Icon(Icons.help_outline, size: size),
+        enableFeedback: !_playing,
+        onTap: () {
+          _showHelp(context);
+        },
+      );
+    });
+  }
+
+  ///widget Settings
+  Widget _buildSettingsBtnU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      double size = constraints.maxHeight;
+      return new InkWell(
+        child: Icon(Icons.settings, size: size),
+        //tooltip: _soundSchemes[_activeSoundScheme],
+        enableFeedback: !_playing,
+        onTap: () {
+          _showSettings(context);
+        },
+      );
+    });
+  }
+
+
+
+  Widget _buildVolumeBtnU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          double diam = constraints.maxHeight;
+    return new  VolumeButtonTmp(
+      value: _volume,
+      min: 0,
+      max: 100,
+      //mute = false,
+      msec: 250,
+      onChanged: _setVolume,
+      diameter: diam,
+      height: diam*7,
+      color: _cWhiteColor,
+      enableFeedback: !_playing,
+    );
+  });
+  }
 }
