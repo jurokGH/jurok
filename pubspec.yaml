@@ -28,6 +28,10 @@ dependencies:
   flutter_xlider: ^3.4.0
   device_preview: ^0.4.4
 
+ # TMP DOUBLE CHECK Что за хрень не знаю, для  пробы  примотаю. Лицензия MIT
+  overlay_container: ^0.0.4+1
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

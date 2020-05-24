@@ -1,6 +1,3 @@
-import 'dart:html';
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:owlenome/MetreBar_ui.dart';
@@ -35,6 +32,8 @@ import 'KnobResizable.dart';
 import 'timer_ui.dart';
 import 'NoteTempo.dart';
 import 'NoteWidget.dart';
+
+import 'package:overlay_container/overlay_container.dart';
 
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
@@ -246,7 +245,7 @@ class _HomePageState extends State<HomePage>
   Offset _padding = new Offset(4, 4); //Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = true;
+  bool _showAds = false;
   final List<double> _heightAds = [50, 32];
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
@@ -1973,14 +1972,102 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
-
-
   Widget testWidget(Size size) {
     return Container(
       width: size.width,
       height: size.height,
-      decoration: decorTmp(Colors.black),
-      child:
+      //decoration: decorTmp(Colors.black),
+      color: Colors.white,
+
+
+      child: OverlayContainer(
+        show: true,
+        position: OverlayContainerPosition(
+          // Left position.
+          0,
+          // Bottom position.
+          0,
+        ),
+        child: KnobResizable(
+          knobValue: _knobValue,
+          minValue: minTempo.toDouble(),
+          maxValue: _tempoBpmMax.toDouble(),
+          sensitivity: _sensitivity,
+          onChanged: (KnobValue newVal) {
+            _knobValue = newVal;
+            _setTempo(newVal.value.round());
+            //_tempoBpm = newVal.value.round();
+            //if (_playing)
+            //_setTempo(_tempoBpm);
+            setState(() {});
+          },
+          diameter: size.height * 0.9,
+          innerRadius: _innerRadius,
+          outerRadius: _outerRadius,
+          textStyle: _textStyle.copyWith(
+              fontSize: 0.07 * size.width, color: Colors.white),
+        ),
+      ),
+
+      //child: Container(width: size.height/2 , height: size.height/2,            decoration: decorTmp(Colors.green),      ),
+      /*
+      child: Container(
+
+        child: new OverflowBox(
+          minWidth: 0.0,
+          minHeight: 0.0,
+          maxWidth: double.infinity,
+          maxHeight: double.infinity,
+          child:KnobResizable(
+            knobValue: _knobValue,
+            minValue: minTempo.toDouble(),
+            maxValue: _tempoBpmMax.toDouble(),
+            sensitivity: _sensitivity,
+            onChanged: (KnobValue newVal) {
+              _knobValue = newVal;
+              _setTempo(newVal.value.round());
+              //_tempoBpm = newVal.value.round();
+              //if (_playing)
+              //_setTempo(_tempoBpm);
+              setState(() {});
+            },
+            diameter: size.height * 0.9*2,
+            innerRadius: _innerRadius,
+            outerRadius: _outerRadius,
+            textStyle:
+            _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
+          ),
+        ),
+
+      ),
+      */
+      /*
+      child: Stack(
+            children:   [
+                 Positioned(
+                   child: KnobResizable(
+                    knobValue: _knobValue,
+                    minValue: minTempo.toDouble(),
+                    maxValue: _tempoBpmMax.toDouble(),
+                    sensitivity: _sensitivity,
+                    onChanged: (KnobValue newVal) {
+                      _knobValue = newVal;
+                      _setTempo(newVal.value.round());
+                      //_tempoBpm = newVal.value.round();
+                      //if (_playing)
+                      //_setTempo(_tempoBpm);
+                      setState(() {});
+                    },
+                    diameter: size.height * 0.9*2,
+                    innerRadius: _innerRadius,
+                    outerRadius: _outerRadius,
+                    textStyle:
+                    _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
+                ),
+                 ),],
+        ),
+        */
+      /*
       Scaffold( body: Builder(
           builder: (context) => Align(
       alignment: Alignment.bottomRight,
@@ -1995,6 +2082,7 @@ class _HomePageState extends State<HomePage>
                   ));
           },
     ),),),),
+      */
       /*
       child:    LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -2074,7 +2162,7 @@ class _HomePageState extends State<HomePage>
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
-    bool bTest =true; //tmp
+    bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       //_buildBar(true, metreBarSize),
@@ -2484,7 +2572,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
-    double inkWellBetweenPadding=totalWidth*0.01;
+    double inkWellBetweenPadding = totalWidth * 0.01;
     return Container(
       decoration: decorTmp(Colors.yellow),
       child: Row(
@@ -2510,19 +2598,25 @@ class _HomePageState extends State<HomePage>
                 //mainAxisAlignment: MainAxisAlignment.end,
                 //crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Container(child: _buildSettingsBtnU(),
-                    padding: EdgeInsets.only(right:inkWellBetweenPadding),
+                  Container(
+                    child: _buildSettingsBtnU(),
+                    padding: EdgeInsets.only(right: inkWellBetweenPadding),
                     //decoration: decorTmp(Colors.blue),
                   ),
-                  Container(//child:_buildVolumeBtnU(),
-                    padding: EdgeInsets.symmetric(horizontal:inkWellBetweenPadding),
+                  Container(
+                    child: Container(),
+                    /*Stack(//ToDo: experiments...
+                              children:[_buildVolumeBtnU()],
+                    ),*/
+                    padding:
+                        EdgeInsets.symmetric(horizontal: inkWellBetweenPadding),
                     decoration: decorTmp(Colors.white),
                   ),
-                  Container(child: _buildHelpBtnU(),
-                    padding: EdgeInsets.only(left:inkWellBetweenPadding),
+                  Container(
+                    child: _buildHelpBtnU(),
+                    padding: EdgeInsets.only(left: inkWellBetweenPadding),
                     //decoration: decorTmp(Colors.white),
                   ),
-
                 ]),
           ),
         ],
@@ -2629,24 +2723,22 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-
-
   Widget _buildVolumeBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-          double diam = constraints.maxHeight;
-    return new  VolumeButtonTmp(
-      value: _volume,
-      min: 0,
-      max: 100,
-      //mute = false,
-      msec: 250,
-      onChanged: _setVolume,
-      diameter: diam,
-      height: diam*7,
-      color: _cWhiteColor,
-      enableFeedback: !_playing,
-    );
-  });
+      double diam = constraints.maxHeight;
+      return new VolumeButtonTmp(
+        value: _volume,
+        min: 0,
+        max: 100,
+        //mute = false,
+        msec: 250,
+        onChanged: _setVolume,
+        diameter: diam, //ToDo:?? Что это под слак?
+        height: _sizeCtrlsShortest, //ToDo:???
+        color: _cWhiteColor,
+        enableFeedback: !_playing,
+      );
+    });
   }
 }
