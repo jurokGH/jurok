@@ -8,4 +8,5 @@
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">@drawable/normal_background</item>
     </style>
+    <color name="purple">#FFB528AD</color>
 </resources>
