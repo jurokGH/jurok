@@ -33,8 +33,6 @@ import 'timer_ui.dart';
 import 'NoteTempo.dart';
 import 'NoteWidget.dart';
 
-import 'package:overlay_container/overlay_container.dart';
-
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
 ///
@@ -258,7 +256,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom;
   /// One can use it to get an impression of how everything looks on other phones.
   /// (I used it to  to catch  theoretical zebras.)
-  bool bOuterSpaceScrollDebug = true; //ToDo
+  bool bOuterSpaceScrollDebug = false;
+
+  ///Выделяет области контейнеров
+  bool bDecoration = false;
 
   // bool bShowBoundariesDebug=true;
 
@@ -408,6 +409,7 @@ class _HomePageState extends State<HomePage>
     //_animation = new Tween<double> CurvedAnimation(parent: _controller, curve: Curves.linear);
 
     _knobValue = KnobValue(
+      pushed: false,
       absoluteAngle: initKnobAngle,
       value: _tempoBpm.toDouble(),
       tapAngle: null,
@@ -904,13 +906,14 @@ class _HomePageState extends State<HomePage>
         : (_showAds ? _heightAds[0] : 0);
 
     return Container(
-        //Фактическая область, доступная для приложения (метроном вместе с рекламой или чем-то еще)
-        decoration: BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage('images/back-v4.jpg'),
-          fit: BoxFit.cover,
-        )),
-        child: Stack(children: <Widget>[
+      //Фактическая область, доступная для приложения (метроном вместе с рекламой или чем-то еще)
+      decoration: BoxDecoration(
+          image: DecorationImage(
+        image: AssetImage('images/back-v4.jpg'),
+        fit: BoxFit.cover,
+      )),
+      child: Stack(
+        children: <Widget>[
           MetronomeArea(
               Size(ourAreaSize.width, ourAreaSize.height - bottomReserved)),
           /*   Positioned(
@@ -964,7 +967,19 @@ class _HomePageState extends State<HomePage>
                           max: maxReservedHeightBottom)),
                 )
               : Container(),
-        ]));
+          bOuterSpaceScrollDebug
+              ? Positioned(
+                  left: 0,
+                  top: ourAreaSize.height - bottomReserved,
+                  child: Container(
+                    width: _screenSize.width,
+                    height: 1,
+                    decoration: decorTmp(Colors.black),
+                  ))
+              : Container(),
+        ],
+      ),
+    );
   }
 
   ///widget Square section with metronome itself
@@ -1443,10 +1458,13 @@ class _HomePageState extends State<HomePage>
 
   BoxDecoration decorTmp(Color color) {
     return BoxDecoration(
+      //style: bDecoration? BorderStyle.solid: BorderStyle.none,
       // color: color.withOpacity(0.5),
-      border: Border.all(
-        color: color,
-      ),
+      border: bDecoration
+          ? Border.all(
+              color: color,
+            )
+          : null,
     );
   }
 
@@ -1973,26 +1991,31 @@ class _HomePageState extends State<HomePage>
   // ISH: виджеты без hard-coded values
 
   Widget testWidget(Size size) {
+    double pushFactor = 2;
+    double knobDiameter =
+        size.height * 0.9 * (_knobValue.pushed ? pushFactor : 1);
     return Container(
       width: size.width,
       height: size.height,
       //decoration: decorTmp(Colors.black),
-      color: Colors.white,
+      color: Colors.black,
 
-
-      child: OverlayContainer(
-        show: true,
-        position: OverlayContainerPosition(
-          // Left position.
-          0,
-          // Bottom position.
-          0,
-        ),
+      child: new OverflowBox(
+        minWidth: 0.0,
+        minHeight: 0.0,
+        maxWidth: double.infinity,
+        maxHeight: double.infinity,
+        //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
         child: KnobResizable(
           knobValue: _knobValue,
           minValue: minTempo.toDouble(),
           maxValue: _tempoBpmMax.toDouble(),
           sensitivity: _sensitivity,
+          diameter: knobDiameter,
+          innerRadius: _innerRadius,
+          outerRadius: _outerRadius,
+          textStyle: _textStyle.copyWith(
+              fontSize: 0.3 * knobDiameter, color: Colors.yellow),
           onChanged: (KnobValue newVal) {
             _knobValue = newVal;
             _setTempo(newVal.value.round());
@@ -2001,11 +2024,6 @@ class _HomePageState extends State<HomePage>
             //_setTempo(_tempoBpm);
             setState(() {});
           },
-          diameter: size.height * 0.9,
-          innerRadius: _innerRadius,
-          outerRadius: _outerRadius,
-          textStyle: _textStyle.copyWith(
-              fontSize: 0.07 * size.width, color: Colors.white),
         ),
       ),
 
@@ -2034,8 +2052,7 @@ class _HomePageState extends State<HomePage>
             diameter: size.height * 0.9*2,
             innerRadius: _innerRadius,
             outerRadius: _outerRadius,
-            textStyle:
-            _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
+            textStyle: _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
           ),
         ),
 
@@ -2043,30 +2060,32 @@ class _HomePageState extends State<HomePage>
       */
       /*
       child: Stack(
-            children:   [
-                 Positioned(
-                   child: KnobResizable(
-                    knobValue: _knobValue,
-                    minValue: minTempo.toDouble(),
-                    maxValue: _tempoBpmMax.toDouble(),
-                    sensitivity: _sensitivity,
-                    onChanged: (KnobValue newVal) {
-                      _knobValue = newVal;
-                      _setTempo(newVal.value.round());
-                      //_tempoBpm = newVal.value.round();
-                      //if (_playing)
-                      //_setTempo(_tempoBpm);
-                      setState(() {});
-                    },
-                    diameter: size.height * 0.9*2,
-                    innerRadius: _innerRadius,
-                    outerRadius: _outerRadius,
-                    textStyle:
-                    _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
-                ),
-                 ),],
-        ),
-        */
+        children: [
+          Positioned(
+            child: KnobResizable(
+              knobValue: _knobValue,
+              minValue: minTempo.toDouble(),
+              maxValue: _tempoBpmMax.toDouble(),
+              sensitivity: _sensitivity,
+              onChanged: (KnobValue newVal) {
+                _knobValue = newVal;
+                _setTempo(newVal.value.round());
+                //_tempoBpm = newVal.value.round();
+                //if (_playing)
+                //_setTempo(_tempoBpm);
+                setState(() {});
+              },
+              diameter: size.height * 0.9 * 2,
+              innerRadius: _innerRadius,
+              outerRadius: _outerRadius,
+              textStyle: _textStyle.copyWith(
+                  fontSize: 0.07 * size.width, color: Colors.white),
+            ),
+          ),
+        ],
+        overflow: Overflow.visible,
+      ),
+       */
       /*
       Scaffold( body: Builder(
           builder: (context) => Align(
@@ -2189,7 +2208,7 @@ class _HomePageState extends State<HomePage>
                           child: Text("bootom of the metronme area",
                               style: TextStyle(
                                   fontSize: 20 * totalWidth / pixelWidth,
-                                  color: Colors.amberAccent)),
+                                  color: Colors.black)),
                         ),
                       )
                     : Container(),
@@ -2215,48 +2234,68 @@ class _HomePageState extends State<HomePage>
     return metronome;
   }
 
+  Widget knobInBox(double knobDiameter) {
+    return OverflowBox(
+      minWidth: 0.0,
+      minHeight: 0.0,
+      maxWidth: double.infinity,
+      maxHeight: double.infinity,
+      //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
+      child: KnobResizable(
+        knobValue: _knobValue,
+        minValue: minTempo.toDouble(),
+        maxValue: _tempoBpmMax.toDouble(),
+        sensitivity: _sensitivity,
+        diameter: knobDiameter,
+        innerRadius: _innerRadius,
+        outerRadius: _outerRadius,
+        textStyle: _textStyle.copyWith(
+            fontSize: 0.3 * knobDiameter, color: Colors.yellow),
+        onChanged: (KnobValue newVal) {
+          _knobValue = newVal;
+          _setTempo(newVal.value.round());
+          //_tempoBpm = newVal.value.round();
+          //if (_playing)
+          //_setTempo(_tempoBpm);
+          setState(() {});
+        },
+      ),
+    );
+  }
+
   ///widget Metre-bar section
   Widget _knobAndStartArea(bool portrait, Size size) {
     // return BorderedContainer(size);
 
-    _knobValue.value = _tempoBpm.toDouble();
-    Widget knobTuned = new KnobResizable(
-      knobValue: _knobValue,
-      minValue: minTempo.toDouble(),
-      maxValue: _tempoBpmMax.toDouble(),
-      sensitivity: _sensitivity,
-      onChanged: (KnobValue newVal) {
-        _knobValue = newVal;
-        _setTempo(newVal.value.round());
-        //_tempoBpm = newVal.value.round();
-        //if (_playing)
-        //_setTempo(_tempoBpm);
-        setState(() {});
-      },
-      diameter: size.height * 0.9,
-      innerRadius: _innerRadius,
-      outerRadius: _outerRadius,
-      textStyle:
-          _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
-    );
+    double pushFactor = 2;
+    double knobDiameter =
+        size.height * 0.9 * (_knobValue.pushed ? pushFactor : 1);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Container(
-          child: knobTuned,
-          width: size.width * 2 / 4,
-        ),
-        //BorderedContainer(Size(size.width*1/3,size.height)),
-        Align(
-          alignment: Alignment.center,
-          child: Container(
-            child: _buildPlayBtn1(size.height * 0.75),
-            width: size.width * 1 / 2,
+    _knobValue.value = _tempoBpm.toDouble();
+
+    return Container(
+      width: size.width,
+      height: size.height,
+      decoration: decorTmp(Colors.black),
+      //color: Colors.black,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: size.width * 2 / 3,
+            child: knobInBox(knobDiameter),
           ),
-        ),
-      ],
+          //BorderedContainer(Size(size.width*1/3,size.height)),
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              child: _buildPlayBtn1(size.height * 0.75),
+              width: size.width * 1 / 3,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

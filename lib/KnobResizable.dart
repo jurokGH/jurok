@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 
 
 ///Рисуем радиусы.
-const bool showRadii=true;
+const bool showRadii=false;
 
 class KnobValue {
   ///угол между пальцем и отрисованным изображением в момент нажатия
@@ -27,6 +27,8 @@ class KnobValue {
   double angle0;
 
   double value; //ToDo:  value <-> angle
+
+  bool pushed;
 /*
   KnobValue(double val, double absAngle){
     this.value=val; this.absoluteAngle=absAngle;
@@ -38,7 +40,8 @@ class KnobValue {
 
   //KnobValue({this.value,this.deltaAngle,this.tapAngle,this.absoluteAngle,
   KnobValue(
-      {this.value,
+      { this.pushed,
+        this.value,
         this.tapAngle,
         this.absoluteAngle,
         this.absoluteAngleAtTap,
@@ -87,15 +90,6 @@ class KnobResizable extends StatefulWidget {
     //@required this.image
   });
 
-  /*
-  KnobTuned({@required this.value,
-    @required this.initValue,
-    @required this.angle,
-    @required this.minValue,
-    @required this.maxValue,
-    @required this.diameter,
-    @required this.onChanged,
-  });*/
 
   @override
   State<StatefulWidget> createState() => KnobResizableState();
@@ -162,6 +156,7 @@ class KnobResizableState extends State<KnobResizable> {
             //Это нужно, чтобы не было
             //дерганий на короткие тапы
             KnobValue newVal = KnobValue(
+              pushed: false,
               value: widget.knobValue.value,
               tapAngle: null,
               absoluteAngle: widget.knobValue.absoluteAngle,
@@ -189,6 +184,8 @@ class KnobResizableState extends State<KnobResizable> {
               absoluteAngleAtTap: widget.knobValue.absoluteAngle,
               value0: widget.knobValue.value,
               angle0: widget.knobValue.absoluteAngle,
+
+              pushed: true,
             );
             widget.onChanged(newVal);
             print(
@@ -267,7 +264,11 @@ class KnobResizableState extends State<KnobResizable> {
                   value: valCorr, //ToDo: это лишнее, не так
 
                   value0: valu0corr,
-                  angle0: angl0corr);
+                  angle0: angl0corr,
+
+                  pushed: true,
+
+              );
               widget.onChanged(newVal);
             }
           },
@@ -301,7 +302,9 @@ class KnobResizableState extends State<KnobResizable> {
 
                   //tempoIndicator(widget.knobValue.value.toInt(),
                   //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
-                  Text(widget.knobValue.value.toInt().toString(),
+                  Text(
+                    //!widget.knobValue.pushed?widget.knobValue.value.toInt().toString():"",
+                    widget.knobValue.value.toInt().toString(),
                     style: widget.textStyle,
                   )
                 ]),

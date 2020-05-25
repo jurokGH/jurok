@@ -29,7 +29,8 @@ dependencies:
   device_preview: ^0.4.4
 
  # TMP DOUBLE CHECK Что за хрень не знаю, для  пробы  примотаю. Лицензия MIT
-  overlay_container: ^0.0.4+1
+ # overlay_container: ^0.0.4+1
+ # ---  Эта приблуда и правда рисует где хочет, но тапы там распознаются очень плохо
 
 
 dev_dependencies:
