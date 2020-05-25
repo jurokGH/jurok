@@ -26,8 +26,8 @@ import 'TempoList_ui.dart';
 import 'volume_ui.dart';
 import 'settings.dart';
 import 'knob.dart';
-//import 'KnobTuned.dart';
-import 'KnobResizable.dart';
+import 'KnobTuned.dart';
+//import 'KnobResizable.dart';
 
 import 'timer_ui.dart';
 import 'NoteTempo.dart';
@@ -349,10 +349,13 @@ class _HomePageState extends State<HomePage>
   int _period = 1000;
 
   //IS: my knob constants
-  double _sensitivity = 5;
-  double _innerRadius = 0.2;
-  double _outerRadius = 2;
-  //double _knobSize = 150;
+  double _sensitivity = 2.5;
+  double _innerRadius = 0.15;
+  ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
+  final int _timeToDilation =  750;
+
+   static double _pushFactor=2.5;
+  double _outerRadius = _pushFactor;//ToDo: скоординирован ли с pushFactor?
   static const double initKnobAngle = 0;
   KnobValue _knobValue;
 
@@ -1548,7 +1551,7 @@ class _HomePageState extends State<HomePage>
     );
 
     _knobValue.value = _tempoBpm.toDouble();
-    Widget knobTempoNew = new KnobResizable(
+    Widget knobTempoNew = KnobTuned(
       knobValue: _knobValue,
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
@@ -1567,6 +1570,7 @@ class _HomePageState extends State<HomePage>
       outerRadius: _outerRadius,
       textStyle: _textStyle.copyWith(
           fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
+      timeToDilation: _timeToDilation,
     );
 
     final Widget btnSubbeat = new Tooltip(
@@ -1991,14 +1995,14 @@ class _HomePageState extends State<HomePage>
   // ISH: виджеты без hard-coded values
 
   Widget testWidget(Size size) {
-    double pushFactor = 2;
     double knobDiameter =
-        size.height * 0.9 * (_knobValue.pushed ? pushFactor : 1);
+        size.height * 0.9;
     return Container(
       width: size.width,
       height: size.height,
       //decoration: decorTmp(Colors.black),
       color: Colors.black,
+
 
       child: new OverflowBox(
         minWidth: 0.0,
@@ -2006,7 +2010,8 @@ class _HomePageState extends State<HomePage>
         maxWidth: double.infinity,
         maxHeight: double.infinity,
         //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
-        child: KnobResizable(
+        child: KnobTuned(
+          pushFactor: _pushFactor,
           knobValue: _knobValue,
           minValue: minTempo.toDouble(),
           maxValue: _tempoBpmMax.toDouble(),
@@ -2016,6 +2021,7 @@ class _HomePageState extends State<HomePage>
           outerRadius: _outerRadius,
           textStyle: _textStyle.copyWith(
               fontSize: 0.3 * knobDiameter, color: Colors.yellow),
+          timeToDilation: _timeToDilation,
           onChanged: (KnobValue newVal) {
             _knobValue = newVal;
             _setTempo(newVal.value.round());
@@ -2166,7 +2172,7 @@ class _HomePageState extends State<HomePage>
     /// На Pixel с рекламой - 1.83+1/3.
     ///
     /// Беру золотую середину - 1.6
-    final double minimalRatio = 1.55;
+    final double minimalRatio = 1.5;
 
     final bool bDecreaseWidth = (totalHeight / totalWidth < minimalRatio);
 
@@ -2175,13 +2181,15 @@ class _HomePageState extends State<HomePage>
 
     ///Разбиваем на три области
     final double c1 = 0.9;
-    final double c2 = 0.3;
-    final double c3 = minimalRatio - (c1 + c2);
+    final double c3 = 0.35;
+    final double c2 = minimalRatio - (c1 + c3);
+
+
 
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
-    bool bTest = false; //tmp
+    bool bTest =false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       //_buildBar(true, metreBarSize),
@@ -2235,13 +2243,18 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget knobInBox(double knobDiameter) {
+    _knobValue.value = _tempoBpm.toDouble();
+    final double basicFontSize=0.3 * knobDiameter;
+    //final double fontSize = !_knobValue.pushed? basicFontSize: basicFontSize*_pushFactor;
+    Color textColor= (_tempoBpm<=minTempo||_tempoBpm>=_tempoBpmMax)?Colors.red:Colors.greenAccent;
     return OverflowBox(
       minWidth: 0.0,
       minHeight: 0.0,
       maxWidth: double.infinity,
       maxHeight: double.infinity,
       //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
-      child: KnobResizable(
+      child: KnobTuned(
+        pushFactor: _pushFactor,
         knobValue: _knobValue,
         minValue: minTempo.toDouble(),
         maxValue: _tempoBpmMax.toDouble(),
@@ -2250,7 +2263,9 @@ class _HomePageState extends State<HomePage>
         innerRadius: _innerRadius,
         outerRadius: _outerRadius,
         textStyle: _textStyle.copyWith(
-            fontSize: 0.3 * knobDiameter, color: Colors.yellow),
+            fontSize: basicFontSize,
+            color: textColor),
+        timeToDilation:  _timeToDilation,//TODO: UNTESTED
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
           _setTempo(newVal.value.round());
@@ -2267,11 +2282,10 @@ class _HomePageState extends State<HomePage>
   Widget _knobAndStartArea(bool portrait, Size size) {
     // return BorderedContainer(size);
 
-    double pushFactor = 2;
     double knobDiameter =
-        size.height * 0.9 * (_knobValue.pushed ? pushFactor : 1);
+        size.height * 0.9;
 
-    _knobValue.value = _tempoBpm.toDouble();
+
 
     return Container(
       width: size.width,
@@ -2567,7 +2581,7 @@ class _HomePageState extends State<HomePage>
 
   Widget _rowControlsArea(bool portrait, Size size) {
     double fontSizeTempo = size.height / 6;
-    double fontSizeMusicScheme = fontSizeTempo / 1.5;
+    double fontSizeMusicScheme = fontSizeTempo / 1;
     TextStyle _textStyleTempoRow =
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
             .textTheme
@@ -2577,7 +2591,7 @@ class _HomePageState extends State<HomePage>
     TextStyle _textStyleSchemeRow = Theme.of(context)
         .textTheme
         .headline4
-        .copyWith(color: Colors.brown, fontSize: fontSizeMusicScheme);
+        .copyWith(color: Colors.black, fontSize: fontSizeMusicScheme);
 
     double leftRightPadding = size.width * 0.02;
 

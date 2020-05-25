@@ -1,10 +1,12 @@
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
-
+//import 'dart:ui' as ui;
 
 ///Рисуем радиусы.
-const bool showRadii=false;
+const bool showRadii = false;
+
+
 
 class KnobValue {
   ///угол между пальцем и отрисованным изображением в момент нажатия
@@ -26,6 +28,10 @@ class KnobValue {
   double angle0;
 
   double value; //ToDo:  value <-> angle
+
+  bool pushed;
+
+  int initTimeOfTap;
 /*
   KnobValue(double val, double absAngle){
     this.value=val; this.absoluteAngle=absAngle;
@@ -37,19 +43,18 @@ class KnobValue {
 
   //KnobValue({this.value,this.deltaAngle,this.tapAngle,this.absoluteAngle,
   KnobValue(
-      {this.value,
+      {@required this.pushed,
+      this.value,
       this.tapAngle,
       this.absoluteAngle,
       this.absoluteAngleAtTap,
       this.value0,
-      this.angle0});
+      this.angle0,
+      this.initTimeOfTap});
 }
 
-
-
 class KnobTuned extends StatefulWidget {
-
-
+  final int timeToDilation;
 
   final double innerRadius;
   final double outerRadius;
@@ -71,9 +76,12 @@ class KnobTuned extends StatefulWidget {
 
   final double sensitivity; //size/2*pi;
 
+  final double pushFactor;
+
   //final ui.Image image;
 
   KnobTuned({
+    @required this.pushFactor,
     @required this.knobValue,
     @required this.minValue,
     @required this.maxValue,
@@ -82,6 +90,7 @@ class KnobTuned extends StatefulWidget {
     @required this.sensitivity,
     @required this.innerRadius,
     @required this.outerRadius,
+    @required this.timeToDilation,
     this.textStyle,
     //@required this.image
   });
@@ -104,14 +113,17 @@ class KnobTunedState extends State<KnobTuned> {
   /*double angleRad(Offset X){
     double ang=pi/4;
     if (X.dx==0) {       if (X.dy>0) {ang*=-1; } }
-    else {ang =    zzzzzzzz }
+    else {ang =
+     }
     return ang;
   }*/
 
   Offset X;
   Offset Y;
 
-  Image _image;  /// Knob image
+  Image _image;
+
+  /// Knob image
   Size _imageSize = Size.zero;
 
   double getValueUncut(double absAngle, double ang0, double val0) {
@@ -140,7 +152,8 @@ class KnobTunedState extends State<KnobTuned> {
   void initState() {
     super.initState();
 
-    _image = new Image.asset('images/knob4.png',
+    _image = new Image.asset(
+      'images/knob4.png',
       fit: BoxFit.cover,
       filterQuality: FilterQuality.medium,
     );
@@ -153,25 +166,42 @@ class KnobTunedState extends State<KnobTuned> {
         ? widget.diameter
         : MediaQuery.of(context).size.shortestSide; //TODO
 
+    double factor = 1;
+    if (widget.knobValue.pushed) {
+      double d = widget.pushFactor - 1;
+      int dTime = DateTime.now().millisecondsSinceEpoch - widget.knobValue.initTimeOfTap;
+      if (widget.timeToDilation > 0) {
+        double d1 = d * min(1, dTime / widget.timeToDilation);
+        factor = 1 + d1;
+      }
+      else factor=widget.pushFactor;
+      //size*=(1+d1);
+      //size*=(widget.pushFactor);
+    }
+
+    size = size * factor;
+
     final Size imageSize = new Size.square(size);
-    if (imageSize != _imageSize)
-    {
+    if (imageSize != _imageSize) {
       precacheImage(_image.image, context, size: imageSize);
       _imageSize = imageSize;
     }
 
     return Center(
       child: Container(
-        width: size,
         height: size,
+        width: size,
         child: GestureDetector(
           onPanEnd: (DragEndDetails details) {
             //Это нужно, чтобы не было
             //дерганий на короткие тапы
             KnobValue newVal = KnobValue(
+              pushed: false,
               value: widget.knobValue.value,
               tapAngle: null,
               absoluteAngle: widget.knobValue.absoluteAngle,
+              initTimeOfTap:
+                  widget.knobValue.initTimeOfTap, //Не обязательно, видимо
             );
             widget.onChanged(newVal);
             print('onPanEnd\n--------');
@@ -196,6 +226,8 @@ class KnobTunedState extends State<KnobTuned> {
               absoluteAngleAtTap: widget.knobValue.absoluteAngle,
               value0: widget.knobValue.value,
               angle0: widget.knobValue.absoluteAngle,
+              pushed: true,
+              initTimeOfTap: DateTime.now().millisecondsSinceEpoch,
             );
             widget.onChanged(newVal);
             print(
@@ -267,30 +299,32 @@ class KnobTunedState extends State<KnobTuned> {
               }
 
               KnobValue newVal = new KnobValue(
-                  //deltaAngle: deltaAngleCorrected,
-                  tapAngle: tapAngleCorrected,
-                  absoluteAngleAtTap: absoluteAngleAtTapCorrected,
-                  absoluteAngle: absoluteAngleNow,
-                  value: valCorr, //ToDo: это лишнее, не так
+                //deltaAngle: deltaAngleCorrected,
+                pushed: true,
+                tapAngle: tapAngleCorrected,
+                absoluteAngleAtTap: absoluteAngleAtTapCorrected,
+                absoluteAngle: absoluteAngleNow,
+                value: valCorr, //ToDo: это лишнее, не так
 
-                  value0: valu0corr,
-                  angle0: angl0corr);
+                value0: valu0corr,
+                angle0: angl0corr,
+                initTimeOfTap: widget.knobValue.initTimeOfTap,
+              );
               widget.onChanged(newVal);
             }
           },
 
           child: Stack(alignment: Alignment.center, children: <Widget>[
             Transform.rotate(
-              angle: widget.knobValue.absoluteAngle,
-              child: ClipOval(
-                  child: Container(
-                      height: size,
-                      width: size,
+                angle: widget.knobValue.absoluteAngle,
+                //child: ClipOval(
+                child: Container(
+                    height: size,
+                    width: size,
 //                color: widget.color,
-                      child: _image
-                  )
-              ),
-            ),
+                    child: _image)
+                //),
+                ),
 
             Container(
               height: size,
@@ -308,8 +342,12 @@ class KnobTunedState extends State<KnobTuned> {
             //tempoIndicator(widget.knobValue.value.toInt(),
             //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
             Text(widget.knobValue.value.toInt().toString(),
-              style: widget.textStyle,
-            )
+                style: widget.textStyle.copyWith(
+                  fontSize: widget.textStyle.fontSize * factor,
+                )
+
+                ///ISH: Думаю, это я по уродски сделал
+                )
           ]),
 
           /* Column(
@@ -332,7 +370,6 @@ class KnobTunedState extends State<KnobTuned> {
     );
   }
 }
-
 
 /*
 Widget tempoIndicator(int tempo, int minTempo, int maxTempo, double size) {
@@ -371,24 +408,21 @@ class KnobPainter extends CustomPainter {
   Canvas canvas;
   @override
   void paint(Canvas canvas, Size size) {
-
     if (!showRadii) return;
 
     // if (Y==null) return;
     this.size = size;
     this.canvas = canvas;
 
-
-
-    Offset off = new Offset(size.width / 2, size.height / 2);
+    //Offset off = new Offset(size.width / 2, size.height / 2);
 
     Paint _paintHallowNote = new Paint();
     _paintHallowNote.style = PaintingStyle.stroke;
     _paintHallowNote.strokeWidth = 2;
     _paintHallowNote.color = Colors.blue;
 
-    Offset off1 =
-        off.translate(diameter / 2 * cos(angle), diameter / 2 * sin(angle));
+    //Offset off1 =
+    //  off.translate(diameter / 2 * cos(angle), diameter / 2 * sin(angle));
     //canvas.drawLine(off, off1, _paintHallowNote);
 
     Paint _paintNote = new Paint();
@@ -397,13 +431,13 @@ class KnobPainter extends CustomPainter {
     _paintNote.color = Colors.redAccent;
     _paintNote.strokeWidth = 2;
 
-    double indicatorRad = diameter * (1 - radOfIndicator) / 2;
-    off1 = off.translate(indicatorRad * cos(angle), indicatorRad * sin(angle));
+    //double indicatorRad = diameter * (1 - radOfIndicator) / 2;
+    // off1 = off.translate(indicatorRad * cos(angle), indicatorRad * sin(angle));
 /*    Offset center =     new Offset(diameter/2, diameter/2);
 */
     // double angleToDraw=0;
     //if (Y!=center)  angleToDraw=(Y-center).direction;
-    off1 = off.translate(indicatorRad * cos(angle), indicatorRad * sin(angle));
+    //off1 = off.translate(indicatorRad * cos(angle), indicatorRad * sin(angle));
     //canvas.drawCircle(off1, diameter / 2 * radOfIndicator, _paintNote);
 
     /*
@@ -425,5 +459,3 @@ class KnobPainter extends CustomPainter {
     return true;
   }
 }
-
-
