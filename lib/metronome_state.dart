@@ -30,8 +30,6 @@ class MetronomeState with ChangeNotifier
   int get activeBeat => _activeBeat;
   int get activeSubbeat => _activeSubbeat;
 
-  double btnSmallSize = 0;
-
   ///  start time of A first beat (in microseconds)
   int _timeOrg;
 

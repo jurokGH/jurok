@@ -233,6 +233,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Offset _padding = new Offset(4, 4);//Size(24, 36);
   ///<<<<<< JG!
 
+  bool _portrait;
   /// Overall screen size
   Size _screenSize;
   /// Size of square owl's area
@@ -672,6 +673,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               final bool portrait = orientation == Orientation.portrait;
               if (!portrait)
                 _sideSquare -= mediaQueryData.padding.vertical;
+              // TODO Volume button size - Make better
+              if (_portrait == null)
+                _portrait = portrait;
+              else if (_portrait != portrait)
+              {
+                _portrait = portrait;
+                Future.delayed(Duration(milliseconds: 10), () { setState(() {}); });
+              }
               return orientationBuilder(context, orientation);
             }
           ),
@@ -697,7 +706,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (_smallBtnSize == 0)
     {
       _smallBtnSize = Theme.of(context).buttonTheme.height;
-      Provider.of<MetronomeState>(context, listen: false).btnSmallSize = _smallBtnSize;
+      _smallBtnSizeMax = coefMaxBtnSize * _smallBtnSize;
+      //Provider.of<MetronomeState>(context, listen: false).btnSmallSize = _smallBtnSize;
     }
     if (_paddingBtn == null)
     {
@@ -744,8 +754,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             Positioned(
               left: _paddingBtn.dx,
               bottom: _showAds ? _heightAds[0] + _paddingBtn.dy : _paddingBtn.dy,
-              child: _buildVolumeBtn(_smallBtnSize,//0.05 * _sizeCtrlsShortest
-                _sizeCtrlsShortest)
+              child: _buildVolumeBtn(_smallBtnSize, _sizeCtrlsShortest)
             ),
             /// Git revision number
             _showVersion ? Align(
@@ -1235,7 +1244,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     if (_smallBtnSize != smallBtnSize) {
       _smallBtnSize = smallBtnSize;
-      Provider.of<MetronomeState>(context, listen: true).btnSmallSize = _smallBtnSize;
+      //Provider.of<MetronomeState>(context, listen: true).btnSmallSize = _smallBtnSize;
     }
 
     print('_layoutControls\nconstraints\tbarHeight\tdiameter\tplayBtnSize\t_smallBtnSize\t_paddingBtn\n');
