@@ -914,70 +914,83 @@ public class MetroAudioMix
                     //Сравниваем sampleRate, полученный исходя из данных двух stamps,
                     //с настоящей частотой. Если они достаточно близки (что определяется константой
                     //SAMPLE_RATE_INTENDED_ACCURACY и функцией audioIsStable), то разогрелись
-                    if (audioTrack.getTimestamp(currentStamp)) {
-                        if (audioIsStable(prevStamp, currentStamp)) {
-                            warmingUp = false;  // Разогрелись!
+
+                    // TODO Signal up if getTimestamp failed
+                    boolean gotTimestamp = audioTrack.getTimestamp(currentStamp);
+
+                    if (!gotTimestamp || audioIsStable(prevStamp, currentStamp))
+                    {
+                        warmingUp = false;  // Разогрелись!
+                        timeOfStableStampDetected = System.nanoTime();
+
+                        if (gotTimestamp)
+                        {
                             veryFirstStampTime = currentStamp.nanoTime;
                             veryFirstStampFrame = currentStamp.framePosition;
+                        }
+                        else
+                        {
+                            veryFirstStampTime = timeOfStableStampDetected;
+                            veryFirstStampFrame = totalWarmUpFrames;
+                            // TODO Set some flag and signal
+                            System.out.println("getTimestamp FAILED");
+                        }
 
-                            timeOfStableStampDetected = System.nanoTime();
+                        //ToDo: ТЕСТ. Показал отличные, неразличимые на глаз результаты на моём телефоне
+                        Long playHeadTimeOfVeryFirstStamp = timeOfStableStampDetected - // исходим из того, что играется уже равномерно
+                                samples2nanoSec(audioTrack.getPlaybackHeadPosition() - veryFirstStampFrame);
+                        staticLatencyInFrames = nanoSec2samples(veryFirstStampTime - playHeadTimeOfVeryFirstStamp);
+                        staticLatencyInMs = (long) ((veryFirstStampTime - playHeadTimeOfVeryFirstStamp) * 1e-6);
+                        //!!! В старом коде staticLatencyInMs была отрицательная
 
 
-                            //ToDo: ТЕСТ. Показал отличные, неразличимые на глаз результаты на моём телефоне
-                            Long playHeadTimeOfVeryFirstStamp = timeOfStableStampDetected - // исходим из того, что играется уже равномерно
-                                    samples2nanoSec(audioTrack.getPlaybackHeadPosition() - veryFirstStampFrame);
-                            staticLatencyInFrames = nanoSec2samples(veryFirstStampTime - playHeadTimeOfVeryFirstStamp);
-                            staticLatencyInMs = (long) ((veryFirstStampTime - playHeadTimeOfVeryFirstStamp) * 1e-6);
-                            //!!! В старом коде staticLatencyInMs была отрицательная
+                        //TODO: UPD 2020 Janv 07: "исходим из того, что играется уже равномерно"
+                        //Это не совсем точно. getPlaybackHeadPosition растет дискретно, скачкаими
+                        //порядка половины железного буфера (на самом деле, не вполне прогнозируемо)
+                        //Из этого следует два вывода:
+                        //Первый - стоит взять timeOfStableStampDetected
+                        // и audioTrack.getPlaybackHeadPosition()
+                        // поближе к моменту снятия стампа.
+                        //Второй: следует детальнее проанализировать выбор большого буфера, чтобы
+                        //избежать гипотетических неприятностей (если малый буфер близок к большому,
+                        //но очень велик, не будет ли большая неточность? хотя наверное такого быть не должно).
 
+                        staticLatencyInMcs = (long) ((veryFirstStampTime - playHeadTimeOfVeryFirstStamp) * 1e-3);
 
-                            //TODO: UPD 2020 Janv 07: "исходим из того, что играется уже равномерно"
-                            //Это не совсем точно. getPlaybackHeadPosition растет дискретно, скачкаими
-                            //порядка половины железного буфера (на самом деле, не вполне прогнозируемо)
-                            //Из этого следует два вывода:
-                            //Первый - стоит взять timeOfStableStampDetected
-                            // и audioTrack.getPlaybackHeadPosition()
-                            // поближе к моменту снятия стампа.
-                            //Второй: следует детальнее проанализировать выбор большого буфера, чтобы
-                            //избежать гипотетических неприятностей (если малый буфер близок к большому,
-                            //но очень велик, не будет ли большая неточность? хотя наверное такого быть не должно).
+                        //IS Ниже самый важный шаг:
+                        //Первое слагаемое - это просто время (только нужно правильно переводить
+                        //нанотайм в микросекунды реального времени).
+                        //Второе слагаемое - это постоянный латенси, указывающий, сколько времени проходит
+                        //от того, как сэмпл считан головкой и до того, как он будет звучать. Он примерный,
+                        //в документации его нет, есть лишь скрытые намеки как его вычислять и оговорки,
+                        //что от "нас ничего не зависит". Fingers crossed.
+                        //Третье слагаемое - вычисляется из того, сколько было записано всего фреймов
+                        //и сколько уже считалось головкой. Этот параметр болезненный, так
+                        //как номер сэмпла, считываемого головкой исчисляется с самого начала записи;
+                        //поэтому приходится таскать за собой общую сумму записанных сэмплов, и ни в коем
+                        // случае их не терять.
+                        //TODO: DC; третье слагаемое тут должно быть 0 и вписано для общности,
+                        //чтобы в общем случае не запутаться.
+                        timeOfVeryFirstBipMcs =
+                                boundNanoTimeToRealTime.nanoToFlutterTime(timeOfStableStampDetected) +//now
+                                        staticLatencyInMcs + //время от проигрывания сэмпла головкой до его звука
+                                        samples2nanoSec(totalWrittenFrames - audioTrack.getPlaybackHeadPosition()) / 1000;
+                        //и сколько у нас от записанного до считываемого головкой сейчас; в данном случае это
+                        //должно быть 0.
 
-                            staticLatencyInMcs = (long) ((veryFirstStampTime - playHeadTimeOfVeryFirstStamp) * 1e-3);
+                        setState(STATE_PLAYING);
 
-                            //IS Ниже самый важный шаг:
-                            //Первое слагаемое - это просто время (только нужно правильно переводить
-                            //нанотайм в микросекунды реального времени).
-                            //Второе слагаемое - это постоянный латенси, указывающий, сколько времени проходит
-                            //от того, как сэмпл считан головкой и до того, как он будет звучать. Он примерный,
-                            //в документации его нет, есть лишь скрытые намеки как его вычислять и оговорки,
-                            //что от "нас ничего не зависит". Fingers crossed.
-                            //Третье слагаемое - вычисляется из того, сколько было записано всего фреймов
-                            //и сколько уже считалось головкой. Этот параметр болезненный, так
-                            //как номер сэмпла, считываемого головкой исчисляется с самого начала записи;
-                            //поэтому приходится таскать за собой общую сумму записанных сэмплов, и ни в коем
-                            // случае их не терять.
-                            //TODO: DC; третье слагаемое тут должно быть 0 и вписано для общности,
-                            //чтобы в общем случае не запутаться.
-                            timeOfVeryFirstBipMcs =
-                                    boundNanoTimeToRealTime.nanoToFlutterTime(timeOfStableStampDetected) +//now
-                                            staticLatencyInMcs + //время от проигрывания сэмпла головкой до его звука
-                                            samples2nanoSec(totalWrittenFrames - audioTrack.getPlaybackHeadPosition()) / 1000;
-                            //и сколько у нас от записанного до считываемого головкой сейчас; в данном случае это
-                            //должно быть 0.
+                        _cnt = -1;
 
-                            setState(STATE_PLAYING);
-
-                            _cnt = -1;
-
-                            if (!noMessages) {
-                                laterLog("\t-----------Audio is stable-----------");
-                                laterLog("\tWarming up statistics");
-                                laterLog("\ttotalWarmUpFrames: " + Long.toString(totalWarmUpFrames));
-                                laterLog("\tTime (mks): " + Long.toString((System.nanoTime() - initTime) / 1000));
-                                laterLog("\t Latency??? (frames, ms):" +
-                                        Long.toString(staticLatencyInFrames) + ", " + Long.toString(staticLatencyInMs));
-                                laterLog("--------------------------------------");
-                            }
+                        if (!noMessages) {
+                            laterLog(gotTimestamp ? "\t-----------Audio is stable-----------" :
+                                "\t!!!!!!!! getTimestamp FAILED !!!!!!!!");
+                            laterLog("\tWarming up statistics");
+                            laterLog("\ttotalWarmUpFrames: " + Long.toString(totalWarmUpFrames));
+                            laterLog("\tTime (mks): " + Long.toString((System.nanoTime() - initTime) / 1000));
+                            laterLog("\t Latency??? (frames, ms):" +
+                                    Long.toString(staticLatencyInFrames) + ", " + Long.toString(staticLatencyInMs));
+                            laterLog("--------------------------------------");
                         }
                     }
                     //ToDo: предусмотреть и другой способ окончания разогрева - если не удалось получить стабильные штампы
