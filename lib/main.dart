@@ -63,6 +63,10 @@ const double cMinTapSize = 48;
 const double cBarHeightVert = 0.28;
 const double cBarHeightHorz = 0.2;
 
+const Offset coefPaddingBtn = const Offset(0.2, 0.2);
+const double coefMaxBtnSize = 1.5;
+const double coefMaxPlaySize = 1.8;
+
 /// Beat count min/max
 const int _cMinBeatCount = 1;
 const int _cMaxBeatCount = 12;
@@ -180,7 +184,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Configuration constants
-  bool _useNewKnob = true;
+  bool _useNewKnob = false;
   bool _showKnobDialText = false;
   bool _showNoteTempo = true;
   bool _showVersion = false;
@@ -212,7 +216,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Color _textColor = _cTextColor;
   Color _ctrlColor = _cCtrlColor;
   TextStyle _textStyle;
-  double _textSize = 28;
 
   // TODO Remove?
   int _animationType = 0;
@@ -220,10 +223,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Controls border parameters
   double _borderRadius = 12;
   double _borderWidth = 3;
-  double _smallBtnSize0 = 0;
+  double _smallBtnSizeMax = 0;
   /// Size of small buttons
   double _smallBtnSize = 0;
-  Offset _paddingBtn = new Offset(8, 8);//Size(24, 36);
+  Offset _paddingBtn;
   /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
   /// Standart padding
@@ -491,8 +494,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     {
       _tempoBpm = tempo;
       if (_playing)
-        _channel.setTempo(_tempoBpm);
-      setState(() {}); //ToDo: в такой последовательности?
+        _channel.setTempo(tempo);
+      setState(() { _tempoBpm = tempo; }); //ToDo: в такой последовательности? _channel.setTempo
     }
   }
 
@@ -641,7 +644,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _screenSize = mediaQueryData.size;
     _sideSquare = _screenSize.shortestSide;
 
-    print('mediaQueryData ${mediaQueryData.padding} - ${mediaQueryData.viewInsets} - ${mediaQueryData.viewPadding}');
+    print('mediaQueryData\npadding\tviewInsets\tviewPadding\n${mediaQueryData.padding}\t${mediaQueryData.viewInsets}\t${mediaQueryData.viewPadding}');
 
     if (_screenSize.width > _screenSize.height)
       _sizeCtrls = new Size(_screenSize.width - _sideSquare, _screenSize.height);
@@ -651,11 +654,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     //Theme.of(context).materialTapTargetSize;
 
-    debugPrint('screenSize $_screenSize - ${mediaQueryData.devicePixelRatio} - ${1 / _screenSize.aspectRatio} - $_sideSquare');
+    debugPrint('screenSize\t_sideSquare\tdevicePixelRatio\taspectRatio\n$_screenSize\t$_sideSquare\t${mediaQueryData.devicePixelRatio}\t${1 / _screenSize.aspectRatio}');
 
     if (_textStyle == null)
-      _textStyle = Theme.of(context).textTheme.headline4
-        .copyWith(color: _textColor, /*fontSize: _textSize, */height: 1);
+      _textStyle = Theme.of(context).textTheme.headline4.copyWith(color: _textColor, height: 1);
 
     if (_screenSize.width <= 0 || _screenSize.height <= 0)  //TODO
       return Container();
@@ -697,20 +699,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _smallBtnSize = Theme.of(context).buttonTheme.height;
       Provider.of<MetronomeState>(context, listen: false).btnSmallSize = _smallBtnSize;
     }
-
-    _smallBtnSize = Theme.of(context).buttonTheme.height;
-    _smallBtnSize0 = 1.2 * Theme.of(context).buttonTheme.height;//1.2
-    double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
-    _paddingBtn = new Offset(btnPadding, btnPadding);
-
-    debugPrint("aspect $aspect - $aspectCtrls - ${MediaQuery.of(context).size}");
+    if (_paddingBtn == null)
+    {
+      final double btnHeight = Theme.of(context).buttonTheme.height;
+      _paddingBtn = new Offset(coefPaddingBtn.dx * btnHeight, coefPaddingBtn.dy * btnHeight);
+    }
 
     double _barHeight = (portrait ? cBarHeightVert : cBarHeightHorz) * _sizeCtrls.height;
     if (_barHeight < cMinTapSize)
       _barHeight = cMinTapSize;
+    else if (_barHeight > 2 * cMinTapSize)
+      _barHeight = 2 * cMinTapSize;
     final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
 
-    print('orientationBuilder $_smallBtnSize - $_paddingBtn - $metreBarSize');
+    print('orientationBuilder\naspectCtrls\tsmallBtnSize\tpaddingBtn\tmetreBarSize\n');
+    print('$aspectCtrls\t$_smallBtnSize\t$_paddingBtn\t$metreBarSize');
 
     // Vertical/portrait
     if (portrait)
@@ -907,7 +910,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     print('metreSize $metreSize - $itemExtent');
     //itemExtent = 44;
-    final Size barSize = Size((portrait ? 0.70 : 0.70) * size.width, 0.5 * size.height);
+    final Size barSize = Size((portrait ? 0.70 : 0.80) * size.width, 0.5 * size.height);
     final Size listTempoSize = new Size((portrait ? 0.88 : 0.88) * barSize.width, barSize.height);
     final Size noteTempoSize = new Size(0.12 * barSize.width, 0.9 * barSize.height);
     //final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
@@ -1216,7 +1219,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     // 48 - minimum recommended target size of 7mm regardless of what screen they are displayed on
     // 48 <= buttonSize <= 1.5 * 48
-    final double playBtnSize = barHeight > 1.5 * cMinTapSize ? 1.5 * cMinTapSize : (barHeight < cMinTapSize ? cMinTapSize : barHeight);
+    final double playBtnSize = barHeight > coefMaxPlaySize * cMinTapSize ? coefMaxPlaySize * cMinTapSize : (barHeight < cMinTapSize ? cMinTapSize : barHeight);
     final Size subbeatSize = new Size(playBtnSize, playBtnSize);
     final double dist0 = _paddingBtn.dx;
     final Offset sidePadding = _paddingBtn;
@@ -1225,20 +1228,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     //knobPadding = const Offset(0, 0);
     //dist0 = 0;
     final List<double> res = knobRadius(constraints.maxWidth, constraints.maxHeight,
-        0.5 * playBtnSize, sidePadding, knobPadding, dist0, _smallBtnSize0);
+        0.5 * playBtnSize, sidePadding, knobPadding, dist0, _smallBtnSizeMax);
     final double diameter = 2 * res[0];
-    double smallBtnSize = 2 * res[1] < _smallBtnSize0 ? 2 * res[1] : _smallBtnSize0;
+    final double smallBtnSize = 2 * res[1] < _smallBtnSizeMax ? 2 * res[1] : _smallBtnSizeMax;
     //smallBtnSize = 2 * res[1];
 
     if (_smallBtnSize != smallBtnSize) {
       _smallBtnSize = smallBtnSize;
       Provider.of<MetronomeState>(context, listen: true).btnSmallSize = _smallBtnSize;
     }
-    //_smallBtnSize = _smallBtnSize0;
-    //if (diameter == minSquare - 2 * knobPadding.dy)
 
-    //print("_layoutControls $constraints - $barHeight");
-    //print('Ctrl size $diameter - $playBtnSize - $_smallBtnSize');
+    print('_layoutControls\nconstraints\tbarHeight\tdiameter\tplayBtnSize\t_smallBtnSize\t_paddingBtn\n');
+    print('$constraints\t$barHeight\t$diameter\t$playBtnSize\t$_smallBtnSize\t$_paddingBtn');
 
     //diameter = 2 * 143.76;
     //diameter = constraints.maxHeight - 20;
@@ -1265,7 +1266,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       showDialText: _showKnobDialText,
       color: _cWhiteColor.withOpacity(0.8),
       colorOutLimit: _clrIrregularMetre,
-      textStyle: _textStyle.copyWith(fontSize: 0.15 * _sizeCtrls.height,//0.2
+      textStyle: _textStyle.copyWith(fontSize: 0.2 * diameter,//0.2
         //fontWeight: FontWeight.bold,
         color: Colors.white, height: 1),
       onPressed: () {},//_play,
@@ -1292,7 +1293,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       //diameter: 0.65 * _sizeCtrls.height,//0.43
       innerRadius: _innerRadius,
       outerRadius: _outerRadius,
-      textStyle: _textStyle.copyWith(fontSize: 0.2 * _sizeCtrls.height, color: Colors.white),
+      textStyle: _textStyle.copyWith(fontSize: 0.2 * diameter, color: Colors.white, height: 1),
     );
 
     final Widget btnSubbeat = new Tooltip(
@@ -1332,9 +1333,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Fill up the remaining screen as the last widget in column/row
     return Stack(
       children: <Widget>[
-        Positioned(
-          bottom: knobPadding.dy,
-          left: 0.5 * (constraints.maxWidth - diameter),
+//        Positioned(
+//          bottom: knobPadding.dy,
+//          left: 0.5 * (constraints.maxWidth - diameter),
+        Align(
+          alignment: Alignment.center,
           child: (_useNewKnob ? knobTempoNew : knobTempo),
         ),
         Positioned(
@@ -1607,7 +1610,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
 
     final Settings res = await Navigator.push(context,
-        MaterialPageRoute(builder: (context) => SettingsWidget(settings: settings)));
+      MaterialPageRoute(builder: (context) => SettingsWidget(settings: settings)));
     //Navigator.of(context).push(_createSettings());
 
     if (res != null)
