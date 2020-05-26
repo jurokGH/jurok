@@ -183,7 +183,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   bool _useNewKnob = true;
   bool _showKnobDialText = false;
   bool _showNoteTempo = true;
-  bool _showVersion = true;
+  bool _showVersion = false;
+  /// Show advertising box
+  bool _showAds = false;
+  final List<double> _heightAds = [50, 32];
 
   //static const int initBeatCount = 4;//From beatMetre
   static const int minBeatCount = _cMinBeatCount;
@@ -217,18 +220,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   /// Controls border parameters
   double _borderRadius = 12;
   double _borderWidth = 3;
-  double _smallBtnSize0 = 24;
+  double _smallBtnSize0 = 0;
   /// Size of small buttons
-  double _smallBtnSize = 24;
+  double _smallBtnSize = 0;
   Offset _paddingBtn = new Offset(8, 8);//Size(24, 36);
   /// Controls opacity
   double _opacity = _cCtrlOpacity;  // Control's opacity
   /// Standart padding
   Offset _padding = new Offset(4, 4);//Size(24, 36);
-
-  /// Show advertising box
-  bool _showAds = false;
-  final List<double> _heightAds = [50, 32];
   ///<<<<<< JG!
 
   /// Overall screen size
@@ -686,7 +685,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final double aspect = 1 / _screenSize.aspectRatio;
     final double aspectCtrls = (_showAds ? _sizeCtrls.height - _heightAds[portrait ? 0 : 1] :
       _sizeCtrls.height) / _sizeCtrls.width;
-    debugPrint("aspect $aspect - $aspectCtrls");
     final double wScale = aspectCtrls > 1.5 ? _squareX : 1;
     final double hScale = aspectCtrls < 0.9 ? _squareY : 1;
     final Size sizeOwlenome = new Size(
@@ -694,15 +692,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       portrait ? hScale * _sideSquare : _sideSquare - (_showAds ? _heightAds[1] : 0));
       //_sideSquare);
 
+    if (_smallBtnSize == 0)
+    {
+      _smallBtnSize = Theme.of(context).buttonTheme.height;
+      Provider.of<MetronomeState>(context, listen: false).btnSmallSize = _smallBtnSize;
+    }
+
     _smallBtnSize = Theme.of(context).buttonTheme.height;
     _smallBtnSize0 = 1.2 * Theme.of(context).buttonTheme.height;//1.2
     double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     _paddingBtn = new Offset(btnPadding, btnPadding);
 
+    debugPrint("aspect $aspect - $aspectCtrls - ${MediaQuery.of(context).size}");
+
     double _barHeight = (portrait ? cBarHeightVert : cBarHeightHorz) * _sizeCtrls.height;
     if (_barHeight < cMinTapSize)
       _barHeight = cMinTapSize;
     final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
+
+    print('orientationBuilder $_smallBtnSize - $_paddingBtn - $metreBarSize');
 
     // Vertical/portrait
     if (portrait)
@@ -1201,9 +1209,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _layoutControls(BuildContext context, BoxConstraints constraints, bool portrait, double barHeight)
   {
     double minSquare = constraints.maxWidth > constraints.maxHeight ? constraints.maxHeight : constraints.maxWidth;
-    print("minSquare $constraints - $barHeight");
-
-    final TextStyle textStyleTimer = _textStyle.copyWith(fontSize: 20);
 
     final double horzSpace = portrait ? 16 : 16;
     double paddingY = portrait ? 0 : 0.1 * _sideSquare;
@@ -1222,13 +1227,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final List<double> res = knobRadius(constraints.maxWidth, constraints.maxHeight,
         0.5 * playBtnSize, sidePadding, knobPadding, dist0, _smallBtnSize0);
     final double diameter = 2 * res[0];
-    _smallBtnSize = 2 * res[1] < _smallBtnSize0 ? 2 * res[1] : _smallBtnSize0;
-    _smallBtnSize = 2 * res[1];
+    double smallBtnSize = 2 * res[1] < _smallBtnSize0 ? 2 * res[1] : _smallBtnSize0;
+    //smallBtnSize = 2 * res[1];
 
+    if (_smallBtnSize != smallBtnSize) {
+      _smallBtnSize = smallBtnSize;
+      Provider.of<MetronomeState>(context, listen: true).btnSmallSize = _smallBtnSize;
+    }
     //_smallBtnSize = _smallBtnSize0;
     //if (diameter == minSquare - 2 * knobPadding.dy)
 
-    //print('${constraints.maxWidth} - ${constraints.maxHeight} - $diameter');
+    //print("_layoutControls $constraints - $barHeight");
+    //print('Ctrl size $diameter - $playBtnSize - $_smallBtnSize');
 
     //diameter = 2 * 143.76;
     //diameter = constraints.maxHeight - 20;

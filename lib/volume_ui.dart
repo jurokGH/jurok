@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+
 //import 'rollout_btn.dart';
+import 'metronome_state.dart';
 
 enum RolloutDirection
 {
@@ -320,20 +323,66 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
 //    return UnconstrainedBox(
 //      alignment: align,
 
-    return Container(
-      //      minWidth: 2 * widget.radius,
-      //minHeight: widget.height,
-      //      maxWidth: 2 * widget.radius,
-      //      maxHeight: widget.height,
-      child: Stack(
-        alignment: align,
-        //fit: StackFit.expand,
-        //overflow: Overflow.visible,
-        children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(0.5 * widget.diameter),
-            child: SlideTransition(
-              position: _animOffset,
+    //context.select((MetronomeState state) => state.btnSmallSize);
+    return Selector<MetronomeState, double>(
+      selector: (BuildContext context, MetronomeState state) => state.btnSmallSize,
+      builder: (BuildContext context, double btnSmallSize, Widget child)
+    {
+      Widget button = new RawMaterialButton(  //FlatButton
+        //padding: EdgeInsets.all(18),//_padding.dx),
+        child: Icon(_mute ? Icons.volume_off : Icons.volume_up,
+          size: btnSmallSize,//widget.diameter,//36,
+          color: widget.color,
+          semanticLabel: 'Mute volume',
+        ),
+        //fillColor: Colors.deepPurple.withOpacity(0.5), //portrait ? _accentColor : _primaryColor,
+        //color: _cWhiteColor.withOpacity(0.8),
+        shape: CircleBorder(side: BorderSide(width: 2, color: widget.color)),
+        constraints: BoxConstraints(
+          minWidth: btnSmallSize,//widget.diameter,
+          minHeight: btnSmallSize,//widget.diameter,
+          //maxWidth: 200,
+          //maxHeight: 200,
+        ),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,  // Make button of exact diameter size
+        //tooltip: _soundSchemes[_activeSoundScheme],
+  //      padding: EdgeInsets.all(4),
+        //textTheme: ButtonTextTheme.primary,
+        //tooltip: _soundSchemes[_activeSoundScheme],
+        enableFeedback: widget.enableFeedback,
+        onLongPress: () {
+          _timer?.cancel();
+          setState(() {
+            _mute = !_mute;
+          });
+          widget.onChanged(_mute ? widget.min : _value);
+          _timer = new Timer(_duration, _onTimer);
+        },
+        onPressed: _handleOpenClose,
+        /*
+        onPressed: () {
+          setState(() {
+            _mute = !_mute;
+            _setVolume(_mute ? 0 : _volume);
+          });
+        },
+  */
+      );
+
+      return Container(
+        //      minWidth: 2 * widget.radius,
+        //minHeight: widget.height,
+        //      maxWidth: 2 * widget.radius,
+        //      maxHeight: widget.height,
+          child: Stack(
+              alignment: align,
+              //fit: StackFit.expand,
+              //overflow: Overflow.visible,
+              children: <Widget>[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(0.5 * btnSmallSize),//widget.diameter),
+                  child: SlideTransition(
+                    position: _animOffset,
 //          Positioned(
 //            //top: -100 + _animPos.value,
 //            bottom: _animPos.value,
@@ -342,24 +391,25 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
 //              transform: Matrix4.diagonal3Values(1.0, _animScale.value, 1.0)
 //                ..setTranslationRaw(0.0, _animPos.value, 0.0),
 //scale: 1.0,//_animScale.value,
-              child: Transform(
-                transform: Matrix4.diagonal3Values(1.0, 1.0, 1.0),
-                //                ..setTranslationRaw(0.0, _animPos.value, 0.0),
-                child:
-                  Container(
-                  width: widget.diameter,
-                  height: widget.height,
-                  //color: Colors.red,
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(0.5 * widget.diameter),
+                    child: Transform(
+                      transform: Matrix4.diagonal3Values(1.0, 1.0, 1.0),
+                      //                ..setTranslationRaw(0.0, _animPos.value, 0.0),
+                      child:
+                      Container(
+                        width: btnSmallSize,//widget.diameter,
+                        height: widget.height,
+                        //color: Colors.red,
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(
+                              0.5 * btnSmallSize),//widget.diameter),
+                        ),
+                        child: rollup,
+                      ),
+                    ),
                   ),
-                  child: rollup,
-                ),
-              ),
-            ),
-            //Icon(Icons.add_circle)
-            /*OwlWidget
+                  //Icon(Icons.add_circle)
+                  /*OwlWidget
             RotatedBox(
               quarterTurns: 1,
               child: Slider.adaptive(
@@ -370,17 +420,19 @@ class VolumeState extends State<VolumeButton> with SingleTickerProviderStateMixi
               )
             )
 */
-          ),
-          //  widget.child,
-          button,
-          /*
+                ),
+                //  widget.child,
+                button,
+                /*
       IconButton(
         color: Colors.blue,
         icon: Icon(Icons.add),
         onPressed: _handleOpenClose,
       ),
       */
-        ]
-      ));
+              ]
+          ));
+    },
+    );
   }
 }

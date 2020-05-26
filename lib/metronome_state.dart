@@ -30,6 +30,8 @@ class MetronomeState with ChangeNotifier
   int get activeBeat => _activeBeat;
   int get activeSubbeat => _activeSubbeat;
 
+  double btnSmallSize = 0;
+
   ///  start time of A first beat (in microseconds)
   int _timeOrg;
 
@@ -299,7 +301,7 @@ class MetronomeState with ChangeNotifier
 
     double msec = 0;
     // Active vs all owls swing their heads
-    bool allOwlsSingHeads = false;
+    bool allOwlsSingHeads = true;
     if (allOwlsSingHeads)
       msec = (time % (2 * duration * beatMetre.beatCount)) * 1000000;  // in microseconds
     else
@@ -355,7 +357,7 @@ class MetronomeState with ChangeNotifier
   int getActiveTime(int id)
   {
     // Active vs all owls swing their heads
-    bool allOwlsSingHeads = false;
+    bool allOwlsSingHeads = true;
     if (allOwlsSingHeads)
     {
       double period = 120.0 / _beatsPerMinute; // in seconds
