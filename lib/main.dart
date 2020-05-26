@@ -256,10 +256,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom;
   /// One can use it to get an impression of how everything looks on other phones.
   /// (I used it to  to catch  theoretical zebras.)
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
-  bool bDecoration = false;
+  bool bBoxContainer = true;
 
   // bool bShowBoundariesDebug=true;
 
@@ -351,11 +351,13 @@ class _HomePageState extends State<HomePage>
   //IS: my knob constants
   double _sensitivity = 2.5;
   double _innerRadius = 0.15;
-  ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
-  final int _timeToDilation =  750;
 
-   static double _pushFactor=2.5;
-  double _outerRadius = _pushFactor;//ToDo: скоординирован ли с pushFactor?
+  ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
+  final int _timeToDilation = 150;
+
+  ///Во сколько раз увеличивается кноб
+  static double _pushFactor = 2.5;
+  double _outerRadius = _pushFactor; //ToDo: скоординирован ли с pushFactor?
   static const double initKnobAngle = 0;
   KnobValue _knobValue;
 
@@ -1463,7 +1465,7 @@ class _HomePageState extends State<HomePage>
     return BoxDecoration(
       //style: bDecoration? BorderStyle.solid: BorderStyle.none,
       // color: color.withOpacity(0.5),
-      border: bDecoration
+      border: bBoxContainer
           ? Border.all(
               color: color,
             )
@@ -1995,14 +1997,12 @@ class _HomePageState extends State<HomePage>
   // ISH: виджеты без hard-coded values
 
   Widget testWidget(Size size) {
-    double knobDiameter =
-        size.height * 0.9;
+    double knobDiameter = size.height * 0.9;
     return Container(
       width: size.width,
       height: size.height,
       //decoration: decorTmp(Colors.black),
       color: Colors.black,
-
 
       child: new OverflowBox(
         minWidth: 0.0,
@@ -2184,12 +2184,10 @@ class _HomePageState extends State<HomePage>
     final double c3 = 0.35;
     final double c2 = minimalRatio - (c1 + c3);
 
-
-
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
-    bool bTest =false; //tmp
+    bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       //_buildBar(true, metreBarSize),
@@ -2244,14 +2242,17 @@ class _HomePageState extends State<HomePage>
 
   Widget knobInBox(double knobDiameter) {
     _knobValue.value = _tempoBpm.toDouble();
-    final double basicFontSize=0.3 * knobDiameter;
+    final double basicFontSize = 0.3 * knobDiameter;
     //final double fontSize = !_knobValue.pushed? basicFontSize: basicFontSize*_pushFactor;
-    Color textColor= (_tempoBpm<=minTempo||_tempoBpm>=_tempoBpmMax)?Colors.red:Colors.greenAccent;
+    Color textColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
+        ? Colors.red
+        : Colors.greenAccent;
     return OverflowBox(
-      minWidth: 0.0,
-      minHeight: 0.0,
-      maxWidth: double.infinity,
-      maxHeight: double.infinity,
+      alignment: Alignment.center,
+      minWidth: knobDiameter,
+      minHeight: knobDiameter,
+      maxWidth: knobDiameter*_pushFactor,//double.infinity,
+      maxHeight:knobDiameter*_pushFactor, //double.infinity,
       //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
       child: KnobTuned(
         pushFactor: _pushFactor,
@@ -2262,10 +2263,9 @@ class _HomePageState extends State<HomePage>
         diameter: knobDiameter,
         innerRadius: _innerRadius,
         outerRadius: _outerRadius,
-        textStyle: _textStyle.copyWith(
-            fontSize: basicFontSize,
-            color: textColor),
-        timeToDilation:  _timeToDilation,//TODO: UNTESTED
+        textStyle:
+            _textStyle.copyWith(fontSize: basicFontSize, color: textColor),
+        timeToDilation: _timeToDilation, //TODO: UNTESTED
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
           _setTempo(newVal.value.round());
@@ -2282,8 +2282,16 @@ class _HomePageState extends State<HomePage>
   Widget _knobAndStartArea(bool portrait, Size size) {
     // return BorderedContainer(size);
 
-    double knobDiameter =
-        size.height * 0.9;
+    double useOfHeight=0.95;
+
+    double knobDiameter = size.height * useOfHeight;
+
+
+    ///Центр кноба
+    double knobCenterX=size.width/2;
+    double knobCenterY=knobDiameter/2;///Фактически, выравнивание сверху - хотим быть поближе к совам
+    ///и подальше от остальных контролов
+
 
 
 
@@ -2292,24 +2300,83 @@ class _HomePageState extends State<HomePage>
       height: size.height,
       decoration: decorTmp(Colors.black),
       //color: Colors.black,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            width: size.width * 2 / 3,
-            child: knobInBox(knobDiameter),
+      child: Stack(overflow: Overflow.visible, fit: StackFit.expand, children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,///ToDo
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: useOfHeight*size.width / 3,
+                decoration: decorTmp(Colors.red),
+                height: knobDiameter,
+                child: _buildPlayBtn1(size.height * useOfHeight),
+              ),
+              Container(
+                width: useOfHeight*size.width / 3,
+                height: knobDiameter,
+                decoration: decorTmp(Colors.red),
+              ),
+              Container(
+                width: useOfHeight*size.width / 3,
+                height: knobDiameter,
+                decoration: decorTmp(Colors.red),
+
+                child: Row(
+                    children: [
+
+                ]
+
+                )
+
+              ),
+
+              //BorderedContainer(Size(size.width*1/3,size.height)),
+              /*Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                child: _buildPlayBtn1(size.height * 0.75),
+                //width: size.width * 1 / 3,
+              ),
+            ),*/
+            ],
           ),
-          //BorderedContainer(Size(size.width*1/3,size.height)),
-          Align(
-            alignment: Alignment.center,
+          // Даёт Incorrect use of ParentDataWidget.
+          Positioned.fromRect(
+            ///Дальнейшее: коробка кноба выравняна по Stack (иначе не получается его нажимать, или же он обсецается)
+            ///Сам он в центре относительно неё.
+            ///Теперь мы её двигаем (законно ли это - непонятно...)
+
+            rect: Rect.fromCenter(center: Offset(knobCenterX,knobCenterY),
+                width: knobDiameter,height:knobDiameter),
+            //left:-100,
+            //top: size.height/2,
+            //top:-(size.height-knobDiameter)/2, ///Выравнивае по верху
+            //child: Container(color:Colors.green, width:50, height:50,),
+            child:knobInBox(knobDiameter),
+          ),
+        /*
+        Positioned.fill(
+          ///Дальнейшее: коробка кноба выравняна по Stack (иначе не получается его нажимать, или же он обсецается)
+          ///Сам он в центре относительно неё.
+          ///Теперь мы её двигаем (законно ли это - непонятно...)
+          //left: -100,
+          //top: size.height/2,
+          //top: -(size.height - knobDiameter) / 2,
+
+          ///Выравнивае по верху
+          //child: Container(color:Colors.green, width:50, height:50,),
+          child: knobInBox(knobDiameter),
+          /*
             child: Container(
-              child: _buildPlayBtn1(size.height * 0.75),
-              width: size.width * 1 / 3,
+              width: size.width * 2 / 3,
+              height: size.height,
+              child: knobInBox(knobDiameter),
             ),
-          ),
-        ],
-      ),
+             */
+        ),
+
+         */
+      ]),
     );
   }
 
