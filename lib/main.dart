@@ -493,7 +493,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   {
     if (_tempoBpm != tempo)
     {
-      _tempoBpm = tempo;
       if (_playing)
         _channel.setTempo(tempo);
       setState(() { _tempoBpm = tempo; }); //ToDo: в такой последовательности? _channel.setTempo

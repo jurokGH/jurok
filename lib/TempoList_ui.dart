@@ -97,7 +97,7 @@ class TempoListState extends State<TempoListWidget>
     'prestissimo' : 200,
   };
 
-  int _index = 7;
+  int _index;
 
   FixedExtentScrollController controller;
   FixedExtentScrollController controllerVert;
@@ -127,9 +127,9 @@ class TempoListState extends State<TempoListWidget>
     // TODO: implement initState
     super.initState();
 
+    _index = tempoIndex(widget.tempo);
     controller = new FixedExtentScrollController(initialItem: _index/*widget.beats*/);
-    //beatController.addListener(_beatScrollListener);
-    //noteController = new FixedExtentScrollController(initialItem: widget.noteIndex - widget.minNoteIndex);
+    //controller.addListener(scrollListener);
   }
 
   Size _textSize(String str, TextStyle style)
@@ -210,39 +210,9 @@ class TempoListState extends State<TempoListWidget>
 
   Widget _builder(BuildContext context, BoxConstraints constraints)
   {
-    int index = tempoIndex(widget.tempo);
-    assert(0 <= index && index < tempoList.length);
-    //final String txt = tempoList[_index].name;
-
     final Size size = constraints.biggest;
-
-    Size maxTextSize = maxListItemSize();
+    //Size maxTextSize = maxListItemSize();
     double fontSize = maxFontSize(size);
-
-    // To prevent reenter via widget.onBeat/NoteChanged::setState
-    // when position is changing via jumpToItem/animateToItem
-    if (index != _index && _notify)
-    {
-      _notify = false;
-      print('Tempo:update1 $index');
-      _index = index;
-      //TODO Need?
-      if (false)
-      {
-        controller.jumpToItem(index);
-        // finishUpdate:
-        _notify = true;
-      }
-      else
-      {
-        //TODO Both run => when finishUpdate?
-        controller.animateToItem(index,
-            duration: Duration(milliseconds: duration), curve: Curves.ease)
-            .catchError(finishUpdate).then<void>(finishUpdate);
-      }
-      print('Tempo:update2');
-      //widget.update = false;
-    }
 
     final List<Widget> wixTempo = new List<Widget>.generate(
       tempoList.length,
@@ -316,10 +286,11 @@ class TempoListState extends State<TempoListWidget>
           onSelectedItemChanged: (int index) {
             // To prevent reentering via widget.onChanged::setState
             // Limit by maximum tempo
-            if (_notify && tempoList[index].minTempo <= widget.maxTempo)
+            if (tempoList[index].minTempo <= widget.maxTempo)
             {
               _index = index;
-              widget.onChanged(tempoList[index].tempo);
+              if (_notify)
+                widget.onChanged(tempoList[index].tempo);
             }
           },
           clipToSize: true,
@@ -356,30 +327,29 @@ class TempoListState extends State<TempoListWidget>
     int index = tempoIndex(widget.tempo);
     assert(0 <= index && index < tempoList.length);
     //final String txt = tempoList[_index].name;
+    //print('Tempo:_builder $index - ${widget.tempo}');
 
     // To prevent reenter via widget.onBeat/NoteChanged::setState
     // when position is changing via jumpToItem/animateToItem
     if (index != _index && _notify)
     {
       _notify = false;
-      print('Tempo:update1 $index');
-      _index = index;
+      //print('Tempo:update1 $index');
       //TODO Need?
-      if (false)
+      if (true)
       {
         controller.jumpToItem(index);
-        // finishUpdate:
         _notify = true;
       }
       else
       {
+        // BUG When new tempo comes while animating. Try simples Scroll
         //TODO Both run => when finishUpdate?
         controller.animateToItem(index,
           duration: Duration(milliseconds: duration), curve: Curves.ease)
           .catchError(finishUpdate).then<void>(finishUpdate);
       }
-      print('Tempo:update2');
-      //widget.update = false;
+      //print('Tempo:update2');
     }
 
     return LayoutBuilder(
