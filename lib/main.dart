@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:owlenome/MetreBar_ui.dart';
+import 'package:owlenome/subbeat-eq_ui.dart';
 import 'package:owlenome/volume_uiTmp.dart';
 import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
@@ -243,7 +244,7 @@ class _HomePageState extends State<HomePage>
   Offset _padding = new Offset(4, 4); //Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = true;
+  bool _showAds = false;
   final List<double> _heightAds = [50, 32];
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
@@ -259,7 +260,7 @@ class _HomePageState extends State<HomePage>
   bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = false;
+  bool bBoxContainer = true;
 
   // bool bShowBoundariesDebug=true;
 
@@ -356,8 +357,9 @@ class _HomePageState extends State<HomePage>
   final int _timeToDilation = 200;
 
   ///Во сколько раз увеличивается кноб
-  static double _pushFactor = 2;
-  double _outerRadius = _pushFactor; //ToDo: скоординирован ли с pushFactor?
+  static double _pushFactor = 2.5;
+  double _outerRadius = _pushFactor*2; //ToDo: скоординировать ли с pushFactor? Сделаю побольше, иначе кажется неприятный эффект с
+  //с потерей угла
   static const double initKnobAngle = 0;
   KnobValue _knobValue;
 
@@ -1970,121 +1972,27 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
+
+  TextStyle basicTextStyle; //ToDo
+
   Widget testWidget(Size size) {
-    double knobDiameter = size.height * 0.9;
+
+    double ShadowOffset=size.width*0.03;
+    double blurRadius=ShadowOffset*1;
     return Container(
+      child: _rowControlsArea(true, size),
       width: size.width,
       height: size.height,
-      //decoration: decorTmp(Colors.black),
-      color: Colors.black,
-
-      child: new OverflowBox(
-        minWidth: 0.0,
-        minHeight: 0.0,
-        maxWidth: double.infinity,
-        maxHeight: double.infinity,
-        //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
-        child: KnobTuned(
-          pushFactor: _pushFactor,
-          knobValue: _knobValue,
-          minValue: minTempo.toDouble(),
-          maxValue: _tempoBpmMax.toDouble(),
-          sensitivity: _sensitivity,
-          diameter: knobDiameter,
-          innerRadius: _innerRadius,
-          outerRadius: _outerRadius,
-          textStyle: _textStyle.copyWith(
-              fontSize: 0.3 * knobDiameter, color: Colors.yellow),
-          timeToDilation: _timeToDilation,
-          onChanged: (KnobValue newVal) {
-            _knobValue = newVal;
-            _setTempo(newVal.value.round());
-            //_tempoBpm = newVal.value.round();
-            //if (_playing)
-            //_setTempo(_tempoBpm);
-            setState(() {});
-          },
-        ),
-      ),
-
-      //child: Container(width: size.height/2 , height: size.height/2,            decoration: decorTmp(Colors.green),      ),
-      /*
-      child: Container(
-
-        child: new OverflowBox(
-          minWidth: 0.0,
-          minHeight: 0.0,
-          maxWidth: double.infinity,
-          maxHeight: double.infinity,
-          child:KnobResizable(
-            knobValue: _knobValue,
-            minValue: minTempo.toDouble(),
-            maxValue: _tempoBpmMax.toDouble(),
-            sensitivity: _sensitivity,
-            onChanged: (KnobValue newVal) {
-              _knobValue = newVal;
-              _setTempo(newVal.value.round());
-              //_tempoBpm = newVal.value.round();
-              //if (_playing)
-              //_setTempo(_tempoBpm);
-              setState(() {});
-            },
-            diameter: size.height * 0.9*2,
-            innerRadius: _innerRadius,
-            outerRadius: _outerRadius,
-            textStyle: _textStyle.copyWith(fontSize: 0.07 * size.width, color: Colors.white),
-          ),
-        ),
-
-      ),
-      */
-      /*
-      child: Stack(
-        children: [
-          Positioned(
-            child: KnobResizable(
-              knobValue: _knobValue,
-              minValue: minTempo.toDouble(),
-              maxValue: _tempoBpmMax.toDouble(),
-              sensitivity: _sensitivity,
-              onChanged: (KnobValue newVal) {
-                _knobValue = newVal;
-                _setTempo(newVal.value.round());
-                //_tempoBpm = newVal.value.round();
-                //if (_playing)
-                //_setTempo(_tempoBpm);
-                setState(() {});
-              },
-              diameter: size.height * 0.9 * 2,
-              innerRadius: _innerRadius,
-              outerRadius: _outerRadius,
-              textStyle: _textStyle.copyWith(
-                  fontSize: 0.07 * size.width, color: Colors.white),
+      decoration: BoxDecoration(
+          color: Colors.orangeAccent,
+          boxShadow: [
+            BoxShadow(
+              offset:   Offset(0, ShadowOffset),
+                blurRadius: blurRadius,
+               //spreadRadius: 12.0,
             ),
-          ),
-        ],
-        overflow: Overflow.visible,
+          ],
       ),
-       */
-
-      /*
-      child:    LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      double diam = constraints.maxHeight;
-      return new  VolumeButtonTmp(
-        value: _volume,
-        min: 0,
-        max: 100,
-        //mute = false,
-        msec: 250,
-        onChanged: _setVolume,
-        diameter: diam,
-        height: diam*7,
-        color: _cWhiteColor,
-        enableFeedback: !_playing,
-      );
-    })
-        */
     );
   }
 
@@ -2149,13 +2057,18 @@ class _HomePageState extends State<HomePage>
     bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
-      //_buildBar(true, metreBarSize),
+      /*
       (!bTest)
           ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
+          : testWidget(Size(totalWidth, totalWidth * c2)),*/
+
+      _knobAndStartArea(true, Size(totalWidth, totalWidth * c2)),
+
+      (!bTest)
+          ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
           : testWidget(Size(totalWidth, totalWidth * c2)),
 
-      //_buildControls(true, totalWidth * 0.3),
-      _rowControlsArea(true, Size(totalWidth, totalWidth * c3)),
+
     ];
 
     Widget metronome = Align(
@@ -2224,6 +2137,7 @@ class _HomePageState extends State<HomePage>
         outerRadius: _outerRadius,
         textStyle: knobTextStyle,
         timeToDilation: _timeToDilation, //TODO: UNTESTED
+        showText: false,
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
           _setTempo(newVal.value.round());
@@ -2372,8 +2286,8 @@ class _HomePageState extends State<HomePage>
           Positioned.fromRect(
             //button
             rect: Rect.fromCenter(
-                center: Offset(knobCenterX + tempoButtonDeltaX,
-                    knobCenterY - tempoButtonDeltaY),
+                center: Offset(knobCenterX - tempoButtonDeltaX,
+                    knobCenterY + tempoButtonDeltaY),
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
@@ -2382,8 +2296,8 @@ class _HomePageState extends State<HomePage>
           Positioned.fromRect(
             //button
             rect: Rect.fromCenter(
-                center: Offset(knobCenterX - tempoButtonDeltaX,
-                    knobCenterY + tempoButtonDeltaY),
+                center: Offset(knobCenterX + tempoButtonDeltaX,
+                    knobCenterY - tempoButtonDeltaY),
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
@@ -2602,6 +2516,7 @@ class _HomePageState extends State<HomePage>
                   flex: 7,
                   child: Container(
                     decoration: decorTmp(Colors.green),
+                    //child: rithmPicker;
                   ),
                 ),
                 Expanded(
@@ -2622,19 +2537,31 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget btnSubBeatU() {
+
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size size = Size(constraints.maxWidth, constraints.maxHeight);
-      return SubbeatWidget(
+
+
+
+      double fontSizeTempo = size.height/1.3;
+      TextStyle textStyle =
+      Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+          .textTheme
+          .headline4;
+
+
+      return SubbeatEqWidget(
         subbeatCount: _beat.subBeatCount,
         noteValue: activeMetre.note,
-        color: _textColor,
-        textStyle: _textStyle,
+        noteColor: Colors.green,
+        textStyle: textStyle,
         size: size,
         onChanged: onSubbeatChanged,
       );
     });
   }
+
 
   ///+- tempo buttons
   Widget _buildOneButton(
@@ -2840,31 +2767,48 @@ class _HomePageState extends State<HomePage>
 
     double leftRightPadding = size.width * 0.02;
 
+    ///3d-экзерсисы, Юрик, сделай что-нибудь.
+    double ShadowOffset=size.width*0.03;
+    double blurRadius=ShadowOffset*1;
+
+
     return Container(
       width: size.width,
       height: size.height,
       padding: EdgeInsets.symmetric(horizontal: leftRightPadding),
-      child: Column(
-        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: tempoRow(_textStyleTempoRow),
-          ),
-          Flexible(
-            flex: 2,
-            fit: FlexFit.tight,
-            child: signatureRaw(size.width),
-          ),
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: musicSchemeRaw(_textStyleSchemeRow, size.width),
-          ),
-          //auxRaw//ToDo: добавим в конец схем
-        ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.amber[100],
+          boxShadow: [
+            BoxShadow(
+              offset:   Offset(0, ShadowOffset),
+              blurRadius: blurRadius,
+              //spreadRadius: 12.0,
+            ),
+          ],
+        ),
+        child: Column(
+          //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Flexible(
+              flex: 1,
+              fit: FlexFit.tight,
+              child: tempoRow(_textStyleTempoRow),
+            ),
+            Flexible(
+              flex: 2,
+              fit: FlexFit.tight,
+              child: signatureRaw(size.width),
+            ),
+            Flexible(
+              flex: 1,
+              fit: FlexFit.tight,
+              child: musicSchemeRaw(_textStyleSchemeRow, size.width),
+            ),
+            //auxRaw//ToDo: добавим в конец схем
+          ],
+        ),
       ),
     );
   }

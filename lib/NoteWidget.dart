@@ -319,6 +319,8 @@ class NotePainter extends CustomPainter
       width: noteWidth,
       height: 2 * radiusHead / eccentricity);
 
+    /*//ISH: временно уберу под коммент, чтобы избавиться от градиента на активной ноте
+
     final Rect rcGrad = Rect.fromCenter(
       center: Offset.zero.translate(_coefGradSkewX * radiusHead, 0),
       width: _coefGrad * noteWidth,
@@ -333,7 +335,8 @@ class NotePainter extends CustomPainter
       _paintFilledNote.shader = _headGradient;
     }
     else
-      _paintFilledNote.color = color;
+      _paintFilledNote.color = color;*/
+    _paintFilledNote.color = color;
 
     if (isFilled)
     {

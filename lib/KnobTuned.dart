@@ -41,6 +41,8 @@ class KnobValue {
     this.deltaAngle=0;
   }*/
 
+
+
   //KnobValue({this.value,this.deltaAngle,this.tapAngle,this.absoluteAngle,
   KnobValue(
       {@required this.pushed,
@@ -50,7 +52,7 @@ class KnobValue {
       this.absoluteAngleAtTap,
       this.value0,
       this.angle0,
-      this.initTimeOfTap});
+      this.initTimeOfTap,});
 }
 
 class KnobTuned extends StatefulWidget {
@@ -78,6 +80,8 @@ class KnobTuned extends StatefulWidget {
 
   final double pushFactor;
 
+
+  final bool showText;
   //final ui.Image image;
 
   KnobTuned({
@@ -92,6 +96,7 @@ class KnobTuned extends StatefulWidget {
     @required this.outerRadius,
     @required this.timeToDilation,
     this.textStyle,
+    this.showText=false,
     //@required this.image
   });
 
@@ -341,7 +346,7 @@ class KnobTunedState extends State<KnobTuned> {
             ),
             //tempoIndicator(widget.knobValue.value.toInt(),
             //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
-            !widget.knobValue.pushed?
+            (widget.showText&&!widget.knobValue.pushed)?
                 Text(widget.knobValue.value.toInt().toString(),
                 style: widget.textStyle)
                 :Container(),
