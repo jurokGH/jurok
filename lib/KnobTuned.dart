@@ -341,13 +341,15 @@ class KnobTunedState extends State<KnobTuned> {
             ),
             //tempoIndicator(widget.knobValue.value.toInt(),
             //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
-            Text(widget.knobValue.value.toInt().toString(),
+            !widget.knobValue.pushed?
+                Text(widget.knobValue.value.toInt().toString(),
+                style: widget.textStyle)
+                :Container(),
+            /*Text(widget.knobValue.value.toInt().toString(),
                 style: widget.textStyle.copyWith(
                   fontSize: widget.textStyle.fontSize * factor,
-                )
-
-                ///ISH: Думаю, это я по уродски сделал
-                )
+                )                ///ISH: Думаю, это я неэкономно сделал
+                )*/
           ]),
 
           /* Column(

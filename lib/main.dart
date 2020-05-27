@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage>
   Offset _padding = new Offset(4, 4); //Size(24, 36);
 
   /// Show advertising box
-  bool _showAds = false;
+  bool _showAds = true;
   final List<double> _heightAds = [50, 32];
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
@@ -252,14 +252,14 @@ class _HomePageState extends State<HomePage>
 
   ///Put 100 and shrink it to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
 
-  ///ISH: The following is for the reservation on the bottom of screen in portrait mode for a scrollbar,
-  ///dynamically changing reservedHeightBottom;
-  /// One can use it to get an impression of how everything looks on other phones.
-  /// (I used it to  to catch  theoretical zebras.)
+  ///ISH: The following is for the reservation on the bottom of the screen in the portrait mode for a scrollbar
+  ///dynamically changing reservedHeightBottom.
+  /// One can use it to get an impression of how everything looks on other phones,
+  /// or to chase theoretical zebras.)
   bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = true;
+  bool bBoxContainer = false;
 
   // bool bShowBoundariesDebug=true;
 
@@ -349,14 +349,14 @@ class _HomePageState extends State<HomePage>
   int _period = 1000;
 
   //IS: my knob constants
-  double _sensitivity = 2.5;
+  double _sensitivity = 2;
   double _innerRadius = 0.15;
 
   ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
-  final int _timeToDilation = 150;
+  final int _timeToDilation = 200;
 
   ///Во сколько раз увеличивается кноб
-  static double _pushFactor = 2.5;
+  static double _pushFactor = 2;
   double _outerRadius = _pushFactor; //ToDo: скоординирован ли с pushFactor?
   static const double initKnobAngle = 0;
   KnobValue _knobValue;
@@ -979,7 +979,11 @@ class _HomePageState extends State<HomePage>
                   child: Container(
                     width: _screenSize.width,
                     height: 1,
-                    decoration: decorTmp(Colors.black),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                      ),
+                    ),
                   ))
               : Container(),
         ],
@@ -1962,36 +1966,6 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  ///+- tempo buttons
-  Widget _buildOneButton(String text, int delta) {
-    //return RaisedButton(//Эта хрень щелкает!
-    return InkWell(
-      // Can use instead: Icon(Icons.exposure_neg_1, semanticLabel: 'Reduce tempo by one', size: 36.0, color: Colors.white)
-      child: Text(
-        text,
-        style: _textStyle,
-        textScaleFactor: 1.2,
-      ),
-      //padding: EdgeInsets.all(4),
-      enableFeedback: !_playing, //Регулирует писк кнопки
-      //shape: CircleBorder(
-      customBorder: CircleBorder(
-          //borderRadius: new BorderRadius.circular(18.0),
-          side: BorderSide(color: _ctrlColor, width: _borderWidth)),
-      //onPressed: () {
-      onTap: () {
-        _tempoBpm += delta;
-        if (_tempoBpm < minTempo) _tempoBpm = minTempo;
-        if (_tempoBpm > _tempoBpmMax) _tempoBpm = _tempoBpmMax;
-        if (_playing)
-          _setTempo(
-              _tempoBpm); //IS: Не уверен, в какой последовательности посылать
-        //в яву и обновлять виджет
-        setState(() {});
-      },
-    );
-  }
-
   //===================================================
   //
   // ISH: виджеты без hard-coded values
@@ -2092,22 +2066,7 @@ class _HomePageState extends State<HomePage>
         overflow: Overflow.visible,
       ),
        */
-      /*
-      Scaffold( body: Builder(
-          builder: (context) => Align(
-      alignment: Alignment.bottomRight,
-      child:InkWell(
-          child: Icon(Icons.help_outline, size: size.height/3),
-          enableFeedback: !_playing,
-          onTap: () {
-              showBottomSheet(
-                  context: context,
-                  builder: (context) => Container(
-                    color: Colors.red,
-                  ));
-          },
-    ),),),),
-      */
+
       /*
       child:    LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -2180,7 +2139,7 @@ class _HomePageState extends State<HomePage>
       totalWidth = totalHeight / minimalRatio;
 
     ///Разбиваем на три области
-    final double c1 = 0.9;
+    final double c1 = 0.85;
     final double c3 = 0.35;
     final double c2 = minimalRatio - (c1 + c3);
 
@@ -2208,12 +2167,16 @@ class _HomePageState extends State<HomePage>
               children: <Widget>[
                 bOuterSpaceScrollDebug
                     ? Container(
-                        decoration: decorTmp(Colors.black),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                          ),
+                        ),
                         child: Align(
                           alignment: Alignment.bottomCenter,
-                          child: Text("bootom of the metronme area",
+                          child: Text("virtual bootom of the phone",
                               style: TextStyle(
-                                  fontSize: 20 * totalWidth / pixelWidth,
+                                  fontSize: 18 * totalWidth / pixelWidth,
                                   color: Colors.black)),
                         ),
                       )
@@ -2240,19 +2203,15 @@ class _HomePageState extends State<HomePage>
     return metronome;
   }
 
-  Widget knobInBox(double knobDiameter) {
+  Widget knobInBox(double knobDiameter, TextStyle knobTextStyle) {
     _knobValue.value = _tempoBpm.toDouble();
-    final double basicFontSize = 0.3 * knobDiameter;
     //final double fontSize = !_knobValue.pushed? basicFontSize: basicFontSize*_pushFactor;
-    Color textColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
-        ? Colors.red
-        : Colors.greenAccent;
     return OverflowBox(
       alignment: Alignment.center,
       minWidth: knobDiameter,
       minHeight: knobDiameter,
-      maxWidth: knobDiameter*_pushFactor,//double.infinity,
-      maxHeight:knobDiameter*_pushFactor, //double.infinity,
+      maxWidth: knobDiameter * _pushFactor, //double.infinity,
+      maxHeight: knobDiameter * _pushFactor, //double.infinity,
       //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
       child: KnobTuned(
         pushFactor: _pushFactor,
@@ -2263,8 +2222,7 @@ class _HomePageState extends State<HomePage>
         diameter: knobDiameter,
         innerRadius: _innerRadius,
         outerRadius: _outerRadius,
-        textStyle:
-            _textStyle.copyWith(fontSize: basicFontSize, color: textColor),
+        textStyle: knobTextStyle,
         timeToDilation: _timeToDilation, //TODO: UNTESTED
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
@@ -2280,81 +2238,279 @@ class _HomePageState extends State<HomePage>
 
   ///widget Metre-bar section
   Widget _knobAndStartArea(bool portrait, Size size) {
-    // return BorderedContainer(size);
-
-    double useOfHeight=0.95;
+    double useOfHeight = 0.95;
 
     double knobDiameter = size.height * useOfHeight;
 
+    ///Центр старта
+    double startDiameter = size.height * useOfHeight * 0.8;
+    double statrCenterX = size.width * 2.25 / 16;
+    double statrCenterY = size.height * useOfHeight / 2;
+
+    ///Область служебных кнопок
+    double rightArea = 0.15 * size.width;
+    double inkWellBetweenPaddingFact = 0.1;
+    double h = size.height *
+        useOfHeight; //возмодно, нужно подровняь: size.height*useOfHeight
+    ///Нужно, чтобы поместилось 3 кнопки и два паддинга:
+    double d = h / (3 + 2 * inkWellBetweenPaddingFact);
+    if (rightArea > d) rightArea = d;
+    double inkWellBetweenPadding = inkWellBetweenPaddingFact * h;
 
     ///Центр кноба
-    double knobCenterX=size.width/2;
-    double knobCenterY=knobDiameter/2;///Фактически, выравнивание сверху - хотим быть поближе к совам
-    ///и подальше от остальных контролов
+    double knobCenterX = 2 * statrCenterX +
+        (size.width - statrCenterX - startDiameter - rightArea) / 2;
+    double knobCenterY = knobDiameter /
+        2; //Фактически, выравниванием сверху - хотим быть поближе к совам
+    //и подальше от остальных контролов
 
+    ///Кнопки темпа
+    double tempoButtonsSize = knobDiameter / 2.5;
+    double fontSizeButtons = tempoButtonsSize / 2.3;
+    TextStyle _textStyleButtons =
+        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+            .textTheme
+            .headline4
+            .copyWith(color: Colors.black, fontSize: fontSizeButtons);
 
+    ///Отсутупы от центра кноба
+    double tempoButtonDeltaX = (knobDiameter + tempoButtonsSize) / 2 * 0.95;
+    double tempoButtonDeltaY = (knobDiameter - tempoButtonsSize) / 2 * 0.99;
 
+    double textOuterSizeY = knobDiameter * _pushFactor / 1.2 / 2;
+    double textOuterSizeX = knobDiameter * _pushFactor * 1.2 / 2;
+    double textOuterDY = knobDiameter * _pushFactor * 0.02;
+
+    double knobFontSize = 0.3 * knobDiameter;
+    double knobFontSizeBig = knobFontSize * _pushFactor;
+
+    Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
+        ? Colors.red
+        : Colors
+            .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
+
+    TextStyle knobTextStyle =
+        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+            .textTheme
+            .headline4
+            .copyWith(color: tempoColor, fontSize: knobFontSize);
 
     return Container(
       width: size.width,
       height: size.height,
       decoration: decorTmp(Colors.black),
       //color: Colors.black,
-      child: Stack(overflow: Overflow.visible, fit: StackFit.expand, children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,///ToDo
+      child: Stack(
+        overflow: Overflow.visible,
+        fit: StackFit.expand,
+        children: [
+          /*Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            ///ToDo
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
-                width: useOfHeight*size.width / 3,
+                width: useOfHeight * size.width / 3,
                 decoration: decorTmp(Colors.red),
                 height: knobDiameter,
-                child: _buildPlayBtn1(size.height * useOfHeight),
+                //child: _buildPlayBtn1(size.height * useOfHeight),
               ),
               Container(
-                width: useOfHeight*size.width / 3,
+                width: useOfHeight * size.width / 3,
                 height: knobDiameter,
                 decoration: decorTmp(Colors.red),
               ),
               Container(
-                width: useOfHeight*size.width / 3,
-                height: knobDiameter,
-                decoration: decorTmp(Colors.red),
-
-                child: Row(
-                    children: [
-
-                ]
-
-                )
-
-              ),
-
-              //BorderedContainer(Size(size.width*1/3,size.height)),
-              /*Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                child: _buildPlayBtn1(size.height * 0.75),
-                //width: size.width * 1 / 3,
-              ),
-            ),*/
+                  width: useOfHeight * size.width / 5,
+                  height: knobDiameter,
+                  decoration: decorTmp(Colors.red),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildOneButton(
+                                  "+1", 1, tempoButtonsSize, _textStyleButtons),
+                              //Container(width: tempoButtonsSize/5),
+                              _buildOneButton(
+                                  "+5", 5, tempoButtonsSize, _textStyleButtons),
+                            ]),
+                        //Container(width: tempoButtonsSize/3),
+                        Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildOneButton("-1", -1, tempoButtonsSize,
+                                  _textStyleButtons),
+                              _buildOneButton("-5", -5, tempoButtonsSize,
+                                  _textStyleButtons),
+                            ])
+                      ])),
             ],
-          ),
-          // Даёт Incorrect use of ParentDataWidget.
+          ),*/
           Positioned.fromRect(
-            ///Дальнейшее: коробка кноба выравняна по Stack (иначе не получается его нажимать, или же он обсецается)
-            ///Сам он в центре относительно неё.
-            ///Теперь мы её двигаем (законно ли это - непонятно...)
-
-            rect: Rect.fromCenter(center: Offset(knobCenterX,knobCenterY),
-                width: knobDiameter,height:knobDiameter),
-            //left:-100,
-            //top: size.height/2,
-            //top:-(size.height-knobDiameter)/2, ///Выравнивае по верху
-            //child: Container(color:Colors.green, width:50, height:50,),
-            child:knobInBox(knobDiameter),
+            //Start-Stop bn
+            rect: Rect.fromCenter(
+                center: Offset(statrCenterX, statrCenterY),
+                width: startDiameter,
+                height: startDiameter),
+            child: _buildPlayBtn1(startDiameter),
           ),
-        /*
+          Positioned.fromRect(
+            //button
+            rect: Rect.fromCenter(
+                center: Offset(knobCenterX - tempoButtonDeltaX,
+                    knobCenterY - tempoButtonDeltaY),
+                width: tempoButtonsSize,
+                height: tempoButtonsSize),
+            child:
+                _buildOneButton("+1", 1, tempoButtonsSize, _textStyleButtons),
+          ),
+          Positioned.fromRect(
+            //button
+            rect: Rect.fromCenter(
+                center: Offset(knobCenterX + tempoButtonDeltaX,
+                    knobCenterY - tempoButtonDeltaY),
+                width: tempoButtonsSize,
+                height: tempoButtonsSize),
+            child:
+                _buildOneButton("+5", 5, tempoButtonsSize, _textStyleButtons),
+          ),
+          Positioned.fromRect(
+            //button
+            rect: Rect.fromCenter(
+                center: Offset(knobCenterX - tempoButtonDeltaX,
+                    knobCenterY + tempoButtonDeltaY),
+                width: tempoButtonsSize,
+                height: tempoButtonsSize),
+            child:
+                _buildOneButton("-1", -1, tempoButtonsSize, _textStyleButtons),
+          ),
+          Positioned.fromRect(
+            //button
+            rect: Rect.fromCenter(
+                center: Offset(knobCenterX + tempoButtonDeltaX,
+                    knobCenterY + tempoButtonDeltaY),
+                width: tempoButtonsSize,
+                height: tempoButtonsSize),
+            child:
+                _buildOneButton("-5", -5, tempoButtonsSize, _textStyleButtons),
+          ),
+
+          /*
+          //Очередная неудачная попытка примотать Витину кнопку звука в данном месте
+          Positioned.fromRect(
+            rect: Rect.fromCenter(
+                center: Offset(size.width-rightArea/2,
+                    rightArea/2),
+                width: rightArea,
+                height: rightArea),
+            child:
+            OverflowBox(
+              alignment: Alignment.center,
+              minWidth: 50,
+              minHeight: 50,
+              maxWidth:  rightArea,
+              maxHeight: double.infinity,
+              child:  //Container(width:rightArea, height:rightArea, color: Colors.green),
+               //_buildVolumeBtnU(),
+                  //bottom: _showAds ? _heightAds[1] + _paddingBtn.dy : _paddingBtn.dy,
+               _buildVolumeBtn(
+                      _smallBtnSize, //0.05 * _sizeCtrlsShortest
+                      _sizeCtrlsShortest),
+            )
+          ),
+*/
+
+          Align(
+            //Служебные кнопки
+            alignment: Alignment.topRight,
+            child: Container(
+              width: rightArea,
+              height: size.height * useOfHeight,
+              decoration: decorTmp(Colors.blue),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Container(
+                      width: rightArea, height: rightArea,
+                      child: _buildVolumeBtnU(),
+                      //decoration: decorTmp(Colors.green),
+                    ),
+                    Container(
+                      child: _buildSettingsBtnU(),
+                      width: rightArea, height: rightArea,
+                      //padding: EdgeInsets.only(bottom: inkWellBetweenPadding),
+                      //decoration: decorTmp(Colors.blue),
+                    ),
+                    Container(
+                      child: _buildHelpBtnU(),
+                      width: rightArea, height: rightArea,
+                      //padding: EdgeInsets.only(top: inkWellBetweenPadding),
+                      //decoration: decorTmp(Colors.white),
+                    ),
+                  ]),
+            ),
+          ),
+          Positioned.fromRect(
+            //Knob
+            ///Дальнейшее: коробка кноба выравнена по Stack (иначе не получается его нажимать, или же он обсекается)
+            rect: Rect.fromCenter(
+                center: Offset(knobCenterX, knobCenterY),
+                width: knobDiameter,
+                height: knobDiameter),
+            child: knobInBox(knobDiameter, knobTextStyle),
+          ),
+          Positioned.fromRect(
+            //Большие цифры
+            ///Дальнейшее: коробка кноба выравнена по Stack (иначе не получается его нажимать, или же он обсекается)
+            rect: Rect.fromCenter(
+                center: Offset(
+                    knobCenterX,
+                    knobCenterY -
+                        //textOuterDY -
+                        knobDiameter * _pushFactor / 2 -
+                        textOuterSizeY / 2),
+                width: textOuterSizeX,
+                height: textOuterSizeY),
+            child: SizedOverflowBox(
+              alignment: Alignment.center,
+              size: Size(textOuterSizeX, textOuterSizeY),
+              //minWidth: knobDiameter,
+              //minHeight: knobDiameter,
+              //width: knobDiameter * _pushFactor, //double.infinity,
+              //height: knobDiameter * _pushFactor, //double.infinity,
+
+              child: _knobValue.pushed
+                  ? Container(
+                      width: textOuterSizeX,
+                      height: textOuterSizeY,
+                      //     color: Colors.blue.withOpacity(0.5),
+                      decoration: new BoxDecoration(
+                        color: Colors.blue.withOpacity(0.75),
+                        //  border: Border.all(color: Colors.blue, width: 0.0),
+                        borderRadius: new BorderRadius.all(
+                            Radius.elliptical(textOuterSizeX, textOuterSizeY)),
+                      ),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          _knobValue.value.toInt().toString(),
+                          style:
+                              knobTextStyle.copyWith(fontSize: knobFontSizeBig),
+                        ),
+                      ),
+                    )
+                  : Container(),
+            ),
+          ),
+
+          /*
         Positioned.fill(
           ///Дальнейшее: коробка кноба выравняна по Stack (иначе не получается его нажимать, или же он обсецается)
           ///Сам он в центре относительно неё.
@@ -2376,7 +2532,8 @@ class _HomePageState extends State<HomePage>
         ),
 
          */
-      ]),
+        ],
+      ),
     );
   }
 
@@ -2477,6 +2634,43 @@ class _HomePageState extends State<HomePage>
         onChanged: onSubbeatChanged,
       );
     });
+  }
+
+  ///+- tempo buttons
+  Widget _buildOneButton(
+      String text, int delta, double sqsize, TextStyle textStyle) {
+    final Widget icon = new Image.asset(
+      "images/butowl4.png",
+      width: sqsize,
+      height: sqsize,
+      fit: BoxFit.contain,
+    );
+
+    return InkWell(
+      child: Stack(alignment: Alignment.center, children: [
+        icon,
+        Text(
+          text,
+          style: textStyle,
+        ),
+      ]),
+      enableFeedback: !_playing, //Регулирует писк кнопки
+      customBorder: CircleBorder(
+          side: BorderSide(color: _ctrlColor, width: _borderWidth)), //ToDo
+      onTap: () {
+        int newTempo = _tempoBpm + delta;
+
+        ///ToDo: Untested
+        if (newTempo < minTempo) newTempo = minTempo;
+        if (newTempo > _tempoBpmMax) newTempo = _tempoBpmMax;
+        _setTempo(newTempo);
+        /*
+        if (_playing)
+          _setTempo(
+              _tempoBpm);  */
+        setState(() {});
+      },
+    );
   }
 
   ///
@@ -2599,23 +2793,7 @@ class _HomePageState extends State<HomePage>
         fit: BoxFit.contain,
       );
 
-      final Widget icon2 = new Row(children: <Widget>[
-        // Icon(Icons.music_note, size: 0.5 * sizeButton, color: _cWhiteColor),
-        Text(
-          strScheme,
-          style: Theme.of(context).textTheme.headline5.copyWith(
-              fontSize: 0.7 * sizzze.width,
-              fontWeight: FontWeight.bold,
-              color: Colors.black),
-        ),
-      ]);
-
       return new RawMaterialButton(
-        /*child: imageIndex == 3 ? icon2 : icon,
-        constraints: BoxConstraints(
-          minWidth: sizeButton,
-          minHeight: sizeButton,
-        ),*/
         child: Stack(alignment: Alignment.center, children: [
           //decoration: decorTmp(Colors.green),
           icon,
@@ -2701,7 +2879,7 @@ class _HomePageState extends State<HomePage>
         children: <Widget>[
           Expanded(
             child: Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.center,
               child: Text(
                 _soundSchemes != null &&
                         _activeSoundScheme < _soundSchemes.length
@@ -2711,7 +2889,7 @@ class _HomePageState extends State<HomePage>
               ),
             ),
           ),
-          Container(
+          /*Container(
             decoration: decorTmp(Colors.blue),
             child: Row(
                 //mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -2738,7 +2916,7 @@ class _HomePageState extends State<HomePage>
                     //decoration: decorTmp(Colors.white),
                   ),
                 ]),
-          ),
+          ),*/
         ],
       ),
     );
@@ -2816,7 +2994,9 @@ class _HomePageState extends State<HomePage>
   Widget _buildHelpBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double size = constraints.maxHeight;
+      double size = constraints.maxHeight < constraints.maxWidth
+          ? constraints.maxHeight
+          : constraints.maxWidth;
       return new InkWell(
         child: Icon(Icons.help_outline, size: size),
         enableFeedback: !_playing,
@@ -2831,7 +3011,9 @@ class _HomePageState extends State<HomePage>
   Widget _buildSettingsBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double size = constraints.maxHeight;
+      double size = constraints.maxHeight < constraints.maxWidth
+          ? constraints.maxHeight
+          : constraints.maxWidth;
       return new InkWell(
         child: Icon(Icons.settings, size: size),
         //tooltip: _soundSchemes[_activeSoundScheme],
@@ -2846,18 +3028,17 @@ class _HomePageState extends State<HomePage>
   Widget _buildVolumeBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double diam = constraints.maxHeight;
-      return new VolumeButtonTmp(
-        value: _volume,
-        min: 0,
-        max: 100,
-        //mute = false,
-        msec: 250,
-        onChanged: _setVolume,
-        diameter: diam, //ToDo:?? Что это под слак?
-        height: _sizeCtrlsShortest, //ToDo:???
-        color: _cWhiteColor,
+      double diam = constraints.maxHeight < constraints.maxWidth
+          ? constraints.maxHeight
+          : constraints.maxWidth;
+
+      return new InkWell(
+        child: Icon(Icons.volume_up, size: diam),
+        //tooltip: _soundSchemes[_activeSoundScheme],
         enableFeedback: !_playing,
+        onTap: () {
+          ///_showSettings(context); --- VOLUME
+        },
       );
     });
   }
