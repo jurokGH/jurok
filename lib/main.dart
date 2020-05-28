@@ -2833,6 +2833,9 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  ///
+  /// Рисует тапабельную строку с музыкальной схемой. По тапу выдаётся диалог
+  ///
   Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
@@ -2842,7 +2845,10 @@ class _HomePageState extends State<HomePage>
     TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-    /*
+    /*//Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
+    //само диалоговое окно не обновляется.
+    //Чтобы диалог обновлялся сам при выборе нового item, необходимо оформить виджеты-элементы как класс и
+    //завернуть выбор в  StatefulBuilder.
     List<Widget> musicList = [];
     for (int j = 0; j < _soundSchemes.length; j++) {
       int i = j %
@@ -2883,7 +2889,7 @@ class _HomePageState extends State<HomePage>
           ),
         ),
       );
-    }*/ //Рабочий вариант
+    }*/
 
     return Container(
       width: totalWidth,
@@ -2897,11 +2903,11 @@ class _HomePageState extends State<HomePage>
       )),
       child: RawMaterialButton(
         enableFeedback: !_playing,
-        onPressed: () {
+        onPressed: () { //По тапу вытаскиваем список для выбора схемы
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return StatefulBuilder(builder: (context, setState) {
+                return StatefulBuilder(builder: (context, setState) { //Эта приблуда нужна, чтобы список обновлялся
                   List<Widget> musicList = [];
                   for (int i = 0; i < _soundSchemes.length; i++) {
                     musicList.add(
@@ -2917,7 +2923,8 @@ class _HomePageState extends State<HomePage>
                                 .setSoundScheme(_activeSoundScheme)
                                 .then((int result) {
                               setState(() {}); //ToDo: Why?
-                              // Navigator.of(context).pop();
+                              //if (!_playing) Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             });
                           },
                           child: Container(
@@ -2946,7 +2953,6 @@ class _HomePageState extends State<HomePage>
                   return SimpleDialog(
                     backgroundColor: Colors.amber[50],
                     elevation: 10.3,
-
                     // title: const Text("Instruments"),
                     children:
                         musicList, //Чтобы обновить состояние, нужно переделать musicList
@@ -2957,7 +2963,7 @@ class _HomePageState extends State<HomePage>
                 });
               });
         },
-        child: Align(
+        child: Align( //То, что рисуется в строке
           alignment: Alignment.center,
           child: Text(
             _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
