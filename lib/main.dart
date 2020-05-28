@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:owlenome/MetreBar_ui.dart';
 import 'package:owlenome/subbeat-eq_ui.dart';
 import 'package:owlenome/volume_uiTmp.dart';
@@ -257,10 +258,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras.)
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = true;
+  bool bBoxContainer = false;
 
   // bool bShowBoundariesDebug=true;
 
@@ -358,7 +359,8 @@ class _HomePageState extends State<HomePage>
 
   ///Во сколько раз увеличивается кноб
   static double _pushFactor = 2.5;
-  double _outerRadius = _pushFactor*2; //ToDo: скоординировать ли с pushFactor? Сделаю побольше, иначе кажется неприятный эффект с
+  double _outerRadius = _pushFactor *
+      2; //ToDo: скоординировать ли с pushFactor? Сделаю побольше, иначе кажется неприятный эффект с
   //с потерей угла
   static const double initKnobAngle = 0;
   KnobValue _knobValue;
@@ -1972,26 +1974,24 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
-
   TextStyle basicTextStyle; //ToDo
 
   Widget testWidget(Size size) {
-
-    double ShadowOffset=size.width*0.03;
-    double blurRadius=ShadowOffset*1;
+    double ShadowOffset = size.width * 0.03;
+    double blurRadius = ShadowOffset * 1;
     return Container(
       child: _rowControlsArea(true, size),
       width: size.width,
       height: size.height,
       decoration: BoxDecoration(
-          color: Colors.orangeAccent,
-          boxShadow: [
-            BoxShadow(
-              offset:   Offset(0, ShadowOffset),
-                blurRadius: blurRadius,
-               //spreadRadius: 12.0,
-            ),
-          ],
+        color: Colors.orangeAccent,
+        boxShadow: [
+          BoxShadow(
+            offset: Offset(0, ShadowOffset),
+            blurRadius: blurRadius,
+            //spreadRadius: 12.0,
+          ),
+        ],
       ),
     );
   }
@@ -2054,21 +2054,29 @@ class _HomePageState extends State<HomePage>
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
+    double ShadowOffset = totalWidth * 0.03;
+    double blurRadius = ShadowOffset * 1;
+
     bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
-      /*
-      (!bTest)
-          ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
-          : testWidget(Size(totalWidth, totalWidth * c2)),*/
-
       _knobAndStartArea(true, Size(totalWidth, totalWidth * c2)),
-
-      (!bTest)
-          ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
-          : testWidget(Size(totalWidth, totalWidth * c2)),
-
-
+      Container(
+        ///3d-экзерсисы, Юрик, сделай что-нибудь.
+        decoration: BoxDecoration(
+          color: Colors.amber[100],
+          boxShadow: [
+            BoxShadow(
+              offset: Offset(0, ShadowOffset),
+              blurRadius: blurRadius,
+              //spreadRadius: 12.0,
+            ),
+          ],
+        ),
+        child: (!bTest)
+            ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
+            : testWidget(Size(totalWidth, totalWidth * c2)),
+      ),
     ];
 
     Widget metronome = Align(
@@ -2114,40 +2122,6 @@ class _HomePageState extends State<HomePage>
               ],
             )));
     return metronome;
-  }
-
-  Widget knobInBox(double knobDiameter, TextStyle knobTextStyle) {
-    _knobValue.value = _tempoBpm.toDouble();
-    //final double fontSize = !_knobValue.pushed? basicFontSize: basicFontSize*_pushFactor;
-    return OverflowBox(
-      alignment: Alignment.center,
-      minWidth: knobDiameter,
-      minHeight: knobDiameter,
-      maxWidth: knobDiameter * _pushFactor, //double.infinity,
-      maxHeight: knobDiameter * _pushFactor, //double.infinity,
-      //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
-      child: KnobTuned(
-        pushFactor: _pushFactor,
-        knobValue: _knobValue,
-        minValue: minTempo.toDouble(),
-        maxValue: _tempoBpmMax.toDouble(),
-        sensitivity: _sensitivity,
-        diameter: knobDiameter,
-        innerRadius: _innerRadius,
-        outerRadius: _outerRadius,
-        textStyle: knobTextStyle,
-        timeToDilation: _timeToDilation, //TODO: UNTESTED
-        showText: false,
-        onChanged: (KnobValue newVal) {
-          _knobValue = newVal;
-          _setTempo(newVal.value.round());
-          //_tempoBpm = newVal.value.round();
-          //if (_playing)
-          //_setTempo(_tempoBpm);
-          setState(() {});
-        },
-      ),
-    );
   }
 
   ///widget Metre-bar section
@@ -2451,12 +2425,46 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  Widget knobInBox(double knobDiameter, TextStyle knobTextStyle) {
+    _knobValue.value = _tempoBpm.toDouble();
+    //final double fontSize = !_knobValue.pushed? basicFontSize: basicFontSize*_pushFactor;
+    return OverflowBox(
+      alignment: Alignment.center,
+      minWidth: knobDiameter,
+      minHeight: knobDiameter,
+      maxWidth: knobDiameter * _pushFactor, //double.infinity,
+      maxHeight: knobDiameter * _pushFactor, //double.infinity,
+      //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
+      child: KnobTuned(
+        pushFactor: _pushFactor,
+        knobValue: _knobValue,
+        minValue: minTempo.toDouble(),
+        maxValue: _tempoBpmMax.toDouble(),
+        sensitivity: _sensitivity,
+        diameter: knobDiameter,
+        innerRadius: _innerRadius,
+        outerRadius: _outerRadius,
+        textStyle: knobTextStyle,
+        timeToDilation: _timeToDilation, //TODO: UNTESTED
+        showText: false,
+        onChanged: (KnobValue newVal) {
+          _knobValue = newVal;
+          _setTempo(newVal.value.round());
+          //_tempoBpm = newVal.value.round();
+          //if (_playing)
+          //_setTempo(_tempoBpm);
+          setState(() {});
+        },
+      ),
+    );
+  }
+
   Widget signatureRaw(double totalWidht) {
     double globalYPadding = totalWidht * 0.005;
     double localXPadding = totalWidht * 0.01;
     return Container(
         padding: EdgeInsets.symmetric(vertical: globalYPadding),
-        decoration: decorTmp(Colors.blue),
+        // decoration: decorTmp(Colors.blue),
         child: Row(children: [
           Expanded(
             //Звуковая схема
@@ -2471,32 +2479,6 @@ class _HomePageState extends State<HomePage>
             //Колонка колёс метра
             flex: 12,
             child: metreU(),
-            /*Column(//Колонка колёс метра
-                children: [
-              Expanded(
-                //числитель
-                flex: 7,
-                child: Container(
-                  decoration: decorTmp(Colors.green),
-                  child: Text("num"),
-                ),
-              ),
-              Expanded(
-                //спайс
-                flex: 1,
-                child: Container(
-                  decoration: decorTmp(Colors.blue),
-                ),
-              ),
-              Expanded(
-                //знаменатель
-                flex: 7,
-                child: Container(
-                  decoration: decorTmp(Colors.green),
-                  child: Text("denom"),
-                ),
-              ),
-            ]),            */
           ),
           Expanded(
             //Строка акцентов
@@ -2507,61 +2489,114 @@ class _HomePageState extends State<HomePage>
               // child: metreU(), //_buildBar(true, Size(150,150)),
             ),
           ),
+          //Spacer(flex:1),
           Expanded(
-              //Колонка справа (ритмы и регулятор-сова)
-              flex: 12,
-              child: Column(children: [
-                Expanded(
-                  //ритмы
-                  flex: 7,
-                  child: Container(
-                    decoration: decorTmp(Colors.green),
-                    //child: rithmPicker;
+            //Колонка справа (ритмы и регулятор-сова)
+            flex: 12,
+            child: Container(
+              child: Column(
+                //crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    //ритмы
+                    flex: 7,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                        image: AssetImage('images/but-note-1.png'),
+                        //image: AssetImage('images/ictempo.png'),
+                        fit: BoxFit.fill,
+                      )),
+                      //decoration: decorTmp(Colors.green),
+                      child: rhythmPicker(),
+                    ),
                   ),
-                ),
-                Expanded(
-                  //спайс
-                  flex: 1,
-                  child: Container(
-                    decoration: decorTmp(Colors.green),
+                  Expanded(
+                    //спайс
+                    flex: 1,
+                    child: Container(
+                      decoration: decorTmp(Colors.green),
+                    ),
                   ),
-                ),
-                Expanded(
-                  //сова-регулятор поддолей
-                  //Звуковая схема
-                  flex: 7,
-                  child: btnSubBeatU(),
-                ),
-              ])),
+                  Expanded(
+                    //сова-регулятор поддолей
+                    //Звуковая схема
+                    flex: 7,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                        image: AssetImage('images/but-note-1.png'),
+                        //image: AssetImage('images/ictempo.png'),
+                        fit: BoxFit.fill,
+                      )),
+                      //decoration: decorTmp(Colors.green),
+                      child: btnSubBeatU(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ]));
   }
 
-  Widget btnSubBeatU() {
-
+  Widget rhythmPicker() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
-
-
-      double fontSizeTempo = size.height/1.3;
       TextStyle textStyle =
-      Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-          .textTheme
-          .headline4;
+          Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+              .textTheme
+              .headline4
+              .copyWith(
+                  color: Colors.black,
+                  fontSize: size.width / 5,
+                  fontStyle: FontStyle.italic);
 
-
-      return SubbeatEqWidget(
-        subbeatCount: _beat.subBeatCount,
-        noteValue: activeMetre.note,
-        noteColor: Colors.green,
-        textStyle: textStyle,
-        size: size,
-        onChanged: onSubbeatChanged,
+      return Container(
+        width: size.width,
+        height: size.height,
+        child: Align(
+          alignment: Alignment.center,
+          child: Text("rhythms...", style: textStyle),
+        ),
       );
     });
   }
 
+  Widget btnSubBeatU() {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      Size size = Size(constraints.maxWidth, constraints.maxHeight);
+
+      TextStyle textStyle =
+          Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+              .textTheme
+              .headline4;
+
+      //onChanged: onSubbeatChanged,
+
+      bool allEqual = true;
+      int initSubBeat = _beat.subBeats.length > 0 ? _beat.subBeats[0] : 0;
+      for (int i = 1; i < _beat.beatCount; i++) {
+        if (_beat.subBeats[i] != initSubBeat) {
+          allEqual = false;
+          break;
+        }
+      }
+
+      return SubbeatEqWidget(
+        subbeatCount: _beat.subBeatCount,
+        noteValue: activeMetre.note,
+        noteColor: Colors.black,
+        textStyle: textStyle,
+        size: size,
+        allEqual: allEqual,
+        onChanged: onSubbeatChanged,
+      );
+    });
+  }
 
   ///+- tempo buttons
   Widget _buildOneButton(
@@ -2767,26 +2802,11 @@ class _HomePageState extends State<HomePage>
 
     double leftRightPadding = size.width * 0.02;
 
-    ///3d-экзерсисы, Юрик, сделай что-нибудь.
-    double ShadowOffset=size.width*0.03;
-    double blurRadius=ShadowOffset*1;
-
-
     return Container(
       width: size.width,
       height: size.height,
       padding: EdgeInsets.symmetric(horizontal: leftRightPadding),
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.amber[100],
-          boxShadow: [
-            BoxShadow(
-              offset:   Offset(0, ShadowOffset),
-              blurRadius: blurRadius,
-              //spreadRadius: 12.0,
-            ),
-          ],
-        ),
         child: Column(
           //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -2814,54 +2834,138 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
-    double inkWellBetweenPadding = totalWidth * 0.01;
-    return Container(
-      decoration: decorTmp(Colors.yellow),
-      child: Row(
-        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                _soundSchemes != null &&
-                        _activeSoundScheme < _soundSchemes.length
-                    ? _soundSchemes[_activeSoundScheme]
-                    : "[no sound sheme loaded]",
-                style: textStyle,
+    //double inkWellBetweenPadding = totalWidth * 0.01;
+
+    double shrinkForList = 0.9;
+    TextStyle listTextStyle =
+        textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
+    TextStyle listTextStyleBold =
+        listTextStyle.copyWith(fontWeight: FontWeight.bold);
+
+    /*
+    List<Widget> musicList = [];
+    for (int j = 0; j < _soundSchemes.length; j++) {
+      int i = j %
+          _soundSchemes.length; //Отладочное, чтобы проверить на многих списках
+      musicList.add(
+        Container(
+          //decoration: decorTmp(Colors.yellow),
+          padding: EdgeInsets.symmetric(
+              vertical: totalWidth * shrinkForList / 50,
+              horizontal: totalWidth * (1 - shrinkForList) / 4),
+          child: GestureDetector(
+            onTap: () {
+              _activeSoundScheme = i;
+              _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+                setState(() {}); //ToDo: Why?
+                // Navigator.of(context).pop();
+              });
+            },
+            child: Container(
+              width: shrinkForList * totalWidth,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                image: AssetImage('images/ic3.png'),
+                //image: AssetImage('images/but-note-1.png'),
+                //image: AssetImage('images/ictempo.png'),
+                fit: BoxFit.fill,
+              )),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  _soundSchemes[i],
+                  style: (i == _activeSoundScheme)
+                      ? listTextStyleBold
+                      : listTextStyle,
+                ),
               ),
             ),
           ),
-          /*Container(
-            decoration: decorTmp(Colors.blue),
-            child: Row(
-                //mainAxisAlignment: MainAxisAlignment.spaceAround,
-                //mainAxisAlignment: MainAxisAlignment.end,
-                //crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    child: _buildSettingsBtnU(),
-                    padding: EdgeInsets.only(right: inkWellBetweenPadding),
-                    //decoration: decorTmp(Colors.blue),
-                  ),
-                  Container(
-                    child: Container(),
-                    /*Stack(//ToDo: experiments...
-                              children:[_buildVolumeBtnU()],
-                    ),*/
-                    padding:
-                        EdgeInsets.symmetric(horizontal: inkWellBetweenPadding),
-                    decoration: decorTmp(Colors.white),
-                  ),
-                  Container(
-                    child: _buildHelpBtnU(),
-                    padding: EdgeInsets.only(left: inkWellBetweenPadding),
-                    //decoration: decorTmp(Colors.white),
-                  ),
-                ]),
-          ),*/
-        ],
+        ),
+      );
+    }*/ //Рабочий вариант
+
+    return Container(
+      width: totalWidth,
+      //decoration: decorTmp(Colors.yellow),
+      decoration: BoxDecoration(
+          image: DecorationImage(
+        image: AssetImage('images/ic3.png'),
+        //image: AssetImage('images/but-note-1.png'),
+        //image: AssetImage('images/ictempo.png'),
+        fit: BoxFit.fill,
+      )),
+      child: RawMaterialButton(
+        enableFeedback: !_playing,
+        onPressed: () {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return StatefulBuilder(builder: (context, setState) {
+                  List<Widget> musicList = [];
+                  for (int i = 0; i < _soundSchemes.length; i++) {
+                    musicList.add(
+                      Container(
+                        //decoration: decorTmp(Colors.yellow),
+                        padding: EdgeInsets.symmetric(
+                            vertical: totalWidth * shrinkForList / 50,
+                            horizontal: totalWidth * (1 - shrinkForList) / 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            _activeSoundScheme = i;
+                            _channel
+                                .setSoundScheme(_activeSoundScheme)
+                                .then((int result) {
+                              setState(() {}); //ToDo: Why?
+                              // Navigator.of(context).pop();
+                            });
+                          },
+                          child: Container(
+                            width: shrinkForList * totalWidth,
+                            decoration: BoxDecoration(
+                                image: DecorationImage(
+                              image: AssetImage('images/ic3.png'),
+                              //image: AssetImage('images/but-note-1.png'),
+                              //image: AssetImage('images/ictempo.png'),
+                              fit: BoxFit.fill,
+                            )),
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                _soundSchemes[i],
+                                style: (i == _activeSoundScheme)
+                                    ? listTextStyleBold
+                                    : listTextStyle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return SimpleDialog(
+                    backgroundColor: Colors.amber[50],
+                    elevation: 10.3,
+
+                    // title: const Text("Instruments"),
+                    children:
+                        musicList, //Чтобы обновить состояние, нужно переделать musicList
+                    //через класс, или же впихивать его прямо сюда.
+                    //см https://stackoverflow.com/questions/51962272/how-to-refresh-an-alertdialog-in-flutter
+                    //Пока впихнул сюда.
+                  );
+                });
+              });
+        },
+        child: Align(
+          alignment: Alignment.center,
+          child: Text(
+            _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
+                ? _soundSchemes[_activeSoundScheme]
+                : "[no sound sheme loaded]",
+            style: textStyle,
+          ),
+        ),
       ),
     );
   }
