@@ -127,7 +127,7 @@ class KnobResizableState extends State<KnobResizable> {
   void initState() {
     super.initState();
 
-    _image = new Image.asset('images/knob4.png',
+    _image = new Image.asset('images/knob3d-2.png',
       fit: BoxFit.cover,
       filterQuality: FilterQuality.medium,
     );

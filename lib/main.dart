@@ -35,6 +35,8 @@ import 'timer_ui.dart';
 import 'NoteTempo.dart';
 import 'NoteWidget.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
 ///
@@ -171,7 +173,7 @@ class App extends StatelessWidget {
           colorScheme: ColorScheme.light(),
           textTheme: ButtonTextTheme.primary,
         ),
-        fontFamily: 'RobotoMono',
+        //fontFamily: 'RobotoMono',
       ),
       home: HomePage(title: _cAppTitle),
     );
@@ -259,10 +261,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras.)
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = true;
+  bool bBoxContainer = false;
 
   // bool bShowBoundariesDebug=true;
 
@@ -2156,7 +2158,7 @@ class _HomePageState extends State<HomePage>
     ///Кнопки темпа
     double tempoButtonsSize = knobDiameter / 2.5;
     double fontSizeButtons = tempoButtonsSize / 2.3;
-    TextStyle _textStyleButtons =
+    TextStyle _textStyleButtons =//ToDo: fix font; fix font size
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
             .textTheme
             .headline4
@@ -2178,7 +2180,7 @@ class _HomePageState extends State<HomePage>
         : Colors
             .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
 
-    TextStyle knobTextStyle =
+    TextStyle knobTextStyle =//ToDo: fix font; fix size
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
             .textTheme
             .headline4
@@ -2561,19 +2563,8 @@ class _HomePageState extends State<HomePage>
 
 
   Widget rhythmPickerInside(Size size){
-    TextStyle textStyle =
-    Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-        .textTheme
-        .headline4
-        .copyWith(
-        color: Colors.black,
-        fontSize: size.width / 4.38,
-        fontStyle: FontStyle.italic);
 
-    TextStyle textStyle1 = TextStyle(fontFamily: 'RobotoMono',
-        color: Colors.blue,
-        fontSize: size.width / 4.38,
-        fontStyle: FontStyle.italic);
+    TextStyle textStyle =GoogleFonts.roboto(fontSize: size.width / 5.2, color: Colors.black,fontStyle: FontStyle.italic);
 
     List<PopupMenuItem> items=[];
     List<int> firstRithm=List<int>.filled(_beat.beatCount,0);
@@ -2592,7 +2583,7 @@ class _HomePageState extends State<HomePage>
         height: size.height,
         child: Align(
           alignment: Alignment.center,
-          child: Text("rhythms...", style: textStyle1),
+          child: Text("rhythms...", style: textStyle),
         ),
       ),
       itemBuilder: (context) => [//ZZZZ TODO
@@ -2613,10 +2604,13 @@ class _HomePageState extends State<HomePage>
         builder: (BuildContext context, BoxConstraints constraints) {
       Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
+      /*
       TextStyle textStyle =
           Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
               .textTheme
-              .headline4;
+              .headline4;*/
+
+      TextStyle textStyle =GoogleFonts.roboto();
 
       //onChanged: onSubbeatChanged,
 
@@ -2832,7 +2826,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _rowControlsArea(bool portrait, Size size) {
-    double fontSizeTempo = size.height / 6;
+    double fontSizeTempo = size.width*0.35 / 6;//ToDo: to make the widget more flexible,  this 0.35 should be one of c_i-s constatns
     double fontSizeMusicScheme = fontSizeTempo / 1;
     /*TextStyle _textStyleTempoRow =
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
@@ -2842,13 +2836,9 @@ class _HomePageState extends State<HomePage>
 
      */
 
-    TextStyle _textStyleTempoRow = TextStyle(fontSize: fontSizeTempo, /*fontFamily: 'RobotoMono'*/);
+    TextStyle _textStyleTempoRow =GoogleFonts.roboto(fontSize:  fontSizeTempo);
 
-
-    TextStyle _textStyleSchemeRow = Theme.of(context)
-        .textTheme
-        .headline4
-        .copyWith(color: Colors.black, fontSize: fontSizeMusicScheme);
+    TextStyle _textStyleSchemeRow = GoogleFonts.roboto(fontSize: fontSizeMusicScheme);
 
     double leftRightPadding = size.width * 0.02;
 

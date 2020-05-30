@@ -28,6 +28,9 @@ dependencies:
   flutter_xlider: ^3.4.0
   device_preview: ^0.4.4
 
+  #test
+  google_fonts: ^1.1.0
+
  # TMP DOUBLE CHECK Что за хрень не знаю, для  пробы  примотаю. Лицензия MIT
  # overlay_container: ^0.0.4+1
  # ---  Эта приблуда и правда рисует где хочет, но тапы там распознаются очень плохо
@@ -64,6 +67,7 @@ flutter:
     - images/ic3.png
     - images/ictempo.png
     - images/knob3d.png
+    - images/knob3d-2.png
     - images/button.png
     - images/meter.png
     #todo: в пнг
@@ -173,10 +177,3 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
 
-
-  fonts:
-    - family: RobotoMono
-      fonts:
-        - asset: fonts/RobotoMono-Regular.ttf
-        - asset: fonts/RobotoMono-Bold.ttf
-          weight: 700
