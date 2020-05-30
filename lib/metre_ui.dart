@@ -217,7 +217,8 @@ class MetreState extends State<MetreWidget>
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/Metre.png'),
+                //image: AssetImage('images/Metre.png'),
+                image: AssetImage('images/meter.png'),
                   fit: BoxFit.fill,
                 ),
 /*
@@ -279,7 +280,8 @@ class MetreState extends State<MetreWidget>
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/Metre.png'),
+                //image: AssetImage('images/Metre.png'),
+                image: AssetImage('images/meter.png'),
                 fit: BoxFit.fill,
               ),
 /*

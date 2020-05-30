@@ -171,6 +171,7 @@ class App extends StatelessWidget {
           colorScheme: ColorScheme.light(),
           textTheme: ButtonTextTheme.primary,
         ),
+        fontFamily: 'RobotoMono',
       ),
       home: HomePage(title: _cAppTitle),
     );
@@ -258,10 +259,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras.)
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = false;
+  bool bBoxContainer = true;
 
   // bool bShowBoundariesDebug=true;
 
@@ -291,7 +292,7 @@ class _HomePageState extends State<HomePage>
   /// Initially filled with predefined ('standard') metres
   /// User defined metre is inserted into this list in its sorted position
   List<MetreBar> _metreList = [
-    MetreBar(2, 2),
+    MetreBar(2, 4),
     MetreBar(3, 4),
     MetreBar(4, 4),
     MetreBar(6, 8),
@@ -2069,7 +2070,7 @@ class _HomePageState extends State<HomePage>
             BoxShadow(
               offset: Offset(0, ShadowOffset),
               blurRadius: blurRadius,
-              //spreadRadius: 12.0,
+              spreadRadius: 12.0,
             ),
           ],
         ),
@@ -2554,15 +2555,57 @@ class _HomePageState extends State<HomePage>
                   fontSize: size.width / 5,
                   fontStyle: FontStyle.italic);
 
-      return Container(
+      return rhythmPickerInside(size);
+    });
+  }
+
+
+  Widget rhythmPickerInside(Size size){
+    TextStyle textStyle =
+    Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+        .textTheme
+        .headline4
+        .copyWith(
+        color: Colors.black,
+        fontSize: size.width / 4.38,
+        fontStyle: FontStyle.italic);
+
+    TextStyle textStyle1 = TextStyle(fontFamily: 'RobotoMono',
+        color: Colors.blue,
+        fontSize: size.width / 4.38,
+        fontStyle: FontStyle.italic);
+
+    List<PopupMenuItem> items=[];
+    List<int> firstRithm=List<int>.filled(_beat.beatCount,0);
+    List<int> secondRithm=List<int>.filled(_beat.beatCount,1);
+    List<List<int>> rithms=[firstRithm,secondRithm];
+
+
+    return PopupMenuButton<int>(
+      onSelected: (value) {
+
+
+
+      },
+      child: Container(
         width: size.width,
         height: size.height,
         child: Align(
           alignment: Alignment.center,
-          child: Text("rhythms...", style: textStyle),
+          child: Text("rhythms...", style: textStyle1),
         ),
-      );
-    });
+      ),
+      itemBuilder: (context) => [//ZZZZ TODO
+        PopupMenuItem(
+          value: 1,
+          child: Text("First R"),
+        ),
+        PopupMenuItem(
+          value: 2,
+          child: Text("Second R"),
+        ),
+      ],
+    );
   }
 
   Widget btnSubBeatU() {
@@ -2602,7 +2645,8 @@ class _HomePageState extends State<HomePage>
   Widget _buildOneButton(
       String text, int delta, double sqsize, TextStyle textStyle) {
     final Widget icon = new Image.asset(
-      "images/butowl4.png",
+      //"images/butowl4.png",
+      "images/button.png",
       width: sqsize,
       height: sqsize,
       fit: BoxFit.contain,
@@ -2726,7 +2770,8 @@ class _HomePageState extends State<HomePage>
                 decoration: BoxDecoration(
                     image: DecorationImage(
                   //image: AssetImage('images/but-note-1.png'),
-                  image: AssetImage('images/ictempo.png'),
+                  //image: AssetImage('images/ictempo.png'),
+                      image: AssetImage('images/wh1.jpg'),
                   fit: BoxFit.fill,
                 )),
                 //decoration: decorTmp(Colors.green),
@@ -2789,11 +2834,16 @@ class _HomePageState extends State<HomePage>
   Widget _rowControlsArea(bool portrait, Size size) {
     double fontSizeTempo = size.height / 6;
     double fontSizeMusicScheme = fontSizeTempo / 1;
-    TextStyle _textStyleTempoRow =
+    /*TextStyle _textStyleTempoRow =
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
             .textTheme
             .headline4
             .copyWith(color: Colors.black, fontSize: fontSizeTempo);
+
+     */
+
+    TextStyle _textStyleTempoRow = TextStyle(fontSize: fontSizeTempo, /*fontFamily: 'RobotoMono'*/);
+
 
     TextStyle _textStyleSchemeRow = Theme.of(context)
         .textTheme
@@ -2845,7 +2895,9 @@ class _HomePageState extends State<HomePage>
     TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-    /*//Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
+
+
+    //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
     //само диалоговое окно не обновляется.
     //Чтобы диалог обновлялся сам при выборе нового item, необходимо оформить виджеты-элементы как класс и
     //завернуть выбор в  StatefulBuilder.
@@ -2864,18 +2916,18 @@ class _HomePageState extends State<HomePage>
               _activeSoundScheme = i;
               _channel.setSoundScheme(_activeSoundScheme).then((int result) {
                 setState(() {}); //ToDo: Why?
-                // Navigator.of(context).pop();
+                 Navigator.of(context).pop();
               });
             },
             child: Container(
               width: shrinkForList * totalWidth,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                image: AssetImage('images/ic3.png'),
-                //image: AssetImage('images/but-note-1.png'),
-                //image: AssetImage('images/ictempo.png'),
-                fit: BoxFit.fill,
-              )),
+                    image: AssetImage('images/ic3.png'),
+                    //image: AssetImage('images/but-note-1.png'),
+                    //image: AssetImage('images/ictempo.png'),
+                    fit: BoxFit.fill,
+                  )),
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -2889,8 +2941,92 @@ class _HomePageState extends State<HomePage>
           ),
         ),
       );
-    }*/
+    }
 
+    //Ещё один вариант диалога, через SimpleDialogOption
+    //Прост по синтаксису, но крякает и как отключить звук - непонятно.
+    List<SimpleDialogOption> musicListOpt = [];
+    for (int i = 0; i < _soundSchemes.length; i++) {
+      musicListOpt.add(
+        SimpleDialogOption(
+          onPressed: () {
+            _activeSoundScheme = i;
+            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+              setState(() {}); //ToDo: Why?
+              Navigator.of(context).pop();
+            });
+          },
+          child: Container(
+            //decoration: decorTmp(Colors.yellow),
+            padding: EdgeInsets.symmetric(
+                vertical: totalWidth * shrinkForList / 50,
+                horizontal: totalWidth * (1 - shrinkForList) / 4),
+
+              child: Container(
+                width: shrinkForList * totalWidth,
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('images/ic3.png'),
+                      //image: AssetImage('images/but-note-1.png'),
+                      //image: AssetImage('images/ictempo.png'),
+                      fit: BoxFit.fill,
+                    )),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    _soundSchemes[i],
+                    style: (i == _activeSoundScheme)
+                        ? listTextStyleBold
+                        : listTextStyle,
+                  ),
+                ),
+              ),
+          ),
+        ),
+      );
+    }
+
+
+    return Container(
+      width: totalWidth,
+      //decoration: decorTmp(Colors.yellow),
+      decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/ic3.png'),
+            //image: AssetImage('images/but-note-1.png'),
+            //image: AssetImage('images/ictempo.png'),
+            fit: BoxFit.fill,
+          )),
+      child: RawMaterialButton(
+        enableFeedback: false,//!_playing,
+        onPressed: () { //По тапу вытаскиваем список для выбора схемы
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                  return SimpleDialog(
+                    backgroundColor: Colors.amber[50],
+                    elevation: 10.3,
+                    // title: const Text("Instruments"),
+                    //children:musicListOpt,//Крякает
+                    children:musicList,
+                  );
+                });
+              },
+        child: Align( //То, что рисуется в строке
+          alignment: Alignment.center,
+          child: Text(
+            _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
+                ? _soundSchemes[_activeSoundScheme]
+                : "[no sound sheme loaded]",
+            style: textStyle,
+          ),
+        ),
+      ),
+    );
+
+    /*//Список, котороый позволяет менять схему не останавливаясь и не закрываясь.
+    // Для этого он должен обновляться на ходу
+    //В том, что ниже,  что-то не верно с обновлением состояния...
     return Container(
       width: totalWidth,
       //decoration: decorTmp(Colors.yellow),
@@ -2919,13 +3055,14 @@ class _HomePageState extends State<HomePage>
                         child: GestureDetector(
                           onTap: () {
                             _activeSoundScheme = i;
+                            setState(() {});
                             _channel
                                 .setSoundScheme(_activeSoundScheme)
                                 .then((int result) {
-                              setState(() {}); //ToDo: Why?
-                              //if (!_playing) Navigator.of(context).pop();
-                              Navigator.of(context).pop();
+                               //ToDo: Why?
+                              //Navigator.of(context).pop();
                             });
+                            if (!_playing) Navigator.of(context).pop();
                           },
                           child: Container(
                             width: shrinkForList * totalWidth,
@@ -2974,6 +3111,7 @@ class _HomePageState extends State<HomePage>
         ),
       ),
     );
+     */
   }
 
   ///Витин метр завернутый во внешний размер
@@ -2999,10 +3137,10 @@ class _HomePageState extends State<HomePage>
         textStyle: _textStyle,
         textStyleSelected: _textStyle.copyWith(
             fontWeight: FontWeight.w800,
-            fontSize: _textStyle.fontSize + 2,
+            //fontSize: _textStyle.fontSize + 2,//??
 
-            ///ISH:Is this Zebra dangerous? Does not look like.
-            height: 1,
+            ///ISH:Не это ли приводит к расцентровке шрифтов?
+            //height: 1,
             //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
             color: _cWhiteColor),
         onBeatChanged: _onBeatChanged,
