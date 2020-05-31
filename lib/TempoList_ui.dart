@@ -39,6 +39,23 @@ class TempoDef
 
 class TempoListState extends State<TempoListWidget>
 {
+  /*
+  ISH: the disjoint list of tempos :
+
+  Larghissimo—very, very slow, almost droning (20 BPM and below)
+  Grave—slow and solemn (21–40 BPM)
+  Lento—slowly (41–60 BPM)
+  Larghetto—rather broadly, and still quite slow (61–65 BPM)
+  Adagio—another popular slow tempo, which translates to mean "at ease" (66–75 BPM)
+  Andante—a popular tempo that translates as “at a walking pace” (76–107 BPM)
+  Moderato—moderately (108–119 BPM)
+  Allegro—perhaps the most frequently used tempo marking (120–167 BPM, which includes the “heartbeat tempo” sweet spot)
+  Presto—(ranges from 168–199 BPM)
+  Prestissimo—extremely fast (more than 200 BPM)
+  */
+
+
+
   //S- - Sposobin book: + sostenuto, comodo, vivo, veloce
   static final List<TempoDef> tempoList = <TempoDef>[
     // TempoDef('largamente', 10, ), //S-
@@ -97,7 +114,7 @@ class TempoListState extends State<TempoListWidget>
     'prestissimo' : 200,
   };
 
-  int _index = 7;
+  int _index;
 
   FixedExtentScrollController controller;
   FixedExtentScrollController controllerVert;
@@ -127,9 +144,9 @@ class TempoListState extends State<TempoListWidget>
     // TODO: implement initState
     super.initState();
 
+    _index = tempoIndex(widget.tempo);
     controller = new FixedExtentScrollController(initialItem: _index/*widget.beats*/);
-    //beatController.addListener(_beatScrollListener);
-    //noteController = new FixedExtentScrollController(initialItem: widget.noteIndex - widget.minNoteIndex);
+    //controller.addListener(scrollListener);
   }
 
   Size _textSize(String str, TextStyle style)
@@ -210,51 +227,21 @@ class TempoListState extends State<TempoListWidget>
 
   Widget _builder(BuildContext context, BoxConstraints constraints)
   {
-    int index = tempoIndex(widget.tempo);
-    assert(0 <= index && index < tempoList.length);
-    //final String txt = tempoList[_index].name;
-
     final Size size = constraints.biggest;
-
-    Size maxTextSize = maxListItemSize();
+    //Size maxTextSize = maxListItemSize();
     double fontSize = maxFontSize(size);
-
-    // To prevent reenter via widget.onBeat/NoteChanged::setState
-    // when position is changing via jumpToItem/animateToItem
-    if (index != _index && _notify)
-    {
-      _notify = false;
-      print('Tempo:update1 $index');
-      _index = index;
-      //TODO Need?
-      if (false)
-      {
-        controller.jumpToItem(index);
-        // finishUpdate:
-        _notify = true;
-      }
-      else
-      {
-        //TODO Both run => when finishUpdate?
-        controller.animateToItem(index,
-            duration: Duration(milliseconds: duration), curve: Curves.ease)
-            .catchError(finishUpdate).then<void>(finishUpdate);
-      }
-      print('Tempo:update2');
-      //widget.update = false;
-    }
 
     final List<Widget> wixTempo = new List<Widget>.generate(
       tempoList.length,
           (int i) => new RotatedBox(
         quarterTurns: 1,
         child:
-      new Container(
+        new Container(
 //        color: Colors.blue,
-        width: size.width,
-        height: size.height,
-        alignment: Alignment.center,
-        //padding: EdgeInsets.symmetric(horizontal: 5),
+          width: size.width,
+          height: size.height,
+          alignment: Alignment.center,
+          //padding: EdgeInsets.symmetric(horizontal: 5),
 //        child: FittedBox(
 //          fit: BoxFit.contain,
           child: Text(tempoList[i].name,
@@ -263,6 +250,7 @@ class TempoListState extends State<TempoListWidget>
               maxLines: 1,
               //style: widget.textStyle
               //style: widget.textStyle.copyWith(fontSize: fontSize)
+              textScaleFactor: 1,
               style: widget.textStyle ///ISH: теперь я размер шрифта определяю внешним образом, чтобы
             ///получить согласованность с соседними текстовыми элементами
           ),
@@ -318,10 +306,11 @@ class TempoListState extends State<TempoListWidget>
           onSelectedItemChanged: (int index) {
             // To prevent reentering via widget.onChanged::setState
             // Limit by maximum tempo
-            if (_notify && tempoList[index].minTempo <= widget.maxTempo)
+            if (tempoList[index].minTempo <= widget.maxTempo)
             {
               _index = index;
-              widget.onChanged(tempoList[index].tempo);
+              if (_notify)
+                widget.onChanged(tempoList[index].tempo);
             }
           },
           clipToSize: true,
@@ -358,34 +347,33 @@ class TempoListState extends State<TempoListWidget>
     int index = tempoIndex(widget.tempo);
     assert(0 <= index && index < tempoList.length);
     //final String txt = tempoList[_index].name;
+    //print('Tempo:_builder $index - ${widget.tempo}');
 
     // To prevent reenter via widget.onBeat/NoteChanged::setState
     // when position is changing via jumpToItem/animateToItem
     if (index != _index && _notify)
     {
       _notify = false;
-      print('Tempo:update1 $index');
-      _index = index;
+      //print('Tempo:update1 $index');
       //TODO Need?
-      if (false)
+      if (true)
       {
         controller.jumpToItem(index);
-        // finishUpdate:
         _notify = true;
       }
       else
       {
+        // BUG When new tempo comes while animating. Try simples Scroll
         //TODO Both run => when finishUpdate?
         controller.animateToItem(index,
-          duration: Duration(milliseconds: duration), curve: Curves.ease)
-          .catchError(finishUpdate).then<void>(finishUpdate);
+            duration: Duration(milliseconds: duration), curve: Curves.ease)
+            .catchError(finishUpdate).then<void>(finishUpdate);
       }
-      print('Tempo:update2');
-      //widget.update = false;
+      //print('Tempo:update2');
     }
 
     return LayoutBuilder(
-      builder: _builder
+        builder: _builder
     );
 
     final List<Widget> wixTempo = new List<Widget>.generate(
@@ -430,7 +418,7 @@ class TempoListState extends State<TempoListWidget>
 //              _index = 1;
 //          });
         },
-    /*
+        /*
         onHorizontalDragEnd: (DragEndDetails details) {
           _index += details.primaryVelocity.sign.toInt();
           if (_index < 1)
@@ -459,7 +447,7 @@ class TempoListState extends State<TempoListWidget>
           onSelectedItemChanged: (int index) {
             print(index);
             if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
-            {
+                {
               _index = index;
               widget.onChanged(tempoList[index].tempo);
             }

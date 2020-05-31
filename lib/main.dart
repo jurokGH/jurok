@@ -2548,15 +2548,6 @@ class _HomePageState extends State<HomePage>
         builder: (BuildContext context, BoxConstraints constraints) {
       Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
-      TextStyle textStyle =
-          Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-              .textTheme
-              .headline4
-              .copyWith(
-                  color: Colors.black,
-                  fontSize: size.width / 5,
-                  fontStyle: FontStyle.italic);
-
       return rhythmPickerInside(size);
     });
   }
@@ -2564,7 +2555,9 @@ class _HomePageState extends State<HomePage>
 
   Widget rhythmPickerInside(Size size){
 
-    TextStyle textStyle =GoogleFonts.roboto(fontSize: size.width / 5.2, color: Colors.black,fontStyle: FontStyle.italic);
+    TextStyle textStyle =GoogleFonts.roboto(
+      fontSize: size.width / 5.2, color: Colors.black, fontStyle: FontStyle.italic,
+    );
 
     List<PopupMenuItem> items=[];
     List<int> firstRithm=List<int>.filled(_beat.beatCount,0);
@@ -2583,7 +2576,7 @@ class _HomePageState extends State<HomePage>
         height: size.height,
         child: Align(
           alignment: Alignment.center,
-          child: Text("rhythms...", style: textStyle),
+          child: Text("rhythms...", style: textStyle, textScaleFactor: 1,),
         ),
       ),
       itemBuilder: (context) => [//ZZZZ TODO
