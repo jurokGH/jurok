@@ -55,6 +55,7 @@ class LimitSizeText extends StatelessWidget
       maxLines: 1,
       //style: widget.textStyle
       style: fontSize < style.fontSize ? style.copyWith(fontSize: fontSize) : style,
+      textScaleFactor: 1,
     );
   }
 

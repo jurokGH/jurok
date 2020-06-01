@@ -174,6 +174,7 @@ class MetreState extends State<MetreWidget>
 //        FittedBox(
 //          fit: BoxFit.fitHeight,
 //          child:
+
         LimitSizeText(
           text: (i + widget.minBeats).toString(),
           textAlign: TextAlign.center,
@@ -218,9 +219,10 @@ class MetreState extends State<MetreWidget>
             decoration: BoxDecoration(
               image: DecorationImage(
                 //image: AssetImage('images/Metre.png'),
-                image: AssetImage('images/meter.png'),
-                  fit: BoxFit.fill,
-                ),
+                //image: AssetImage('images/meter.png'),
+                image: AssetImage('images/wh23meter.png'),
+                fit: BoxFit.fill,
+              ),
 /*
               gradient: LinearGradient(
                 begin: Alignment.centerLeft,
@@ -281,7 +283,7 @@ class MetreState extends State<MetreWidget>
             decoration: BoxDecoration(
               image: DecorationImage(
                 //image: AssetImage('images/Metre.png'),
-                image: AssetImage('images/meter.png'),
+                image: AssetImage('images/wh23meter.png'),
                 fit: BoxFit.fill,
               ),
 /*

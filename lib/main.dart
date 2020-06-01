@@ -261,13 +261,14 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras.)
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
   bool bBoxContainer = false;
 
   // bool bShowBoundariesDebug=true;
 
+  ///Константа для привязки к Витиному телефону.
   final double pixelWidth = 432;
 
   ///<<<<<< JG!
@@ -960,16 +961,17 @@ class _HomePageState extends State<HomePage>
                   alignment: Alignment.bottomCenter,
                   child: Container(
                       //padding: EdgeInsets.all(_heightAds[0] * 0.1),
+                    /*
                       decoration: BoxDecoration(
                         //color: Colors.grey.withOpacity(0.5),
                         border: Border.all(
                           color: Colors.green, //
                         ),
-                      ),
-                      height: _heightAds[0],
+                      ),*/
+                      height: _heightAds[0]/2,
                       child: Slider(
                           value: reservedHeightBottom,
-                          activeColor: Colors.black,
+                          activeColor: Colors.yellowAccent,
                           onChanged: (double newVal) {
                             setState(() {
                               reservedHeightBottom = newVal;
@@ -988,7 +990,7 @@ class _HomePageState extends State<HomePage>
                     height: 1,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.black,
+                        color: Colors.red,
                       ),
                     ),
                   ))
@@ -2002,7 +2004,7 @@ class _HomePageState extends State<HomePage>
   ///Скролл темпов.
   ///
   ///Витин скролл темпов, завернутый в LayoutBuilder, чтобы знать собственную ширину,
-  ///и чуть ужатый по горизонтали, чтобы не цепляться за края окружающей кнопки
+  ///и чуть ужатый по горизонтали, чтобы текст попадал в область, определенную Юриной картинкой
   Widget _tempoListFinallyGotLaid(TextStyle textStyle, double horShrink) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -2039,9 +2041,9 @@ class _HomePageState extends State<HomePage>
     ///
     /// Такое решение: на Юрином телефоне будет чуть всё сжато по горизонтали (это даже хорошо,
     /// поскольку слева плохо крутятся колёса). Его значение с рекламой - это 458/320, 1,43125
-    /// На Pixel с рекламой - 1.83+1/3.
+    /// На Pixel с рекламой - ~1.83
     ///
-    /// Беру золотую середину - 1.6
+    /// Беру золотую середину - 1.6?
     final double minimalRatio = 1.5;
 
     final bool bDecreaseWidth = (totalHeight / totalWidth < minimalRatio);
@@ -2059,6 +2061,7 @@ class _HomePageState extends State<HomePage>
 
     double ShadowOffset = totalWidth * 0.03;
     double blurRadius = ShadowOffset * 1;
+     double spreadRadius=14/pixelWidth*totalWidth;
 
     bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
@@ -2072,7 +2075,7 @@ class _HomePageState extends State<HomePage>
             BoxShadow(
               offset: Offset(0, ShadowOffset),
               blurRadius: blurRadius,
-              spreadRadius: 12.0,
+               spreadRadius: spreadRadius,
             ),
           ],
         ),
@@ -2099,9 +2102,10 @@ class _HomePageState extends State<HomePage>
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: Text("virtual bootom of the phone",
+                              textScaleFactor:1,
                               style: TextStyle(
-                                  fontSize: 18 * totalWidth / pixelWidth,
-                                  color: Colors.black)),
+                                  fontSize: 12 * totalWidth / pixelWidth,
+                                  color: Colors.yellowAccent, )),
                         ),
                       )
                     : Container(),
@@ -2121,7 +2125,6 @@ class _HomePageState extends State<HomePage>
                       _sizeCtrlsShortest),
                 ),
                 */
-                // Positioned(), //ToDo: KNOB IS HERE
               ],
             )));
     return metronome;
@@ -2177,14 +2180,13 @@ class _HomePageState extends State<HomePage>
 
     Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
         ? Colors.red
-        : Colors
-            .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
+        : Colors.greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
 
-    TextStyle knobTextStyle =//ToDo: fix font; fix size
-        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-            .textTheme
-            .headline4
-            .copyWith(color: tempoColor, fontSize: knobFontSize);
+    TextStyle knobTextStyle =GoogleFonts.roboto(
+      fontSize: knobFontSize, color: tempoColor, fontStyle: FontStyle.italic,
+    );
+
+
 
     return Container(
       width: size.width,
@@ -2364,7 +2366,6 @@ class _HomePageState extends State<HomePage>
                 center: Offset(
                     knobCenterX,
                     knobCenterY -
-                        //textOuterDY -
                         knobDiameter * _pushFactor / 2 -
                         textOuterSizeY / 2),
                 width: textOuterSizeX,
@@ -2372,19 +2373,13 @@ class _HomePageState extends State<HomePage>
             child: SizedOverflowBox(
               alignment: Alignment.center,
               size: Size(textOuterSizeX, textOuterSizeY),
-              //minWidth: knobDiameter,
-              //minHeight: knobDiameter,
-              //width: knobDiameter * _pushFactor, //double.infinity,
-              //height: knobDiameter * _pushFactor, //double.infinity,
 
               child: _knobValue.pushed
                   ? Container(
                       width: textOuterSizeX,
                       height: textOuterSizeY,
-                      //     color: Colors.blue.withOpacity(0.5),
                       decoration: new BoxDecoration(
                         color: Colors.blue.withOpacity(0.75),
-                        //  border: Border.all(color: Colors.blue, width: 0.0),
                         borderRadius: new BorderRadius.all(
                             Radius.elliptical(textOuterSizeX, textOuterSizeY)),
                       ),
@@ -2394,6 +2389,7 @@ class _HomePageState extends State<HomePage>
                           _knobValue.value.toInt().toString(),
                           style:
                               knobTextStyle.copyWith(fontSize: knobFontSizeBig),
+                          textScaleFactor: 1,
                         ),
                       ),
                     )
@@ -2465,13 +2461,14 @@ class _HomePageState extends State<HomePage>
   Widget signatureRaw(double totalWidht) {
     double globalYPadding = totalWidht * 0.005;
     double localXPadding = totalWidht * 0.01;
+    double meterYPaddyng = totalWidht * 0.007;
     return Container(
         padding: EdgeInsets.symmetric(vertical: globalYPadding),
         // decoration: decorTmp(Colors.blue),
         child: Row(children: [
           Expanded(
             //Звуковая схема
-            flex: 8,
+            flex: 7,
             child: Container(
               padding: EdgeInsets.only(right: localXPadding),
               decoration: decorTmp(Colors.blue),
@@ -2481,12 +2478,16 @@ class _HomePageState extends State<HomePage>
           Expanded(
             //Колонка колёс метра
             flex: 12,
-            child: metreU(),
+            child: Container(
+                child: metreU()
+            ),
           ),
           Expanded(
             //Строка акцентов
-            flex: 24,
+            flex: 25,
             child: Container(
+              padding: EdgeInsets.only(right: localXPadding, left: localXPadding,
+                  top: meterYPaddyng,bottom: meterYPaddyng),
               decoration: decorTmp(Colors.yellow),
               child: metreBarU(),
               // child: metreU(), //_buildBar(true, Size(150,150)),
@@ -2506,7 +2507,8 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                        image: AssetImage('images/but-note-1.png'),
+                            image: AssetImage('images/but123short.png'),
+                        //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
                         fit: BoxFit.fill,
                       )),
@@ -2528,7 +2530,8 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                        image: AssetImage('images/but-note-1.png'),
+                            image: AssetImage('images/but123short.png'),
+                        //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
                         fit: BoxFit.fill,
                       )),
@@ -2576,17 +2579,19 @@ class _HomePageState extends State<HomePage>
         height: size.height,
         child: Align(
           alignment: Alignment.center,
-          child: Text("rhythms...", style: textStyle, textScaleFactor: 1,),
+          child: Text("rhythms...",
+            style: textStyle,
+            textScaleFactor: 1,),
         ),
       ),
       itemBuilder: (context) => [//ZZZZ TODO
         PopupMenuItem(
           value: 1,
-          child: Text("First R"),
+          child: Text("First R",textScaleFactor: 1,),//ToDo: FONT
         ),
         PopupMenuItem(
           value: 2,
-          child: Text("Second R"),
+          child: Text("Second R",textScaleFactor: 1),//ToDo: FONT
         ),
       ],
     );
@@ -2616,14 +2621,16 @@ class _HomePageState extends State<HomePage>
         }
       }
 
-      return SubbeatEqWidget(
-        subbeatCount: _beat.subBeatCount,
-        noteValue: activeMetre.note,
-        noteColor: Colors.black,
-        textStyle: textStyle,
-        size: size,
-        allEqual: allEqual,
-        onChanged: onSubbeatChanged,
+      return Container(
+        child: SubbeatEqWidget(
+          subbeatCount: _beat.subBeatCount,
+          noteValue: activeMetre.note,
+          noteColor: Colors.black,
+          textStyle: textStyle,
+          size: size,
+          allEqual: allEqual,
+          onChanged: onSubbeatChanged,
+        ),
       );
     });
   }
@@ -2633,7 +2640,8 @@ class _HomePageState extends State<HomePage>
       String text, int delta, double sqsize, TextStyle textStyle) {
     final Widget icon = new Image.asset(
       //"images/butowl4.png",
-      "images/button.png",
+      //"images/button.png",
+      'images/button12.png',
       width: sqsize,
       height: sqsize,
       fit: BoxFit.contain,
@@ -2644,6 +2652,7 @@ class _HomePageState extends State<HomePage>
         icon,
         Text(
           text,
+          textScaleFactor: 1,
           style: textStyle,
         ),
       ]),
@@ -2702,12 +2711,13 @@ class _HomePageState extends State<HomePage>
                 colorFuture: Colors.black,
                 colorInner: Colors.black,
               )),
-          Container(
+          Container(//Размер хвостика нотки не должен цеплять равенство
+            //ToDo: а пробел поставить в след. виджете?
               width: noteSize.width *
-                  1.2), //Размер хвостика нотки не должен цеплять равенство
+                  1.2),
           Align(
               alignment: Alignment.center,
-              child: Text("= " + _tempoBpm.toString(), style: textStyle)),
+              child: Text("= " + _tempoBpm.toString(), style: textStyle, textScaleFactor: 1,)),
           //Размер хвостика нотки не должен цеплять равенство
         ],
       ));
@@ -2720,11 +2730,6 @@ class _HomePageState extends State<HomePage>
       size: 1 * diameter,
       color: Colors.brown,
     );
-    //Icon(Icons.pause, size: 1 * diameter, color: Colors.brown,);
-    final Widget icon1 = Stack(alignment: Alignment.center, children: <Widget>[
-      Image.asset('images/butowl4.png', height: diameter, fit: BoxFit.contain),
-      icon,
-    ]);
     final Widget icon2 = Image.asset(
         _playing ? 'images/icstop.png' : 'images/icplay.png',
         height: diameter,
@@ -2758,11 +2763,12 @@ class _HomePageState extends State<HomePage>
                     image: DecorationImage(
                   //image: AssetImage('images/but-note-1.png'),
                   //image: AssetImage('images/ictempo.png'),
-                      image: AssetImage('images/wh1.jpg'),
+                      //image: AssetImage('images/wh1.jpg'),
+                      image: AssetImage('images/wh22.png'),
                   fit: BoxFit.fill,
                 )),
                 //decoration: decorTmp(Colors.green),
-                child: _tempoListFinallyGotLaid(_textStyleTempoRow, 0.95),
+                child: _tempoListFinallyGotLaid(_textStyleTempoRow, 0.705),
               ))
         ],
       ),
@@ -2798,6 +2804,7 @@ class _HomePageState extends State<HomePage>
                       fontSize: 0.4 * sizzze.width,
                       fontWeight: FontWeight.bold,
                       color: Colors.black),
+                  textScaleFactor: 1,
                 )
               : Container(),
         ]),
@@ -2819,21 +2826,14 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _rowControlsArea(bool portrait, Size size) {
-    double fontSizeTempo = size.width*0.35 / 6;//ToDo: to make the widget more flexible,  this 0.35 should be one of c_i-s constatns
-    double fontSizeMusicScheme = fontSizeTempo / 1;
-    /*TextStyle _textStyleTempoRow =
-        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-            .textTheme
-            .headline4
-            .copyWith(color: Colors.black, fontSize: fontSizeTempo);
-
-     */
+    double fontSizeTempo = size.width*0.3 / 6;//ToDo: to make the widget more flexible,  the constant should be one of c_i-s constatns
+    double fontSizeMusicScheme = fontSizeTempo *1.5;
 
     TextStyle _textStyleTempoRow =GoogleFonts.roboto(fontSize:  fontSizeTempo);
 
     TextStyle _textStyleSchemeRow = GoogleFonts.roboto(fontSize: fontSizeMusicScheme);
 
-    double leftRightPadding = size.width * 0.02;
+    double leftRightPadding = size.width * 0.01;
 
     return Container(
       width: size.width,
@@ -2878,8 +2878,6 @@ class _HomePageState extends State<HomePage>
     TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-
-
     //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
     //само диалоговое окно не обновляется.
     //Чтобы диалог обновлялся сам при выборе нового item, необходимо оформить виджеты-элементы как класс и
@@ -2906,7 +2904,7 @@ class _HomePageState extends State<HomePage>
               width: shrinkForList * totalWidth,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('images/ic3.png'),
+                    image: AssetImage('images/but1452long.png'),
                     //image: AssetImage('images/but-note-1.png'),
                     //image: AssetImage('images/ictempo.png'),
                     fit: BoxFit.fill,
@@ -2918,6 +2916,7 @@ class _HomePageState extends State<HomePage>
                   style: (i == _activeSoundScheme)
                       ? listTextStyleBold
                       : listTextStyle,
+                  textScaleFactor: 1,
                 ),
               ),
             ),
@@ -2949,7 +2948,7 @@ class _HomePageState extends State<HomePage>
                 width: shrinkForList * totalWidth,
                 decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('images/ic3.png'),
+                      image: AssetImage('images/but1452long.png'),
                       //image: AssetImage('images/but-note-1.png'),
                       //image: AssetImage('images/ictempo.png'),
                       fit: BoxFit.fill,
@@ -2961,6 +2960,7 @@ class _HomePageState extends State<HomePage>
                     style: (i == _activeSoundScheme)
                         ? listTextStyleBold
                         : listTextStyle,
+                    textScaleFactor: 1,
                   ),
                 ),
               ),
@@ -2975,7 +2975,7 @@ class _HomePageState extends State<HomePage>
       //decoration: decorTmp(Colors.yellow),
       decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/ic3.png'),
+            image: AssetImage('images/but1452long.png'),
             //image: AssetImage('images/but-note-1.png'),
             //image: AssetImage('images/ictempo.png'),
             fit: BoxFit.fill,
@@ -3002,6 +3002,7 @@ class _HomePageState extends State<HomePage>
                 ? _soundSchemes[_activeSoundScheme]
                 : "[no sound sheme loaded]",
             style: textStyle,
+            textScaleFactor: 1,
           ),
         ),
       ),
@@ -3101,9 +3102,13 @@ class _HomePageState extends State<HomePage>
   Widget metreU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      Size metreSize = Size(constraints.maxWidth, constraints.maxHeight);
-      double itemExtent = 0.5 * metreSize.width; //44,
+      Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
+      double itemExtent = 0.5 * meterSize.width; //44,
       bool updateMetre = _updateMetre; //ISH: не уверен, что это
+
+      double meterTextSize=meterSize.height/2.2;
+      TextStyle meterTextStyle=GoogleFonts.roboto(
+        fontSize: meterTextSize,  );
       _updateMetre = false;
       return MetreWidget(
         update: updateMetre,
@@ -3113,19 +3118,19 @@ class _HomePageState extends State<HomePage>
         note: activeMetre.note,
         minNote: minNoteValue,
         maxNote: maxNoteValue,
-        width: metreSize.width,
-        height: metreSize.height,
+        width: meterSize.width,
+        height: meterSize.height,
         itemExtent: itemExtent,
         color: Colors.deepPurple,
-        textStyle: _textStyle,
-        textStyleSelected: _textStyle.copyWith(
+        textStyle: meterTextStyle,
+        textStyleSelected: meterTextStyle.copyWith(
             fontWeight: FontWeight.w800,
             //fontSize: _textStyle.fontSize + 2,//??
-
             ///ISH:Не это ли приводит к расцентровке шрифтов?
             //height: 1,
             //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
-            color: _cWhiteColor),
+            //color: _cWhiteColor,
+        ),
         onBeatChanged: _onBeatChanged,
         onNoteChanged: _onNoteChanged,
       );

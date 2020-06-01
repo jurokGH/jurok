@@ -42,52 +42,35 @@ class TempoListState extends State<TempoListWidget>
   /*
   ISH: the disjoint list of tempos :
 
-  Larghissimo—very, very slow, almost droning (20 BPM and below)
-  Grave—slow and solemn (21–40 BPM)
-  Lento—slowly (41–60 BPM)
-  Larghetto—rather broadly, and still quite slow (61–65 BPM)
-  Adagio—another popular slow tempo, which translates to mean "at ease" (66–75 BPM)
-  Andante—a popular tempo that translates as “at a walking pace” (76–107 BPM)
-  Moderato—moderately (108–119 BPM)
-  Allegro—perhaps the most frequently used tempo marking (120–167 BPM, which includes the “heartbeat tempo” sweet spot)
-  Presto—(ranges from 168–199 BPM)
-  Prestissimo—extremely fast (more than 200 BPM)
+ Larghissimo <= 20
+Grave 21–40
+Lento 41–60
+Larghetto 61–65
+Adagio 66–75
+Andante 76–107
+Moderato 108–119
+Allegro 120–167
+Presto 168–199
+Prestissimo >=200
   */
 
 
 
   //S- - Sposobin book: + sostenuto, comodo, vivo, veloce
   static final List<TempoDef> tempoList = <TempoDef>[
-    // TempoDef('largamente', 10, ), //S-
-    TempoDef('larghissimo', 1, 25, 20), //S-
-    // TempoDef('lentissimo', 35, ), //S-
-    //TempoDef('adagissimo', 45, ), //?  //S-
-    TempoDef('grave', 25, 45),
-    TempoDef('largo', 40, 60),
-    TempoDef('lento', 45, 60),  //!!
-    TempoDef('larghetto', 60, 66),
-    TempoDef('adagio', 66, 76),
-    TempoDef('adagietto', 70, 80),  //!!  //S-
-    //TempoDef('lentamente', 80, ),  //?  //S-
-    TempoDef('andante', 76, 108),
-    TempoDef('andantino', 80, 108),
-    //TempoDef('con moto', 100, ),  //?  //S-
-    TempoDef('marcia mod', 83, 85),  //S-marcia mod
-    TempoDef('andante mod', 92, 112),  //S-
-    TempoDef('moderato', 108, 120),
-    TempoDef('allegretto', 112, 120),
-
-    TempoDef('allegro mod', 116, 120), //S-
-    TempoDef('allegro', 120, 156),
-    // TempoDef('allegramente', 160, ), //S-
-
-    TempoDef('vivace', 156, 176),
-    TempoDef('vivacissimo', 172, 176), //S-
-    // TempoDef('allegrissimo', 190, ),  //S-
-    TempoDef('presto', 184, 200), //TODO IS: 168?
-    TempoDef('prestissimo', 200, 1000)
+    TempoDef('Larghissimo', 1, 20), //S-
+    TempoDef('Grave', 21, 40),
+    TempoDef('Larghetto', 61, 65),
+    TempoDef('Adagio', 66, 75),
+    TempoDef('Andante', 76, 107),
+    TempoDef('Moderato', 108, 119),
+    TempoDef('Allegro', 120, 167),
+    TempoDef('Presto', 168, 199),
+    TempoDef('Prestissimo', 200, 10000)
   ];
 
+
+  ///not used(?)
   static final Map<String, int> tempoList0 = {
     //'largamente' : 10,
     'larghissimo' : 20,  //?

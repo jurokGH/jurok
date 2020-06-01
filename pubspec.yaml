@@ -69,9 +69,13 @@ flutter:
     - images/knob3d.png
     - images/knob3d-2.png
     - images/button.png
+    - images/button12.png
     - images/meter.png
-    #todo: в пнг
-    - images/wh1.jpg
+    - images/wh22.png
+    - images/wh23meter.png
+    - images/but123short.png
+    - images/but1452long.png
+    #- images/wh1.jpg
     # бывший meter
     #- images/wh3.png
     # Landscape background

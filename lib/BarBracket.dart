@@ -45,11 +45,14 @@ class BarBracketPainter extends CustomPainter
       ..style = PaintingStyle.fill
       ..color = color;
 
+    ///толщина внешней черты
     final double wrc = 0.3 * size.width;
     final double xrc = direction == BarBracketDirection.left ? 0 : size.width - wrc;
+    ///толщина внутренней черты
     final double wln = 0.1 * size.width;
     final double xln = (direction == BarBracketDirection.left ? 0.45 : 0.45) * size.width;
-    final double radius = 0.16 * size.width;
+    ///Радиус точек
+    final double radius = 0.2 * size.width;
     final double x = direction == BarBracketDirection.left ? size.width - radius : radius;
 
     canvas.drawRect(Rect.fromLTWH(xrc, 0, wrc, size.height), paint);

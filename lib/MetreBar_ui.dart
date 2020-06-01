@@ -118,14 +118,18 @@ class MetreBarState extends State<MetreBarWidget>
 
     final List<Widget> notes = new List<Widget>();
 
-    final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
-    final Size bracketSize = new Size(3.0 * btnPadding, widget.size.height);
+    /*final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
+    final Size bracketSize = new Size(3.0 * btnPadding, widget.size.height);*/
+
+
+    final Size bracketSize = new Size(3.0 * widget.size.width/30, widget.size.height);
+
     //print('bracketSize $bracketSize');
     // Add left bracket
-    notes.add(new Container(
+   /* notes.add(new Container(
       width: 0.5 * bracketSize.width,
       height: bracketSize.height,
-    ));
+    ));*/
     notes.add(new BarBracketWidget(
         direction: BarBracketDirection.left,
         color: Colors.black,
@@ -171,10 +175,10 @@ class MetreBarState extends State<MetreBarWidget>
         color: Colors.black,
         size: bracketSize
     ));
-    notes.add(new Container(
+    /*notes.add(new Container(
       width: 0.5 * bracketSize.width,
       height: bracketSize.height,
-    ));
+    ));*/
 
 /*
     return Container(
@@ -229,7 +233,7 @@ class MetreBarState extends State<MetreBarWidget>
         //print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
         if (_itemExtent != dimension) {
           print('MetreBar::_physics $dimension - $_itemExtent - ${widget.size}');
-          ;//_physics?.itemDimension = dimension;
+          //_physics?.itemDimension = dimension;
         }
       }
 

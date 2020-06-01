@@ -349,7 +349,8 @@ class KnobTunedState extends State<KnobTuned> {
             //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
             (widget.showText&&!widget.knobValue.pushed)?
                 Text(widget.knobValue.value.toInt().toString(),
-                style: widget.textStyle)
+                style: widget.textStyle,
+                textScaleFactor: 1,)
                 :Container(),
             /*Text(widget.knobValue.value.toInt().toString(),
                 style: widget.textStyle.copyWith(

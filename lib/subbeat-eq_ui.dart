@@ -70,6 +70,7 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
         Align(
           alignment: Alignment.centerRight,
           child: Container(
+            padding: EdgeInsets.all( widget.size.width*0.01),
             width: widget.size.width / 3.4,
             //color: Colors.black,
             child: Image.asset('images/owl-sub.png', fit: BoxFit.contain),
@@ -77,8 +78,8 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
         ),
         Align(
             alignment: Alignment.center,
-            child: widget.allEqual? Text(" =", style: textStyle)
-            : Opacity(opacity: 0.3, child: Text(" =", style: textStyle)
+            child: widget.allEqual? Text(" =", style: textStyle, textScaleFactor: 1,)
+            : Opacity(opacity: 0.3, child: Text(" =", style: textStyle, textScaleFactor: 1,)
             ),
         ),
         Align(
