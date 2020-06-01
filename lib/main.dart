@@ -2489,7 +2489,7 @@ class _HomePageState extends State<HomePage>
               padding: EdgeInsets.only(right: localXPadding, left: localXPadding,
                   top: meterYPaddyng,bottom: meterYPaddyng),
               decoration: decorTmp(Colors.yellow),
-              child: metreBarU(),
+              child: metreBarU(),//ToDo: очень тормозит при тапе.
               // child: metreU(), //_buildBar(true, Size(150,150)),
             ),
           ),
