@@ -103,7 +103,14 @@ class Prosody
       return [1, 0, 0];
 
     if (noteNumber == 7)
-      return pivoVodochka ? [2, 0, 0, 1, 0, 1, 0] : [2, 0, 1, 0, 1, 0, 0];
+      return pivoVodochka ? [2, 0, 1, 0, 1, 0, 0] //pivo-pivo-vodochka
+          :[2, 0, 0, 1, 0, 1, 0];//vodochka-pivo-pivo
+
+    ///Больное место: 8 долей не считается стандартным по Способину.
+    ///Уточним у музыкантов.//ToDo
+    if (noteNumber == 8)
+      return pivoVodochka ? [2, 0, 1, 0, 0, 1, 0, 0] //pivo-vodochka-vodochka
+          :[2, 0, 0, 1, 0, 0, 1, 0];//vodochka-vodochka-pivo
 
     //byte[] res = new byte[noteNumber];
     List<int> accents = new List<int>(noteNumber);

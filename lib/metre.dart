@@ -84,7 +84,17 @@ class MetreBar extends Metre
 
   /// Maximum accent
   //TODO Change to var?
-  int get maxAccent =>  beats > 3 ? 3 : beats - 1;
+  //int get maxAccent =>  beats > 3 ? 3 : beats - 1;
+  //int get maxAccent =>  beats > 3 ? 3 : beats - 1;
+
+  int get maxAccent {
+    int res=0;
+    if (beats<4) res=1;
+    else if (beats<10) res=2;
+    else (res=3); //ToDo: double check with books about 10
+    return res;
+  }
+
 
   /// Set regular accent scheme
   void setRegularAccent()

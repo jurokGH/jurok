@@ -158,7 +158,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     final double yOffset = widget.anchorRatio * imageSize.height;
 
     final Size owlSize = new Size(widget.size.width, widget.imageHeightRatio * widget.size.height);
-    final Size noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height);
+    final Size noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height/2);
 
     maxDragX = imageSize.width / 4;
     //maxDragY = widget.images[indexImage].height / 4;
@@ -166,13 +166,15 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     final double aspect = imageSize.height / imageSize.width;
     print('OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
 
+    List<int> tupletsInts=[3,5,6,7,9,10,11];///пока так
+
     final NoteWidget noteWidget = new NoteWidget(
       subDiv: widget.subbeatCount,
       denominator: widget.denominator * widget.subbeatCount,
       active: active ? activeSubbeat : -1,
       activeNoteType: ActiveNoteType.stemFixed,
       coverWidth: true,
-      showTuplet: true,
+      showTuplet:tupletsInts.contains(widget.subbeatCount),
       showAccent: false,
       colorPast: Colors.white,
       colorNow: Colors.red,
@@ -239,7 +241,15 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
-              child: noteWidget,
+              child: Container(//ToDo: поднять выше ушей
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('images/but-note-1.png'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: noteWidget,
+              ),
             ),
 
   //            RepaintBoundary(child:

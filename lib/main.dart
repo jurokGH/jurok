@@ -1080,7 +1080,6 @@ class _HomePageState extends State<HomePage>
 
     if (!_skin.isInit || size.isEmpty)
       return Container(
-        //color: Colors.orange,
         width: size.width,
         height: size.height,
       );
@@ -1112,6 +1111,8 @@ class _HomePageState extends State<HomePage>
       onChanged: onOwlChanged,
       onAccentChanged: onAccentChanged,
     );
+
+    int maxAccent=0;
 
     final Widget wixOwls = new OwlGridRot(
       playing: _playing,
@@ -2572,7 +2573,6 @@ class _HomePageState extends State<HomePage>
       onSelected: (value) {
 
 
-
       },
       child: Container(
         width: size.width,
@@ -2725,11 +2725,6 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildPlayBtn1(double diameter) {
-    final Widget icon = Icon(
-      _playing ? Icons.pause : Icons.play_arrow,
-      size: 1 * diameter,
-      color: Colors.brown,
-    );
     final Widget icon2 = Image.asset(
         _playing ? 'images/icstop.png' : 'images/icplay.png',
         height: diameter,

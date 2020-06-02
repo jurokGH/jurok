@@ -360,7 +360,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
 
         wOwls.add(LayoutId(
           id: k,
-          child: w
+          child: w,//Вся сова с нотой
         ));
       }
 
