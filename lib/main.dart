@@ -10,6 +10,8 @@ import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 
 import 'package:owlenome/prosody.dart';
+import 'package:owlenome/rhythms.dart';
+
 import 'package:owlenome/util.dart';
 import 'PlatformSvc.dart';
 import 'BarBracket.dart';
@@ -261,7 +263,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras.)
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
   bool bBoxContainer = true;
@@ -441,7 +443,11 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme,
         _beat.subBeats,
         Prosody.reverseAccents(activeMetre.accents));
+
+    //Пользовательские ритмы
+    userRhithms = List<Rhythm>.generate(12,(n)=>UserRhythm([],[]));
   }
+  List<Rhythm> userRhithms;
 
   @override
   void dispose() {
@@ -578,6 +584,8 @@ class _HomePageState extends State<HomePage>
   /// UI notification handlers
   ///
 
+
+  ///Изменяем число нот
   void _onBeatChanged(int beats) {
     print('_onBeatChanged');
     if (_beat.beatCount != beats) {
@@ -600,6 +608,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  ///Изменяем значение ноты (знаменатель)
   void _onNoteChanged(int noteValue) {
     //_noteValue = noteValue;  // Does not affect sound
     bool changed = insertMetre(_beat.beatCount, noteValue);
@@ -610,6 +619,7 @@ class _HomePageState extends State<HomePage>
     }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
   }
 
+  ///Изменились числитель и знаменатель?
   void onMetreChanged(int beats, int noteValue) {
     //_noteValue = noteValue;  // Does not affect sound
     // Change active metre at first
@@ -633,6 +643,7 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+  ///кажется, изменяем строку акцентов (ToDo: ?)
   void onMetreBarChanged(int index) {
     _activeMetre = index;
     int beats = _metreList[index].beats;
@@ -658,6 +669,44 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+
+  ///ToDo: эксперимент.
+  /// Устанавливаем всё.
+  void onEverythingChanged(List<int> subBeatsToSet, List<int> accentsToSet)
+  {
+    if (subBeatsToSet.length!=accentsToSet.length) return; //ToDo
+    if (!(
+        (_beat.beatCount==subBeatsToSet.length)&&
+        equalLists(_beat.subBeats, subBeatsToSet)&&
+        equalLists(activeMetre.accents, accentsToSet)
+    ))
+  {
+      _beat.beatCount = subBeatsToSet.length;
+      _beat.subBeats=subBeatsToSet;
+      bool changed = insertMetre(_beat.beatCount, activeMetre.note);
+      activeMetre.accents=accentsToSet;//ToDo?????
+      //activeMetre.beats=_beat.beatCount;//ToDo?????
+
+
+      //_beat.accents = _metreList[index].accents;
+      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      _channel.setBeat(
+          _beat.beatCount,
+          _beat.subBeatCount,
+          _tempoBpm,
+          _activeSoundScheme,
+          _beat.subBeats,
+          Prosody.reverseAccents(activeMetre.accents));
+      setState(() {
+        _updateMetre = changed;
+      });
+    }
+
+  }
+
+
+
   void onSubbeatChanged(int subbeatCount) {
     //TODO
     _beat.subBeatCount = subbeatCount; //nextSubbeat(_beat.subBeatCount);
@@ -673,6 +722,19 @@ class _HomePageState extends State<HomePage>
     setState(() {});
   }
 
+
+  ///Запасаем пользовательский ритм для данного числа долей.
+  ///Считаем, что пользователь сделал что-то интересное, если
+  ///он менял подбит или акцент на одной из сов, остальное - не важно.
+  ///У одной совы не запасаем.
+  void setUserRhythm(){
+    if (_beat.beatCount>1) {
+      userRhithms[_beat.beatCount-1]=UserRhythm(
+        _beat.subBeats, activeMetre.accents
+      );
+    }
+  }
+
   void onOwlChanged(int id, int subCount) {
     assert(id < _beat.subBeats.length);
     _beat.subBeats[id] = subCount;
@@ -685,11 +747,15 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme,
         _beat.subBeats,
         Prosody.reverseAccents(activeMetre.accents));
+
+    setUserRhythm();
+
     setState(() {});
   }
 
   void onAccentChanged(int id, int accent) {
     assert(id < _beat.subBeats.length);
+
     //_beat.setAccent(id, accent);
     activeMetre.setAccent(id, accent);
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
@@ -700,8 +766,12 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme,
         _beat.subBeats,
         Prosody.reverseAccents(activeMetre.accents));
+
+    setUserRhythm();
+
     setState(() {});
   }
+
 
   /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
@@ -969,16 +1039,36 @@ class _HomePageState extends State<HomePage>
                         ),
                       ),*/
                       height: _heightAds[0]/2,
-                      child: Slider(
-                          value: reservedHeightBottom,
-                          activeColor: Colors.yellowAccent,
-                          onChanged: (double newVal) {
-                            setState(() {
-                              reservedHeightBottom = newVal;
-                            });
-                          },
-                          min: 0,
-                          max: maxReservedHeightBottom)),
+                      width: ourAreaSize.width,
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 2,
+                            child: Slider(
+                                value: reservedHeightBottom,
+                                activeColor: Colors.yellowAccent,
+                                onChanged: (double newVal) {
+                                  setState(() {
+                                    reservedHeightBottom = newVal;
+                                  });
+                                },
+                                min: 0,
+                                max: maxReservedHeightBottom),
+                          ),
+                          Expanded(
+                            flex: 1,
+                              child: Text("Height:  " +
+                                  (ourAreaSize.height - bottomReserved).toStringAsFixed(1),
+                                style: TextStyle(color: Colors.black,
+                                fontSize: _screenSize.width/20 ,
+                                ),
+                                textScaleFactor: 1,
+                              )
+
+
+                          ),
+                        ],
+                      )),
                 )
               : Container(),
           bOuterSpaceScrollDebug
@@ -2564,16 +2654,50 @@ class _HomePageState extends State<HomePage>
       fontSize: size.width / 5.2, color: Colors.black, fontStyle: FontStyle.italic,
     );
 
-    List<PopupMenuItem> items=[];
-    List<int> firstRithm=List<int>.filled(_beat.beatCount,0);
-    List<int> secondRithm=List<int>.filled(_beat.beatCount,1);
-    List<List<int>> rithms=[firstRithm,secondRithm];
+
+
+
+    List<Rhythm> rhythms=AllRhythms().rhythms[_beat.beatCount-1];
+    UserRhythm userRhythm=userRhithms[_beat.beatCount-1];
+    if (userRhythm.bDefined) {rhythms.add(userRhythm);}
+
+    final List<PopupMenuItem<int>> items=[];
+    for(int i=0; i<rhythms.length;i++){
+      String name =!rhythms[i].bStandard?
+          rhythms[i].name
+          : _beat.beatCount.toString()+"/"+activeMetre.note.toString();
+
+
+      items.add(
+        PopupMenuItem(
+          value: i,
+          child: Text(name,textScaleFactor: 1,style: textStyle),
+        ),
+      );
+    }
+
+    /* ToDo: снести после отладки
+    //List<int> firstRithmAcc=List<int>.filled(_beat.beatCount,0);
+    //List<int> firstRithmSubs=List<int>.filled(_beat.beatCount,1);
+    var  r=Rhythm.onlyFirst(_beat.beatCount);
+
+    List<int> secondRithmAcc=List<int>.filled(_beat.beatCount,1);
+    List<int> secondRithmSubs=List<int>.filled(_beat.beatCount,2);
+    List<int> thirdRithmAcc=r.accents;
+    List<int> thirdRithmSubs=List<int>.filled(_beat.beatCount,3);
+    List<List<int>> rithmsAcc=[r.accents,secondRithmAcc,thirdRithmAcc];
+    List<List<int>> rithmsSubs=[r.subBeats,secondRithmSubs,thirdRithmSubs];
+
+    List<Rhythm> rhythms;//=Rhythms(_beat.beatCount)
+*/
 
 
     return PopupMenuButton<int>(
       onSelected: (value) {
-
-
+        if (rhythms[value].bSubBeatDependent)
+            onEverythingChanged(rhythms[value].subBeats, rhythms[value].accents);
+        else
+          onEverythingChanged(_beat.subBeats, rhythms[value].accents);
       },
       child: Container(
         width: size.width,
@@ -2585,20 +2709,25 @@ class _HomePageState extends State<HomePage>
             textScaleFactor: 1,),
         ),
       ),
-      itemBuilder: (context) => [//ZZZZ TODO
+      itemBuilder: (context) => items,
+      /*
+
+      [//ZZZZ TODO
+        items[0],
         PopupMenuItem(
-          value: 1,
+          value: 0,
           child: Text("Still",textScaleFactor: 1,),//ToDo: FONT
         ),
         PopupMenuItem(
-          value: 2,
+          value: 1,
           child: Text("under",textScaleFactor: 1),//ToDo: FONT
         ),
         PopupMenuItem(
-          value: 3,
+          value: 2,
           child: Text("construction...",textScaleFactor: 1),//ToDo: FONT
         ),
       ],
+       */
     );
   }
 

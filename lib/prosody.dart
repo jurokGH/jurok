@@ -31,11 +31,6 @@ class Subbeat
 // поддолях, а сюда  отправлять уже готовые акценты (ноты). Также можно использовать
 // для определения силы совы.
 
-enum AccentationType
-{
-  Dynamic,
-  Agogic
-}
 
 class Prosody
 {
