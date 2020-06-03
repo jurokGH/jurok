@@ -261,10 +261,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras.)
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = false;
+  bool bBoxContainer = true;
 
   // bool bShowBoundariesDebug=true;
 
@@ -1123,7 +1123,8 @@ class _HomePageState extends State<HomePage>
       accents: activeMetre.accents,
       maxAccent: activeMetre.maxAccent,
       spacing: spacing,
-      padding: padding,
+      //padding: padding,
+      padding: EdgeInsets.zero,//ToDo: определить сообразно общей ситуации извне
       skin: _skin,
       size: size,
       onChanged: onOwlChanged,
@@ -2261,7 +2262,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("+1", 1, tempoButtonsSize, _textStyleButtons),
+                _buildOneButton("-1", -1, tempoButtonsSize, _textStyleButtons),
           ),
           Positioned.fromRect(
             //button
@@ -2271,7 +2272,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("+5", 5, tempoButtonsSize, _textStyleButtons),
+                _buildOneButton("-5", -5, tempoButtonsSize, _textStyleButtons),
           ),
           Positioned.fromRect(
             //button
@@ -2281,7 +2282,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("-1", -1, tempoButtonsSize, _textStyleButtons),
+                _buildOneButton("+1", 1, tempoButtonsSize, _textStyleButtons),
           ),
           Positioned.fromRect(
             //button
@@ -2291,7 +2292,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("-5", -5, tempoButtonsSize, _textStyleButtons),
+                _buildOneButton("+5", 5, tempoButtonsSize, _textStyleButtons),
           ),
 
           /*
@@ -2587,11 +2588,15 @@ class _HomePageState extends State<HomePage>
       itemBuilder: (context) => [//ZZZZ TODO
         PopupMenuItem(
           value: 1,
-          child: Text("First R",textScaleFactor: 1,),//ToDo: FONT
+          child: Text("Still",textScaleFactor: 1,),//ToDo: FONT
         ),
         PopupMenuItem(
           value: 2,
-          child: Text("Second R",textScaleFactor: 1),//ToDo: FONT
+          child: Text("under",textScaleFactor: 1),//ToDo: FONT
+        ),
+        PopupMenuItem(
+          value: 3,
+          child: Text("construction...",textScaleFactor: 1),//ToDo: FONT
         ),
       ],
     );

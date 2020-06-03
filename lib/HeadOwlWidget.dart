@@ -10,13 +10,13 @@ import 'prosody.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
-typedef ImageIndexCallback2 = List<int> Function(int accent, int subbeat, int subbeatCount);
+typedef ImageIndexCallback2 = List<int> Function(
+    int accent, int subbeat, int subbeatCount);
 
-class HeadOwlWidget extends StatefulWidget
-{
+class HeadOwlWidget extends StatefulWidget {
   final int id;
   final bool accent;
-  int nAccent;  //TODO
+  int nAccent; //TODO
   final int maxAccent;
   final bool active;
   final int activeSubbeat;
@@ -25,7 +25,7 @@ class HeadOwlWidget extends StatefulWidget
   final Animation<double> animation;
   final List<Image> images;
   final List<Image> headImages;
-  final double anchorRatio = 0.01;//-0.08;//for 310
+  final double anchorRatio = 0.01; //-0.08;//for 310
   final double imageHeightRatio;
   final double maxAngle;
   final Size size;
@@ -61,8 +61,8 @@ class HeadOwlWidget extends StatefulWidget
   HeadOwlState createState() => HeadOwlState(active, activeSubbeat, animation);
 }
 
-class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMixin<HeadOwlWidget>
-{
+class HeadOwlState extends State<HeadOwlWidget>
+    with SingleTickerProviderStateMixin<HeadOwlWidget> {
   static final bool drawSubOwls = false;
   //static final int maxSubCount = 8;
 
@@ -82,11 +82,12 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
   double _dragStartY = 0;
   double maxDragY = 25;
 
-  HeadOwlState(/*this.subbeatCount, */this.active, this.activeSubbeat, this._controller);
+  HeadOwlState(/*this.subbeatCount, */ this.active, this.activeSubbeat,
+      this._controller);
 
-  void onRedraw()
-  {
-    final MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+  void onRedraw() {
+    final MetronomeState state =
+        Provider.of<MetronomeState>(context, listen: false);
     state.update();
     int hash = state.getBeatState(widget.id);
     //debugPrint('AnimationController ${widget.id} $_counter $hash');
@@ -103,7 +104,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
     {
       //debugPrint('REDRAW ${widget.id} - $newActive - ${state.activeSubbeat} - $activeSubbeat');
-      setState((){
+      setState(() {
         activeHash = hash;
         //maxAngle = 2;
         //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
@@ -119,8 +120,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
   }
 
   @override
-  void initState()
-  {
+  void initState() {
     super.initState();
 
 /*TODO Someone can check if several running AnimationController are better than 1
@@ -141,32 +141,38 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
   }
 
   @override
-  void dispose()
-  {
+  void dispose() {
     _controller.removeListener(onRedraw);
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context)
-  {
-    final List<int> indices = widget.getImageIndex(widget.nAccent, activeSubbeat, widget.subbeatCount);
+  Widget build(BuildContext context) {
+    final List<int> indices = widget.getImageIndex(
+        widget.nAccent, activeSubbeat, widget.subbeatCount);
     final int indexImage = indices[0];
     final int indexImageHead = indices[1];
 
-    final Size imageSize = new Size(widget.images[indexImage].width, widget.images[indexImage].height);
+    final Size imageSize = new Size(
+        widget.images[indexImage].width, widget.images[indexImage].height);
     final double yOffset = widget.anchorRatio * imageSize.height;
 
-    final Size owlSize = new Size(widget.size.width, widget.imageHeightRatio * widget.size.height);
-    final Size noteSize = new Size(widget.size.width, (1.0 - widget.imageHeightRatio) * widget.size.height/2);
+    final Size owlSize = new Size(
+        widget.size.width, widget.imageHeightRatio * widget.size.height);
+    final Size noteSize = new Size(widget.size.width,
+        (1.0 - widget.imageHeightRatio) * widget.size.height / 2 //!!!
+        );
 
     maxDragX = imageSize.width / 4;
     //maxDragY = widget.images[indexImage].height / 4;
 
     final double aspect = imageSize.height / imageSize.width;
-    print('OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
+    print(
+        'OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
 
-    List<int> tupletsInts=[3,5,6,7,9,10,11];///пока так
+    List<int> tupletsInts = [3, 5, 6, 7, 9, 10, 11];
+
+    ///пока так
 
     final NoteWidget noteWidget = new NoteWidget(
       subDiv: widget.subbeatCount,
@@ -174,7 +180,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
       active: active ? activeSubbeat : -1,
       activeNoteType: ActiveNoteType.stemFixed,
       coverWidth: true,
-      showTuplet:tupletsInts.contains(widget.subbeatCount),
+      showTuplet: tupletsInts.contains(widget.subbeatCount),
       showAccent: false,
       colorPast: Colors.white,
       colorNow: Colors.red,
@@ -184,6 +190,29 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
       colorShadow: Colors.white.withOpacity(1),
       size: noteSize,
     );
+
+
+    final Widget iconAcc = Image.asset('images/ac.png',fit: BoxFit.fitWidth);
+    final List<Widget> accentsWid = List<Widget>.filled(widget.nAccent,iconAcc);
+    /*for (int i = 0; i < widget.maxAccent; i++) {
+      accentsWid.add(
+        Expanded(
+          flex: 1,
+          child:(i >= (widget.maxAccent - widget.nAccent))? Text(
+                    (i >= (widget.maxAccent - widget.nAccent))
+                        ? ">" //  (widget.maxAccent-i).toString()
+                        : "", // "-",//      "",
+                    textAlign: TextAlign.center,
+                    textScaleFactor: 1,
+                    style: TextStyle(
+                      fontSize: owlSize.height / 3,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ), //ToDo;
+              ):Container(),
+        ),
+      );
+    }*/
 
     //TODO 1 vs 2 RepaintBoundary in Column
     return RepaintBoundary(
@@ -199,10 +228,10 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
           //TODO
           int step = (Subbeat.maxSubbeatCount * delta) ~/ maxDragX;
           step = delta ~/ maxDragX;
-          if (step != 0)
-          {
+          if (step != 0) {
             _dragStart = details.localPosition.dx;
-            final int subbeatCount = clamp(widget.subbeatCount + step, 1, Subbeat.maxSubbeatCount);
+            final int subbeatCount =
+                clamp(widget.subbeatCount + step, 1, Subbeat.maxSubbeatCount);
             setState(() {
               widget.subbeatCount = subbeatCount;
             });
@@ -219,10 +248,10 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
           int step = (widget.maxAccent * delta) ~/ maxDragY;
           step = delta ~/ maxDragY;
           //print('onVerticalDragUpdate - $delta - $step');
-          if (step != 0)
-          {
+          if (step != 0) {
             _dragStartY = details.localPosition.dy;
-            final int accent = clamp(widget.nAccent + step, 0, widget.maxAccent);
+            final int accent =
+                clamp(widget.nAccent + step, 0, widget.maxAccent);
             setState(() {
               widget.nAccent = accent;
             });
@@ -230,6 +259,7 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
           }
         },
         child: Column(
+          ///Нота над совой; стэк с головой и знаками акцентов
           //mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
 //              RepaintBoundary(child:
@@ -241,7 +271,8 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
-              child: Container(//ToDo: поднять выше ушей
+              child: Container(
+                //ToDo: поднять выше ушей
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('images/but-note-1.png'),
@@ -252,12 +283,14 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
               ),
             ),
 
-  //            RepaintBoundary(child:
+            //            RepaintBoundary(child:
             //TODO SizedBox(width: widget.width, height: widget.width * 310 / 250, child:
             GestureDetector(
               onTap: () {
-                final int accent = clampLoop(widget.nAccent + 1, 0, widget.maxAccent);
-                print('accent:OnTap $accent - ${widget.nAccent} - ${widget.maxAccent}');
+                final int accent =
+                    clampLoop(widget.nAccent + 1, 0, widget.maxAccent);
+                print(
+                    'accent:OnTap $accent - ${widget.nAccent} - ${widget.maxAccent}');
                 setState(() {
                   widget.nAccent = accent;
                 });
@@ -277,11 +310,26 @@ class HeadOwlState extends State<HeadOwlWidget> with SingleTickerProviderStateMi
                       child: widget.images[indexImage],
                     ),
                     Transform(
-                      transform: Matrix4.rotationZ(_angle)..setTranslationRaw(0, yOffset, 0),
+                      transform: Matrix4.rotationZ(_angle)
+                        ..setTranslationRaw(0, yOffset, 0),
                       alignment: Alignment.center,
                       child: widget.headImages[indexImageHead],
                     ),
-                  ]
+                    Positioned.fromRect(
+                      rect: Rect.fromPoints(
+                        Offset(0, owlSize.height),
+                        Offset(owlSize.width / 3, owlSize.height / 2),
+                      ),
+                      child: Container(
+                        //color: Colors.black,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: accentsWid,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
