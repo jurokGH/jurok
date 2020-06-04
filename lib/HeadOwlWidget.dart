@@ -271,15 +271,21 @@ class HeadOwlState extends State<HeadOwlWidget>
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
-              child: Container(
-                //ToDo: поднять выше ушей
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('images/but-note-1.png'),
-                    fit: BoxFit.cover,
+              child: Padding(
+                //ToDo: поднимаем, чтобы сравняться с уровнем ушей
+                padding:  EdgeInsets.only(bottom: owlSize.height/14),
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      //colorFilter:(widget.activeSubbeat==1)?ColorFilter.mode(Colors.white.withOpacity(1), BlendMode.dstATop):
+                        //        ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.dstATop),
+                      image: widget.active?AssetImage('images/but-note-2.png'):
+                      AssetImage('images/but-note-1.png'),
+                      fit: BoxFit.cover,
+                    ),
                   ),
+                  child: noteWidget,
                 ),
-                child: noteWidget,
               ),
             ),
 
@@ -321,7 +327,7 @@ class HeadOwlState extends State<HeadOwlWidget>
                         Offset(owlSize.width / 3, owlSize.height / 2),
                       ),
                       child: Container(
-                        //color: Colors.black,
+                        color: Color.fromRGBO(0x42, 0, 0x49, 0.65),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,

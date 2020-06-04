@@ -84,8 +84,19 @@ class Rhythm{
     accents=[2,0,1,0,1,0,2,0,1,0,1,0];
   }
 
+  Rhythm.warmGun(){ //Undested; Beatles, Happiness is a warm gun
+    name = "Happiness is a warm gun";
+    bSubBeatDependent=true;
+    accents=[2,0,0,1,0,0,2,0,1,0];
+    subBeats=List<int>.filled(accents.length,1);
+  }
 
-
+  Rhythm.rumBaTMP(){ //Undested; Rumba
+    name = "Happiness is a warm gun";
+    bSubBeatDependent=true;
+    accents=[2,0,1,0,2,0,1,0];
+    subBeats=[1,2,1,1,1,1,1,1];
+  }
 }
 
 class UserRhythm extends Rhythm{
@@ -112,6 +123,10 @@ class FancyRhythms {
 
     //12 долей
     fancy.add(Rhythm.bolero12());
+
+    fancy.add(Rhythm.warmGun());
+
+    fancy.add(Rhythm.rumBaTMP());
 
 
     fancyRhythms = List<List<Rhythm>>.generate(12,(n)=>[]);

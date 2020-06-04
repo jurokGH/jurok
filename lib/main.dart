@@ -255,7 +255,7 @@ class _HomePageState extends State<HomePage>
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
   double reservedHeightBottom = 0;
-  final double maxReservedHeightBottom = 85.0;
+  final double maxReservedHeightBottom = 80.0;
 
   ///Put 100 and shrink it to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
 
@@ -2655,8 +2655,6 @@ class _HomePageState extends State<HomePage>
     );
 
 
-
-
     List<Rhythm> rhythms=AllRhythms().rhythms[_beat.beatCount-1];
     UserRhythm userRhythm=userRhithms[_beat.beatCount-1];
     if (userRhythm.bDefined) {rhythms.add(userRhythm);}
@@ -2667,7 +2665,6 @@ class _HomePageState extends State<HomePage>
           rhythms[i].name
           : _beat.beatCount.toString()+"/"+activeMetre.note.toString();
 
-
       items.add(
         PopupMenuItem(
           value: i,
@@ -2675,21 +2672,6 @@ class _HomePageState extends State<HomePage>
         ),
       );
     }
-
-    /* ToDo: снести после отладки
-    //List<int> firstRithmAcc=List<int>.filled(_beat.beatCount,0);
-    //List<int> firstRithmSubs=List<int>.filled(_beat.beatCount,1);
-    var  r=Rhythm.onlyFirst(_beat.beatCount);
-
-    List<int> secondRithmAcc=List<int>.filled(_beat.beatCount,1);
-    List<int> secondRithmSubs=List<int>.filled(_beat.beatCount,2);
-    List<int> thirdRithmAcc=r.accents;
-    List<int> thirdRithmSubs=List<int>.filled(_beat.beatCount,3);
-    List<List<int>> rithmsAcc=[r.accents,secondRithmAcc,thirdRithmAcc];
-    List<List<int>> rithmsSubs=[r.subBeats,secondRithmSubs,thirdRithmSubs];
-
-    List<Rhythm> rhythms;//=Rhythms(_beat.beatCount)
-*/
 
 
     return PopupMenuButton<int>(
