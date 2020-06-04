@@ -339,7 +339,10 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
           denominator: widget.noteValue,
           animation: _controller.view,
           imageHeightRatio: _imageHeightRatio,
-          maxAngle: 40 / 180.0 * pi,  // in radians
+          maxAngle: 30 / 180.0 * pi,  // in radians
+            // ToDo: тут есть такая задумка: главный угол хочется подобрать так, чтобы
+            //ушки Юриных сов "били" по нотке, издавая звук. Это пока неясно, надо ли
+
           size: owlSize,
           images: widget.skin.images,//[accent ? 0 : 1]),
           headImages: widget.skin.headImages,//[accent ? 0 : 1]),

@@ -352,6 +352,15 @@ class MetronomeState with ChangeNotifier
     return id == _activeBeat ? _activeSubbeat : -1;
   }
 
+
+  int getReActiveTime()
+  {
+      double period = 120.0 / _beatsPerMinute; // in seconds
+      double t = (_timeOrg-DateTime.now().microsecondsSinceEpoch)/period;
+      return t.round();
+  }
+
+
   int getActiveTime(int id)
   {
     // Active vs all owls swing their heads

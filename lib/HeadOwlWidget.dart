@@ -95,7 +95,9 @@ class HeadOwlState extends State<HeadOwlWidget>
 
     final bool newActive = state.isActiveBeat(widget.id);
     final int newActiveSubbeat = state.getActiveSubbeat(widget.id);
-    final int t = state.getActiveTime(widget.id);
+    //final int t = state.getActiveTime(widget.id);
+    final int t = state.getReActiveTime();
+
     //if (hash != activeHash)
 
     // Active vs all owls swing their heads
@@ -108,7 +110,8 @@ class HeadOwlState extends State<HeadOwlWidget>
         activeHash = hash;
         //maxAngle = 2;
         //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
-        _angle = widget.maxAngle * sin(2 * pi * 0.000001 * t);
+        _angle = - widget.maxAngle * sin(2 * pi * 0.000001 * t);
+        //минус- чтобы начинал в сторону движения всех нот
         active = newActive;
         activeSubbeat = newActiveSubbeat;
       });
@@ -272,8 +275,8 @@ class HeadOwlState extends State<HeadOwlWidget>
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
               child: Padding(
-                //ToDo: поднимаем, чтобы сравняться с уровнем ушей
-                padding:  EdgeInsets.only(bottom: owlSize.height/14),
+                //ToDo: поднимаем над совой
+                padding:  EdgeInsets.only(bottom: owlSize.height/10),
                 child: Container(
                   decoration: BoxDecoration(
                     image: DecorationImage(
