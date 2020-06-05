@@ -278,18 +278,21 @@ class HeadOwlState extends State<HeadOwlWidget>
 
     ///Нота на плашке
     Widget notePlashka(double hOfBar) {
+
+      ///ISH: Витя, active из виджета почему-то всегда неактивен...
       final bool bActive=(Provider.of<MetronomeState>(context, listen: false)
           .activeBeat ==
           widget.id);
 
-      ///ISH: Параметры из figma.
+      ///ISH:
       ///ToDo: Юра
       ///Прозрачность плашки
-      final double opac = 0.5;
+      final double opac = 0.8;
 
       ///shadow
       final Color shadCol = Color.fromRGBO(42, 0, 49,
-          bActive?0.9:0.5);
+          bActive?0.9:0.5); //0.9 и 0.5 тут - это прозрачности тени в
+      //зависимости от активности доли
       final double shadX = 4* hOfBar /57; //-4*wOfBar/31;//0?
       final double shadY = 4 * hOfBar / 57;
       final double shadRad = 6 * hOfBar / 57;
@@ -298,7 +301,7 @@ class HeadOwlState extends State<HeadOwlWidget>
         alignment: Alignment.center,
         children:        [
           Opacity(
-            opacity: bActive?1:0.8,
+            opacity: bActive?1:opac,
             child: Container(
             height: hOfBar,
             //Image.asset('images/but-note-1.png', fit: BoxFit.fitHeight,),
