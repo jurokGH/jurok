@@ -330,8 +330,14 @@ class HeadOwlState extends State<HeadOwlWidget>
                         Offset(owlSize.width / 3, owlSize.height / 2),
                       ),
                       child: Container(
-                        color: Color.fromRGBO(0x42, 0, 0x49, 0.65),
+                        decoration: new BoxDecoration(
+                          border: new Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        //height: owlSize.height / 6*widget.nAccent,
+                        //color: Color.fromRGBO(0x42, 0, 0x49, 0.65),
                         child: Column(
+                          mainAxisSize:   MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: accentsWid,

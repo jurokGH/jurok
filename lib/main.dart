@@ -100,8 +100,8 @@ const int _cMaxNoteValue = 16;
 const int _cIniActiveMetre = 1; //3
 /// Initial subbeats
 const List<int> _cIniSubBeats = [
-  1, 1, 1,
-  //1, 1, 1, 1, 1, 1,
+  //1, 1, 1,
+  1, 1, 1, 1, 1, 1,
 
   //1,3,1,3,1,1, 1,3,1,3,3,3  // Fancy; Bolero; needs accents
   //2, 2, 4, 2, 4, 2,  // Fancy
@@ -111,8 +111,8 @@ const List<int> _cIniSubBeats = [
 
 /// Initial accents
 const List<int> _cIniAccents = [
-  1, 0, 0,
-  //2, 0, 0, 1, 0, 0,
+  //1, 0, 0,
+  2, 0, 0, 1, 0, 0,
 
   //2, 0, 1, 0,
   //2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 1, 0,  //Bolero
@@ -297,15 +297,15 @@ class _HomePageState extends State<HomePage>
   /// Initially filled with predefined ('standard') metres
   /// User defined metre is inserted into this list in its sorted position
   List<MetreBar> _metreList = [
-    MetreBar(2, 4),
-    MetreBar(3, 4),
-    MetreBar(4, 4),
     MetreBar(6, 8),
     MetreBar(9, 8),
     MetreBar(12, 16),
     // 'Unsorted' metres go in the end
     //MetreBar(5, 8),  // 3+2/8
     MetreBar(12, 16), // Bolero
+    MetreBar(2, 4),
+    MetreBar(3, 4),
+    MetreBar(4, 4),
   ];
 
   /// Index of current active metre
@@ -445,8 +445,9 @@ class _HomePageState extends State<HomePage>
         Prosody.reverseAccents(activeMetre.accents));
 
     //Пользовательские ритмы
-    userRhithms = List<Rhythm>.generate(12,(n)=>UserRhythm([],[]));
+    userRhithms = List<Rhythm>.generate(12, (n) => UserRhythm([], []));
   }
+
   List<Rhythm> userRhithms;
 
   @override
@@ -584,7 +585,6 @@ class _HomePageState extends State<HomePage>
   /// UI notification handlers
   ///
 
-
   ///Изменяем число нот
   void _onBeatChanged(int beats) {
     print('_onBeatChanged');
@@ -669,24 +669,18 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-
   ///ToDo: эксперимент.
   /// Устанавливаем всё.
-  void onEverythingChanged(List<int> subBeatsToSet, List<int> accentsToSet)
-  {
-    if (subBeatsToSet.length!=accentsToSet.length) return; //ToDo
-    if (!(
-        (_beat.beatCount==subBeatsToSet.length)&&
-        equalLists(_beat.subBeats, subBeatsToSet)&&
-        equalLists(activeMetre.accents, accentsToSet)
-    ))
-  {
+  void onEverythingChanged(List<int> subBeatsToSet, List<int> accentsToSet) {
+    if (subBeatsToSet.length != accentsToSet.length) return; //ToDo
+    if (!((_beat.beatCount == subBeatsToSet.length) &&
+        equalLists(_beat.subBeats, subBeatsToSet) &&
+        equalLists(activeMetre.accents, accentsToSet))) {
       _beat.beatCount = subBeatsToSet.length;
-      _beat.subBeats=subBeatsToSet;
+      _beat.subBeats = subBeatsToSet;
       bool changed = insertMetre(_beat.beatCount, activeMetre.note);
-      activeMetre.accents=accentsToSet;//ToDo?????
+      activeMetre.accents = accentsToSet; //ToDo?????
       //activeMetre.beats=_beat.beatCount;//ToDo?????
-
 
       //_beat.accents = _metreList[index].accents;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
@@ -702,10 +696,7 @@ class _HomePageState extends State<HomePage>
         _updateMetre = changed;
       });
     }
-
   }
-
-
 
   void onSubbeatChanged(int subbeatCount) {
     //TODO
@@ -722,16 +713,14 @@ class _HomePageState extends State<HomePage>
     setState(() {});
   }
 
-
   ///Запасаем пользовательский ритм для данного числа долей.
   ///Считаем, что пользователь сделал что-то интересное, если
   ///он менял подбит или акцент на одной из сов, остальное - не важно.
   ///У одной совы не запасаем.
-  void setUserRhythm(){
-    if (_beat.beatCount>1) {
-      userRhithms[_beat.beatCount-1]=UserRhythm(
-        _beat.subBeats, activeMetre.accents
-      );
+  void setUserRhythm() {
+    if (_beat.beatCount > 1) {
+      userRhithms[_beat.beatCount - 1] =
+          UserRhythm(_beat.subBeats, activeMetre.accents);
     }
   }
 
@@ -771,7 +760,6 @@ class _HomePageState extends State<HomePage>
 
     setState(() {});
   }
-
 
   /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
@@ -1031,14 +1019,14 @@ class _HomePageState extends State<HomePage>
                   alignment: Alignment.bottomCenter,
                   child: Container(
                       //padding: EdgeInsets.all(_heightAds[0] * 0.1),
-                    /*
+                      /*
                       decoration: BoxDecoration(
                         //color: Colors.grey.withOpacity(0.5),
                         border: Border.all(
                           color: Colors.green, //
                         ),
                       ),*/
-                      height: _heightAds[0]/2,
+                      height: _heightAds[0] / 2,
                       width: ourAreaSize.width,
                       child: Row(
                         children: <Widget>[
@@ -1056,17 +1044,17 @@ class _HomePageState extends State<HomePage>
                                 max: maxReservedHeightBottom),
                           ),
                           Expanded(
-                            flex: 1,
-                              child: Text("Height:  " +
-                                  (ourAreaSize.height - bottomReserved).toStringAsFixed(1),
-                                style: TextStyle(color: Colors.black,
-                                fontSize: _screenSize.width/20 ,
+                              flex: 1,
+                              child: Text(
+                                "Height:  " +
+                                    (ourAreaSize.height - bottomReserved)
+                                        .toStringAsFixed(1),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: _screenSize.width / 20,
                                 ),
                                 textScaleFactor: 1,
-                              )
-
-
-                          ),
+                              )),
                         ],
                       )),
                 )
@@ -1202,7 +1190,7 @@ class _HomePageState extends State<HomePage>
       onAccentChanged: onAccentChanged,
     );
 
-    int maxAccent=0;
+    int maxAccent = 0;
 
     final Widget wixOwls = new OwlGridRot(
       playing: _playing,
@@ -1214,7 +1202,8 @@ class _HomePageState extends State<HomePage>
       maxAccent: activeMetre.maxAccent,
       spacing: spacing,
       //padding: padding,
-      padding: EdgeInsets.zero,//ToDo: определить сообразно общей ситуации извне
+      padding:
+          EdgeInsets.zero, //ToDo: определить сообразно общей ситуации извне
       skin: _skin,
       size: size,
       onChanged: onOwlChanged,
@@ -2074,6 +2063,44 @@ class _HomePageState extends State<HomePage>
   TextStyle basicTextStyle; //ToDo
 
   Widget testWidget(Size size) {
+    final Widget iconAcc = Image.asset('images/ac.png', fit: BoxFit.fitWidth,);
+    final List<Widget> accentsWid =
+        List<Widget>.filled(activeMetre.accents[0], iconAcc);
+
+    return Container(
+      width: size.width,
+      height: size.height,
+      child: Center(
+        child: Container(
+          width: size.width/10,
+          height: size.height*0.9,
+          decoration: decorTmp(Colors.black),
+          //color:Colors.black,
+          //height: 50,//size.height/5,
+          /*decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/but-note-2.png'),
+                //image: AssetImage('images/but-note-1.png'),
+                //image: AssetImage('images/ictempo.png'),
+                fit: BoxFit.fitHeight,
+              )),*/
+          child: DecoratedBox(
+            decoration: decorTmp(Colors.yellowAccent),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: accentsWid,
+            ),
+          ),
+
+        ),
+      ),
+    );
+    /*
+
+
+
     double ShadowOffset = size.width * 0.03;
     double blurRadius = ShadowOffset * 1;
     return Container(
@@ -2090,7 +2117,7 @@ class _HomePageState extends State<HomePage>
           ),
         ],
       ),
-    );
+    );     */
   }
 
   ///Скролл темпов.
@@ -2153,7 +2180,7 @@ class _HomePageState extends State<HomePage>
 
     double ShadowOffset = totalWidth * 0.03;
     double blurRadius = ShadowOffset * 1;
-     double spreadRadius=14/pixelWidth*totalWidth;
+    double spreadRadius = 14 / pixelWidth * totalWidth;
 
     bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
@@ -2167,7 +2194,7 @@ class _HomePageState extends State<HomePage>
             BoxShadow(
               offset: Offset(0, ShadowOffset),
               blurRadius: blurRadius,
-               spreadRadius: spreadRadius,
+              spreadRadius: spreadRadius,
             ),
           ],
         ),
@@ -2194,10 +2221,11 @@ class _HomePageState extends State<HomePage>
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: Text("virtual bootom of the phone",
-                              textScaleFactor:1,
+                              textScaleFactor: 1,
                               style: TextStyle(
-                                  fontSize: 12 * totalWidth / pixelWidth,
-                                  color: Colors.yellowAccent, )),
+                                fontSize: 12 * totalWidth / pixelWidth,
+                                color: Colors.yellowAccent,
+                              )),
                         ),
                       )
                     : Container(),
@@ -2253,7 +2281,7 @@ class _HomePageState extends State<HomePage>
     ///Кнопки темпа
     double tempoButtonsSize = knobDiameter / 2.5;
     double fontSizeButtons = tempoButtonsSize / 2.3;
-    TextStyle _textStyleButtons =//ToDo: fix font; fix font size
+    TextStyle _textStyleButtons = //ToDo: fix font; fix font size
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
             .textTheme
             .headline4
@@ -2272,13 +2300,14 @@ class _HomePageState extends State<HomePage>
 
     Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
         ? Colors.red
-        : Colors.greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
+        : Colors
+            .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
 
-    TextStyle knobTextStyle =GoogleFonts.roboto(
-      fontSize: knobFontSize, color: tempoColor, fontStyle: FontStyle.italic,
+    TextStyle knobTextStyle = GoogleFonts.roboto(
+      fontSize: knobFontSize,
+      color: tempoColor,
+      fontStyle: FontStyle.italic,
     );
-
-
 
     return Container(
       width: size.width,
@@ -2465,7 +2494,6 @@ class _HomePageState extends State<HomePage>
             child: SizedOverflowBox(
               alignment: Alignment.center,
               size: Size(textOuterSizeX, textOuterSizeY),
-
               child: _knobValue.pushed
                   ? Container(
                       width: textOuterSizeX,
@@ -2570,18 +2598,19 @@ class _HomePageState extends State<HomePage>
           Expanded(
             //Колонка колёс метра
             flex: 12,
-            child: Container(
-                child: metreU()
-            ),
+            child: Container(child: metreU()),
           ),
           Expanded(
             //Строка акцентов
             flex: 25,
             child: Container(
-              padding: EdgeInsets.only(right: localXPadding, left: localXPadding,
-                  top: meterYPaddyng,bottom: meterYPaddyng),
+              padding: EdgeInsets.only(
+                  right: localXPadding,
+                  left: localXPadding,
+                  top: meterYPaddyng,
+                  bottom: meterYPaddyng),
               decoration: decorTmp(Colors.yellow),
-              child: metreBarU(),//ToDo: очень тормозит при тапе.
+              child: metreBarU(), //ToDo: очень тормозит при тапе.
               // child: metreU(), //_buildBar(true, Size(150,150)),
             ),
           ),
@@ -2599,7 +2628,7 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: AssetImage('images/but123short.png'),
+                        image: AssetImage('images/but123short.png'),
                         //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
                         fit: BoxFit.fill,
@@ -2622,7 +2651,7 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: AssetImage('images/but123short.png'),
+                        image: AssetImage('images/but123short.png'),
                         //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
                         fit: BoxFit.fill,
@@ -2647,37 +2676,37 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-
-  Widget rhythmPickerInside(Size size){
-
-    TextStyle textStyle =GoogleFonts.roboto(
-      fontSize: size.width / 5.2, color: Colors.black, fontStyle: FontStyle.italic,
+  Widget rhythmPickerInside(Size size) {
+    TextStyle textStyle = GoogleFonts.roboto(
+      fontSize: size.width / 5.2,
+      color: Colors.black,
+      fontStyle: FontStyle.italic,
     );
 
+    List<Rhythm> rhythms = AllRhythms().rhythms[_beat.beatCount - 1];
+    UserRhythm userRhythm = userRhithms[_beat.beatCount - 1];
+    if (userRhythm.bDefined) {
+      rhythms.add(userRhythm);
+    }
 
-    List<Rhythm> rhythms=AllRhythms().rhythms[_beat.beatCount-1];
-    UserRhythm userRhythm=userRhithms[_beat.beatCount-1];
-    if (userRhythm.bDefined) {rhythms.add(userRhythm);}
-
-    final List<PopupMenuItem<int>> items=[];
-    for(int i=0; i<rhythms.length;i++){
-      String name =!rhythms[i].bStandard?
-          rhythms[i].name
-          : _beat.beatCount.toString()+"/"+activeMetre.note.toString();
+    final List<PopupMenuItem<int>> items = [];
+    for (int i = 0; i < rhythms.length; i++) {
+      String name = !rhythms[i].bStandard
+          ? rhythms[i].name
+          : _beat.beatCount.toString() + "/" + activeMetre.note.toString();
 
       items.add(
         PopupMenuItem(
           value: i,
-          child: Text(name,textScaleFactor: 1,style: textStyle),
+          child: Text(name, textScaleFactor: 1, style: textStyle),
         ),
       );
     }
 
-
-    return PopupMenuButton<int>(
+    return PopupMenuButton<int>(//ToDo: мерзейший клик
       onSelected: (value) {
         if (rhythms[value].bSubBeatDependent)
-            onEverythingChanged(rhythms[value].subBeats, rhythms[value].accents);
+          onEverythingChanged(rhythms[value].subBeats, rhythms[value].accents);
         else
           onEverythingChanged(_beat.subBeats, rhythms[value].accents);
       },
@@ -2686,30 +2715,15 @@ class _HomePageState extends State<HomePage>
         height: size.height,
         child: Align(
           alignment: Alignment.center,
-          child: Text("rhythms...",
+          child: Text(
+            "rhythms...",
             style: textStyle,
-            textScaleFactor: 1,),
+            textScaleFactor: 1,
+          ),
         ),
       ),
       itemBuilder: (context) => items,
-      /*
 
-      [//ZZZZ TODO
-        items[0],
-        PopupMenuItem(
-          value: 0,
-          child: Text("Still",textScaleFactor: 1,),//ToDo: FONT
-        ),
-        PopupMenuItem(
-          value: 1,
-          child: Text("under",textScaleFactor: 1),//ToDo: FONT
-        ),
-        PopupMenuItem(
-          value: 2,
-          child: Text("construction...",textScaleFactor: 1),//ToDo: FONT
-        ),
-      ],
-       */
     );
   }
 
@@ -2724,7 +2738,7 @@ class _HomePageState extends State<HomePage>
               .textTheme
               .headline4;*/
 
-      TextStyle textStyle =GoogleFonts.roboto();
+      TextStyle textStyle = GoogleFonts.roboto();
 
       //onChanged: onSubbeatChanged,
 
@@ -2827,13 +2841,17 @@ class _HomePageState extends State<HomePage>
                 colorFuture: Colors.black,
                 colorInner: Colors.black,
               )),
-          Container(//Размер хвостика нотки не должен цеплять равенство
-            //ToDo: а пробел поставить в след. виджете?
-              width: noteSize.width *
-                  1.2),
+          Container(
+              //Размер хвостика нотки не должен цеплять равенство
+              //ToDo: а пробел поставить в след. виджете?
+              width: noteSize.width * 1.2),
           Align(
               alignment: Alignment.center,
-              child: Text("= " + _tempoBpm.toString(), style: textStyle, textScaleFactor: 1,)),
+              child: Text(
+                "= " + _tempoBpm.toString(),
+                style: textStyle,
+                textScaleFactor: 1,
+              )),
           //Размер хвостика нотки не должен цеплять равенство
         ],
       ));
@@ -2874,8 +2892,8 @@ class _HomePageState extends State<HomePage>
                     image: DecorationImage(
                   //image: AssetImage('images/but-note-1.png'),
                   //image: AssetImage('images/ictempo.png'),
-                      //image: AssetImage('images/wh1.jpg'),
-                      image: AssetImage('images/wh22.png'),
+                  //image: AssetImage('images/wh1.jpg'),
+                  image: AssetImage('images/wh22.png'),
                   fit: BoxFit.fill,
                 )),
                 //decoration: decorTmp(Colors.green),
@@ -2937,12 +2955,15 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _rowControlsArea(bool portrait, Size size) {
-    double fontSizeTempo = size.width*0.3 / 6;//ToDo: to make the widget more flexible,  the constant should be one of c_i-s constatns
-    double fontSizeMusicScheme = fontSizeTempo *1.5;
+    double fontSizeTempo = size.width *
+        0.3 /
+        6; //ToDo: to make the widget more flexible,  the constant should be one of c_i-s constatns
+    double fontSizeMusicScheme = fontSizeTempo * 1.5;
 
-    TextStyle _textStyleTempoRow =GoogleFonts.roboto(fontSize:  fontSizeTempo);
+    TextStyle _textStyleTempoRow = GoogleFonts.roboto(fontSize: fontSizeTempo);
 
-    TextStyle _textStyleSchemeRow = GoogleFonts.roboto(fontSize: fontSizeMusicScheme);
+    TextStyle _textStyleSchemeRow =
+        GoogleFonts.roboto(fontSize: fontSizeMusicScheme);
 
     double leftRightPadding = size.width * 0.01;
 
@@ -3008,18 +3029,18 @@ class _HomePageState extends State<HomePage>
               _activeSoundScheme = i;
               _channel.setSoundScheme(_activeSoundScheme).then((int result) {
                 setState(() {}); //ToDo: Why?
-                 Navigator.of(context).pop();
+                Navigator.of(context).pop();
               });
             },
             child: Container(
               width: shrinkForList * totalWidth,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('images/but1452long.png'),
-                    //image: AssetImage('images/but-note-1.png'),
-                    //image: AssetImage('images/ictempo.png'),
-                    fit: BoxFit.fill,
-                  )),
+                image: AssetImage('images/but1452long.png'),
+                //image: AssetImage('images/but-note-1.png'),
+                //image: AssetImage('images/ictempo.png'),
+                fit: BoxFit.fill,
+              )),
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -3055,58 +3076,59 @@ class _HomePageState extends State<HomePage>
                 vertical: totalWidth * shrinkForList / 50,
                 horizontal: totalWidth * (1 - shrinkForList) / 4),
 
-              child: Container(
-                width: shrinkForList * totalWidth,
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('images/but1452long.png'),
-                      //image: AssetImage('images/but-note-1.png'),
-                      //image: AssetImage('images/ictempo.png'),
-                      fit: BoxFit.fill,
-                    )),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    _soundSchemes[i],
-                    style: (i == _activeSoundScheme)
-                        ? listTextStyleBold
-                        : listTextStyle,
-                    textScaleFactor: 1,
-                  ),
+            child: Container(
+              width: shrinkForList * totalWidth,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                image: AssetImage('images/but1452long.png'),
+                //image: AssetImage('images/but-note-1.png'),
+                //image: AssetImage('images/ictempo.png'),
+                fit: BoxFit.fill,
+              )),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  _soundSchemes[i],
+                  style: (i == _activeSoundScheme)
+                      ? listTextStyleBold
+                      : listTextStyle,
+                  textScaleFactor: 1,
                 ),
               ),
+            ),
           ),
         ),
       );
     }
-
 
     return Container(
       width: totalWidth,
       //decoration: decorTmp(Colors.yellow),
       decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/but1452long.png'),
-            //image: AssetImage('images/but-note-1.png'),
-            //image: AssetImage('images/ictempo.png'),
-            fit: BoxFit.fill,
-          )),
+        image: AssetImage('images/but1452long.png'),
+        //image: AssetImage('images/but-note-1.png'),
+        //image: AssetImage('images/ictempo.png'),
+        fit: BoxFit.fill,
+      )),
       child: RawMaterialButton(
-        enableFeedback: false,//!_playing,
-        onPressed: () { //По тапу вытаскиваем список для выбора схемы
+        enableFeedback: false, //!_playing,
+        onPressed: () {
+          //По тапу вытаскиваем список для выбора схемы
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                  return SimpleDialog(
-                    backgroundColor: Colors.amber[50],
-                    elevation: 10.3,
-                    // title: const Text("Instruments"),
-                    //children:musicListOpt,//Крякает
-                    children:musicList,
-                  );
-                });
-              },
-        child: Align( //То, что рисуется в строке
+                return SimpleDialog(
+                  backgroundColor: Colors.amber[50],
+                  elevation: 10.3,
+                  // title: const Text("Instruments"),
+                  //children:musicListOpt,//Крякает
+                  children: musicList,
+                );
+              });
+        },
+        child: Align(
+          //То, что рисуется в строке
           alignment: Alignment.center,
           child: Text(
             _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
@@ -3217,9 +3239,10 @@ class _HomePageState extends State<HomePage>
       double itemExtent = 0.5 * meterSize.width; //44,
       bool updateMetre = _updateMetre; //ISH: не уверен, что это
 
-      double meterTextSize=meterSize.height/2.2;
-      TextStyle meterTextStyle=GoogleFonts.roboto(
-        fontSize: meterTextSize,  );
+      double meterTextSize = meterSize.height / 2.2;
+      TextStyle meterTextStyle = GoogleFonts.roboto(
+        fontSize: meterTextSize,
+      );
       _updateMetre = false;
       return MetreWidget(
         update: updateMetre,
@@ -3235,12 +3258,12 @@ class _HomePageState extends State<HomePage>
         color: Colors.deepPurple,
         textStyle: meterTextStyle,
         textStyleSelected: meterTextStyle.copyWith(
-            fontWeight: FontWeight.w800,
-            //fontSize: _textStyle.fontSize + 2,//??
-            ///ISH:Не это ли приводит к расцентровке шрифтов?
-            //height: 1,
-            //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
-            //color: _cWhiteColor,
+          fontWeight: FontWeight.w800,
+          //fontSize: _textStyle.fontSize + 2,//??
+          ///ISH:Не это ли приводит к расцентровке шрифтов?
+          //height: 1,
+          //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
+          //color: _cWhiteColor,
         ),
         onBeatChanged: _onBeatChanged,
         onNoteChanged: _onNoteChanged,
