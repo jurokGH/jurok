@@ -255,14 +255,14 @@ class _HomePageState extends State<HomePage>
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
   double reservedHeightBottom = 0;
-  final double maxReservedHeightBottom = 80.0;
+  final double maxReservedHeightBottom = 75.0;
 
   ///Put 100 and shrink it to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
 
   ///ISH: The following is for the reservation on the bottom of the screen in the portrait mode for a scrollbar
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
-  /// or to chase theoretical zebras.)
+  /// or to chase theoretical zebras, or try to tap small controls.)
   bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
