@@ -2060,41 +2060,24 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
-  TextStyle basicTextStyle; //ToDo
+
+
+  //TextStyle basicTextStyle; //ToDo
+
+
 
   Widget testWidget(Size size) {
-    final Widget iconAcc = Image.asset('images/ac.png', fit: BoxFit.fitWidth,);
-    final List<Widget> accentsWid =
-        List<Widget>.filled(activeMetre.accents[0], iconAcc);
+
+
+    final double wOfBar = size.width / 8;
+    final double hOfBar = size.height * 0.9;
+
+
 
     return Container(
       width: size.width,
       height: size.height,
       child: Center(
-        child: Container(
-          width: size.width/10,
-          height: size.height*0.9,
-          decoration: decorTmp(Colors.black),
-          //color:Colors.black,
-          //height: 50,//size.height/5,
-          /*decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('images/but-note-2.png'),
-                //image: AssetImage('images/but-note-1.png'),
-                //image: AssetImage('images/ictempo.png'),
-                fit: BoxFit.fitHeight,
-              )),*/
-          child: DecoratedBox(
-            decoration: decorTmp(Colors.yellowAccent),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: accentsWid,
-            ),
-          ),
-
-        ),
       ),
     );
     /*
@@ -2703,7 +2686,8 @@ class _HomePageState extends State<HomePage>
       );
     }
 
-    return PopupMenuButton<int>(//ToDo: мерзейший клик
+    return PopupMenuButton<int>(
+      //ToDo: мерзейший клик
       onSelected: (value) {
         if (rhythms[value].bSubBeatDependent)
           onEverythingChanged(rhythms[value].subBeats, rhythms[value].accents);
@@ -2723,7 +2707,6 @@ class _HomePageState extends State<HomePage>
         ),
       ),
       itemBuilder: (context) => items,
-
     );
   }
 

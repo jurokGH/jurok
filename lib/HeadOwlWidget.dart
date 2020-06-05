@@ -110,7 +110,7 @@ class HeadOwlState extends State<HeadOwlWidget>
         activeHash = hash;
         //maxAngle = 2;
         //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
-        _angle = - widget.maxAngle * sin(2 * pi * 0.000001 * t);
+        _angle = -widget.maxAngle * sin(2 * pi * 0.000001 * t);
         //минус- чтобы начинал в сторону движения всех нот
         active = newActive;
         activeSubbeat = newActiveSubbeat;
@@ -163,7 +163,7 @@ class HeadOwlState extends State<HeadOwlWidget>
     final Size owlSize = new Size(
         widget.size.width, widget.imageHeightRatio * widget.size.height);
     final Size noteSize = new Size(widget.size.width,
-        (1.0 - widget.imageHeightRatio) * widget.size.height / 2 //!!!
+        (1.0 - widget.imageHeightRatio) * widget.size.height / 2.2 //!!!
         );
 
     maxDragX = imageSize.width / 4;
@@ -194,28 +194,143 @@ class HeadOwlState extends State<HeadOwlWidget>
       size: noteSize,
     );
 
+    ///Плашка с тенями  и акцентами.
+    ///Растет снизу вверх, нужно следить, чтобы поместились все
+    ///картинки акцента
+    Widget accentedPlashka(double wOfBar, double hOfBar, int nOfAccents) {
+      if (!(nOfAccents > 0)) return Container();
 
-    final Widget iconAcc = Image.asset('images/ac.png',fit: BoxFit.fitWidth);
-    final List<Widget> accentsWid = List<Widget>.filled(widget.nAccent,iconAcc);
-    /*for (int i = 0; i < widget.maxAccent; i++) {
-      accentsWid.add(
-        Expanded(
-          flex: 1,
-          child:(i >= (widget.maxAccent - widget.nAccent))? Text(
-                    (i >= (widget.maxAccent - widget.nAccent))
-                        ? ">" //  (widget.maxAccent-i).toString()
-                        : "", // "-",//      "",
-                    textAlign: TextAlign.center,
-                    textScaleFactor: 1,
-                    style: TextStyle(
-                      fontSize: owlSize.height / 3,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ), //ToDo;
-              ):Container(),
+      ///ISH: Параметры из figma. Там ширина плашки была 31 когда я мерял отнощения, поэтому
+      ///тут это мистическое число.
+      ///ToDo: Юра
+
+      ///paddings
+      final double betweenPad = 1.5 * wOfBar / 31;
+      final double topbutPad = 3 * betweenPad;
+      final double leftrightPad = topbutPad - betweenPad;
+
+      ///Прозрачность плашки
+      final double opac = 0.76;
+
+      ///shadow
+      final Color shadCol = Color.fromRGBO(0, 0, 0, 0.25);
+      final double shadX = 0; //-4*wOfBar/31;//0?
+      final double shadY = 4 * wOfBar / 31;
+      final double shadRad = 4 * wOfBar / 31;
+
+      ///галка акцента в вертикальных паддингах
+      final Widget iconAcc = Image.asset(
+        'images/ac.png',
+        fit: BoxFit.fitWidth,
+      );
+
+      final List<Widget> accentsWid = List<Widget>.filled(
+          nOfAccents,
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: betweenPad,
+            ),
+            child: iconAcc,
+          ));
+
+      return Opacity(
+        opacity: opac,
+        child: Container(
+          width: wOfBar,
+          height: hOfBar,
+          //decoration: decorTmp(Colors.black),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Wrap(children: [
+              Container(
+                //decoration: decorTmp(Colors.yellowAccent),
+                decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: shadCol,
+                        offset: Offset(shadX, shadY),
+                        //spreadRadius: 1,
+                        blurRadius: shadRad,
+                      ),
+                    ],
+                    image: DecorationImage(
+                      image: AssetImage('images/but-note-2.png'),
+                      fit: BoxFit.fill,
+                    )),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: topbutPad,
+                    horizontal: leftrightPad,
+                  ), //
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: accentsWid,
+                  ),
+                ),
+              ),
+            ]),
+          ),
         ),
       );
-    }*/
+    }
+
+    ///Нота на плашке
+    Widget notePlashka(double hOfBar) {
+      final bool bActive=(Provider.of<MetronomeState>(context, listen: false)
+          .activeBeat ==
+          widget.id);
+
+      ///ISH: Параметры из figma.
+      ///ToDo: Юра
+      ///Прозрачность плашки
+      final double opac = 0.5;
+
+      ///shadow
+      final Color shadCol = Color.fromRGBO(42, 0, 49,
+          bActive?0.9:0.5);
+      final double shadX = 4* hOfBar /57; //-4*wOfBar/31;//0?
+      final double shadY = 4 * hOfBar / 57;
+      final double shadRad = 6 * hOfBar / 57;
+
+      return Stack(
+        alignment: Alignment.center,
+        children:        [
+          Opacity(
+            opacity: bActive?1:0.8,
+            child: Container(
+            height: hOfBar,
+            //Image.asset('images/but-note-1.png', fit: BoxFit.fitHeight,),
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: shadCol,
+                  offset: Offset(shadX, shadY),
+                  blurRadius: shadRad,
+                ),
+              ],
+              image: DecorationImage(
+                /* //какая-то хрень некрасивая получилась, надо разбираться...
+                colorFilter: (Provider.of<MetronomeState>(context, listen: false)
+                            .activeBeat ==
+                        widget.id)
+                    ? ColorFilter.mode(
+                        Colors.white.withOpacity(1), BlendMode.color)
+                    : ColorFilter.mode(
+                        Colors.black.withOpacity(0.5), BlendMode.color),
+                 */
+                image: // AssetImage('images/but-note-2.png'),
+                    AssetImage('images/but-note-1.png'),
+                fit: BoxFit.fill,
+              ),
+            ),
+        ),
+          ),
+          noteWidget,
+      ],
+        );
+    }
 
     //TODO 1 vs 2 RepaintBoundary in Column
     return RepaintBoundary(
@@ -276,19 +391,8 @@ class HeadOwlState extends State<HeadOwlWidget>
               },
               child: Padding(
                 //ToDo: поднимаем над совой
-                padding:  EdgeInsets.only(bottom: owlSize.height/10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      //colorFilter:(widget.activeSubbeat==1)?ColorFilter.mode(Colors.white.withOpacity(1), BlendMode.dstATop):
-                        //        ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.dstATop),
-                      image: widget.active?AssetImage('images/but-note-2.png'):
-                      AssetImage('images/but-note-1.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: noteWidget,
-                ),
+                padding: EdgeInsets.only(bottom: owlSize.height / 10),
+                child: notePlashka(noteSize.height*1.1),//ToDo: от балды...
               ),
             ),
 
@@ -329,20 +433,8 @@ class HeadOwlState extends State<HeadOwlWidget>
                         Offset(0, owlSize.height),
                         Offset(owlSize.width / 3, owlSize.height / 2),
                       ),
-                      child: Container(
-                        decoration: new BoxDecoration(
-                          border: new Border.all(color: Colors.black),
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        //height: owlSize.height / 6*widget.nAccent,
-                        //color: Color.fromRGBO(0x42, 0, 0x49, 0.65),
-                        child: Column(
-                          mainAxisSize:   MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: accentsWid,
-                        ),
-                      ),
+                      child: accentedPlashka(owlSize.width / 3,
+                          owlSize.height / 2, widget.nAccent),
                     ),
                   ],
                 ),
