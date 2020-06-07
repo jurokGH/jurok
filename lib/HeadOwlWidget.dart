@@ -185,10 +185,10 @@ class HeadOwlState extends State<HeadOwlWidget>
       coverWidth: true,
       showTuplet: tupletsInts.contains(widget.subbeatCount),
       showAccent: false,
-      colorPast: Colors.white,
+      colorPast: Colors.black,
       colorNow: Colors.red,
-      colorFuture: Colors.white,
-      colorInner: Colors.white,
+      colorFuture: Colors.black,
+      colorInner: Colors.white.withOpacity(1),
       showShadow: true,
       colorShadow: Colors.white.withOpacity(1),
       size: noteSize,
@@ -287,7 +287,7 @@ class HeadOwlState extends State<HeadOwlWidget>
       ///ISH:
       ///ToDo: Юра
       ///Прозрачность плашки
-      final double opac = 0.8;
+      final double opac = 0.5;
 
       ///shadow
       final Color shadCol = Color.fromRGBO(42, 0, 49,

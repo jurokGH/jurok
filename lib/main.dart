@@ -263,10 +263,10 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.)
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров
-  bool bBoxContainer = true;
+  bool bBoxContainer = false;
 
   // bool bShowBoundariesDebug=true;
 
@@ -980,7 +980,7 @@ class _HomePageState extends State<HomePage>
       //Фактическая область, доступная для приложения (метроном вместе с рекламой или чем-то еще)
       decoration: BoxDecoration(
           image: DecorationImage(
-        image: AssetImage('images/back-v4.jpg'),
+        image: AssetImage('images/backg.png'),
         fit: BoxFit.cover,
       )),
       child: Stack(
@@ -2060,25 +2060,16 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
-
-
   //TextStyle basicTextStyle; //ToDo
 
-
-
   Widget testWidget(Size size) {
-
-
     final double wOfBar = size.width / 8;
     final double hOfBar = size.height * 0.9;
-
-
 
     return Container(
       width: size.width,
       height: size.height,
-      child: Center(
-      ),
+      child: Center(),
     );
     /*
 
@@ -2171,6 +2162,7 @@ class _HomePageState extends State<HomePage>
       _knobAndStartArea(true, Size(totalWidth, totalWidth * c2)),
       Container(
         ///3d-экзерсисы, Юрик, сделай что-нибудь.
+        /*
         decoration: BoxDecoration(
           color: Colors.amber[100],
           boxShadow: [
@@ -2181,6 +2173,7 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
+         */
         child: (!bTest)
             ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
             : testWidget(Size(totalWidth, totalWidth * c2)),
@@ -2611,7 +2604,8 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                        image: AssetImage('images/but123short.png'),
+                            image: AssetImage('images/but-rhythms.png'),
+                        //image: AssetImage('images/but123short.png'),
                         //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
                         fit: BoxFit.fill,
@@ -2700,7 +2694,7 @@ class _HomePageState extends State<HomePage>
         child: Align(
           alignment: Alignment.center,
           child: Text(
-            "rhythms...",
+            "More...",
             style: textStyle,
             textScaleFactor: 1,
           ),
@@ -2808,6 +2802,10 @@ class _HomePageState extends State<HomePage>
         //mainAxisAlignment: MainAxisAlignment.
         //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
+          Container(
+            //Размер хвостика нотки не должен цеплять равенство
+            //ToDo: а пробел поставить в след. виджете?
+              width: noteSize.width * 1.2),
           Container(
               height: noteSize.height,
               width: noteSize.width,
@@ -2948,13 +2946,49 @@ class _HomePageState extends State<HomePage>
     TextStyle _textStyleSchemeRow =
         GoogleFonts.roboto(fontSize: fontSizeMusicScheme);
 
-    double leftRightPadding = size.width * 0.01;
+    ///Паддинг большой плашки контролов относительно краев экраан
+
+    ///Параметры модели figma - вся ширина экрана и ширина плашки
+    final double modelWidth = 640;
+    final double plashkaWidth = 617;
+
+    ///ToDo: Юра
+
+    final double leftRightPadding =
+        size.width * (modelWidth - plashkaWidth) / modelWidth / 2;
+
+    ///Shadow плашки. //ToDo: Юра.
+    ///
+    /// Параметры модели:
+    /// box-shadow: 8px 8px 32px rgba(0, 0, 0, 0.75);
+    ///
+    double shrinkShad = size.width / modelWidth;
+    final Color shadCol = Color.fromRGBO(0, 0, 0, 0.75);
+    final double shadX = 8 * shrinkShad;
+    final double shadY =
+        8 * shrinkShad; //не совсем корректно относительно тени по y?
+    final double shadRad = 32 * shrinkShad;
 
     return Container(
       width: size.width,
       height: size.height,
       padding: EdgeInsets.symmetric(horizontal: leftRightPadding),
       child: Container(
+        decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: shadCol,
+                offset: Offset(shadX, shadY),
+                //spreadRadius: 1,
+                blurRadius: shadRad,
+              ),
+            ],
+            image: DecorationImage(
+              image: AssetImage('images/bigplashka.png'),
+              //image: AssetImage('images/but-note-1.png'),
+              //image: AssetImage('images/ictempo.png'),
+              fit: BoxFit.fill,
+            )),
         child: Column(
           //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
