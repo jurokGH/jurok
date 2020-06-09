@@ -62,6 +62,7 @@ class MetreWidget extends StatefulWidget
 
 class MetreState extends State<MetreWidget>
 {
+  /*
   static List<Metre> _metreList =
   [
     Metre(2, 4),
@@ -72,6 +73,7 @@ class MetreState extends State<MetreWidget>
     Metre(3, 2),
     Metre(6, 8),
   ];
+   */
   int _iMetre = 2;
   Offset _tapPosition;
 
@@ -342,6 +344,7 @@ class MetreState extends State<MetreWidget>
     _tapPosition = details.globalPosition;
   }
 
+  /* need to sync it
   void _showMenu()
   {
     TextStyle textStyleMenu = widget.textStyle;
@@ -382,6 +385,8 @@ class MetreState extends State<MetreWidget>
       }
     });
   }
+  */
+
 }
 
 class _DividerPainter extends CustomPainter

@@ -4,7 +4,9 @@ import 'prosody.dart';
 import 'util.dart';
 
 /// Metre melody configuration: beats/note
-
+///
+/// ISH: I can not see how is it a melody.
+///
 class Metre
 {
   /// Beat count (nominator)
@@ -41,11 +43,14 @@ class MetreBar extends Metre
     return beats == 5 || beats == 7 || beats == 10 || beats == 11 ? 2 : 1;
   }
 
+
+  ///TODO: MetreBar problem
   /// Get simple metre division
   List<int> simpleMetres()
   {
     return Prosody.getSimpleMetres(beats, accentOption == 0);
   }
+
 
   /// Check if metre has regular accent scheme
   bool get regularAccent
@@ -64,7 +69,7 @@ class MetreBar extends Metre
   bool get plainAccent
   {
     return accents.isEmpty || (accents.length == 1 && accents[0] == 0) ||
-      (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
+        (accents[0] == 1 && accents.skip(1).every((int x) => x == 0));
   }
 
   List<int> getPlainAccents()

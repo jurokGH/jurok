@@ -5,6 +5,7 @@ import 'prosody.dart';
 
 class SubbeatEqWidget extends StatefulWidget {
   final int subbeatCount;
+  final int subbeatCountMax;
   final int noteValue;
   final ValueChanged<int> onChanged;
   final Color noteColor;
@@ -19,6 +20,7 @@ class SubbeatEqWidget extends StatefulWidget {
       this.noteColor = Colors.black,
       this.size = Size.zero,
       this.allEqual = false,
+        this.subbeatCountMax=4,
       @required this.textStyle});
 
   @override
@@ -62,7 +64,11 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
 
     return GestureDetector(
       onTap: () {
-        int subbeatCount = Subbeat.next(widget.subbeatCount);
+        int subbeatCount =  widget.allEqual
+            ? (widget.subbeatCount<=widget.subbeatCountMax)?
+                  (widget.subbeatCount % widget.subbeatCountMax)+1:
+                  1
+            : widget.subbeatCount;
         widget.onChanged(subbeatCount); //ToDo - up ????
         setState(() {});
       },

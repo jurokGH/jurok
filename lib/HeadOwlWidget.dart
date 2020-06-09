@@ -189,7 +189,7 @@ class HeadOwlState extends State<HeadOwlWidget>
       colorNow: Colors.red,
       colorFuture: Colors.black,
       colorInner: Colors.white.withOpacity(1),
-      showShadow: true,
+      showShadow: false,
       colorShadow: Colors.white.withOpacity(1),
       size: noteSize,
     );

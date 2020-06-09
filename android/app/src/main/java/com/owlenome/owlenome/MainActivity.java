@@ -541,13 +541,22 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
+    soundSсhemes.add(new MusicSchemeMix("Cowbell&Cabasa", res, R.raw.cowbell, R.raw.cabasa,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    //ToDo: она 240, подрезать!  одна из лучших схем.
+    soundSсhemes.add(new MusicSchemeMix("Triangle&Claves", res, R.raw.triangle, R.raw.claves,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    //Bass(ac)&snare(el),ag //ToDo: 240?
+    soundSсhemes.add(new MusicSchemeMix("Bass&Snare drum", res, R.raw.bussdrums240, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
     //Celesta,ag
     soundSсhemes.add(new MusicSchemeMix("Celesta", res, R.raw.celesta880, R.raw.celesta440,
         GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
-    //Bass(ac)&snare(el),ag
-    soundSсhemes.add(new MusicSchemeMix("Bass&Snare drum", res, R.raw.bussdrums240, R.raw.snaredrumelectric232,
-        GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
 
     //Pizzicato -Lev,ag
     soundSсhemes.add(new MusicSchemeMix("Pizzicato", res, R.raw.pizz880, R.raw.pizz440,
@@ -559,31 +568,34 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes.add(new MusicSchemeMix("Wood&Cabasa", res, R.raw.woodblocks, R.raw.cabasa,
         GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
-    soundSсhemes.add(new MusicSchemeMix("Cowbell&Cabasa", res, R.raw.cowbell, R.raw.cabasa,
-        GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
-    soundSсhemes.add(new MusicSchemeMix("Triangle&Claves", res, R.raw.triangle, R.raw.claves,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     /* //Первый барабан слышно только в наушниках!!!
     soundSсhemes.add(new MusicSchemeMix("bass(ac)&snare(el),ag", res, R.raw.buss1, R.raw.snaredrumelectric232,
             GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
     */
 
+    /* //Плохая цимбала. Да еще и название длинное...))
     //cymb&snare(el)
     soundSсhemes.add(new MusicSchemeMix("Cymbal&Snare drum", res, R.raw.cymbal, R.raw.snaredrumelectric232,
             GeneralProsody.AccentationType.Agogic,GeneralProsody.AccentationType.Dynamic));
+
+     */
 
     soundSсhemes.add(new MusicSchemeMix("Sinewave",
             880, 30, 440, 30,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
+    /*//Кажется, лишняя
     soundSсhemes.add(new MusicSchemeMix("Sinewave (short)",
             880, 20, 440, 15,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+     */
 
+    /*  //ToDo: меньше 200. //Совы очень нужны, но они не дружат сейчас со строкой темпов, нет времени править
     soundSсhemes.add(new MusicSchemeMix("Whoo-whoo", res, R.raw.owl_long, R.raw.owl_short,
       GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+     */
 
     //initSoundSchemesExtra();
   }

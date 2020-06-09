@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:owlenome/rhythms.dart';
 
 import 'beat_metre.dart';
 
 /// время начального бита,  скорость,
 /// и время, когда они должны быть применены.
 /// Пока время не пришло - ничего не меняем.
-
+///
 class Cauchy
 {
   int timeOrg;
@@ -25,7 +26,7 @@ class MetronomeState with ChangeNotifier
   /// Current active (playing) subbeat of current beat
   int _activeSubbeat = -1;
   int _activeTime = 0;
-  List<int> _activeTimes;
+  //List<int> _activeTimes;
 
   int get activeBeat => _activeBeat;
   int get activeSubbeat => _activeSubbeat;
@@ -93,11 +94,11 @@ class MetronomeState with ChangeNotifier
 
   //BeatMetre get BeatMetre => _beat;
 
-  MetronomeState(List<int> subBeats0, List<int> accents0)
+  MetronomeState(Rhythm rhythm)
   {
-    beatMetre = new BeatMetre(subBeats0, accents0);
+    beatMetre = new BeatMetre(rhythm);
     reset();
-    _activeTimes = new List<int>.filled(subBeats0.length, 0);
+    //_activeTimes = new List<int>.filled(subBeats0.length, 0);
     //tempo = new Tempo();
     //pos = new Position(-1, 0);
     //_timer = new Stopwatch();

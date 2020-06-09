@@ -1,10 +1,11 @@
 import 'dart:core';
-import 'tempo.dart';
-import 'prosody.dart';
-import 'util.dart';
+
+import 'package:owlenome/rhythms.dart';
 
 /// Metronome beat melody configuration
 /// Represents rhythm
+///
+/// ISH: To actually represent it, I restore accents here
 
 class BeatMetre
 {
@@ -12,18 +13,20 @@ class BeatMetre
   int _beatCount;
   /// Number of subbeats if they are the same for all beats
   /// Used as default if number of beats is increasing
-  int _subBeatCount;
+  int _subBeatCount=1;
   /// Number of subbeats in each i-th beat
   /// _beatCount == subBeats.length
   List<int> subBeats;
 
+  String name="unnamed";
+
   /// Subdivision of beat melody to simple metres (rows)
   /// notes.length - number of simple metres in metronome beat melody
-  List<int> _metres;
+  //List<int> _metres;
 
   /// Indices of accented beats in each simple metre (row)
   /// accents.length == metres.length
-  //List<int> accents;
+  List<int> accents;
   //List<int> _regularAccents;
   //bool pivoVodochka = false;  // false - чтобы распевней
 
@@ -32,12 +35,30 @@ class BeatMetre
   /// notes[i][j] - musical char of j-th subdivision of i-th note (bip)
   //List<List<int>> notes;
 
+  BeatMetre(Rhythm rhythm)
+  {
+    subBeats = new List<int>.from(rhythm.subBeats, growable: true);
+    _beatCount = subBeats.length;
+    accents = List<int>.from(rhythm.accents, growable: true);
+
+    if (subBeatsEqualAndExist()) _subBeatCount = subBeats[0];
+
+    name=rhythm.name;
+  }
+
+
+  /*
   BeatMetre(List<int> subBeats0, List<int> accents0)
   {
     subBeats = new List<int>.from(subBeats0, growable: true);
     _beatCount = subBeats.length;
-    _subBeatCount = 1;
-    _metres = new List<int>.filled(1, _beatCount, growable: true);
+    accents = List<int>.from(accents0, growable: true);
+
+    if (subBeatsEqualAndExist()) _subBeatCount = subBeats[0];
+
+    //_subBeatCount = subBeatsEqualAndExist()? subBeats[0]:1;
+
+    //_metres = new List<int>.filled(1, _beatCount, growable: true);
 
     //TODO
     //accents = Prosody.getAccents(_beatCount, pivoVodochka);
@@ -50,6 +71,64 @@ class BeatMetre
     //for (int i = 0; i < subBeats.length; i++)
     //  subBeats[i] = _subBeatCount;
   }
+   */
+
+  bool subBeatsEqualAndExist(){
+    if ((subBeats.length == 0) || (subBeats[0] == 0)) return false;
+    int initSubBeat = subBeats[0];
+    for (int i = 1; i < _beatCount; i++)
+      if (subBeats[i] != initSubBeat) { return false;}
+    return true;
+  }
+
+
+  void setAccent(int beat, int accent)
+  {
+    assert(0 <= beat && beat < _beatCount);
+    if (beat < _beatCount && accent <= maxAccent)
+      accents[beat] = accent;
+  }
+
+  int get maxAccent {
+    int res=0;
+    if (_beatCount<4) res=1;
+    else if (_beatCount<10) res=2;
+    else (res=3); //ToDo: double check with books about 10
+    return res;
+  }
+
+  int get beatCount => _beatCount;
+  set beatCount(int count)
+  {
+    assert(_beatCount == subBeats.length);
+    if (count > 0 && _beatCount != count)
+    {
+      subBeats.length = count;
+      for (int i = _beatCount; i < subBeats.length; i++)
+        subBeats[i] = _subBeatCount;
+      _beatCount = count;
+
+      List<int> newAccents = new List<int>.filled(count, 0, growable: true);
+      for (int i = 0; i < _beatCount && i < accents.length; i++)
+        newAccents[i] = accents[i];
+      accents = newAccents;
+    }
+  }
+
+  int get subBeatCount => _subBeatCount;
+  set subBeatCount(int count)
+  {
+    assert(_beatCount == subBeats.length);
+    //if (count > 0 && _subBeatCount != count)
+    if (count > 0 )
+    {
+      _subBeatCount = count;
+      for (int i = 0; i < subBeats.length; i++)
+        subBeats[i] = count;
+    }
+  }
+
+
 /*
   bool get regularAccent
   {
@@ -80,12 +159,6 @@ class BeatMetre
   //TODO Change to var?
   int get maxAccent =>  _beatCount > 3 ? 3 : _beatCount - 1;
 
-  void setAccent(int beat, int accent)
-  {
-    assert(0 <= beat && beat < _beatCount);
-    if (beat < _beatCount && accent <= maxAccent)
-      accents[beat] = accent;
-  }
 
   void accentUp(int beat, int step)
   {
@@ -112,41 +185,6 @@ class BeatMetre
   ///TODO For now Remove?
   int get accent => accents.length > 0 ? accents[0] : 0;
 */
-  int get beatCount => _beatCount;
-  set beatCount(int count)
-  {
-    assert(_beatCount == subBeats.length);
-    if (count > 0 && _beatCount != count)
-    {
-      subBeats.length = count;
-      for (int i = _beatCount; i < subBeats.length; i++)
-        subBeats[i] = _subBeatCount;
-      _beatCount = count;
-/*TODO
-      List<int> newAccents = new List<int>.filled(count, 0, growable: true);
-      for (int i = 0; i < _beatCount && i < accents.length; i++)
-        newAccents[i] = accents[i];
-      accents = newAccents;
-*/
-/*
-      accents = Prosody.getAccents(_beatCount, pivoVodochka);
-      if (_beatCount != 5 && _beatCount != 7 && _beatCount != 11)
-        _regularAccents = Prosody.getAccents(_beatCount, true);  //TODO Define as regular if pivoVodochka = true?
-*/
-    }
-  }
-
-  int get subBeatCount => _subBeatCount;
-  set subBeatCount(int count)
-  {
-    assert(_beatCount == subBeats.length);
-    if (count > 0 && _subBeatCount != count)
-    {
-      _subBeatCount = count;
-      for (int i = 0; i < subBeats.length; i++)
-        subBeats[i] = count;
-    }
-  }
 
   /// Return pair (beat, subBeat) by overall beat index
   /* Not used

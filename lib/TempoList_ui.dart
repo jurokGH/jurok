@@ -7,6 +7,8 @@ class TempoListWidget extends StatefulWidget
   final int maxTempo;  // bpm
   final double width;
   final TextStyle textStyle;
+  ///Переход по тапу
+  final bReactOnTap;
   final ValueChanged<int> onChanged;
 
   TempoListWidget({
@@ -14,7 +16,8 @@ class TempoListWidget extends StatefulWidget
     this.maxTempo,
     this.width,
     @required this.textStyle,
-    this.onChanged
+    this.onChanged,
+    this.bReactOnTap=true,
   });
 
   @override
@@ -58,7 +61,7 @@ Prestissimo >=200
 
   //S- - Sposobin book: + sostenuto, comodo, vivo, veloce
   static final List<TempoDef> tempoList = <TempoDef>[
-    TempoDef('Larghissimo', 1, 20), //S-
+    //TempoDef('Larghissimo', 1, 20), //Временно убрано в презентационных целях- очень криво смотрится скорость 1. //ToDo:
     TempoDef('Grave', 21, 40),
     TempoDef('Larghetto', 61, 65),
     TempoDef('Adagio', 66, 75),
@@ -245,7 +248,9 @@ Prestissimo >=200
       quarterTurns: 3,
       child:
       GestureDetector(
-        onTap: () {
+        onTap: ()
+        {
+          if (!widget.bReactOnTap) return; //ISH: Is it a correct way? //ToDo
           int index = _index + 1;
           // Cycle back to 0 if limited by maximum tempo
           if (index >= tempoList.length || tempoList[index].minTempo > widget.maxTempo)

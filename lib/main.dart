@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+//import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:owlenome/MetreBar_ui.dart';
 import 'package:owlenome/subbeat-eq_ui.dart';
@@ -93,10 +94,17 @@ const int _cMaxSubBeatCount = 8;
 /// Note value min/max
 const int _cMinNoteValue = 2;
 const int _cMaxNoteValue = 16;
-//const int _cIniNoteValue = 4;
+const int _cIniNoteValue = 4;
+
+
 
 /// Initial metre (beat, note) index from _metreList
 /// !!!ATTENTION!!! Make it compatible with next subbeat/accent lists
+///
+/// ISH: я упихал всю ритмовую механику в отдельных класс с предустановлеными
+/// ритмами - см. rhythms.dart
+///
+/// Теперь начальный ритм выбирается через initRhythm
 const int _cIniActiveMetre = 1; //3
 /// Initial subbeats
 const List<int> _cIniSubBeats = [
@@ -109,6 +117,7 @@ const List<int> _cIniSubBeats = [
   //1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 ];
 
+
 /// Initial accents
 const List<int> _cIniAccents = [
   //1, 0, 0,
@@ -119,14 +128,44 @@ const List<int> _cIniAccents = [
   //ToDo: fancy Bolero ;
 ];
 
+const int _initBeatCount = 5;
+
+///Тут живёт список всех предустановленных ритмов (это список списков
+///all, по долям  [важно: индекс от 0 до 11]),
+///а также список initRhythms из базовых ритмов для каждой доли
+final PredefinedRhythms _predefinedRhythms=PredefinedRhythms();
+
+///список всех предустановленных ритмов (это список списков
+///all, по долям  [важно: индекс от 0 до 11]),
+final List<List<Rhythm>> _allPredefinedRhythms= _predefinedRhythms.all;
+
+/// список из базовых ритмов для каждой доли
+final List<Rhythm> _basicRhythms= _predefinedRhythms.basicRhythms;
+
+/// список из базовых ритмов для каждой доли
+final Rhythm initRhythm=_basicRhythms[_initBeatCount-1];
+
+///Ритмы пользователя по числу долей (от нуля)
+List<Rhythm> userRhythms;
+
+///Числа долей, уменьшенное на  1, которое редактировали последней раз. -1 - не редактировали
+///Редактирование - изменение акцентов или поддолей одной из сов (//ToDo: а правильно ли это?
+///
+/// Таким образом,  последний редактировавшийся ритм - это
+/// userRhithms[_lastEdited]
+int _lastEdited;
+
+
+
 /// Min tempo
 const int _cMinTempo = 1;
 
 /// Absolute max tempo. Больше него не ставим, даже если позволяет сочетание схемы и метра.
+/// 999 обусловлено местом под 3 цифры на виджетах
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -144,22 +183,25 @@ void main() {
     return runApp(
       DevicePreview(
           builder: (context) => ChangeNotifierProvider(
-              create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
+            //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
+              create: (_) => new MetronomeState(initRhythm),
               child: App())
-          //new App()
-          ),
+        //new App()
+      ),
       //..devices.addAll();
     );
   }
 
   return runApp(ChangeNotifierProvider(
-      create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
+    //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
+      create: (_) => new MetronomeState(initRhythm),
       child: App()));
 }
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       locale: _debugDevices ? DevicePreview.of(context).locale : null,
       builder: _debugDevices ? DevicePreview.appBuilder : null,
@@ -204,7 +246,7 @@ class _HomePageState extends State<HomePage>
   bool _showNoteTempo = true;
   bool _showVersion = true;
 
-  //static const int initBeatCount = 4;//From beatMetre
+
   static const int minBeatCount = _cMinBeatCount;
   static const int maxBeatCount = _cMaxBeatCount;
   static const int maxSubBeatCount = _cMaxSubBeatCount;
@@ -219,7 +261,7 @@ class _HomePageState extends State<HomePage>
   /// Flutter-Java connection channel
   //PlatformSvc _channel = new PlatformSvc();
   PlatformSvc
-      _channel; // = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
+  _channel; // = new PlatformSvc(onStartSound, onSyncSound, onLimitTempo);
 
   ///>>>>>> JG!
   /// UI parameters
@@ -263,7 +305,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.)
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
   bool bBoxContainer = false;
@@ -276,7 +318,6 @@ class _HomePageState extends State<HomePage>
   ///<<<<<< JG!
 
   /// Overall screen size
-  /// ISH: Это точно screen size? Кажется, что это не screen size, а скорее область, доступная для метронома
   Size _screenSize;
 
   /// Size of square owl's area
@@ -290,7 +331,10 @@ class _HomePageState extends State<HomePage>
   BeatSound _soundConfig = new BeatSound();
 
   /// Initial note value (denominator)
-  //final int _noteValue = _cIniNoteValue;
+
+  int _noteValue = _cIniNoteValue;
+
+  ///TODO: MetreBar problem
 
   /// Partly-sorted metre list to switch between metres
   /// Includes predefined ('standard') metres
@@ -308,6 +352,8 @@ class _HomePageState extends State<HomePage>
     MetreBar(4, 4),
   ];
 
+
+
   /// Index of current active metre
   int _activeMetre = _cIniActiveMetre;
 
@@ -315,7 +361,10 @@ class _HomePageState extends State<HomePage>
   /// -1 - if there are not user metre
   int _userMetre = -1;
 
+
+  ///TODO: MetreBar problem
   MetreBar get activeMetre => _metreList[_activeMetre];
+
 
   double _volume = 100;
   bool _mute = false;
@@ -442,13 +491,16 @@ class _HomePageState extends State<HomePage>
         _tempoBpm,
         _activeSoundScheme,
         _beat.subBeats,
-        Prosody.reverseAccents(activeMetre.accents));
+        Prosody.reverseAccents(_beat.accents));
 
     //Пользовательские ритмы
-    userRhithms = List<Rhythm>.generate(12, (n) => UserRhythm([], []));
+    userRhythms = List<Rhythm>.generate(12, (n) => UserRhythm([], []));
+    _lastEdited=-1;
   }
 
-  List<Rhythm> userRhithms;
+
+
+
 
   @override
   void dispose() {
@@ -458,6 +510,7 @@ class _HomePageState extends State<HomePage>
 
   /// /////////////////////////////////////////////////////////////////////////
 
+  /*
   /// (Re)Insert metre (beast, note) into _sorted_ metre list
   bool insertMetre(int beats, int note) {
     bool activeChanged = true;
@@ -491,6 +544,7 @@ class _HomePageState extends State<HomePage>
     print('insertMetre - $_activeMetre');
     return activeChanged;
   }
+   */
 
   /// /////////////////////////////////////////////////////////////////////////
   /// Platform sound code handlers
@@ -588,22 +642,40 @@ class _HomePageState extends State<HomePage>
   ///Изменяем число нот
   void _onBeatChanged(int beats) {
     print('_onBeatChanged');
-    if (_beat.beatCount != beats) {
-      _beat.beatCount = beats;
-      bool changed = insertMetre(beats, activeMetre.note);
+    if (_beat.beatCount != beats)///Проверить не так надо
+    {
+      if (beats-1==_lastEdited) ///Решается тонкий философский вопрос, результат
+        ///многочасовых рассуждений.
+        ///
+        ///Что делать, если пользователь редактировал-редактировал,
+        ///а потом колесо дернул? Дернул, вернул назад - а всё пропало!
+        ///
+        ///Чтобы его не расстраивать, мы ему возвращаем его последнюю редакцию -
+        ///она важнее стандартных размеров. Но чтобы не было путаницы.
+        ///мы напишем в строке названий ритмов, что это редактированный.
+        ///
+        ///ToDo: распознать оп пользовательскому размеру, что он, к примеру
+        ///3/4, и сформировать имя "Last edited 3/4 (edited)".
+        _beat=BeatMetre(userRhythms[beats-1]);
+      else
+        ///Второй сложный вопрос: при выборе размера, что нам делать с поддолями?
+        ///Пока я их все игнорирую...//ToDo: хорошо ли это?
+        _beat=BeatMetre(_basicRhythms[beats-1]);
+
+      //_beat.beatCount = beats;
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(
           _beat.beatCount,
           _beat.subBeatCount,
           _tempoBpm,
           _activeSoundScheme,
           _beat.subBeats,
-          Prosody.reverseAccents(activeMetre.accents));
+          Prosody.reverseAccents(_beat.accents));
       print('_onBeatChanged2');
       setState(() {
-        _updateMetreBar = changed;
+        _updateMetreBar = true;
       }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
   }
@@ -611,37 +683,17 @@ class _HomePageState extends State<HomePage>
   ///Изменяем значение ноты (знаменатель)
   void _onNoteChanged(int noteValue) {
     //_noteValue = noteValue;  // Does not affect sound
-    bool changed = insertMetre(_beat.beatCount, noteValue);
-
-    print('_onNoteChanged');
-    setState(() {
-      _updateMetreBar = changed;
-    }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
-  }
-
-  ///Изменились числитель и знаменатель?
-  void onMetreChanged(int beats, int noteValue) {
-    //_noteValue = noteValue;  // Does not affect sound
-    // Change active metre at first
-    insertMetre(beats, noteValue);
-    if (_beat.beatCount != beats) {
-      _beat.beatCount = beats;
-      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
-      _channel.setBeat(
-          _beat.beatCount,
-          _beat.subBeatCount,
-          _tempoBpm,
-          _activeSoundScheme,
-          _beat.subBeats,
-          Prosody.reverseAccents(activeMetre.accents));
+    //bool changed = insertMetre(_beat.beatCount, noteValue);
+    bool changed=(_noteValue!=noteValue);
+    if (changed) {
+      print('_onNoteChanged');
+      setState(() {
+        _noteValue=noteValue;
+        _updateMetreBar = changed;
+      }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
-
-    print('onMetreChanged');
-    setState(() {
-      _updateMetre = true;
-    });
   }
+
 
   ///кажется, изменяем строку акцентов (ToDo: ?)
   void onMetreBarChanged(int index) {
@@ -669,20 +721,118 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+
   ///ToDo: эксперимент.
   /// Устанавливаем всё.
-  void onEverythingChanged(List<int> subBeatsToSet, List<int> accentsToSet) {
-    if (subBeatsToSet.length != accentsToSet.length) return; //ToDo
-    if (!((_beat.beatCount == subBeatsToSet.length) &&
-        equalLists(_beat.subBeats, subBeatsToSet) &&
-        equalLists(activeMetre.accents, accentsToSet))) {
-      _beat.beatCount = subBeatsToSet.length;
-      _beat.subBeats = subBeatsToSet;
-      bool changed = insertMetre(_beat.beatCount, activeMetre.note);
-      activeMetre.accents = accentsToSet; //ToDo?????
-      //activeMetre.beats=_beat.beatCount;//ToDo?????
+  void onEverythingChanged(Rhythm rhythm) {
+    if (rhythm.subBeats.length != rhythm.accents.length) return; //ToDo
+    if (!(false))//ToDo: если ритмы разные
+        {
+      _beat=BeatMetre(rhythm);
+      bool changed = true;//ToDo?????
 
-      //_beat.accents = _metreList[index].accents;
+      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
+      // TODO Need??? - кажется, да, если мы создаем новый _beat
+      _channel.setBeat(
+          _beat.beatCount,
+          _beat.subBeatCount,
+          _tempoBpm,
+          _activeSoundScheme,
+          _beat.subBeats,
+          Prosody.reverseAccents(_beat.accents));
+      setState(() {
+        _updateMetre = changed;
+      });
+    }
+  }
+
+
+
+  void onSubbeatChanged(int subbeatCount) {
+    //TODO
+    _beat.subBeatCount = subbeatCount; //nextSubbeat(_beat.subBeatCount);
+    //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need??? - вроде нет, не пересоздавали
+    _channel.setBeat(
+        _beat.beatCount,
+        _beat.subBeatCount,
+        _tempoBpm,
+        _activeSoundScheme,
+        _beat.subBeats,
+        Prosody.reverseAccents(_beat.accents));
+    setState(() {});
+  }
+
+
+
+  void onOwlSubbeatsChanged(int id, int subCount) {
+    assert(id < _beat.subBeats.length);
+    _beat.subBeats[id] = subCount;
+
+    ///ToDo: вот эту рутину ниже нужно куда-нибудь утащить...
+    ///Ставить в виджет - не хочется (типа, виджет обрабатывает нам данные...)
+    ///Видимо, это надо сделать subBeats как свойство, и проверять там.
+    if (_beat.subBeatsEqualAndExist()) _beat.subBeatCount=_beat.subBeats[0];
+
+
+    //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    _channel.setBeat(
+        _beat.beatCount,
+        _beat.subBeatCount,
+        _tempoBpm,
+        _activeSoundScheme,
+        _beat.subBeats,
+        Prosody.reverseAccents(_beat.accents));
+
+    storeUserRhythm();
+
+
+    setState(() {});
+  }
+
+  void onAccentChanged(int id, int accent) {
+    assert(id < _beat.subBeats.length);
+
+    //_beat.setAccent(id, accent);
+    _beat.setAccent(id, accent);
+    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+    _channel.setBeat(
+        _beat.beatCount,
+        _beat.subBeatCount,
+        _tempoBpm,
+        _activeSoundScheme,
+        _beat.subBeats,
+        Prosody.reverseAccents(_beat.accents));
+
+    storeUserRhythm();
+
+    setState(() {});
+  }
+
+
+  ///Запасаем пользовательский ритм для данного числа долей.
+  ///Считаем, что пользователь сделал что-то интересное, если
+  ///он менял подбит или акцент на одной из сов, остальное - не важно.
+  ///У одной совы не запасаем.
+  void storeUserRhythm() {
+    if (_beat.beatCount > 1) {
+      userRhythms[_beat.beatCount - 1] =
+          UserRhythm(_beat.subBeats, _beat.accents);
+      _lastEdited=_beat.beatCount - 1;
+    }
+  }
+
+
+  /*
+  ///Изменились числитель и знаменатель? Временно не использую
+  void onMetreChanged(int beats, int noteValue) {
+    //_noteValue = noteValue;  // Does not affect sound
+    // Change active metre at first
+    //insertMetre(beats, noteValue);
+    if (_beat.beatCount != beats) {
+      _beat.beatCount = beats;
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
       _channel.setBeat(
@@ -692,74 +842,14 @@ class _HomePageState extends State<HomePage>
           _activeSoundScheme,
           _beat.subBeats,
           Prosody.reverseAccents(activeMetre.accents));
-      setState(() {
-        _updateMetre = changed;
-      });
     }
+
+    print('onMetreChanged');
+    setState(() {
+      _updateMetre = true;
+    });
   }
-
-  void onSubbeatChanged(int subbeatCount) {
-    //TODO
-    _beat.subBeatCount = subbeatCount; //nextSubbeat(_beat.subBeatCount);
-    //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
-    _channel.setBeat(
-        _beat.beatCount,
-        _beat.subBeatCount,
-        _tempoBpm,
-        _activeSoundScheme,
-        _beat.subBeats,
-        Prosody.reverseAccents(activeMetre.accents));
-    setState(() {});
-  }
-
-  ///Запасаем пользовательский ритм для данного числа долей.
-  ///Считаем, что пользователь сделал что-то интересное, если
-  ///он менял подбит или акцент на одной из сов, остальное - не важно.
-  ///У одной совы не запасаем.
-  void setUserRhythm() {
-    if (_beat.beatCount > 1) {
-      userRhithms[_beat.beatCount - 1] =
-          UserRhythm(_beat.subBeats, activeMetre.accents);
-    }
-  }
-
-  void onOwlChanged(int id, int subCount) {
-    assert(id < _beat.subBeats.length);
-    _beat.subBeats[id] = subCount;
-    //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
-    _channel.setBeat(
-        _beat.beatCount,
-        _beat.subBeatCount,
-        _tempoBpm,
-        _activeSoundScheme,
-        _beat.subBeats,
-        Prosody.reverseAccents(activeMetre.accents));
-
-    setUserRhythm();
-
-    setState(() {});
-  }
-
-  void onAccentChanged(int id, int accent) {
-    assert(id < _beat.subBeats.length);
-
-    //_beat.setAccent(id, accent);
-    activeMetre.setAccent(id, accent);
-    //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
-    _channel.setBeat(
-        _beat.beatCount,
-        _beat.subBeatCount,
-        _tempoBpm,
-        _activeSoundScheme,
-        _beat.subBeats,
-        Prosody.reverseAccents(activeMetre.accents));
-
-    setUserRhythm();
-
-    setState(() {});
-  }
+   */
 
   /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
@@ -785,10 +875,10 @@ class _HomePageState extends State<HomePage>
 
     if (_screenSize.width > _screenSize.height)
       _sizeCtrls =
-          new Size(_screenSize.width - _sideSquare, _screenSize.height);
+      new Size(_screenSize.width - _sideSquare, _screenSize.height);
     else
       _sizeCtrls =
-          new Size(_screenSize.width, _screenSize.height - _sideSquare);
+      new Size(_screenSize.width, _screenSize.height - _sideSquare);
     _sizeCtrlsShortest = _sizeCtrls.shortestSide;
 
     //Theme.of(context).materialTapTargetSize;
@@ -813,14 +903,14 @@ class _HomePageState extends State<HomePage>
         body: SafeArea(
           child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-            final Orientation orientation = MediaQuery.of(context).orientation;
-            final bool portrait = orientation == Orientation.portrait;
-            final Size ourAreaSize =
+                final Orientation orientation = MediaQuery.of(context).orientation;
+                final bool portrait = orientation == Orientation.portrait;
+                final Size ourAreaSize =
                 Size(constraints.maxWidth, constraints.maxHeight);
-            if (!portrait) _sideSquare -= mediaQueryData.padding.vertical;
+                if (!portrait) _sideSquare -= mediaQueryData.padding.vertical;
 
-            return orientationBuilder(context, orientation, ourAreaSize);
-          }),
+                return orientationBuilder(context, orientation, ourAreaSize);
+              }),
         ),
       );
   }
@@ -834,8 +924,8 @@ class _HomePageState extends State<HomePage>
 
     final double aspect = 1 / _screenSize.aspectRatio;
     final double aspectCtrls = (_showAds
-            ? _sizeCtrls.height - _heightAds[portrait ? 0 : 1]
-            : _sizeCtrls.height) /
+        ? _sizeCtrls.height - _heightAds[portrait ? 0 : 1]
+        : _sizeCtrls.height) /
         _sizeCtrls.width;
     debugPrint("aspect $aspect - $aspectCtrls");
     final double wScale = aspectCtrls > 1.5 ? _squareX : 1;
@@ -873,9 +963,9 @@ class _HomePageState extends State<HomePage>
       return Container(
           decoration: BoxDecoration(
               image: DecorationImage(
-            image: AssetImage('images/BackgV.jpg'),
-            fit: BoxFit.cover,
-          )),
+                image: AssetImage('images/BackgV.jpg'),
+                fit: BoxFit.cover,
+              )),
           child: Stack(children: <Widget>[
             Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -884,7 +974,7 @@ class _HomePageState extends State<HomePage>
             Positioned(
                 left: _paddingBtn.dx,
                 bottom:
-                    _showAds ? _heightAds[0] + _paddingBtn.dy : _paddingBtn.dy,
+                _showAds ? _heightAds[0] + _paddingBtn.dy : _paddingBtn.dy,
                 child: _buildVolumeBtn(
                     _smallBtnSize, //0.05 * _sizeCtrlsShortest
                     _sizeCtrlsShortest)),
@@ -892,16 +982,16 @@ class _HomePageState extends State<HomePage>
             /// Git revision number
             _showVersion
                 ? Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(_version,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyText1
-                            .copyWith(color: Colors.white)))
+                alignment: Alignment.topLeft,
+                child: Text(_version,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText1
+                        .copyWith(color: Colors.white)))
                 : Container(),
           ]));
     } else // Horizontal/landscape
-    {
+        {
       //TODO _showAds = true;
       /// Owl square and controls
       final Widget innerUI = new Row(children: <Widget>[
@@ -909,7 +999,7 @@ class _HomePageState extends State<HomePage>
         //Container(color: Colors.red, height: sizeOwlenome.height, width: sizeOwlenome.width),
         Expanded(
           child: Stack(
-              //fit: StackFit.expand,
+            //fit: StackFit.expand,
               children: <Widget>[
                 //Positioned.fill(
                 //child:
@@ -920,9 +1010,9 @@ class _HomePageState extends State<HomePage>
                       //Container(height: metreBarSize.height, width: metreBarSize.width),
                       _buildControls(portrait, metreBarSize.height),
                     ]
-                    //),
-                    //),
-                    ),
+                  //),
+                  //),
+                ),
                 Positioned(
                     left: 0,
                     bottom: _paddingBtn.dy,
@@ -934,12 +1024,12 @@ class _HomePageState extends State<HomePage>
                 /// Git revision number
                 _showVersion
                     ? Align(
-                        alignment: Alignment.topRight,
-                        child: Text(_version,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1
-                                .copyWith(color: Colors.white)))
+                    alignment: Alignment.topRight,
+                    child: Text(_version,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText1
+                            .copyWith(color: Colors.white)))
                     : Container(),
               ]),
         ),
@@ -948,20 +1038,20 @@ class _HomePageState extends State<HomePage>
       final Widget fullUI = !_showAds
           ? innerUI
           : new Column(
-              //mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                  Expanded(
-                    child: innerUI,
-                  ),
-                  _buildAds(portrait),
-                ]);
+        //mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Expanded(
+              child: innerUI,
+            ),
+            _buildAds(portrait),
+          ]);
 
       return Container(
           decoration: BoxDecoration(
               image: DecorationImage(
-            image: AssetImage('images/BackgH.jpg'),
-            fit: BoxFit.cover,
-          )),
+                image: AssetImage('images/BackgH.jpg'),
+                fit: BoxFit.cover,
+              )),
           child: fullUI);
     }
   }
@@ -980,9 +1070,9 @@ class _HomePageState extends State<HomePage>
       //Фактическая область, доступная для приложения (метроном вместе с рекламой или чем-то еще)
       decoration: BoxDecoration(
           image: DecorationImage(
-        image: AssetImage('images/backg.png'),
-        fit: BoxFit.cover,
-      )),
+            image: AssetImage('images/backg.png'),
+            fit: BoxFit.cover,
+          )),
       child: Stack(
         children: <Widget>[
           MetronomeArea(
@@ -999,79 +1089,79 @@ class _HomePageState extends State<HomePage>
           /// Git revision number
           _showVersion
               ? Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(_version,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyText1
-                          .copyWith(color: Colors.white)))
+              alignment: Alignment.topLeft,
+              child: Text(_version,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyText1
+                      .copyWith(color: Colors.white)))
               : Container(),
           _showAds
               ? Align(
-                  alignment: Alignment.bottomCenter,
-                  child: _buildAds(true),
-                )
+            alignment: Alignment.bottomCenter,
+            child: _buildAds(true),
+          )
               : Container(),
 
           ///Scroll for testing layouts
           bOuterSpaceScrollDebug
               ? Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                      //padding: EdgeInsets.all(_heightAds[0] * 0.1),
-                      /*
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              //padding: EdgeInsets.all(_heightAds[0] * 0.1),
+              /*
                       decoration: BoxDecoration(
                         //color: Colors.grey.withOpacity(0.5),
                         border: Border.all(
                           color: Colors.green, //
                         ),
                       ),*/
-                      height: _heightAds[0] / 2,
-                      width: ourAreaSize.width,
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            flex: 2,
-                            child: Slider(
-                                value: reservedHeightBottom,
-                                activeColor: Colors.yellowAccent,
-                                onChanged: (double newVal) {
-                                  setState(() {
-                                    reservedHeightBottom = newVal;
-                                  });
-                                },
-                                min: 0,
-                                max: maxReservedHeightBottom),
+                height: _heightAds[0] / 2,
+                width: ourAreaSize.width,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 2,
+                      child: Slider(
+                          value: reservedHeightBottom,
+                          activeColor: Colors.yellowAccent,
+                          onChanged: (double newVal) {
+                            setState(() {
+                              reservedHeightBottom = newVal;
+                            });
+                          },
+                          min: 0,
+                          max: maxReservedHeightBottom),
+                    ),
+                    Expanded(
+                        flex: 1,
+                        child: Text(
+                          "Height:  " +
+                              (ourAreaSize.height - bottomReserved)
+                                  .toStringAsFixed(1),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: _screenSize.width / 20,
                           ),
-                          Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Height:  " +
-                                    (ourAreaSize.height - bottomReserved)
-                                        .toStringAsFixed(1),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: _screenSize.width / 20,
-                                ),
-                                textScaleFactor: 1,
-                              )),
-                        ],
-                      )),
-                )
+                          textScaleFactor: 1,
+                        )),
+                  ],
+                )),
+          )
               : Container(),
           bOuterSpaceScrollDebug
               ? Positioned(
-                  left: 0,
-                  top: ourAreaSize.height - bottomReserved,
-                  child: Container(
-                    width: _screenSize.width,
-                    height: 1,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.red,
-                      ),
-                    ),
-                  ))
+              left: 0,
+              top: ourAreaSize.height - bottomReserved,
+              child: Container(
+                width: _screenSize.width,
+                height: 1,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.red,
+                  ),
+                ),
+              ))
               : Container(),
         ],
       ),
@@ -1098,7 +1188,7 @@ class _HomePageState extends State<HomePage>
     final EdgeInsets padding = portrait
         ? new EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX)
         : new EdgeInsets.only(
-            bottom: paddingY, left: paddingX, right: paddingX);
+        bottom: paddingY, left: paddingX, right: paddingX);
     final Offset spacing = new Offset(10, 0);
 
     ///widget Owls
@@ -1111,7 +1201,7 @@ class _HomePageState extends State<HomePage>
       accents: activeMetre.accents,
       maxAccent: activeMetre.maxAccent,
       animationType: _animationType,
-      onChanged: onOwlChanged,
+      onChanged: onOwlSubbeatsChanged,
       onAccentChanged: onAccentChanged,
     );
 
@@ -1127,7 +1217,7 @@ class _HomePageState extends State<HomePage>
       padding: padding,
       skin: _skin,
       size: size,
-      onChanged: onOwlChanged,
+      onChanged: onOwlSubbeatsChanged,
       onAccentChanged: onAccentChanged,
     );
 
@@ -1152,72 +1242,6 @@ class _HomePageState extends State<HomePage>
         child: wixOwls);
   }
 
-  ///widget Square section with metronome itself. ToDo
-  Widget _AreaOfOwls(bool portrait, Size size) {
-    //return BorderedContainer(size);
-
-    if (!_skin.isInit || size.isEmpty)
-      return Container(
-        width: size.width,
-        height: size.height,
-      );
-
-    //TODO MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
-    print('_buildOwlenome $size');
-
-    // TODO VG
-    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4
-        ? 10
-        : 0; //0.03 * _widthSquare : 0;
-    final double paddingY = _beat.beatCount > 4 ? 0.02 * _sideSquare : 0;
-    final EdgeInsets padding = portrait
-        ? new EdgeInsets.only(bottom: paddingY, left: paddingX, right: paddingX)
-        : new EdgeInsets.only(
-            bottom: paddingY, left: paddingX, right: paddingX);
-    final Offset spacing = new Offset(10, 0);
-
-    ///widget Owls
-    final Widget wixOwls1 = new OwlGrid(
-      playing: _playing,
-      beat: _beat,
-      activeBeat: -1, //state.activeBeat,
-      activeSubbeat: -1, //state.activeSubbeat,
-      noteValue: activeMetre.note,
-      accents: activeMetre.accents,
-      maxAccent: activeMetre.maxAccent,
-      animationType: _animationType,
-      onChanged: onOwlChanged,
-      onAccentChanged: onAccentChanged,
-    );
-
-    int maxAccent = 0;
-
-    final Widget wixOwls = new OwlGridRot(
-      playing: _playing,
-      beat: _beat,
-      activeBeat: -1, //state.activeBeat,
-      activeSubbeat: -1, //state.activeSubbeat,
-      noteValue: activeMetre.note,
-      accents: activeMetre.accents,
-      maxAccent: activeMetre.maxAccent,
-      spacing: spacing,
-      //padding: padding,
-      padding:
-          EdgeInsets.zero, //ToDo: определить сообразно общей ситуации извне
-      skin: _skin,
-      size: size,
-      onChanged: onOwlChanged,
-      onAccentChanged: onAccentChanged,
-    );
-
-    /// Do not use padding here!
-    return Container(
-        width: size.width,
-        height: size.height,
-        //decoration:  decorTmp(Colors.black),
-        child: wixOwls);
-  }
-
   ///widget Metre-bar section
   Widget _buildBar(bool portrait, Size size) {
     final double horzSpace = portrait ? 16 : 16;
@@ -1225,22 +1249,22 @@ class _HomePageState extends State<HomePage>
     final double paddingY = portrait ? 0 : 0.1 * _sideSquare;
     final double btnPadding = 0.2 * Theme.of(context).buttonTheme.height;
     final Size metreSize =
-        Size((portrait ? 0.25 : 0.25) * size.width, size.height);
+    Size((portrait ? 0.25 : 0.25) * size.width, size.height);
     double itemExtent = 0.5 * metreSize.width; //44,
 
     print('metreSize $metreSize - $itemExtent');
     //itemExtent = 44;
     final Size barSize =
-        Size((portrait ? 0.70 : 0.70) * size.width, 0.5 * size.height);
+    Size((portrait ? 0.70 : 0.70) * size.width, 0.5 * size.height);
     final Size listTempoSize =
-        new Size((portrait ? 0.88 : 0.88) * barSize.width, barSize.height);
+    new Size((portrait ? 0.88 : 0.88) * barSize.width, barSize.height);
     final Size noteTempoSize =
-        new Size(0.12 * barSize.width, 0.9 * barSize.height);
+    new Size(0.12 * barSize.width, 0.9 * barSize.height);
     //final Size subbeatSize = Size(0.2 * _sizeCtrls.width, 1.25 * barSize.height);
 //    final Size subbeatSize = new Size(barSize.height, barSize.height);
     //0.02 * _sizeCtrls.width,
     final Size bracketSize =
-        new Size(3.2 * btnPadding, 0.16 * _sizeCtrls.height);
+    new Size(3.2 * btnPadding, 0.16 * _sizeCtrls.height);
 
     print('Font ${_textStyle.fontSize}');
 
@@ -1318,14 +1342,14 @@ class _HomePageState extends State<HomePage>
 
     ///widget Tempo list
     final Widget listTempo = new Container(
-        //color: Colors.orange,
-        //width: 80,
+      //color: Colors.orange,
+      //width: 80,
         height: listTempoSize.height,
         padding: EdgeInsets.only(
             top: 0.0 * _sizeCtrls.height, bottom: 0.0 * _sizeCtrls.height),
         //padding: EdgeInsets.only(top: 0.025 * _sizeCtrls.height, bottom: 0.025 * _sizeCtrls.height),
         child: TempoListWidget(
-            //TODO Limit
+          //TODO Limit
             tempo: _tempoBpm,
             maxTempo: _tempoBpmMax,
             width: listTempoSize.width,
@@ -1387,7 +1411,7 @@ class _HomePageState extends State<HomePage>
                           padding: EdgeInsets
                               .zero, //symmetric(horizontal: 0.5 * btnPadding),
                           child: Row(
-                              //mainAxisSize: MainAxisSize.max,
+                            //mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment
                                   .center, //spaceBetween, for brackets
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1404,7 +1428,7 @@ class _HomePageState extends State<HomePage>
                                   child: Padding(
                                       padding: EdgeInsets.only(
                                           top:
-                                              2), //(bottom: 0.05 * _sizeCtrls.height),//20
+                                          2), //(bottom: 0.05 * _sizeCtrls.height),//20
                                       child: metreBar),
                                 ),
 //                        BarBracketWidget(
@@ -1419,7 +1443,7 @@ class _HomePageState extends State<HomePage>
                         margin: EdgeInsets.only(top: 4),
                         color: Colors.deepPurple.withOpacity(0.8),
                         child: Row(
-                            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
                               _showNoteTempo ? noteTempo : Container(),
@@ -1427,8 +1451,8 @@ class _HomePageState extends State<HomePage>
                               ///widget Note=tempo
                               Expanded(
                                 child:
-                                    //                        ClipRect(child:
-                                    listTempo,
+                                //                        ClipRect(child:
+                                listTempo,
 
                                 ///widget Tempo list
                               ),
@@ -1490,7 +1514,7 @@ class _HomePageState extends State<HomePage>
                       margin: EdgeInsets.only(top: 4),
                       color: Colors.deepPurple.withOpacity(0.8),
                       child: Row(
-                          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: <Widget>[
                             _showNoteTempo ? noteTempo : Container(),
@@ -1499,7 +1523,7 @@ class _HomePageState extends State<HomePage>
                             Expanded(
                               child:
 //                        ClipRect(child:
-                                  listTempo,
+                              listTempo,
                             ),
                           ]),
                     ),
@@ -1530,12 +1554,12 @@ class _HomePageState extends State<HomePage>
   Widget _buildControls(bool portrait, double barHeight) {
     // Fill up the remaining screen as the last widget in column/row
     return
-        //Container(
-        //        width: _sizeCtrls.width,
-        //        height: _sizeCtrls.height - 24,
-        //  padding: const EdgeInsets.all(8.0),
-        /// Background
-        /*
+      //Container(
+      //        width: _sizeCtrls.width,
+      //        height: _sizeCtrls.height - 24,
+      //  padding: const EdgeInsets.all(8.0),
+      /// Background
+      /*
         decoration: BoxDecoration(
             gradient: LinearGradient(
                 begin: portrait ? Alignment.bottomCenter : Alignment.topCenter,
@@ -1543,16 +1567,16 @@ class _HomePageState extends State<HomePage>
                 colors: [_primaryColor, _accentColor])
         ),
       */
-        Expanded(
-      child: //TODO Without Expanded in portrait mode: constraints.height == infinity
-          LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          return _layoutControls(context, constraints, portrait, barHeight);
-          //return Placeholder(fallbackWidth: constraints.maxWidth, fallbackHeight: constraints.maxHeight, color: Colors.red);
-        },
-      ),
-      //child: rowButtons
-    );
+      Expanded(
+        child: //TODO Without Expanded in portrait mode: constraints.height == infinity
+        LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return _layoutControls(context, constraints, portrait, barHeight);
+            //return Placeholder(fallbackWidth: constraints.maxWidth, fallbackHeight: constraints.maxHeight, color: Colors.red);
+          },
+        ),
+        //child: rowButtons
+      );
   }
 
   BoxDecoration decorTmp(Color color) {
@@ -1561,8 +1585,8 @@ class _HomePageState extends State<HomePage>
       // color: color.withOpacity(0.5),
       border: bBoxContainer
           ? Border.all(
-              color: color,
-            )
+        color: color,
+      )
           : null,
     );
   }
@@ -1684,8 +1708,8 @@ class _HomePageState extends State<HomePage>
     // On app startup: _soundSchemes == null
 
     final Widget buttonsRight = new Column(
-        //      mainAxisAlignment: portrait ?
-        //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
+      //      mainAxisAlignment: portrait ?
+      //        MainAxisAlignment.spaceEvenly : MainAxisAlignment.end,
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1745,7 +1769,7 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildPlayBtn(double diameter, bool portrait) {
     final Widget icon =
-        Icon(_playing ? Icons.pause : Icons.play_arrow, size: 1 * diameter);
+    Icon(_playing ? Icons.pause : Icons.play_arrow, size: 1 * diameter);
     final Widget icon1 = Stack(alignment: Alignment.center, children: <Widget>[
       Image.asset('images/owl-btn.png', height: diameter, fit: BoxFit.contain),
       icon,
@@ -1813,7 +1837,7 @@ class _HomePageState extends State<HomePage>
       fit: BoxFit.contain,
     );
     final Widget icon3 =
-        new Stack(alignment: AlignmentDirectional.center, children: <Widget>[
+    new Stack(alignment: AlignmentDirectional.center, children: <Widget>[
       Image.asset(
         schemeName,
         width: sizeButton,
@@ -1901,7 +1925,7 @@ class _HomePageState extends State<HomePage>
         //maxHeight: 200,
       ),
       materialTapTargetSize:
-          MaterialTapTargetSize.shrinkWrap, // Make button of exact size
+      MaterialTapTargetSize.shrinkWrap, // Make button of exact size
       //tooltip: _soundSchemes[_activeSoundScheme],
       enableFeedback: !_playing,
       onPressed: () {
@@ -1933,7 +1957,7 @@ class _HomePageState extends State<HomePage>
         minHeight: size,
       ),
       materialTapTargetSize:
-          MaterialTapTargetSize.shrinkWrap, // Make button of exact size
+      MaterialTapTargetSize.shrinkWrap, // Make button of exact size
       enableFeedback: !_playing,
       onPressed: () {
         _showHelp(context);
@@ -2017,7 +2041,7 @@ class _HomePageState extends State<HomePage>
                 color: _accentColor.withOpacity(_opacity), width: _borderWidth),
             borderRadius: BorderRadius.circular(_borderRadius)),
         padding:
-            EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
+        EdgeInsets.symmetric(horizontal: padding.dx, vertical: padding.dy),
         //margin: const EdgeInsets.all(0),
         child: widget);
   }
@@ -2101,22 +2125,29 @@ class _HomePageState extends State<HomePage>
   Widget _tempoListFinallyGotLaid(TextStyle textStyle, double horShrink) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double width = constraints.maxWidth * horShrink;
-      return Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          //decoration: decorTmp(Colors.black),
-          width: width,
-          child: TempoListWidget(
-              //TODO Limit
-              tempo: _tempoBpm,
-              maxTempo: _tempoBpmMax,
+          double width = constraints.maxWidth * horShrink;
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              //decoration: decorTmp(Colors.black),
               width: width,
-              textStyle: textStyle,
-              onChanged: _setTempo),
-        ),
-      );
-    });
+              child: TempoListWidget(
+                //TODO Limit
+                tempo: _tempoBpm,
+                maxTempo: _tempoBpmMax,
+                width: width,
+                textStyle: textStyle,
+                onChanged: _setTempo,
+                bReactOnTap: false, ///ВАЖНО!
+                ///Поскольку Витя считает, что перемотка по кругу - плохо,
+                ///то необходимо убрать переход по тапу.
+                ///Иначе получается очень неудобная ситуация:
+                ///с максимальной тапом попадаем в 1, и не снова по кругу...
+                ///При втором промахивании пользователь в бешенстве и удаляет приложение.
+              ),
+            ),
+          );
+        });
   }
 
   ///Область метронома: совы и контролы
@@ -2161,19 +2192,6 @@ class _HomePageState extends State<HomePage>
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       _knobAndStartArea(true, Size(totalWidth, totalWidth * c2)),
       Container(
-        ///3d-экзерсисы, Юрик, сделай что-нибудь.
-        /*
-        decoration: BoxDecoration(
-          color: Colors.amber[100],
-          boxShadow: [
-            BoxShadow(
-              offset: Offset(0, ShadowOffset),
-              blurRadius: blurRadius,
-              spreadRadius: spreadRadius,
-            ),
-          ],
-        ),
-         */
         child: (!bTest)
             ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
             : testWidget(Size(totalWidth, totalWidth * c2)),
@@ -2189,21 +2207,21 @@ class _HomePageState extends State<HomePage>
               children: <Widget>[
                 bOuterSpaceScrollDebug
                     ? Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black,
-                          ),
-                        ),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Text("virtual bootom of the phone",
-                              textScaleFactor: 1,
-                              style: TextStyle(
-                                fontSize: 12 * totalWidth / pixelWidth,
-                                color: Colors.yellowAccent,
-                              )),
-                        ),
-                      )
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.black,
+                    ),
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text("virtual bootom of the phone",
+                        textScaleFactor: 1,
+                        style: TextStyle(
+                          fontSize: 12 * totalWidth / pixelWidth,
+                          color: Colors.yellowAccent,
+                        )),
+                  ),
+                )
                     : Container(),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2258,10 +2276,10 @@ class _HomePageState extends State<HomePage>
     double tempoButtonsSize = knobDiameter / 2.5;
     double fontSizeButtons = tempoButtonsSize / 2.3;
     TextStyle _textStyleButtons = //ToDo: fix font; fix font size
-        Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
-            .textTheme
-            .headline4
-            .copyWith(color: Colors.black, fontSize: fontSizeButtons);
+    Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
+        .textTheme
+        .headline4
+        .copyWith(color: Colors.black, fontSize: fontSizeButtons);
 
     ///Отсутупы от центра кноба
     double tempoButtonDeltaX = (knobDiameter + tempoButtonsSize) / 2 * 0.95;
@@ -2277,7 +2295,7 @@ class _HomePageState extends State<HomePage>
     Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
         ? Colors.red
         : Colors
-            .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
+        .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
 
     TextStyle knobTextStyle = GoogleFonts.roboto(
       fontSize: knobFontSize,
@@ -2357,7 +2375,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("-1", -1, tempoButtonsSize, _textStyleButtons),
+            _buildOneButton("-1", -1, tempoButtonsSize, _textStyleButtons),
           ),
           Positioned.fromRect(
             //button
@@ -2367,7 +2385,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("-5", -5, tempoButtonsSize, _textStyleButtons),
+            _buildOneButton("-5", -5, tempoButtonsSize, _textStyleButtons),
           ),
           Positioned.fromRect(
             //button
@@ -2377,7 +2395,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("+1", 1, tempoButtonsSize, _textStyleButtons),
+            _buildOneButton("+1", 1, tempoButtonsSize, _textStyleButtons),
           ),
           Positioned.fromRect(
             //button
@@ -2387,7 +2405,7 @@ class _HomePageState extends State<HomePage>
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
             child:
-                _buildOneButton("+5", 5, tempoButtonsSize, _textStyleButtons),
+            _buildOneButton("+5", 5, tempoButtonsSize, _textStyleButtons),
           ),
 
           /*
@@ -2472,23 +2490,23 @@ class _HomePageState extends State<HomePage>
               size: Size(textOuterSizeX, textOuterSizeY),
               child: _knobValue.pushed
                   ? Container(
-                      width: textOuterSizeX,
-                      height: textOuterSizeY,
-                      decoration: new BoxDecoration(
-                        color: Colors.blue.withOpacity(0.75),
-                        borderRadius: new BorderRadius.all(
-                            Radius.elliptical(textOuterSizeX, textOuterSizeY)),
-                      ),
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          _knobValue.value.toInt().toString(),
-                          style:
-                              knobTextStyle.copyWith(fontSize: knobFontSizeBig),
-                          textScaleFactor: 1,
-                        ),
-                      ),
-                    )
+                width: textOuterSizeX,
+                height: textOuterSizeY,
+                decoration: new BoxDecoration(
+                  color: Colors.blue.withOpacity(0.75),
+                  borderRadius: new BorderRadius.all(
+                      Radius.elliptical(textOuterSizeX, textOuterSizeY)),
+                ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    _knobValue.value.toInt().toString(),
+                    style:
+                    knobTextStyle.copyWith(fontSize: knobFontSizeBig),
+                    textScaleFactor: 1,
+                  ),
+                ),
+              )
                   : Container(),
             ),
           ),
@@ -2587,7 +2605,6 @@ class _HomePageState extends State<HomePage>
                   bottom: meterYPaddyng),
               decoration: decorTmp(Colors.yellow),
               child: metreBarU(), //ToDo: очень тормозит при тапе.
-              // child: metreU(), //_buildBar(true, Size(150,150)),
             ),
           ),
           //Spacer(flex:1),
@@ -2605,11 +2622,11 @@ class _HomePageState extends State<HomePage>
                       decoration: BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage('images/but-rhythms.png'),
-                        //image: AssetImage('images/but123short.png'),
-                        //image: AssetImage('images/but-note-1.png'),
-                        //image: AssetImage('images/ictempo.png'),
-                        fit: BoxFit.fill,
-                      )),
+                            //image: AssetImage('images/but123short.png'),
+                            //image: AssetImage('images/but-note-1.png'),
+                            //image: AssetImage('images/ictempo.png'),
+                            fit: BoxFit.fill,
+                          )),
                       //decoration: decorTmp(Colors.green),
                       child: rhythmPicker(),
                     ),
@@ -2628,11 +2645,11 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                        image: AssetImage('images/but123short.png'),
-                        //image: AssetImage('images/but-note-1.png'),
-                        //image: AssetImage('images/ictempo.png'),
-                        fit: BoxFit.fill,
-                      )),
+                            image: AssetImage('images/but123short.png'),
+                            //image: AssetImage('images/but-note-1.png'),
+                            //image: AssetImage('images/ictempo.png'),
+                            fit: BoxFit.fill,
+                          )),
                       //decoration: decorTmp(Colors.green),
                       child: btnSubBeatU(),
                     ),
@@ -2647,30 +2664,32 @@ class _HomePageState extends State<HomePage>
   Widget rhythmPicker() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      Size size = Size(constraints.maxWidth, constraints.maxHeight);
+          Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
-      return rhythmPickerInside(size);
-    });
+          return rhythmPickerInside(size);
+        });
   }
 
   Widget rhythmPickerInside(Size size) {
     TextStyle textStyle = GoogleFonts.roboto(
-      fontSize: size.width / 5.2,
+      fontSize: size.width / 7 ,
       color: Colors.black,
       fontStyle: FontStyle.italic,
     );
 
-    List<Rhythm> rhythms = AllRhythms().rhythms[_beat.beatCount - 1];
-    UserRhythm userRhythm = userRhithms[_beat.beatCount - 1];
+    List<Rhythm> rhythms = _allPredefinedRhythms[_beat.beatCount - 1];
+    UserRhythm userRhythm = userRhythms[_beat.beatCount - 1];
     if (userRhythm.bDefined) {
       rhythms.add(userRhythm);
     }
+
+
 
     final List<PopupMenuItem<int>> items = [];
     for (int i = 0; i < rhythms.length; i++) {
       String name = !rhythms[i].bStandard
           ? rhythms[i].name
-          : _beat.beatCount.toString() + "/" + activeMetre.note.toString();
+          : _beat.beatCount.toString() + "/" + _noteValue.toString();
 
       items.add(
         PopupMenuItem(
@@ -2683,10 +2702,23 @@ class _HomePageState extends State<HomePage>
     return PopupMenuButton<int>(
       //ToDo: мерзейший клик
       onSelected: (value) {
+
+        /*//Если выбран пользовательский ритм, то запасаем, какой был последний
+        // - Не, путано.
+        if ((userRhythm.bDefined)&&(value==rhythms.length-1)){
+          lastEdited=value;
+        }
+        */
+
         if (rhythms[value].bSubBeatDependent)
-          onEverythingChanged(rhythms[value].subBeats, rhythms[value].accents);
+          onEverythingChanged(rhythms[value]);
         else
-          onEverythingChanged(_beat.subBeats, rhythms[value].accents);
+          onEverythingChanged(Rhythm(
+              name: rhythms[value].name,
+              subBeats:  _beat.subBeats,
+              accents: rhythms[value].accents)
+          );
+
       },
       child: Container(
         width: size.width,
@@ -2694,7 +2726,7 @@ class _HomePageState extends State<HomePage>
         child: Align(
           alignment: Alignment.center,
           child: Text(
-            "More...",
+            "more in "+_beat.beatCount.toString(),
             style: textStyle,
             textScaleFactor: 1,
           ),
@@ -2707,39 +2739,32 @@ class _HomePageState extends State<HomePage>
   Widget btnSubBeatU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      Size size = Size(constraints.maxWidth, constraints.maxHeight);
+          Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
-      /*
+          /*
       TextStyle textStyle =
           Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
               .textTheme
               .headline4;*/
 
-      TextStyle textStyle = GoogleFonts.roboto();
+          TextStyle textStyle = GoogleFonts.roboto();
 
-      //onChanged: onSubbeatChanged,
+          //onChanged: onSubbeatChanged,
 
-      bool allEqual = true;
-      int initSubBeat = _beat.subBeats.length > 0 ? _beat.subBeats[0] : 0;
-      for (int i = 1; i < _beat.beatCount; i++) {
-        if (_beat.subBeats[i] != initSubBeat) {
-          allEqual = false;
-          break;
-        }
-      }
 
-      return Container(
-        child: SubbeatEqWidget(
-          subbeatCount: _beat.subBeatCount,
-          noteValue: activeMetre.note,
-          noteColor: Colors.black,
-          textStyle: textStyle,
-          size: size,
-          allEqual: allEqual,
-          onChanged: onSubbeatChanged,
-        ),
-      );
-    });
+          return Container(
+            child: SubbeatEqWidget(
+              subbeatCount: _beat.subBeatCount,
+              subbeatCountMax: 4,
+              noteValue: _noteValue,
+              noteColor: Colors.black,
+              textStyle: textStyle,
+              size: size,
+              allEqual: _beat.subBeatsEqualAndExist(),
+              onChanged: onSubbeatChanged,
+            ),
+          );
+        });
   }
 
   ///+- tempo buttons
@@ -2793,50 +2818,51 @@ class _HomePageState extends State<HomePage>
   Widget noteAndTempo(TextStyle textStyle) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double noteH = constraints.maxHeight;
-      Size noteSize = Size(noteH * 0.3, noteH);
-      //Отрисовка ноты отпределяется её высотой, привязываемся к ней
-      return Align(
-          //Чтобы можно было сделать меньше, чем доступная область, заворачиваем в Align (см. документацию)
-          child: Row(
-        //mainAxisAlignment: MainAxisAlignment.
-        //crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            //Размер хвостика нотки не должен цеплять равенство
-            //ToDo: а пробел поставить в след. виджете?
-              width: noteSize.width * 1.2),
-          Container(
-              height: noteSize.height,
-              width: noteSize.width,
-              child: NoteWidget(
-                subDiv: 1,
-                denominator: activeMetre.note,
-                active: -1,
-                accents: [],
-                showAccent: false,
-                showTuplet: false,
-                coverWidth: true,
-                colorPast: Colors.black,
-                colorNow: Colors.black,
-                colorFuture: Colors.black,
-                colorInner: Colors.black,
-              )),
-          Container(
-              //Размер хвостика нотки не должен цеплять равенство
-              //ToDo: а пробел поставить в след. виджете?
-              width: noteSize.width * 1.2),
-          Align(
-              alignment: Alignment.center,
-              child: Text(
-                "= " + _tempoBpm.toString(),
-                style: textStyle,
-                textScaleFactor: 1,
-              )),
-          //Размер хвостика нотки не должен цеплять равенство
-        ],
-      ));
-    });
+          double noteH = constraints.maxHeight;
+          Size noteSize = Size(noteH * 0.3, noteH);
+          //Отрисовка ноты отпределяется её высотой, привязываемся к ней
+          return Align(
+            //Чтобы можно было сделать меньше, чем доступная область, заворачиваем в Align (см. документацию)
+              child: Row(
+                //mainAxisAlignment: MainAxisAlignment.
+                //crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                      width: noteSize.width * 1.2),
+                  Container(
+                      height: noteSize.height,
+                      width: noteSize.width,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical:noteSize.height*0.08),
+                        child: NoteWidget(
+                          subDiv: 1,
+                          denominator: _noteValue,
+                          active: -1,
+                          accents: [],
+                          showAccent: false,
+                          showTuplet: false,
+                          coverWidth: true,
+                          colorPast: Colors.black,
+                          colorNow: Colors.black,
+                          colorFuture: Colors.black,
+                          colorInner: Colors.black,
+                        ),
+                      )),
+                  Container(
+                    //Размер хвостика нотки не должен цеплять равенство
+                    //ToDo: а пробел поставить в след. виджете? - не выходит
+                      width: noteSize.width * 1.2),
+                  Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "= " + _tempoBpm.toString(),
+                        style: textStyle,
+                        textScaleFactor: 1,
+                      )),
+                  //Размер хвостика нотки не должен цеплять равенство
+                ],
+              ));
+        });
   }
 
   Widget _buildPlayBtn1(double diameter) {
@@ -2871,12 +2897,12 @@ class _HomePageState extends State<HomePage>
               child: Container(
                 decoration: BoxDecoration(
                     image: DecorationImage(
-                  //image: AssetImage('images/but-note-1.png'),
-                  //image: AssetImage('images/ictempo.png'),
-                  //image: AssetImage('images/wh1.jpg'),
-                  image: AssetImage('images/wh22.png'),
-                  fit: BoxFit.fill,
-                )),
+                      //image: AssetImage('images/but-note-1.png'),
+                      //image: AssetImage('images/ictempo.png'),
+                      //image: AssetImage('images/wh1.jpg'),
+                      image: AssetImage('images/wh22.png'),
+                      fit: BoxFit.fill,
+                    )),
                 //decoration: decorTmp(Colors.green),
                 child: _tempoListFinallyGotLaid(_textStyleTempoRow, 0.705),
               ))
@@ -2888,51 +2914,51 @@ class _HomePageState extends State<HomePage>
   Widget _buildSoundBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      Size sizzze = Size(constraints.maxWidth, constraints.maxHeight);
-      int soundScheme = _activeSoundScheme;
-      final int imageIndex = soundScheme < 3 ? soundScheme : 3;
-      final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
+          Size sizzze = Size(constraints.maxWidth, constraints.maxHeight);
+          int soundScheme = _activeSoundScheme;
+          final int imageIndex = soundScheme < 3 ? soundScheme : 3;
+          final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
 
-      final String strScheme = (soundScheme + 1).toString();
-      final double sizeButton = sizzze.width;
+          final String strScheme = (soundScheme + 1).toString();
+          final double sizeButton = sizzze.width;
 
-      final Widget icon = new Image.asset(
-        schemeName,
-        width: sizeButton,
-        height: sizeButton,
-        fit: BoxFit.contain,
-      );
+          final Widget icon = new Image.asset(
+            schemeName,
+            width: sizeButton,
+            height: sizeButton,
+            fit: BoxFit.contain,
+          );
 
-      return new RawMaterialButton(
-        child: Stack(alignment: Alignment.center, children: [
-          //decoration: decorTmp(Colors.green),
-          icon,
-          imageIndex == 3
-              ? Text(
-                  strScheme,
-                  style: Theme.of(context).textTheme.headline5.copyWith(
-                      fontSize: 0.4 * sizzze.width,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                  textScaleFactor: 1,
-                )
-              : Container(),
-        ]),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: !_playing,
-        onPressed: () {
-          if (_soundSchemes?.length > 0) {
-            _activeSoundScheme =
-                (_activeSoundScheme + 1) % _soundSchemes.length;
-            // setState() is called in onLimitTempo() call
-            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
-              setState(() {});
-            });
-          }
-        },
-      );
-    });
+          return new RawMaterialButton(
+            child: Stack(alignment: Alignment.center, children: [
+              //decoration: decorTmp(Colors.green),
+              icon,
+              imageIndex == 3
+                  ? Text(
+                strScheme,
+                style: Theme.of(context).textTheme.headline5.copyWith(
+                    fontSize: 0.4 * sizzze.width,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+                textScaleFactor: 1,
+              )
+                  : Container(),
+            ]),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            //tooltip: _soundSchemes[_activeSoundScheme],
+            enableFeedback: !_playing,
+            onPressed: () {
+              if (_soundSchemes?.length > 0) {
+                _activeSoundScheme =
+                    (_activeSoundScheme + 1) % _soundSchemes.length;
+                // setState() is called in onLimitTempo() call
+                _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+                  setState(() {});
+                });
+              }
+            },
+          );
+        });
   }
 
   Widget _rowControlsArea(bool portrait, Size size) {
@@ -2944,7 +2970,7 @@ class _HomePageState extends State<HomePage>
     TextStyle _textStyleTempoRow = GoogleFonts.roboto(fontSize: fontSizeTempo);
 
     TextStyle _textStyleSchemeRow =
-        GoogleFonts.roboto(fontSize: fontSizeMusicScheme);
+    GoogleFonts.roboto(fontSize: fontSizeMusicScheme*0.7);
 
     ///Паддинг большой плашки контролов относительно краев экраан
 
@@ -2994,17 +3020,17 @@ class _HomePageState extends State<HomePage>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Flexible(
-              flex: 1,
+              flex: 10,
               fit: FlexFit.tight,
               child: tempoRow(_textStyleTempoRow),
             ),
             Flexible(
-              flex: 2,
+              flex: 20,
               fit: FlexFit.tight,
               child: signatureRaw(size.width),
             ),
             Flexible(
-              flex: 1,
+              flex: 7,
               fit: FlexFit.tight,
               child: musicSchemeRaw(_textStyleSchemeRow, size.width),
             ),
@@ -3015,17 +3041,51 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  Widget musicSchemeRaw(TextStyle textStyle, double totalWidth)
+  {
+    int left=100;
+    int padding=1;
+    int right=100;
+    int total=left+padding+right;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          flex: left,
+          child: musicSchemeListW(textStyle, totalWidth*left/total),
+        ),
+        Expanded(
+          flex: padding,
+          child: Container(
+            decoration: decorTmp(Colors.green),
+          ),
+        ),
+        Expanded(
+          flex: right,
+          child: rythmListW(textStyle, right/total),
+        ),
+
+      ],
+
+    );
+
+  }
+
+
+
+
   ///
-  /// Рисует тапабельную строку с музыкальной схемой. По тапу выдаётся диалог
+  /// Рисует тапабельную строку с ритмом.
   ///
-  Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
+  Widget rythmListW(TextStyle textStyle, double totalWidth) {
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
     double shrinkForList = 0.9;
     TextStyle listTextStyle =
-        textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
+    textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
     TextStyle listTextStyleBold =
-        listTextStyle.copyWith(fontWeight: FontWeight.bold);
+    listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
     //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
     //само диалоговое окно не обновляется.
@@ -3053,11 +3113,11 @@ class _HomePageState extends State<HomePage>
               width: shrinkForList * totalWidth,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                image: AssetImage('images/but1452long.png'),
-                //image: AssetImage('images/but-note-1.png'),
-                //image: AssetImage('images/ictempo.png'),
-                fit: BoxFit.fill,
-              )),
+                    image: AssetImage('images/but1452long.png'),
+                    //image: AssetImage('images/but-note-1.png'),
+                    //image: AssetImage('images/ictempo.png'),
+                    fit: BoxFit.fill,
+                  )),
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -3097,11 +3157,11 @@ class _HomePageState extends State<HomePage>
               width: shrinkForList * totalWidth,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                image: AssetImage('images/but1452long.png'),
-                //image: AssetImage('images/but-note-1.png'),
-                //image: AssetImage('images/ictempo.png'),
-                fit: BoxFit.fill,
-              )),
+                    image: AssetImage('images/but1452long.png'),
+                    //image: AssetImage('images/but-note-1.png'),
+                    //image: AssetImage('images/ictempo.png'),
+                    fit: BoxFit.fill,
+                  )),
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -3123,11 +3183,157 @@ class _HomePageState extends State<HomePage>
       //decoration: decorTmp(Colors.yellow),
       decoration: BoxDecoration(
           image: DecorationImage(
-        image: AssetImage('images/but1452long.png'),
-        //image: AssetImage('images/but-note-1.png'),
-        //image: AssetImage('images/ictempo.png'),
-        fit: BoxFit.fill,
-      )),
+            image: AssetImage('images/but1452long.png'),
+            //image: AssetImage('images/but-note-1.png'),
+            //image: AssetImage('images/ictempo.png'),
+            fit: BoxFit.fill,
+          )),
+      child: RawMaterialButton(
+        enableFeedback: false, //!_playing,
+        onPressed: () {
+          //По тапу вытаскиваем список для выбора схемы
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return SimpleDialog(
+                  backgroundColor: Colors.amber[50],
+                  elevation: 10.3,
+                  // title: const Text("Instruments"),
+                  //children:musicListOpt,//Крякает
+                  children: musicList,
+                );
+              });
+        },
+        child: Align(
+          //То, что рисуется в строке
+          alignment: Alignment.center,
+          child: Text(
+            _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
+                ? _soundSchemes[_activeSoundScheme]
+                : "[no sound sheme loaded]",
+            style: textStyle,
+            textScaleFactor: 1,
+          ),
+        ),
+      ),
+    );
+
+  }
+
+
+  ///
+  /// Рисует тапабельную строку с музыкальной схемой. По тапу выдаётся диалог
+  ///
+  Widget musicSchemeListW(TextStyle textStyle, double totalWidth) {
+    //double inkWellBetweenPadding = totalWidth * 0.01;
+
+    double shrinkForList = 0.9;
+    TextStyle listTextStyle =
+    textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
+    TextStyle listTextStyleBold =
+    listTextStyle.copyWith(fontWeight: FontWeight.bold);
+
+    //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
+    //само диалоговое окно не обновляется.
+    //Чтобы диалог обновлялся сам при выборе нового item, необходимо оформить виджеты-элементы как класс и
+    //завернуть выбор в  StatefulBuilder.
+    List<Widget> musicList = [];
+    for (int j = 0; j < _soundSchemes.length; j++) {
+      int i = j %
+          _soundSchemes.length; //Отладочное, чтобы проверить на многих списках
+      musicList.add(
+        Container(
+          //decoration: decorTmp(Colors.yellow),
+          padding: EdgeInsets.symmetric(
+              vertical: totalWidth * shrinkForList / 50,
+              horizontal: totalWidth * (1 - shrinkForList) / 4),
+          child: GestureDetector(
+            onTap: () {
+              _activeSoundScheme = i;
+              _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+                setState(() {}); //ToDo: Why?
+                Navigator.of(context).pop();
+              });
+            },
+            child: Container(
+              width: shrinkForList * totalWidth,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('images/but1452long.png'),
+                    //image: AssetImage('images/but-note-1.png'),
+                    //image: AssetImage('images/ictempo.png'),
+                    fit: BoxFit.fill,
+                  )),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  _soundSchemes[i],
+                  style: (i == _activeSoundScheme)
+                      ? listTextStyleBold
+                      : listTextStyle,
+                  textScaleFactor: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    //Ещё один вариант диалога, через SimpleDialogOption
+    //Прост по синтаксису, но крякает и как отключить звук - непонятно.
+    List<SimpleDialogOption> musicListOpt = [];
+    for (int i = 0; i < _soundSchemes.length; i++) {
+      musicListOpt.add(
+        SimpleDialogOption(
+          onPressed: () {
+            _activeSoundScheme = i;
+            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+              setState(() {}); //ToDo: Why?
+              Navigator.of(context).pop();
+            });
+          },
+          child: Container(
+            //decoration: decorTmp(Colors.yellow),
+            padding: EdgeInsets.symmetric(
+                vertical: totalWidth * shrinkForList / 50,
+                horizontal: totalWidth * (1 - shrinkForList) / 4),
+
+            child: Container(
+              width: shrinkForList * totalWidth,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('images/but1452long.png'),
+                    //image: AssetImage('images/but-note-1.png'),
+                    //image: AssetImage('images/ictempo.png'),
+                    fit: BoxFit.fill,
+                  )),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  _soundSchemes[i],
+                  style: (i == _activeSoundScheme)
+                      ? listTextStyleBold
+                      : listTextStyle,
+                  textScaleFactor: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: totalWidth,
+      //decoration: decorTmp(Colors.yellow),
+      decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/but1452long.png'),
+            //image: AssetImage('images/but-note-1.png'),
+            //image: AssetImage('images/ictempo.png'),
+            fit: BoxFit.fill,
+          )),
       child: RawMaterialButton(
         enableFeedback: false, //!_playing,
         onPressed: () {
@@ -3252,50 +3458,53 @@ class _HomePageState extends State<HomePage>
   Widget metreU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
-      double itemExtent = 0.5 * meterSize.width; //44,
-      bool updateMetre = _updateMetre; //ISH: не уверен, что это
+          Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
+          double itemExtent = 0.5 * meterSize.width; //44,
+          bool updateMetre = _updateMetre; //ISH: не уверен, что это
 
-      double meterTextSize = meterSize.height / 2.2;
-      TextStyle meterTextStyle = GoogleFonts.roboto(
-        fontSize: meterTextSize,
-      );
-      _updateMetre = false;
-      return MetreWidget(
-        update: updateMetre,
-        beats: _beat.beatCount,
-        minBeats: minBeatCount,
-        maxBeats: maxBeatCount,
-        note: activeMetre.note,
-        minNote: minNoteValue,
-        maxNote: maxNoteValue,
-        width: meterSize.width,
-        height: meterSize.height,
-        itemExtent: itemExtent,
-        color: Colors.deepPurple,
-        textStyle: meterTextStyle,
-        textStyleSelected: meterTextStyle.copyWith(
-          fontWeight: FontWeight.w800,
-          //fontSize: _textStyle.fontSize + 2,//??
-          ///ISH:Не это ли приводит к расцентровке шрифтов?
-          //height: 1,
-          //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
-          //color: _cWhiteColor,
-        ),
-        onBeatChanged: _onBeatChanged,
-        onNoteChanged: _onNoteChanged,
-      );
-    });
+          double meterTextSize = meterSize.height / 2.2;
+          TextStyle meterTextStyle = GoogleFonts.roboto(
+            fontSize: meterTextSize,
+          );
+          _updateMetre = false;
+          return MetreWidget(
+            update: updateMetre,
+            beats: _beat.beatCount,
+            minBeats: minBeatCount,
+            maxBeats: maxBeatCount,
+            note: _noteValue,
+            minNote: minNoteValue,
+            maxNote: maxNoteValue,
+            width: meterSize.width,
+            height: meterSize.height,
+            itemExtent: itemExtent,
+            color: Colors.deepPurple,
+            textStyle: meterTextStyle,
+            textStyleSelected: meterTextStyle.copyWith(
+              fontWeight: FontWeight.w800,
+              //fontSize: _textStyle.fontSize + 2,//??
+              ///ISH:Не это ли приводит к расцентровке шрифтов?
+              //height: 1,
+              //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
+              //color: _cWhiteColor,
+            ),
+            onBeatChanged: _onBeatChanged,
+            onNoteChanged: _onNoteChanged,
+          );
+        });
   }
 
+
+  ///TODOTODO TODO
   Widget metreBarU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      Size metreBarSize = Size(constraints.maxWidth, constraints.maxHeight);
+          Size metreBarSize = Size(constraints.maxWidth, constraints.maxHeight);
 
-      bool updateMetreBar = _updateMetreBar; //ISH: не уверен, что это
-      _updateMetreBar = false;
-      return MetreBarWidget(
+          bool updateMetreBar = _updateMetreBar; //ISH: не уверен, что это
+          _updateMetreBar = false;
+          return Container()/*
+      MetreBarWidget(
         update: updateMetreBar,
         metres: _metreList,
         activeMetre: _activeMetre,
@@ -3317,60 +3526,109 @@ class _HomePageState extends State<HomePage>
             _updateMetreBar = true;
           });
         },
-      );
-    });
+      )*/;
+        });
   }
 
   ///widget Settings
   Widget _buildHelpBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double size = constraints.maxHeight < constraints.maxWidth
-          ? constraints.maxHeight
-          : constraints.maxWidth;
-      return new InkWell(
-        child: Icon(Icons.help_outline, size: size),
-        enableFeedback: !_playing,
-        onTap: () {
-          _showHelp(context);
-        },
-      );
-    });
+          double size = constraints.maxHeight < constraints.maxWidth
+              ? constraints.maxHeight
+              : constraints.maxWidth;
+          return new InkWell(
+            child: Icon(Icons.help_outline, size: size),
+            enableFeedback: !_playing,
+            onTap: () {
+              _showHelp(context);
+            },
+          );
+        });
   }
 
   ///widget Settings
   Widget _buildSettingsBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double size = constraints.maxHeight < constraints.maxWidth
-          ? constraints.maxHeight
-          : constraints.maxWidth;
-      return new InkWell(
-        child: Icon(Icons.settings, size: size),
-        //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: !_playing,
-        onTap: () {
-          _showSettings(context);
-        },
-      );
-    });
+          double size = constraints.maxHeight < constraints.maxWidth
+              ? constraints.maxHeight
+              : constraints.maxWidth;
+          return new InkWell(
+            child: Icon(Icons.settings, size: size),
+            //tooltip: _soundSchemes[_activeSoundScheme],
+            enableFeedback: !_playing,
+            onTap: () {
+              _showSettings(context);
+            },
+          );
+        });
   }
 
   Widget _buildVolumeBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double diam = constraints.maxHeight < constraints.maxWidth
-          ? constraints.maxHeight
-          : constraints.maxWidth;
+          double diam = constraints.maxHeight < constraints.maxWidth
+              ? constraints.maxHeight
+              : constraints.maxWidth;
 
-      return new InkWell(
-        child: Icon(Icons.volume_up, size: diam),
-        //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: !_playing,
-        onTap: () {
-          ///_showSettings(context); --- VOLUME
-        },
-      );
-    });
+          return new InkWell(
+            child: Icon(Icons.volume_up, size: diam),
+            //tooltip: _soundSchemes[_activeSoundScheme],
+            enableFeedback: !_playing,
+            onTap: () {
+              ///_showSettings(context); --- VOLUME
+            },
+          );
+        });
   }
+
+
+
+  ///widget Square section with metronome itself. ToDo
+  Widget _AreaOfOwls(bool portrait, Size size) {
+    //return BorderedContainer(size);
+
+    if (!_skin.isInit || size.isEmpty)
+      return Container(
+        width: size.width,
+        height: size.height,
+      );
+
+    //TODO MetronomeState state = Provider.of<MetronomeState>(context, listen: false);
+    print('_buildOwlenome $size');
+
+    final double paddingX = _beat.beatCount == 3 || _beat.beatCount == 4
+        ? 0//ToDo
+        : 0;
+    final double paddingY = _beat.beatCount > 4 ? 0 : 0;
+    final Offset spacing = new Offset(0, 0);
+
+    final Widget wixOwls = new OwlGridRot(
+      playing: _playing,
+      beat: _beat,
+      activeBeat: -1, //state.activeBeat,
+      activeSubbeat: -1, //state.activeSubbeat,
+      noteValue: _noteValue,
+      accents: _beat.accents,
+      maxAccent: _beat.maxAccent,
+      spacing: spacing,
+      //padding: padding,
+      padding:
+      EdgeInsets.zero, //ToDo: определить сообразно общей ситуации извне
+      skin: _skin,
+      size: size,
+      onChanged: onOwlSubbeatsChanged,
+      onAccentChanged: onAccentChanged,
+    );
+
+    /// Do not use padding here!
+    return Container(
+        width: size.width,
+        height: size.height,
+        //decoration:  decorTmp(Colors.black),
+        child: wixOwls);
+  }
+
+
 }

@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
+
+///Это не совсем на месте. К акцентам не имеет отношения.
 class Subbeat
 {
   static const int maxSubbeatCount = 8;
@@ -119,7 +121,7 @@ class Prosody
         accents[i + middle] = accents[i] = left[i];// > 0 ? left[i] + 1 : 0; // лишняя операция при i = 0
       accents[0]++;
     }
-    // На два равных не делится. Если не делится на 3 (этот случай разобран далее, то делим на два неравных
+    // На два равных не делится. Если не делится на 3 (этот случай разобран далее), то делим на два неравных
     else if (noteNumber % 3 != 0)
     {
       int middle = noteNumber ~/ 2;
@@ -146,6 +148,8 @@ class Prosody
     return accents;
   }
 
+
+  ///TODO: MetreBar problem
   /// @return Array of simple metres, i-th element - simple metre length, array size - number of simple meters
   static List<int> getSimpleMetres(int noteNumber, bool pivoVodochka, [int level = 0])
   {
@@ -248,6 +252,9 @@ class Prosody
     return  sounds;
   }
 */
+
+
+/*//ISh: ничего не понимаю.... а зачем нам это нужно в дарт?
   /// Возвращает множитель громкости по акценту с учетом коэффициента динамики.
   /// @param accent Натуральное, 0 -> 1;
   /// @return Коэффициент уменьшения громкости
@@ -259,6 +266,8 @@ class Prosody
       den = dynamic * den;
     return (1.0 - leastVolume) / den + leastVolume;
   }
+
+ */
 
 /* всякий тест, please, do not delete
     static void printAcc1(int n, bool b)
