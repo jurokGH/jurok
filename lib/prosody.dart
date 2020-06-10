@@ -149,6 +149,18 @@ class Prosody
   }
 
 
+  ///Круппируем ноты
+  static List<int>  groupNotes(List<int> accents){
+    if (accents==null) return null;
+    if (accents.length==0) return [];
+    List<int> summands=[1];
+    for(int i=1; i<accents.length; i++){
+      if (accents[i]==0) summands[summands.length-1]++;
+      else summands.add(1);
+    }
+    return summands;
+  }
+
   ///TODO: MetreBar problem
   /// @return Array of simple metres, i-th element - simple metre length, array size - number of simple meters
   static List<int> getSimpleMetres(int noteNumber, bool pivoVodochka, [int level = 0])

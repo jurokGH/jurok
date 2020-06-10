@@ -16,6 +16,9 @@ class Rhythm{
   //final
   List<int> accents;
 
+
+  int get beats {return accents.length; }
+
   ///Сигнализирует, что нужно поменять подбиты;
   ///Нужно для красивых ритмов типа Болеро
   bool bSubBeatDependent=false;
@@ -31,12 +34,12 @@ class Rhythm{
     ///Переводим акценты в строку n1+n2+...
     ///Не очень понятно, как отображать их силу, и корректно ли так писать для
     ///ритма, начинающегося со слабой доли
-    String accentsToName(List<int> beats){
-      if (beats==null) return null;
-      if (beats.length==0) return "";
+    String accentsToName( ){
+      if (accents==null) return null;
+      if (accents.length==0) return "";
       List<int> summands=[1];
-      for(int i=1; i<beats.length; i++){
-        if (beats[i]==0) summands[summands.length-1]++;
+      for(int i=1; i<accents.length; i++){
+        if (accents[i]==0) summands[summands.length-1]++;
         else summands.add(1);
       }
 
@@ -47,7 +50,7 @@ class Rhythm{
       return res;
     }
 
-    name=accentsToName(accents);
+    name=accentsToName();
     this.accents=accents;
     this.subBeats=List<int>.filled(accents.length,1);
   }
@@ -121,6 +124,13 @@ class Rhythm{
     subBeats=[8,8];
   }
 
+  Rhythm.strangeIn3(){ //
+    name = "crackle in 3 (draft)";
+    bSubBeatDependent=true;
+    accents=[0,1,1];
+    subBeats=[2,8,8];
+  }
+
 /*
   Rhythm.rumBaTMP(){ //Undested; Rumba
     name = "Rumbu (under constr)";
@@ -162,6 +172,7 @@ class FancyRhythms {
     fancy.add(Rhythm.soca());
     fancy.add(Rhythm.tango());
     fancy.add(Rhythm.twoBubBum());
+    fancy.add(Rhythm.strangeIn3());
 
 
 
