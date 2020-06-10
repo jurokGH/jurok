@@ -17,6 +17,7 @@ import 'package:owlenome/util.dart';
 import 'PlatformSvc.dart';
 import 'BarBracket.dart';
 import 'SkinRot.dart';
+import 'accentbar-ui.dart';
 import 'arrow.dart';
 import 'help.dart';
 import 'metronome_state.dart';
@@ -491,7 +492,7 @@ class _HomePageState extends State<HomePage>
         _tempoBpm,
         _activeSoundScheme,
         _beat.subBeats,
-        Prosody.reverseAccents(_beat.accents));
+        Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
 
     //Пользовательские ритмы
     userRhythms = List<Rhythm>.generate(12, (n) => UserRhythm([], []));
@@ -672,7 +673,7 @@ class _HomePageState extends State<HomePage>
           _tempoBpm,
           _activeSoundScheme,
           _beat.subBeats,
-          Prosody.reverseAccents(_beat.accents));
+          Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
         _updateMetreBar = true;
@@ -711,7 +712,7 @@ class _HomePageState extends State<HomePage>
           _tempoBpm,
           _activeSoundScheme,
           _beat.subBeats,
-          Prosody.reverseAccents(_metreList[index].accents));
+          Prosody.reverseAccents(_metreList[index].accents,_beat.maxAccent));
     }
     //_noteValue = _metreList[index].note;  // Does not affect sound
 
@@ -740,7 +741,7 @@ class _HomePageState extends State<HomePage>
           _tempoBpm,
           _activeSoundScheme,
           _beat.subBeats,
-          Prosody.reverseAccents(_beat.accents));
+          Prosody.reverseAccents(_beat.accents,_beat.maxAccent));
       setState(() {
         _updateMetre = changed;
       });
@@ -760,7 +761,7 @@ class _HomePageState extends State<HomePage>
         _tempoBpm,
         _activeSoundScheme,
         _beat.subBeats,
-        Prosody.reverseAccents(_beat.accents));
+        Prosody.reverseAccents(_beat.accents,_beat.maxAccent));
     setState(() {});
   }
 
@@ -775,6 +776,7 @@ class _HomePageState extends State<HomePage>
     ///Видимо, это надо сделать subBeats как свойство, и проверять там.
     if (_beat.subBeatsEqualAndExist()) _beat.subBeatCount=_beat.subBeats[0];
 
+    storeUserRhythm();
 
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
@@ -784,9 +786,9 @@ class _HomePageState extends State<HomePage>
         _tempoBpm,
         _activeSoundScheme,
         _beat.subBeats,
-        Prosody.reverseAccents(_beat.accents));
+        Prosody.reverseAccents(_beat.accents,_beat.maxAccent));
 
-    storeUserRhythm();
+
 
 
     setState(() {});
@@ -804,7 +806,7 @@ class _HomePageState extends State<HomePage>
         _tempoBpm,
         _activeSoundScheme,
         _beat.subBeats,
-        Prosody.reverseAccents(_beat.accents));
+        Prosody.reverseAccents(_beat.accents,_beat.maxAccent));
 
     storeUserRhythm();
 
@@ -822,6 +824,7 @@ class _HomePageState extends State<HomePage>
           UserRhythm(_beat.subBeats, _beat.accents);
       _lastEdited=_beat.beatCount - 1;
     }
+    debugPrint("new rithm stored in "+_beat.beatCount.toString());
   }
 
 
@@ -2142,7 +2145,7 @@ class _HomePageState extends State<HomePage>
                 ///Поскольку Витя считает, что перемотка по кругу - плохо,
                 ///то необходимо убрать переход по тапу.
                 ///Иначе получается очень неудобная ситуация:
-                ///с максимальной тапом попадаем в 1, и не снова по кругу...
+                ///с  тапом по максимальному попадаем в 1, и снова по кругу...
                 ///При втором промахивании пользователь в бешенстве и удаляет приложение.
               ),
             ),
@@ -2677,7 +2680,7 @@ class _HomePageState extends State<HomePage>
       fontStyle: FontStyle.italic,
     );
 
-    List<Rhythm> rhythms = _allPredefinedRhythms[_beat.beatCount - 1];
+    List<Rhythm> rhythms = List<Rhythm>.from(_allPredefinedRhythms[_beat.beatCount - 1]);
     UserRhythm userRhythm = userRhythms[_beat.beatCount - 1];
     if (userRhythm.bDefined) {
       rhythms.add(userRhythm);
@@ -3005,7 +3008,7 @@ class _HomePageState extends State<HomePage>
               BoxShadow(
                 color: shadCol,
                 offset: Offset(shadX, shadY),
-                //spreadRadius: 1,
+                //spreadRadius: ??
                 blurRadius: shadRad,
               ),
             ],
@@ -3087,96 +3090,70 @@ class _HomePageState extends State<HomePage>
     TextStyle listTextStyleBold =
     listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-    //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
-    //само диалоговое окно не обновляется.
-    //Чтобы диалог обновлялся сам при выборе нового item, необходимо оформить виджеты-элементы как класс и
-    //завернуть выбор в  StatefulBuilder.
-    List<Widget> musicList = [];
-    for (int j = 0; j < _soundSchemes.length; j++) {
-      int i = j %
-          _soundSchemes.length; //Отладочное, чтобы проверить на многих списках
-      musicList.add(
-        Container(
-          //decoration: decorTmp(Colors.yellow),
-          padding: EdgeInsets.symmetric(
-              vertical: totalWidth * shrinkForList / 50,
-              horizontal: totalWidth * (1 - shrinkForList) / 4),
-          child: GestureDetector(
-            onTap: () {
-              _activeSoundScheme = i;
-              _channel.setSoundScheme(_activeSoundScheme).then((int result) {
-                setState(() {}); //ToDo: Why?
-                Navigator.of(context).pop();
-              });
-            },
-            child: Container(
-              width: shrinkForList * totalWidth,
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('images/but1452long.png'),
-                    //image: AssetImage('images/but-note-1.png'),
-                    //image: AssetImage('images/ictempo.png'),
-                    fit: BoxFit.fill,
-                  )),
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  _soundSchemes[i],
-                  style: (i == _activeSoundScheme)
-                      ? listTextStyleBold
-                      : listTextStyle,
-                  textScaleFactor: 1,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
 
-    //Ещё один вариант диалога, через SimpleDialogOption
-    //Прост по синтаксису, но крякает и как отключить звук - непонятно.
-    List<SimpleDialogOption> musicListOpt = [];
-    for (int i = 0; i < _soundSchemes.length; i++) {
-      musicListOpt.add(
-        SimpleDialogOption(
-          onPressed: () {
-            _activeSoundScheme = i;
-            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
-              setState(() {}); //ToDo: Why?
-              Navigator.of(context).pop();
-            });
+    Widget itemOfList(Rhythm rhythm) {
+      return Container(
+        padding: EdgeInsets.symmetric(
+            vertical: totalWidth * shrinkForList / 50,
+            horizontal: totalWidth * (1 - shrinkForList) / 4),
+        child: GestureDetector(
+          onTap: () {
+            onEverythingChanged(rhythm);
+            /*//ToDo: experiment
+            if (rhythm.bSubBeatDependent)
+              onEverythingChanged(rhythm);
+            else
+              onEverythingChanged(Rhythm(
+                  name: rhythm.name,
+                  subBeats:  _beat.subBeats,
+                  accents: rhythm.accents)
+              );*/
+            setState(() {}); //ToDo: Why?
+            Navigator.of(context).pop();
           },
           child: Container(
-            //decoration: decorTmp(Colors.yellow),
-            padding: EdgeInsets.symmetric(
-                vertical: totalWidth * shrinkForList / 50,
-                horizontal: totalWidth * (1 - shrinkForList) / 4),
-
-            child: Container(
-              width: shrinkForList * totalWidth,
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('images/but1452long.png'),
-                    //image: AssetImage('images/but-note-1.png'),
-                    //image: AssetImage('images/ictempo.png'),
-                    fit: BoxFit.fill,
-                  )),
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  _soundSchemes[i],
-                  style: (i == _activeSoundScheme)
-                      ? listTextStyleBold
-                      : listTextStyle,
-                  textScaleFactor: 1,
-                ),
+            width: shrinkForList * totalWidth,
+            decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('images/but1452long.png'),
+                  fit: BoxFit.fill,
+                )),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(rhythm.name,
+                /*
+                style: //ToDo
+                    ? listTextStyleBold
+                    : listTextStyle, */
+                textScaleFactor: 1,
               ),
             ),
           ),
         ),
       );
     }
+
+    List<Widget> rhytmListW=[];
+
+    for (int j = 0; j < maxBeatCount; j++){
+      for (int i=0; i<_allPredefinedRhythms[j].length;i++){
+        rhytmListW.add(itemOfList(_allPredefinedRhythms[j][i]));
+      }
+      UserRhythm userRhythm = userRhythms[j];
+      if (userRhythm.bDefined) {
+        rhytmListW.add(itemOfList(userRhythm));
+      }
+      if (j < maxBeatCount-1) //падинг
+      rhytmListW.add(
+            Padding(
+                padding:               EdgeInsets.symmetric(
+                vertical: totalWidth * shrinkForList / 25, )
+          ),
+      );
+    }
+
+
+
 
     return Container(
       width: totalWidth,
@@ -3200,17 +3177,14 @@ class _HomePageState extends State<HomePage>
                   elevation: 10.3,
                   // title: const Text("Instruments"),
                   //children:musicListOpt,//Крякает
-                  children: musicList,
+                  children: rhytmListW,
                 );
               });
         },
         child: Align(
           //То, что рисуется в строке
           alignment: Alignment.center,
-          child: Text(
-            _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
-                ? _soundSchemes[_activeSoundScheme]
-                : "[no sound sheme loaded]",
+          child: Text(_beat.name,
             style: textStyle,
             textScaleFactor: 1,
           ),
@@ -3494,17 +3468,43 @@ class _HomePageState extends State<HomePage>
         });
   }
 
-
-  ///TODOTODO TODO
+///UNDER CONSTRUCTION; todo
   Widget metreBarU() {
-    return LayoutBuilder(
+    return Container();
+/*
+      /*
+    LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           Size metreBarSize = Size(constraints.maxWidth, constraints.maxHeight);
 
+          double fontSizeTempo = metreBarSize.width *
+              0.36/3;
+
+          TextStyle _textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
+          return AccentBarWidget(
+          tempo: _tempoBpm,
+          maxTempo: _tempoBpmMax,
+          width: metreBarSize.width,
+          textStyle: _textStyle,
+          onChanged: _setTempo,
+          bReactOnTap: false, ///ВАЖНО!
+          ///Поскольку Витя считает, что перемотка по кругу - плохо,
+          ///то необходимо убрать переход по тапу.
+          ///Иначе получается очень неудобная ситуация:
+          ///с  тапом по максимальному попадаем в 1, и снова по кругу...
+          ///При втором промахивании пользователь в бешенстве и удаляет приложение.
+          )
+
+  */
+
+
+
+            /*
+
           bool updateMetreBar = _updateMetreBar; //ISH: не уверен, что это
           _updateMetreBar = false;
-          return Container()/*
-      MetreBarWidget(
+
+    return  MetreBarWidget(
         update: updateMetreBar,
         metres: _metreList,
         activeMetre: _activeMetre,
@@ -3527,7 +3527,7 @@ class _HomePageState extends State<HomePage>
           });
         },
       )*/;
-        });
+        });*/
   }
 
   ///widget Settings

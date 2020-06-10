@@ -198,7 +198,29 @@ class RhythmsByBeatN {
     for(int i=1; i<12; i++){
       simple.add(Rhythm.fromAccents(Prosody.getAccents(i+1,true)));
       if (standardBeatNth.contains(i+1))//пометим его как стандартный
-        simple.last.bStandard=true;
+          {
+        simple.last.bStandard = true;
+        switch (i+1) {
+          case 2:             simple.last.name="Simple Duple Time";
+                break;
+
+          case 3:             simple.last.name="Simple Triple Time";
+          break;
+
+          case 4:             simple.last.name="Simple Quadruple Time";
+          break;
+
+          case 6:             simple.last.name="Compound Duple Time";
+          break;
+
+          case 9:             simple.last.name="Compound Triple Time";
+          break;
+
+          case 12:             simple.last.name="Compound Quadruple Time";
+          break;
+        }
+
+      }
       else//нужно добавить ещё пива
         simple.add(Rhythm.fromAccents(Prosody.getAccents(i+1,false)));
     }

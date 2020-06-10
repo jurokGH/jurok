@@ -187,6 +187,17 @@ class Prosody
     }
   }
 
+
+
+  static List<int> reverseAccents(List<int> accents, int max)
+  {
+    return new List<int>.generate(accents.length, (int index) => max - accents[index]);
+  }
+
+
+
+
+/*//Так нельзя. Контрпример: все сильные превратятся в нулевые.
   static List<int> reverseAccents(List<int> accents)
   {
     int max = 0;
@@ -195,8 +206,11 @@ class Prosody
         max = accents[i];
     return new List<int>.generate(accents.length, (int index) => max - accents[index]);
   }
+   */
 
-  /// Возвращает последовательность звуков по данному, где акценты расставлены
+
+
+/// Возвращает последовательность звуков по данному, где акценты расставлены
   /// с помощью изменения громкости. 0-й акцент - самый сильный.
   /// @param initSound
   /// @param nOfAccents
