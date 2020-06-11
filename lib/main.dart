@@ -304,7 +304,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.)
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
   bool bBoxContainer = false;
@@ -2231,12 +2231,9 @@ class _HomePageState extends State<HomePage>
       !bTest
           ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
           : testWidget(Size(totalWidth, totalWidth * c2)),
-      Container(
-        //ToDo зачем тут контейнер?
-        child: (true) //bTest
+      (true) //bTest
             ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
             : testWidget(Size(totalWidth, totalWidth * c3)),
-      ),
     ];
 
     Widget metronome = Align(
@@ -2336,7 +2333,7 @@ class _HomePageState extends State<HomePage>
     Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
         ? Colors.red
         : Colors
-            .greenAccent; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
+            .black; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
 
     TextStyle knobTextStyle = GoogleFonts.roboto(
       fontSize: knobFontSize,
@@ -2600,7 +2597,7 @@ class _HomePageState extends State<HomePage>
         outerRadius: _outerRadius,
         textStyle: knobTextStyle,
         timeToDilation: _timeToDilation, //TODO: UNTESTED
-        showText: false,
+        showText: true,
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
           _setTempo(newVal.value.round());
@@ -3077,7 +3074,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
-    int left = 100;
+    int left = 14;
     int padding = 1;
     int right = 100;
     int total = left + padding + right;
@@ -3348,10 +3345,10 @@ class _HomePageState extends State<HomePage>
         child: Align(
           //То, что рисуется в строке
           alignment: Alignment.center,
-          child: Text(
-            _soundSchemes != null && _activeSoundScheme < _soundSchemes.length
+          child: Text("...",
+            /*_soundSchemes != null && _activeSoundScheme < _soundSchemes.length
                 ? _soundSchemes[_activeSoundScheme]
-                : "[no sound sheme loaded]",
+                : "[no sound sheme loaded]",*/
             style: textStyle,
             textScaleFactor: 1,
           ),
@@ -3566,6 +3563,7 @@ class _HomePageState extends State<HomePage>
         noteValue: _noteValue,
         bReactOnTap: true,
         bForceRedraw: true,//Поменять: только если число нот поменялось.
+        maxAccent: _beat.maxAccent,
         // Да вроде и так не перерисовывается лишний раз...
       )
 

@@ -19,6 +19,7 @@ class AccentBarWidget extends StatefulWidget
   final Size size;
   final int noteValue;
   final bool bForceRedraw;
+  final int maxAccent;
 
   AccentBarWidget({
     this.rhythms,
@@ -28,6 +29,7 @@ class AccentBarWidget extends StatefulWidget
     this.noteValue,
     this.bForceRedraw,
     this.bReactOnTap=true,
+    this.maxAccent,
   });
 
   @override
@@ -114,11 +116,13 @@ class AccentBarState extends State<AccentBarWidget>
           colorFuture: Colors.black,
           colorInner: Colors.black,
           accents: accents1,
-          maxAccentCount: 3,
+          maxAccentCount: widget.maxAccent,
           coverWidth: beats > 5,// true,
           showTuplet: false,
           showAccent: true,
           size: new Size(width, size.height),
+          relRadius: 0.07,
+          relFlagHeight: 0.55/1.2,
         );
         notes.add(wix);
       }

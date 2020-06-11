@@ -49,6 +49,10 @@ class NoteWidget extends StatefulWidget
   final bool showAccent;
   final bool showShadow;
   final int maxAccentCount;
+  ///вертикальный радиус ноты (относительно высоты)
+  final double relRadius;
+  /// Относительная высота простого флага сравнительно с высотой штиля
+  final double relFlagHeight;
 
   NoteWidget({
     this.subDiv,
@@ -67,6 +71,11 @@ class NoteWidget extends StatefulWidget
     this.showAccent = false,
     this.showShadow = false,
     this.maxAccentCount = 3,
+    ///вертикальный радиус ноты (относительно высоты)
+    //final double _relRadius = 0.12;  // 0.1
+    this.relRadius= 0.12,
+    //_relFlagHeight = 0.55;  // 0.6 for _relFlagsZoneBottom = 0.45
+    this.relFlagHeight=0.55,
   });
 
   @override
@@ -85,7 +94,8 @@ class _NoteState extends State<NoteWidget>
         widget.maxAccentCount,
         widget.colorPast, widget.colorNow, widget.colorFuture, widget.colorInner,
         widget.activeNoteType, widget.coverWidth, widget.showTuplet, widget.showAccent,
-        widget.showShadow, widget.colorShadow,
+        widget.showShadow, widget.colorShadow,widget.relRadius,
+          widget.relFlagHeight,
       //TODO isComplex: true,
       )
     );
@@ -138,6 +148,7 @@ class NotePainter extends CustomPainter
   final Color colorInner;// = Colors.yellow; //Colors.grey[700];
   /// Coefficient of gradient radius relating to note radius
   final double _coefGrad = 1.6;
+
   /// Gradient center shift along X-axis relating to note radius
   final double _coefGradSkewX = 0.15;
 
@@ -149,8 +160,14 @@ class NotePainter extends CustomPainter
 
   final int maxAccentCount;
   /// Respectively to _widthStem
-  final double heightAccent2ratio = 1.25;
-  final double gapAccent2ratio = 1.5;
+  final double heightAccent2ratio = 3.25;
+  final double gapAccent2ratio = 2.5;
+
+  final double relRadius;
+
+
+  final double relFlagHeight;  // 0.6 for _relFlagsZoneBottom = 0.45
+
   double _heightAccent2 = 0;
   double _gapAccent = 0;
 
@@ -161,6 +178,7 @@ class NotePainter extends CustomPainter
 
   /// ширина флага, logical pixels
   final double _widthStem = 1;
+  final double _widthAccent=2;
 
   ///толщина границы полый ноты и толщина её штиля.
   ///почему-то у ноты 1/2 принято рисовать штиль тоньше, чем у других, хз почему, но придется сделать.
@@ -176,8 +194,7 @@ class NotePainter extends CustomPainter
 
   ///Ниже идут значения относительно высоты
 
-  ///вертикальный радиус ноты (относительно высоты)
-  final double _relRadius = 0.12;  // 0.1
+
 
   /// Во сколько раз горизонтальный радиус ноты длинее
   final double eccentricity = 828.0 / 505;
@@ -203,8 +220,7 @@ class NotePainter extends CustomPainter
   final double _relWidthFlag = 0.04;//0.06 //VG
   /// несжатое пространство между флагами относительно высоты
   final double _relSpaceBetweenFlag = 0.03;//0.04 //VG
-  /// Относительная высота простого флага сравнительно с высотой штиля
-  final double _relFlagHeight = 0.55;  // 0.6 for _relFlagsZoneBottom = 0.45
+
   /// Относительный аспект простого флага = (высота / ширина) * 2
   /// 1 соответствует отношению сторон = 2
   final double _flagAspect = 1.2;
@@ -261,6 +277,7 @@ class NotePainter extends CustomPainter
   Paint _paintFilledNote;
   Paint _paintHallowNote;
   Paint _paintStem;
+  Paint _paintAccent;
   Paint _paintStemForHallow;
   Paint _paintFlag;
   Paint _paintSubdivFlag;
@@ -294,7 +311,6 @@ class NotePainter extends CustomPainter
 
   ///TODO:
   ///Часть констант должна вычисляться один раз
-  ///И наоборот, я не понимаю, почему значение active должно быть final
   NotePainter([
     this.denominator, this.subDiv,
     this.accents,
@@ -304,6 +320,8 @@ class NotePainter extends CustomPainter
     this.activeNoteType,
     this.coverWidth, this.showTuplet, this.showAccent,
     this.shadow, this.colorShadow,
+    this.relRadius,
+    this.relFlagHeight,
   ]);
 
   /// Рисуем одну четвертную/половинную нотку.
@@ -409,8 +427,8 @@ class NotePainter extends CustomPainter
         final Offset offL = rc.bottomLeft.translate(0, y).translate(delta, 0);
         final Offset offR = rc.bottomRight.translate(0, y).translate(-delta, 0);
         final Offset offC = offR + Offset(0, _heightAccent2);
-        canvas.drawLine(offL, offC, _paintStem);
-        canvas.drawLine(offL + Offset(0, 2 * _heightAccent2), offC, _paintStem);
+        canvas.drawLine(offL, offC, _paintAccent);
+        canvas.drawLine(offL + Offset(0, 2 * _heightAccent2), offC, _paintAccent);
       }
   }
 
@@ -542,7 +560,7 @@ class NotePainter extends CustomPainter
     if (_nmbOfFlags == 0)
       return;
 
-    double flagHeight = _relFlagHeight * (_noteCenterY - _flagsZoneTop);
+    double flagHeight = relFlagHeight * (_noteCenterY - _flagsZoneTop);
     double x = _noteCenterX(0) + _radius;
     double dy =  0.3 * flagHeight;  // Handpicked magic number <= yEnd
 
@@ -637,7 +655,7 @@ class NotePainter extends CustomPainter
     ///Геометрия
     ///
 
-    _radius = size.height * _relRadius;
+    _radius = size.height * relRadius;
     _radiusBig = _radius * _bigRadiusMultiplier;
     _heightAccent2 = heightAccent2ratio * _widthStem;
     _gapAccent = gapAccent2ratio * _widthStem;
@@ -690,6 +708,12 @@ class NotePainter extends CustomPainter
       ..style = PaintingStyle.stroke
       ..strokeWidth = _widthStem
       ..color = colorPast;
+
+    _paintAccent = new Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _widthAccent
+      ..color = colorPast;
+
 
     _paintHallowNote = new Paint()
       ..style = PaintingStyle.stroke

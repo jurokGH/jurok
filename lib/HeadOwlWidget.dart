@@ -192,6 +192,8 @@ class HeadOwlState extends State<HeadOwlWidget>
       showShadow: false,
       colorShadow: Colors.white.withOpacity(1),
       size: noteSize,
+      relRadius: 0.18,
+      relFlagHeight: 0.7,
     );
 
     ///Плашка с тенями  и акцентами.
