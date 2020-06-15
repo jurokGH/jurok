@@ -1,3 +1,5 @@
+import 'dart:convert' show utf16;
+
 //import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +16,7 @@ import 'package:owlenome/prosody.dart';
 import 'package:owlenome/rhythms.dart';
 
 import 'package:owlenome/util.dart';
+import 'package:utf/utf.dart';
 import 'PlatformSvc.dart';
 import 'BarBracket.dart';
 import 'SkinRot.dart';
@@ -153,10 +156,7 @@ List<UserRhythm> userRhythms;
 /// userRhithms[_lastEdited]
 int _lastEdited;
 
-
-
-List<Rhythm> _rhythmsToScroll=_allPredefinedRhythms[_initBeatCount - 1];
-
+List<Rhythm> _rhythmsToScroll = _allPredefinedRhythms[_initBeatCount - 1];
 
 /// Min tempo
 const int _cMinTempo = 1;
@@ -333,9 +333,7 @@ class _HomePageState extends State<HomePage>
 
   int _noteValue = _cIniNoteValue;
 
-
   int _scrollBarPosition = 0;
-
 
   ///TODO: MetreBar problem
 
@@ -634,13 +632,11 @@ class _HomePageState extends State<HomePage>
   /// UI notification handlers
   ///
 
-
   ///Крутим
   void _onScrollRhythm(int position) {
     print('_onBeatChanged');
-    if (position!=_scrollBarPosition)
-    {
-      _scrollBarPosition=position;
+    if (position != _scrollBarPosition) {
+      _scrollBarPosition = position;
       _beat = BeatMetre(_rhythmsToScroll[_scrollBarPosition]);
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
@@ -662,13 +658,13 @@ class _HomePageState extends State<HomePage>
 
   ///Из пользовательского и предустановленных создаем то, что крутится.
   ///insertAtPosition - куда положим пользовательский ритм
-  void createScrollRhythms(int insertAtPosition){
-    int beat=_beat.beatCount;
-    _rhythmsToScroll=List.from(_allPredefinedRhythms[beat - 1]);
-    if (userRhythms[beat-1].bDefined) {
+  void createScrollRhythms(int insertAtPosition) {
+    int beat = _beat.beatCount;
+    _rhythmsToScroll = List.from(_allPredefinedRhythms[beat - 1]);
+    if (userRhythms[beat - 1].bDefined) {
       _rhythmsToScroll.insert(insertAtPosition, userRhythms[beat - 1]);
     }
-    _scrollBarPosition=insertAtPosition;
+    _scrollBarPosition = insertAtPosition;
   }
 
   ///Изменяем число нот
@@ -678,8 +674,7 @@ class _HomePageState extends State<HomePage>
 
     ///Проверить не так надо
     {
-      if (beats - 1 == _lastEdited)
-        {
+      if (beats - 1 == _lastEdited) {
         ///Решается тонкий философский вопрос, результат
         ///многочасовых рассуждений.
         ///
@@ -694,18 +689,16 @@ class _HomePageState extends State<HomePage>
         ///3/4, и сформировать имя "Last edited 3/4 (edited)".
         _beat = BeatMetre(userRhythms[beats - 1]);
 
-        createScrollRhythms(0);//ToDo: не тут. Надо запасти, где мы их меняли последний раз
+        createScrollRhythms(
+            0); //ToDo: не тут. Надо запасти, где мы их меняли последний раз
 
-
-        }
-      else {
+      } else {
         ///Второй сложный вопрос: при выборе размера, что нам делать с поддолями?
         ///Пока я их все игнорирую...//ToDo: хорошо ли это?
         _beat = BeatMetre(_basicRhythms[beats - 1]);
-        createScrollRhythms(0);//ToDo: не тут. Надо запасти, где мы их меняли последний раз
+        createScrollRhythms(
+            0); //ToDo: не тут. Надо запасти, где мы их меняли последний раз
       }
-
-
 
       //_beat.beatCount = beats;
 
@@ -2126,11 +2119,34 @@ class _HomePageState extends State<HomePage>
   //TextStyle basicTextStyle; //ToDo
 
   Widget testWidget(Size size) {
+    double textSize = size.width / 15;
+    final String s1 = '\u{1d197}';
+    final String s2 = decodeUtf32([0xF0, 0x9D, 0x84, 0xA0]);
+    final String s3 = '\u{1D13B}';
+    final String s =
+        '1/2: \u{1D13C} 1/4:\u{1D13D} 1/8:\u{1D13E} 1/16:\u{1D13F} 1/32:\u{1D140} ;';
+
     return Container(
-      decoration: decorTmp(Colors.white),
+      decoration: decorTmp(Colors.black),
       width: size.width,
       height: size.height,
-      child: rhythmDrawW(size, _beat, _noteValue),
+      child: Align(
+        alignment: Alignment.center,
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text(s,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: textSize,
+                      fontFamily: 'Bravura',
+                    )),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
     /*
 
@@ -2222,7 +2238,7 @@ class _HomePageState extends State<HomePage>
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
-    double shadowOffset = totalWidth * 0.03;//TODO: запасти место под тень.
+    double shadowOffset = totalWidth * 0.03; //TODO: запасти место под тень.
     //А то разрушится трёхмернось. Пока она едет зайцем.
 
     bool bTest = false; //tmp
@@ -2232,8 +2248,8 @@ class _HomePageState extends State<HomePage>
           ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
           : testWidget(Size(totalWidth, totalWidth * c2)),
       (true) //bTest
-            ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
-            : testWidget(Size(totalWidth, totalWidth * c3)),
+          ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
+          : testWidget(Size(totalWidth, totalWidth * c3)),
     ];
 
     Widget metronome = Align(
@@ -3345,7 +3361,8 @@ class _HomePageState extends State<HomePage>
         child: Align(
           //То, что рисуется в строке
           alignment: Alignment.center,
-          child: Text("...",
+          child: Text(
+            "...",
             /*_soundSchemes != null && _activeSoundScheme < _soundSchemes.length
                 ? _soundSchemes[_activeSoundScheme]
                 : "[no sound sheme loaded]",*/
@@ -3562,7 +3579,7 @@ class _HomePageState extends State<HomePage>
         onChanged: _onScrollRhythm,
         noteValue: _noteValue,
         bReactOnTap: true,
-        bForceRedraw: true,//Поменять: только если число нот поменялось.
+        bForceRedraw: true, //Поменять: только если число нот поменялось.
         maxAccent: _beat.maxAccent,
         // Да вроде и так не перерисовывается лишний раз...
       )
