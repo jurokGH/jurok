@@ -35,8 +35,10 @@ class HeadOwlWidget extends StatefulWidget {
   final ValueChanged2<int, int> onTap;
   final ValueChanged2<int, int> onNoteTap;
   final ImageIndexCallback2 getImageIndex;
+  final bool playing;
 
   HeadOwlWidget({
+    @required this.playing,
     @required this.id,
     @required this.onTap,
     @required this.onNoteTap,
@@ -428,7 +430,12 @@ class HeadOwlState extends State<HeadOwlWidget>
                       child: widget.images[indexImage],
                     ),
                     Transform(
-                      transform: Matrix4.rotationZ(_angle)
+                      transform: Matrix4.rotationZ(
+                        ///ISH: ad-hoc решение, возможно ресурсоёмкое
+                        /// и точно не нужное, просто не хотел лезть в структуру дерева виджетов:
+                        ///если не играем - поворачиваем на 0.
+                          widget.playing?_angle:0,
+                      )
                         ..setTranslationRaw(0, yOffset, 0),
                       alignment: Alignment.center,
                       child: widget.headImages[indexImageHead],

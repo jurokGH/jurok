@@ -321,6 +321,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     print('widget.skin.images $n - ${widget.skin.images}');
 
     //TODO Recreate only on beatRows change
+    //IS: Если все кивают головами, то наверное не надо?
     final List<Widget> wOwls = List<Widget>();
     int k = 0;
     for (int i = 0; i < beatRows.length; i++)
@@ -329,6 +330,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
         bool accent = k == 0;
         int nAccent = widget.accents[k];
         HeadOwlWidget w = new HeadOwlWidget(
+          playing: widget.playing,
           id: k,
           accent: accent,
           nAccent: nAccent,
@@ -347,7 +349,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
           images: widget.skin.images,//[accent ? 0 : 1]),
           headImages: widget.skin.headImages,//[accent ? 0 : 1]),
           getImageIndex: (int accent, int subbeat, int subbeatCount) {
-            // Need to pass currentMaxAccent onto Skin::getImageIndex
+            // Need to pass currentMaxAccent onto Skin::getImageIndex//ToDo: !!!zzz
             return widget.skin.getImageIndex(accent, subbeat, currentMaxAccent, subbeatCount);
           },
           onTap: (int id, int accent) {

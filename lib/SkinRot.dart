@@ -14,8 +14,10 @@ Future<ui.Image> _loadImage(String imgName) {
 class OwlSkinRot {
   final int kindCount = 4; // == accentCount + 1
   final int frameCount = 5; // == subbeatCount
-  final String _fileBase = 'images/owl6-';
-  final String _fileBaseHead = 'images/owl6h-';
+  //final String _fileBase = 'images/owl6-';
+  final String _fileBase = 'images/owlZ-';
+  //final String _fileBaseHead = 'images/owl6h-';
+  final String _fileBaseHead = 'images/nhowl';
   //List<List<Image>> _images;
   List<Image> _images;
   List<Image> _headImages;
