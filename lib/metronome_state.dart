@@ -111,6 +111,16 @@ class MetronomeState with ChangeNotifier
     _activeBeat = -1;
     _activeSubbeat = -1;
     _conditions = new List<Cauchy>();
+
+
+    //Untested, 15.06
+    _timeOfTheFirstBeat=(2<<53); //end of time
+  }
+
+  ///Верно ли, что мы уже знаем время начального бита, и оно уже наступило?
+  ///Untested. 15.06
+  bool get timeToPlay{
+    return (DateTime.now().microsecondsSinceEpoch>=_timeOfTheFirstBeat);
   }
 
   ///Вызываем, когда разогрелись и точно знаем звучание первого бита.

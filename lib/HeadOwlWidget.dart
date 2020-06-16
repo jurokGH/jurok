@@ -434,7 +434,7 @@ class HeadOwlState extends State<HeadOwlWidget>
                         ///ISH: ad-hoc решение, возможно ресурсоёмкое
                         /// и точно не нужное, просто не хотел лезть в структуру дерева виджетов:
                         ///если не играем - поворачиваем на 0.
-                          widget.playing?_angle:0,
+                        (widget.playing&Provider.of<MetronomeState>(context, listen: false).timeToPlay)?_angle:0,
                       )
                         ..setTranslationRaw(0, yOffset, 0),
                       alignment: Alignment.center,
