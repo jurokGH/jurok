@@ -245,8 +245,13 @@ class OwlGridState extends State<OwlGrid> with SingleTickerProviderStateMixin<Ow
     if (widget.playing)
     {
       debugPrint('toggleAnimation');
-      if (!_controller.isAnimating)
-        _controller.repeat().orCancel;
+      if (!_controller.isAnimating) {
+        debugPrint(' -- repeatOrCancel');
+
+        _controller
+            .repeat()
+            .orCancel;
+      }
     }
     else
     {

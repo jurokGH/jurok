@@ -73,7 +73,8 @@ class HeadOwlState extends State<HeadOwlWidget>
   //int subbeatCount;
   bool active;
   int activeSubbeat;
-  int _time;
+  //int _time;
+  double _xPrev;
   double _angle = 0;
 
   int activeHash;
@@ -90,7 +91,7 @@ class HeadOwlState extends State<HeadOwlWidget>
   void onRedraw() {
     final MetronomeState state =
         Provider.of<MetronomeState>(context, listen: false);
-    state.update();
+    state.update();//ISH Не понимаю, почему это тут... TODO:
     int hash = state.getBeatState(widget.id);
     //debugPrint('AnimationController ${widget.id} $_counter $hash');
     _counter++;
@@ -98,12 +99,13 @@ class HeadOwlState extends State<HeadOwlWidget>
     final bool newActive = state.isActiveBeat(widget.id);
     final int newActiveSubbeat = state.getActiveSubbeat(widget.id);
     //final int t = state.getActiveTime(widget.id);
-    final int t = state.getReActiveTime();
+    final double x = state.getReActiveTime();
+    //ToDo: а не разъедутся ли совы в какой-нибудь плохой ситуации?
 
     //if (hash != activeHash)
 
     // Active vs all owls swing their heads
-    if (active != newActive || activeSubbeat != newActiveSubbeat || t != _time)
+    if (active != newActive || activeSubbeat != newActiveSubbeat || x != _xPrev)
 //    if (t != _time)
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
     {
@@ -112,13 +114,15 @@ class HeadOwlState extends State<HeadOwlWidget>
         activeHash = hash;
         //maxAngle = 2;
         //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
-        _angle = -widget.maxAngle * sin(2 * pi * 0.000001 * t);
+
+        //ToDo: непонятно....
+        _angle = widget.maxAngle * sin(pi*x);
         //минус- чтобы начинал в сторону движения всех нот
         active = newActive;
         activeSubbeat = newActiveSubbeat;
       });
     }
-    _time = t;
+    _xPrev = x;
     //    final int beat0 = activeHash >> 16;
     //    final int activeSubbeat0 = activeHash & 0xFFFF;
     //final bool active = widget.id == activeBeat;
@@ -172,8 +176,7 @@ class HeadOwlState extends State<HeadOwlWidget>
     //maxDragY = widget.images[indexImage].height / 4;
 
     final double aspect = imageSize.height / imageSize.width;
-    print(
-        'OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
+    //print(        'OwlWidget $imageSize - $maxDragX - $aspect - ${1 / widget.size.aspectRatio}');
 
     List<int> tupletsInts = [3, 5, 6, 7, 9, 10, 11];
 
@@ -434,7 +437,7 @@ class HeadOwlState extends State<HeadOwlWidget>
                         ///ISH: ad-hoc решение, возможно ресурсоёмкое
                         /// и точно не нужное, просто не хотел лезть в структуру дерева виджетов:
                         ///если не играем - поворачиваем на 0.
-                        (widget.playing&Provider.of<MetronomeState>(context, listen: false).timeToPlay)?_angle:0,
+                        (widget.playing&Provider.of<MetronomeState>(context, listen: false).isItTimeToPlay)?_angle:0,
                       )
                         ..setTranslationRaw(0, yOffset, 0),
                       alignment: Alignment.center,

@@ -244,7 +244,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
     {
       metroAudio = new MetroAudioMix(nativeSampleRate, nativeBuffer,
-        1000,//TODO: TEST: 1000; //00;
+        80,//TODO: TEST: 1000; //00;
         // 160 - основной кандидат (8 моих буферов)
         // Regular: 120; //1000.0/8 --- 240;16,; 1280 - 64 буфера;
         handler);

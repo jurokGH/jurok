@@ -128,6 +128,9 @@ class PlatformSvc
   }
 
   /// Send beat music to Java sound player and state.beatMetre
+  /// ISH: Витя, я запутался: "and state.beatMetre" - почему?
+  /// Это опосредованно происходит после того, как ява вернёт ответ
+  /// через onSync (и другие), верно?
   Future<int> setBeat(int beatCount, int subbeatCount, int tempoBpm,
       int soundScheme, List<int> subBeats, List<int> accents) async
   {

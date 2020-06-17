@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+///Я пока отколючил отладочные принты здесь
+const bool bPrintTextDebug=false;
+
 class LimitSizeText extends StatelessWidget
 {
   final String text;
@@ -46,7 +49,7 @@ class LimitSizeText extends StatelessWidget
         templateStyle == null ? style : templateStyle,
         constraints.biggest);
 
-    if (fontSize < style.fontSize)
+    if ((fontSize < style.fontSize)&bPrintTextDebug)
       debugPrint('LimitSizeText limit to $fontSize from ${style.fontSize}');
 
     return Text(text,

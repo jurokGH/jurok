@@ -94,6 +94,10 @@ class MetronomeState with ChangeNotifier
 
   //BeatMetre get BeatMetre => _beat;
 
+
+  ///Четность первого (по timeOrg) бита
+  bool _parity=true;
+
   MetronomeState(Rhythm rhythm)
   {
     beatMetre = new BeatMetre(rhythm);
@@ -115,11 +119,12 @@ class MetronomeState with ChangeNotifier
 
     //Untested, 15.06
     _timeOfTheFirstBeat=(2<<53); //end of time
+    _parity=true;
   }
 
   ///Верно ли, что мы уже знаем время начального бита, и оно уже наступило?
   ///Untested. 15.06
-  bool get timeToPlay{
+  bool get isItTimeToPlay{
     return (DateTime.now().microsecondsSinceEpoch>=_timeOfTheFirstBeat);
   }
 
@@ -131,6 +136,7 @@ class MetronomeState with ChangeNotifier
     _timeOfTheFirstBeat = initTime;
     _timeOrg = initTime;
     _beatsPerMinute = bpm;
+    _parity=true;
     /*
     _timer.reset();
     __time0 = _timer.elapsedMicroseconds;
@@ -164,6 +170,8 @@ class MetronomeState with ChangeNotifier
   {
     Cauchy condition=new Cauchy(initTime,newBpm,timeToChangeTime);
     _conditions.add(condition);
+
+    debugPrint('SyNc');
 
     /* ОДНОГО НАБОРА УСЛОВИЙ НЕ ХВАТИТ, если злой пользователь зажмет ручку скорости
     bWaitingForNewBPM=true;
@@ -224,13 +232,20 @@ class MetronomeState with ChangeNotifier
     //предложить почитать или что еще... Закрытые глаза спящих сов стали полуоткрыты?
     //Совы вздрогнули?//ToDo
 
+
+    //запасём четность
+    bool parityBefore=beatParityNow(time);
+
     while (_conditions.length > 0 && time >= _conditions[0].timesToChangeTime)
     {
       // пришло время жить с новой скоростью
+
+
       _timeOrg = _conditions[0].timeOrg;
       _beatsPerMinute = _conditions[0].bpm;
-      _conditions.removeAt(0);  //IS: FiFo... Не знаю, как умно это сделать в dart
+      _conditions.removeAt(0);
 
+      /*
       String s = 'SYNC UPDATE: Delta times (from now) : ';
       int prevTm = DateTime.now().microsecondsSinceEpoch;
       for (int i = 0; i < _conditions.length; i++)
@@ -239,12 +254,17 @@ class MetronomeState with ChangeNotifier
         prevTm = _conditions[i].timesToChangeTime;
         s += t.toString() + '; ';
       }
-      print(s);
+      print(s);*/
     }
+
+    bool parityAfter=beatParityNow(time);
+    ///Если посчитанная новая четность  бипа поменялась, то восстановим её, помеменяв _parity
+    if (parityBefore!=parityAfter) _parity=!_parity;
+
     //ToDo: Для теста.
     // Ситуация, когда while сработал больше одного раза означает,
     // что мы не успели получить данные от Явы вовремя, и
-    // какое-то время (от начального condition но now) рисовали анимацию
+    // какое-то время (от начального condition до now) рисовали анимацию
     // по данным, отличных от тех, по которым игрался звук.
     // Нужно при выборе значения буфера
     // потестировать такие опоздания.
@@ -270,12 +290,25 @@ class MetronomeState with ChangeNotifier
 
     if (curBeat != _activeBeat || curSubbeat != _activeSubbeat)
     {
+      //untested 15.09
+      //zzz
+
+
       changed = true;
       _activeBeat = curBeat;
       _activeSubbeat = curSubbeat;
       //debugPrint('Active (beat, subbeat): $_activeBeat - $activeSubbeat');
     }
     return changed;
+  }
+
+  ///Четность бита в момент времени (mcs)
+  bool beatParityNow(int timeNow){
+
+    double beatDuration = 60*1000*1000 / _beatsPerMinute;  // in mcseconds
+    int totalBeatsPlayed=(timeNow-_timeOrg)~/beatDuration;
+        //return (totalBeatsPlayed%2==0);//tmp
+    return ((totalBeatsPlayed%2==0)==_parity);
   }
 
   /// Start time (in seconds) of [beat, subbeat] sound relating to begin of this beat metre
@@ -353,6 +386,8 @@ class MetronomeState with ChangeNotifier
     //melody.cycle.setTempo(tempo, _bars);
   }*/
 
+  bool get parity => _parity;
+
   bool isActiveBeat(int id)
   {
     return id == _activeBeat;
@@ -364,11 +399,14 @@ class MetronomeState with ChangeNotifier
   }
 
 
-  int getReActiveTime()
+  ///Модуль - какую часть бита сыграли. Знак чередуется от бита к биту.
+  double getReActiveTime()
   {
-      double period = 120.0 / _beatsPerMinute; // in seconds
-      double t = (_timeOrg-DateTime.now().microsecondsSinceEpoch)/period;
-      return t.round();
+      double period = 60*1000*1000   / _beatsPerMinute; // in mcseconds
+      int tm=DateTime.now().microsecondsSinceEpoch;
+      double x = (tm-_timeOrg)/period %1;
+      if (!beatParityNow(tm)) x*=-1;
+      return x;
   }
 
 
@@ -387,6 +425,8 @@ class MetronomeState with ChangeNotifier
     else
       return id == _activeBeat ? _activeTime : 0;
   }
+
+
 
   int getActiveState()
   {

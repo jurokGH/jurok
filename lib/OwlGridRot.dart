@@ -187,7 +187,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
 
 class OwlGridRot extends StatefulWidget
 {
-  BeatMetre beat;
+  final BeatMetre beat;///Final? ИШ: это я добавил. Но не увеерен в этом.
   final int noteValue;
   final int activeBeat;
   final int activeSubbeat;
@@ -246,8 +246,12 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     if (widget.playing)
     {
       debugPrint('toggleAnimation');
-      if (!_controller.isAnimating)
-        _controller.repeat().orCancel;
+      if (!_controller.isAnimating) {
+        debugPrint(' -- repeatOrCancel');
+        _controller
+            .repeat()
+            .orCancel;
+      }
     }
     else
     {
@@ -316,9 +320,11 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
     Size imageSize = new Size(w, h);
     //TODO Test: Move loadImages to initState, but keep precacheImages here?
     widget.skin.cacheImages(context, imageSize);
+    /*
     print('OwlGrid $imageSize - $aspect - $owlSize');
     int n = widget.skin.images.length;
     print('widget.skin.images $n - ${widget.skin.images}');
+     */
 
     //TODO Recreate only on beatRows change
     //IS: Если все кивают головами, то наверное не надо?
