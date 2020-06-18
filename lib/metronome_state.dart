@@ -20,7 +20,29 @@ class Cauchy
 
 class MetronomeState with ChangeNotifier
 {
-  BeatMetre beatMetre;
+  BeatMetre _beatMetre;
+  set beatMetre(BeatMetre beatMetre){
+     //Нужно проконтролировать сохранение четности играемого бита при уменьшении числа бипов.
+     //Но почему-то всё и так работает. ПОЧЕМУ?  Надо подумать...
+     //Если играется последний бит в четном размере, и уменьшается число долей, то он
+     //становится первым - из четного в нечетный. Почему же не меняется направление отрисовки сов,
+     // то есть не возникает глюк?
+     // Видимо, sync всё исправляет. Но это очень нлохо! Ведь sync возникает чуть позже,
+    //и если буфер длинный, то на какой-то момент ориентация сов поменяется,
+    //а потом исправится - двойной удар по глазам.
+    //
+    //UPD: Глюк можно наблюдать на малой скорости на последней сове при дергании колеса 8-7-8-7
+    //на малой скорости.  //ToDo:
+    //Эту проблему я отложу, поскольку она должна решаться в более общем контексте:
+    //Передача числа битов  должна соответствовать звуку и вступать в действие
+    //как и изменение скорости - вовремя.
+
+    _beatMetre=beatMetre;
+
+  }
+  BeatMetre get beatMetre=>_beatMetre;
+
+
   /// Current active (playing) beat (note)
   int _activeBeat = -1;
   /// Current active (playing) subbeat of current beat
@@ -100,7 +122,7 @@ class MetronomeState with ChangeNotifier
 
   MetronomeState(Rhythm rhythm)
   {
-    beatMetre = new BeatMetre(rhythm);
+    _beatMetre = new BeatMetre(rhythm);
     reset();
     //_activeTimes = new List<int>.filled(subBeats0.length, 0);
     //tempo = new Tempo();
@@ -316,7 +338,7 @@ class MetronomeState with ChangeNotifier
   /// time - time from begin in seconds
   List<int> timePosition(double time, int bpm)
   {
-    double duration = beatMetre.beatCount * 60.0 / bpm;  // in seconds
+    double duration = _beatMetre.beatCount * 60.0 / bpm;  // in seconds
     //Position pos = new Position(0, 0);
     //int cycle = time ~/ duration;
     if (time < 0) {} //Такое может быть! Если latency большое, то легко.
@@ -326,12 +348,12 @@ class MetronomeState with ChangeNotifier
     //print('timePosition0 $duration');
 
     double timeInMetre = time % duration;
-    duration /= beatMetre.beatCount;  // Duration of a beat
+    duration /= _beatMetre.beatCount;  // Duration of a beat
     int beat = timeInMetre ~/ duration;  // Active beat number
     //print('timePosition1 $duration - $timeInBeat - $beat - ${subBeats[beat]}');
     double timeInBeat = timeInMetre % duration;
     double timeInBeatRel = (timeInMetre % duration) / duration;
-    duration /= beatMetre.subBeats[beat];  // Duration of a subbeat of an active beat
+    duration /= _beatMetre.subBeats[beat];  // Duration of a subbeat of an active beat
     int subbeat = timeInBeat ~/ duration;  // Active subbeat number
     double offset = timeInBeat % duration;
 
@@ -345,7 +367,7 @@ class MetronomeState with ChangeNotifier
     // Active vs all owls swing their heads
     bool allOwlsSingHeads = false;
     if (allOwlsSingHeads)
-      msec = (time % (2 * duration * beatMetre.beatCount)) * 1000000;  // in microseconds
+      msec = (time % (2 * duration * _beatMetre.beatCount)) * 1000000;  // in microseconds
     else
       msec = timeInSubbeat * 1000000;  // in microseconds
     //double msec = (time % (2 * duration * beatMetre.beatCount)) * 1000000;  // in microseconds
@@ -419,7 +441,7 @@ class MetronomeState with ChangeNotifier
       double period = 120.0 / _beatsPerMinute; // in seconds
       int t = _activeTime;
       t = ((_activeTime - 1000000 * period * id) /
-          (beatMetre.beatCount * period)).round();
+          (_beatMetre.beatCount * period)).round();
       return t;
     }
     else
