@@ -10,8 +10,14 @@ import 'prosody.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
 
+/*
 typedef ImageIndexCallback2 = List<int> Function(
     int accent, int subbeat, int subbeatCount);
+
+ */
+
+typedef ImageIndexCallback2 = List<int> Function(int accent, int maxAccent, bool bActive, bool bPlaying);
+
 
 class HeadOwlWidget extends StatefulWidget {
   final int id;
@@ -91,7 +97,11 @@ class HeadOwlState extends State<HeadOwlWidget>
   void onRedraw() {
     final MetronomeState state =
         Provider.of<MetronomeState>(context, listen: false);
-    state.update();//ISH Не понимаю, почему это тут... TODO:
+    state.update();
+    //ISH Не понимаю, почему это тут. Кажется, это нужно делать
+    // одинаково для всех сов уровнем выше? TODO
+
+
     int hash = state.getBeatState(widget.id);
     //debugPrint('AnimationController ${widget.id} $_counter $hash');
     _counter++;
@@ -101,10 +111,12 @@ class HeadOwlState extends State<HeadOwlWidget>
     //final int t = state.getActiveTime(widget.id);
     final double x = state.getReActiveTime();
     //ToDo: а не разъедутся ли совы в какой-нибудь плохой ситуации?
+    //см. выше про update
 
     //if (hash != activeHash)
 
     // Active vs all owls swing their heads
+    //ToDo:|| activeSubbeat != newActiveSubbeat  - не надо?
     if (active != newActive || activeSubbeat != newActiveSubbeat || x != _xPrev)
 //    if (t != _time)
     //if (activeSubbeat != state.activeSubbeat || widget.subbeatCount == 1)
@@ -116,7 +128,7 @@ class HeadOwlState extends State<HeadOwlWidget>
         //_angle = 2 * pi * sin(2 * pi * 0.000001 * t);
 
         //ToDo: непонятно....
-        _angle = widget.maxAngle * sin(pi*x);
+        _angle = widget.maxAngle * sin(pi * x);
         //минус- чтобы начинал в сторону движения всех нот
         active = newActive;
         activeSubbeat = newActiveSubbeat;
@@ -158,7 +170,11 @@ class HeadOwlState extends State<HeadOwlWidget>
   @override
   Widget build(BuildContext context) {
     final List<int> indices = widget.getImageIndex(
-        widget.nAccent, activeSubbeat, widget.subbeatCount);
+        widget.nAccent, widget.maxAccent,
+        (Provider.of<MetronomeState>(context, listen: false).activeBeat ==
+            widget.id),
+      widget.playing
+    );
     final int indexImage = indices[0];
     final int indexImageHead = indices[1];
 
@@ -285,11 +301,10 @@ class HeadOwlState extends State<HeadOwlWidget>
 
     ///Нота на плашке
     Widget notePlashka(double hOfBar) {
-
       ///ISH: Витя, active из виджета почему-то всегда неактивен...
-      final bool bActive=(Provider.of<MetronomeState>(context, listen: false)
-          .activeBeat ==
-          widget.id);
+      final bool bActive =
+          (Provider.of<MetronomeState>(context, listen: false).activeBeat ==
+              widget.id);
 
       ///ISH:
       ///ToDo: Юра
@@ -298,30 +313,30 @@ class HeadOwlState extends State<HeadOwlWidget>
 
       ///shadow
       final Color shadCol = Color.fromRGBO(42, 0, 49,
-          bActive?0.9:0.5); //0.9 и 0.5 тут - это прозрачности тени в
+          bActive ? 0.9 : 0.5); //0.9 и 0.5 тут - это прозрачности тени в
       //зависимости от активности доли
-      final double shadX = 4* hOfBar /57; //-4*wOfBar/31;//0?
+      final double shadX = 0 * hOfBar / 57; //4
       final double shadY = 4 * hOfBar / 57;
       final double shadRad = 6 * hOfBar / 57;
 
       return Stack(
         alignment: Alignment.center,
-        children:        [
+        children: [
           Opacity(
-            opacity: bActive?1:opac,
+            opacity: bActive ? 1 : opac,
             child: Container(
-            height: hOfBar,
-            //Image.asset('images/but-note-1.png', fit: BoxFit.fitHeight,),
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: shadCol,
-                  offset: Offset(shadX, shadY),
-                  blurRadius: shadRad,
-                ),
-              ],
-              image: DecorationImage(
-                /* //какая-то хрень некрасивая получилась, надо разбираться...
+              height: hOfBar,
+              //Image.asset('images/but-note-1.png', fit: BoxFit.fitHeight,),
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: shadCol,
+                    offset: Offset(shadX, shadY),
+                    blurRadius: shadRad,
+                  ),
+                ],
+                image: DecorationImage(
+                  /* //какая-то хрень некрасивая получилась, надо разбираться...
                 colorFilter: (Provider.of<MetronomeState>(context, listen: false)
                             .activeBeat ==
                         widget.id)
@@ -330,16 +345,16 @@ class HeadOwlState extends State<HeadOwlWidget>
                     : ColorFilter.mode(
                         Colors.black.withOpacity(0.5), BlendMode.color),
                  */
-                image: // AssetImage('images/but-note-2.png'),
-                    AssetImage('images/but-note-1.png'),
-                fit: BoxFit.fill,
+                  image: // AssetImage('images/but-note-2.png'),
+                      AssetImage('images/but-note-1.png'),
+                  fit: BoxFit.fill,
+                ),
               ),
             ),
-        ),
           ),
           noteWidget,
-      ],
-        );
+        ],
+      );
     }
 
     //TODO 1 vs 2 RepaintBoundary in Column
@@ -399,11 +414,14 @@ class HeadOwlState extends State<HeadOwlWidget>
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
               },
+              /*
               child: Padding(
                 //ToDo: поднимаем над совой
-                padding: EdgeInsets.only(bottom: owlSize.height / 10),
-                child: notePlashka(noteSize.height*1.1),//ToDo: от балды...
+                padding: EdgeInsets.only(bottom: owlSize.height / 100),
+                child: notePlashka(noteSize.height*1.1),// от балды...
               ),
+               */
+              child: notePlashka(noteSize.height * 1.1),
             ),
 
             //            RepaintBoundary(child:
@@ -437,9 +455,13 @@ class HeadOwlState extends State<HeadOwlWidget>
                         ///ISH: ad-hoc решение, возможно ресурсоёмкое
                         /// и точно не нужное, просто не хотел лезть в структуру дерева виджетов:
                         ///если не играем - поворачиваем на 0.
-                        (widget.playing&Provider.of<MetronomeState>(context, listen: false).isItTimeToPlay)?_angle:0,
-                      )
-                        ..setTranslationRaw(0, yOffset, 0),
+                        (widget.playing &
+                                Provider.of<MetronomeState>(context,
+                                        listen: false)
+                                    .isItTimeToPlay)
+                            ? _angle
+                            : 0,
+                      )..setTranslationRaw(0, yOffset, 0),
                       alignment: Alignment.center,
                       child: widget.headImages[indexImageHead],
                     ),

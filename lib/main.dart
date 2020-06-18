@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:owlenome/MetreBar_ui.dart';
+import 'package:owlenome/Skin4Accents.dart';
 import 'package:owlenome/subbeat-eq_ui.dart';
 import 'package:owlenome/volume_uiTmp.dart';
 import 'package:provider/provider.dart';
@@ -295,15 +296,15 @@ class _HomePageState extends State<HomePage>
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
   double reservedHeightBottom = 0;
+  ///Put 100 and shrink everything to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
   final double maxReservedHeightBottom = 75.0;
 
-  ///Put 100 and shrink it to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
 
   ///ISH: The following is for the reservation on the bottom of the screen in the portrait mode for a scrollbar
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
-  /// or to chase theoretical zebras, or try to tap small controls.)
-  bool bOuterSpaceScrollDebug = false;
+  /// or to chase theoretical zebras, or try to tap small controls.
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров
   bool bBoxContainer = false;
@@ -381,7 +382,8 @@ class _HomePageState extends State<HomePage>
   /// Keep screen on while playing (if true)
   bool _screenOn = true;
 
-  OwlSkinRot _skin;
+  //OwlSkinRot _skin;
+  OwlSkin4Acc _skin;
 
   /// Пение рокочущих сов
   /// ToDo: Сколько всего их, какие у них имена, иконки и может что еще
@@ -443,7 +445,8 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme = 0; // Set default 0 scheme
     });
 
-    _skin = new OwlSkinRot(_animationType);
+    //_skin = new OwlSkinRot(_animationType);
+    _skin = new OwlSkin4Acc();
     _skin.init().then((_) {
       setState(() {});
     });
@@ -2033,7 +2036,7 @@ class _HomePageState extends State<HomePage>
       }
       setState(() {
         _animationType = res.animationType;
-        _skin.animationType = _animationType;
+        //_skin.animationType = _animationType;
         _useNewKnob = res.useKnob;
       });
     }

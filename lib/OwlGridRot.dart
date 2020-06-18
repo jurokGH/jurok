@@ -7,6 +7,7 @@ import 'metronome_state.dart';
 import 'HeadOwlWidget.dart';
 import 'beat_metre.dart';
 import 'SkinRot.dart';
+import 'Skin4Accents.dart';
 import 'util.dart';
 
 typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
@@ -196,7 +197,8 @@ class OwlGridRot extends StatefulWidget
   final int maxAccent;
   final Offset spacing;
   final EdgeInsetsGeometry padding;  //TODO
-  final OwlSkinRot skin;
+  //final OwlSkinRot skin;
+  final OwlSkin4Acc skin;
   final Size size;//TODO
 
   final ValueChanged2<int, int> onChanged;
@@ -294,7 +296,8 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
 
     final double aspect = widget.skin.aspect / _imageHeightRatio;
     //aspect *= 1.7;//1.8;  // for NoteWidget
-    final int currentMaxAccent = maxValue(widget.accents);
+    //final int currentMaxAccent = maxValue(widget.accents);
+    final int currentMaxAccent = widget.beat.maxAccent;
     final List<int> beatRows = beatRowsList(widget.beat.beatCount);//TODO
 
     final _OwlLayout layout = new _OwlLayout(
@@ -348,16 +351,22 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
           animation: _controller.view,
           imageHeightRatio: _imageHeightRatio,
           maxAngle: 30 / 180.0 * pi,  // in radians
-            // ToDo: тут есть такая задумка: главный угол хочется подобрать так, чтобы
-            //ушки Юриных сов "били" по нотке, издавая звук. Это пока неясно, надо ли
+            // Что, если угол  подобрать так, чтобы
+            //ушки Юриных сов касались плашки?
+            //UPS: Нет, это очень плохо! Кажется, что ушко бьёт по ноте, а это не так.
 
           size: owlSize,
           images: widget.skin.images,//[accent ? 0 : 1]),
           headImages: widget.skin.headImages,//[accent ? 0 : 1]),
-          getImageIndex: (int accent, int subbeat, int subbeatCount) {
+          getImageIndex: widget.skin.getImageIndex
+            /*
+            (int accent, int currentMaxAccent, bool subbeatCount) {
             // Need to pass currentMaxAccent onto Skin::getImageIndex//ToDo: !!!zzz
-            return widget.skin.getImageIndex(accent, subbeat, currentMaxAccent, subbeatCount);
-          },
+            return widget.skin.getImageIndex(accent, currentMaxAccent, (k == widget.activeBeat),
+              //todo:test
+                widget.playing
+            );
+          }*/,
           onTap: (int id, int accent) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;
