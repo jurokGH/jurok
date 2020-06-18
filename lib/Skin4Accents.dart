@@ -20,6 +20,7 @@ class OwlSkin4Acc {
   final String _fileBase = 'images/owlZ-';
   ///Восемь (два по четыре) голов
   final String _fileBaseHead = 'images/nhowl';
+  ///Запасем для паузы (акцент=-1)
   final String  silenceName='images/nhowl-closed.png';
 
   ///Ключевая функция-делегат, которая определит номер картинки для отрисовки в HeadOfWol
