@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 ///Рисуем радиусы.
 const bool showRadii = false;
 
-
-
 class KnobValue {
   ///угол между пальцем и отрисованным изображением в момент нажатия
   /// -pi, pi
@@ -41,18 +39,17 @@ class KnobValue {
     this.deltaAngle=0;
   }*/
 
-
-
   //KnobValue({this.value,this.deltaAngle,this.tapAngle,this.absoluteAngle,
-  KnobValue(
-      {@required this.pushed,
-      this.value,
-      this.tapAngle,
-      this.absoluteAngle,
-      this.absoluteAngleAtTap,
-      this.value0,
-      this.angle0,
-      this.initTimeOfTap,});
+  KnobValue({
+    @required this.pushed,
+    this.value,
+    this.tapAngle,
+    this.absoluteAngle,
+    this.absoluteAngleAtTap,
+    this.value0,
+    this.angle0,
+    this.initTimeOfTap,
+  });
 }
 
 class KnobTuned extends StatefulWidget {
@@ -80,7 +77,6 @@ class KnobTuned extends StatefulWidget {
 
   final double pushFactor;
 
-
   final bool showText;
   //final ui.Image image;
 
@@ -96,7 +92,7 @@ class KnobTuned extends StatefulWidget {
     @required this.outerRadius,
     @required this.timeToDilation,
     this.textStyle,
-    this.showText=false,
+    this.showText = false,
     //@required this.image
   });
 
@@ -175,12 +171,13 @@ class KnobTunedState extends State<KnobTuned> {
     double factor = 1;
     if (widget.knobValue.pushed) {
       double d = widget.pushFactor - 1;
-      int dTime = DateTime.now().millisecondsSinceEpoch - widget.knobValue.initTimeOfTap;
+      int dTime = DateTime.now().millisecondsSinceEpoch -
+          widget.knobValue.initTimeOfTap;
       if (widget.timeToDilation > 0) {
         double d1 = d * min(1, dTime / widget.timeToDilation);
         factor = 1 + d1;
-      }
-      else factor=widget.pushFactor;
+      } else
+        factor = widget.pushFactor;
       //size*=(1+d1);
       //size*=(widget.pushFactor);
     }
@@ -347,11 +344,17 @@ class KnobTunedState extends State<KnobTuned> {
             ),
             //tempoIndicator(widget.knobValue.value.toInt(),
             //   widget.minValue.toInt(),widget.maxValue.toInt(), 0.1* widget.diameter),
-            (widget.showText&&!widget.knobValue.pushed)?
-                Text(widget.knobValue.value.toInt().toString(),
-                style: widget.textStyle,
-                textScaleFactor: 1,)
-                :Container(),
+            (widget.showText && !widget.knobValue.pushed)
+                ? Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      widget.knobValue.value.toInt().toString(),
+                      style: widget.textStyle,
+                      textScaleFactor: 1,
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : Container(),
             /*Text(widget.knobValue.value.toInt().toString(),
                 style: widget.textStyle.copyWith(
                   fontSize: widget.textStyle.fontSize * factor,

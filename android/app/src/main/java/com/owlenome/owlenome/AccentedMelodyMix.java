@@ -83,6 +83,7 @@ class AccentedMelodyMix
         //Создаём реальные массивы акцентированных звуков.
         this.musicScheme=musicScheme;
         this.musicScheme.load(sampleRate);//Долгая. В аудио потоке не делать.
+        //ToDo: мы точно безопасно её вызываем в MainActivity?
 
         _sampleRate =sampleRate;
 

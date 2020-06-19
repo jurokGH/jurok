@@ -24,7 +24,8 @@ class MusicSchemeMix
     }
 
     final SyntesType type;
-    final String name;
+    //final
+    String name;
 
     final GeneralProsody.AccentationType beatAccentationType;
     final GeneralProsody.AccentationType subBeatAccentationType;

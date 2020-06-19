@@ -2373,7 +2373,7 @@ class _HomePageState extends State<HomePage>
     TextStyle knobTextStyle = GoogleFonts.roboto(
       fontSize: knobFontSize,
       color: tempoColor,
-      fontStyle: FontStyle.italic,
+      //fontStyle: FontStyle.italic,
     );
 
     return Container(
