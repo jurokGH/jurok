@@ -16,8 +16,8 @@ typedef ImageIndexCallback2 = List<int> Function(
 
  */
 
-typedef ImageIndexCallback2 = List<int> Function(int accent, int maxAccent, bool bActive, bool bPlaying);
-
+typedef ImageIndexCallback2 = List<int> Function(
+    int accent, int maxAccent, bool bActive, bool bPlaying);
 
 class HeadOwlWidget extends StatefulWidget {
   final int id;
@@ -101,7 +101,6 @@ class HeadOwlState extends State<HeadOwlWidget>
     //ISH Не понимаю, почему это тут. Кажется, это нужно делать
     // одинаково для всех сов уровнем выше? TODO
 
-
     int hash = state.getBeatState(widget.id);
     //debugPrint('AnimationController ${widget.id} $_counter $hash');
     _counter++;
@@ -170,11 +169,11 @@ class HeadOwlState extends State<HeadOwlWidget>
   @override
   Widget build(BuildContext context) {
     final List<int> indices = widget.getImageIndex(
-        widget.nAccent, widget.maxAccent,
+        widget.nAccent,
+        widget.maxAccent,
         (Provider.of<MetronomeState>(context, listen: false).activeBeat ==
             widget.id),
-      widget.playing
-    );
+        widget.playing);
     final int indexImage = indices[0];
     final int indexImageHead = indices[1];
 
@@ -206,6 +205,8 @@ class HeadOwlState extends State<HeadOwlWidget>
       coverWidth: true,
       showTuplet: tupletsInts.contains(widget.subbeatCount),
       showAccent: false,
+      //accents: (widget.nAccent<0)?[-1]:[],
+      //rests: widget.nAccent<0,//Рисуем паузу
       colorPast: Colors.black,
       colorNow: Colors.red,
       colorFuture: Colors.black,
@@ -220,9 +221,7 @@ class HeadOwlState extends State<HeadOwlWidget>
     ///Плашка с тенями  и акцентами.
     ///Растет снизу вверх, нужно следить, чтобы поместились все
     ///картинки акцента
-    Widget accentedPlashka(double wOfBar, double hOfBar, int nOfAccents) {
-      if (!(nOfAccents > 0)) return Container();
-
+    Widget accentedPlashka(double wOfBar, double hOfBar, int accent) {
       ///ISH: Параметры из figma. Там ширина плашки была 31 когда я мерял отнощения, поэтому
       ///тут это мистическое число.
       ///ToDo: Юра
@@ -247,14 +246,39 @@ class HeadOwlState extends State<HeadOwlWidget>
         fit: BoxFit.fitWidth,
       );
 
-      final List<Widget> accentsWid = List<Widget>.filled(
-          nOfAccents,
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: betweenPad,
-            ),
-            child: iconAcc,
-          ));
+      final BoxShadows = [
+        BoxShadow(
+          color: shadCol,
+          offset: Offset(shadX, shadY),
+          blurRadius: shadRad,
+        ),
+      ];
+
+      final List<Widget> accentsWid = (accent == -1)
+          ? [
+              Container(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: NoteWidget(
+                    rests: true, //Рисуем паузу
+                    restsFactor: 2.5,
+                    denominator: widget.denominator,
+                    colorPast: Colors.black,
+                    size: Size(wOfBar/2  , hOfBar/2 ),
+                    //relFlagHeight: 1.5,//Пока привязался к этому параметру
+
+                  ),
+                ),
+              ),
+            ]
+          : List<Widget>.filled(
+              accent,
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: betweenPad,
+                ),
+                child: iconAcc,
+              ));
 
       return Opacity(
         opacity: opac,
@@ -268,14 +292,7 @@ class HeadOwlState extends State<HeadOwlWidget>
               Container(
                 //decoration: decorTmp(Colors.yellowAccent),
                 decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: shadCol,
-                        offset: Offset(shadX, shadY),
-                        //spreadRadius: 1,
-                        blurRadius: shadRad,
-                      ),
-                    ],
+                    boxShadow: BoxShadows,
                     image: DecorationImage(
                       image: AssetImage('images/but-note-2.png'),
                       fit: BoxFit.fill,
@@ -409,7 +426,10 @@ class HeadOwlState extends State<HeadOwlWidget>
             GestureDetector(
               onTap: () {
                 setState(() {
-                  widget.subbeatCount = Subbeat.next(widget.subbeatCount);
+                  widget.subbeatCount = //Subbeat.next(widget.subbeatCount);
+                      (widget.subbeatCount) % 4 +
+                          1; //Триоли всё-таки не хуже других! Их много очень в
+                  //уже в самой начальной детской литературе.
                 });
                 //Provider.of<MetronomeState>(context, listen: false).setActiveState(widget.id, widget.subbeatCount);
                 widget.onNoteTap(widget.id, widget.subbeatCount);
@@ -429,7 +449,7 @@ class HeadOwlState extends State<HeadOwlWidget>
             GestureDetector(
               onTap: () {
                 final int accent =
-                    clampLoop(widget.nAccent + 1, 0, widget.maxAccent);
+                    clampLoop(widget.nAccent + 1, -1, widget.maxAccent);
                 print(
                     'accent:OnTap $accent - ${widget.nAccent} - ${widget.maxAccent}');
                 setState(() {

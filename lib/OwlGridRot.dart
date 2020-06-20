@@ -341,7 +341,7 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
         HeadOwlWidget w = new HeadOwlWidget(
           playing: widget.playing,
           id: k,
-          accent: accent,
+          accent: accent,//Что это и почему, не понимаю.
           nAccent: nAccent,
           maxAccent: widget.maxAccent,
           active: k == widget.activeBeat,

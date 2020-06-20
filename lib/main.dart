@@ -126,7 +126,7 @@ const List<int> _cIniAccents = [
   2, 0, 0, 1, 0, 0,
 
   //2, 0, 1, 0,
-  //2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 1, 0,  //Bolero 
+  //2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 1, 0,  //Bolero
 ];
 
 const int _initBeatCount = 3;
@@ -296,9 +296,9 @@ class _HomePageState extends State<HomePage>
 
   ///Reserved  area in the bottom of the screen in the portrait mode (percents of the screen height).
   double reservedHeightBottom = 0;
+
   ///Put 100 and shrink everything to the singularity with the scrollbar! (see bOuterSpaceScrollDebug)
   final double maxReservedHeightBottom = 75.0;
-
 
   ///ISH: The following is for the reservation on the bottom of the screen in the portrait mode for a scrollbar
   ///dynamically changing reservedHeightBottom.
@@ -949,7 +949,7 @@ class _HomePageState extends State<HomePage>
 
   Widget orientationBuilder(
       BuildContext context, Orientation orientation, Size ourAreaSize) {
-   // debugPrint("total area accessible for us :  $ourAreaSize");
+    // debugPrint("total area accessible for us :  $ourAreaSize");
 
     //_showAds = false;
     final bool portrait = orientation == Orientation.portrait;
@@ -2122,7 +2122,7 @@ class _HomePageState extends State<HomePage>
     double textSize = size.width / 30;
     final String s1 = '\u{1d197}';
     final String s2 = decodeUtf32([0xF0, 0x9D, 0x84, 0xA0]);
-    final String s3 = '\u{1D13B}';
+    final String s3 = '\u{1D13C}';
     final String s =
         '1/2: \u{1D13C} 1/4:\u{1D13D} 1/8:\u{1D13E} 1/16:\u{1D13F} 1/32:\u{1D140} ;';
 
@@ -2138,9 +2138,10 @@ class _HomePageState extends State<HomePage>
           children: <Widget>[
             Row(
               children: <Widget>[
-        TestWid(string: textout,
-              mState: Provider.of<MetronomeState>(context, listen: true),
-        ),
+                TestWid(
+                  string: textout,
+                  mState: Provider.of<MetronomeState>(context, listen: true),
+                ),
                 /*Text("_parity: "+
         Provider.of<MetronomeState>(context, listen: false).parity.toString(),
                     textAlign: TextAlign.center,
@@ -2262,13 +2263,12 @@ class _HomePageState extends State<HomePage>
     bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
-      (true)//!bTest
+      (true) //!bTest
           ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
           : testWidget(Size(totalWidth, totalWidth * c2)),
-      bTest//(true)
+      bTest //(true)
           ? testWidget(Size(totalWidth, totalWidth * c3))
           : _rowControlsArea(true, Size(totalWidth, totalWidth * c3)),
-
     ];
 
     Widget metronome = Align(
@@ -3733,30 +3733,30 @@ class _HomePageState extends State<HomePage>
   }
 }
 
-
 ///Ниже - всякая фигня.
 class TestWid extends StatefulWidget {
-
   final String string;
   final MetronomeState mState;
 
-  TestWid({this.string, this.mState,
+  TestWid({
+    this.string,
+    this.mState,
   });
-  @override TestWState createState() => TestWState(string,mState);
-
-
+  @override
+  TestWState createState() => TestWState(string, mState);
 }
 
-class TestWState extends State<TestWid>{
+class TestWState extends State<TestWid> {
   final String string;
   final MetronomeState mState;
   TestWState(this.string, this.mState);
   @override
   Widget build(BuildContext context) {
-    final String s=
-    ((mState!=null)&&(mState.parity!=null))?mState.parity.toString():"null";
+    final String s = ((mState != null) && (mState.parity != null))
+        ? mState.parity.toString()
+        : "null";
     return Text(
-      string+"  "+ s,
-  );
+      string + "  " + s,
+    );
   }
 }

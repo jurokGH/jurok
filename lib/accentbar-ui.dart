@@ -83,13 +83,15 @@ class AccentBarState extends State<AccentBarWidget>
       final List<Widget> notes = new List<Widget>();
 
 
-
       final Size bracketSize = new Size(3.0 * size.width/30, size.height);
+      final Size leftBracketSize = new Size(2.0 * size.width/30, size.height);
+      ///справа надо чуть больше места, но лищь если хвостики. ToDo;
+      final Size rightBracketSize = new Size(4.0 * size.width/30, size.height);
 
       notes.add(new BarBracketWidget(
           direction: BarBracketDirection.left,
           color: Colors.black,
-          size: bracketSize
+          size: leftBracketSize,
       ));
 
       int j = 0;  // Simple metre 1st note index
@@ -107,6 +109,14 @@ class AccentBarState extends State<AccentBarWidget>
         //print('widget.accents $index - $i - ${metres[i]} - ${metreBar.note}');
         //print(accents1);
 
+        final bool rests=((accents1.length>0)&&(accents1[0]==-1));
+
+        double restsFactor= 1.5;
+        if (beats<=2)restsFactor/=2;///Почему? Никто не знает...
+        if (beats>6)restsFactor*=1.5;///вообще непонятно...
+        if (beats>10)restsFactor*=1.5;///очень странно... //ToDo
+
+
         final Widget wix = new NoteWidget(
           subDiv: subMetres[i],
           denominator: noteValue,
@@ -116,6 +126,7 @@ class AccentBarState extends State<AccentBarWidget>
           colorFuture: Colors.black,
           colorInner: Colors.black,
           accents: accents1,
+          rests: rests,
           maxAccentCount: widget.maxAccent,
           coverWidth: beats > 5,// true,
           showTuplet: false,
@@ -123,6 +134,7 @@ class AccentBarState extends State<AccentBarWidget>
           size: new Size(width, size.height),
           relRadius: 0.07,
           relFlagHeight: 0.55/1.2,
+          restsFactor: restsFactor,
         );
         notes.add(wix);
       }
@@ -131,7 +143,7 @@ class AccentBarState extends State<AccentBarWidget>
       notes.add(new BarBracketWidget(
           direction: BarBracketDirection.right,
           color: Colors.black,
-          size: bracketSize
+          size: rightBracketSize,
       ));
       return new Container(
         //color: Colors.blue,

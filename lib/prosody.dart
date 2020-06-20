@@ -149,13 +149,14 @@ class Prosody
   }
 
 
-  ///Круппируем ноты
+  ///Группируем ноты
   static List<int>  groupNotes(List<int> accents){
     if (accents==null) return null;
     if (accents.length==0) return [];
     List<int> summands=[1];
     for(int i=1; i<accents.length; i++){
-      if (accents[i]==0) summands[summands.length-1]++;
+      if ((accents[i]==0)&&(accents[i-1]>=0))//пауза не группируется
+        summands[summands.length-1]++;
       else summands.add(1);
     }
     return summands;
@@ -201,10 +202,16 @@ class Prosody
 
 
 
+
+
+  ///То, что мы отправим в яву.
+  ///Проблема смысловая: уменьшать ли звучание акцента n если рядом возник акцент n+1? Непонятно. Надо слушать.//ToDo
+  ///Проблема техническая: перевернув, мы не знаем, кто слабый: (1,1) -> (0,0) и (0,0) -> (0,0)
+  ///Пока вторую проблему решим, отправив всё в яву без изменений. Там разберемся. //ToDo
   static List<int> reverseAccents(List<int> accents, int max)
   {
-    return new List<int>.generate(accents.length, (int index) => max - accents[index]);
-  }
+    return new List<int>.generate(accents.length, (int index) => max - accents[index]);//ToDo:убрать
+    return accents;  }
 
 
 
@@ -220,7 +227,13 @@ class Prosody
   }
    */
 
-
+/*
+  static List<int> reverseAccents(List<int> accents, int max)
+  ///так  тоже нельзя
+  {
+    return new List<int>.generate(accents.length, (int index) => max - accents[index]);
+  }
+ */
 
 /// Возвращает последовательность звуков по данному, где акценты расставлены
   /// с помощью изменения громкости. 0-й акцент - самый сильный.
