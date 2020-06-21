@@ -209,9 +209,7 @@ class Prosody
   ///Проблема техническая: перевернув, мы не знаем, кто слабый: (1,1) -> (0,0) и (0,0) -> (0,0)
   ///Пока вторую проблему решим, отправив всё в яву без изменений. Там разберемся. //ToDo
   static List<int> reverseAccents(List<int> accents, int max)
-  {
-    return new List<int>.generate(accents.length, (int index) => max - accents[index]);//ToDo:убрать
-    return accents;  }
+  {return accents;  }//ToDo: rename?
 
 
 

@@ -9,8 +9,7 @@ class BeatMetre
 {
     int beatCount;
     List<Integer> subBeats;
-    // Indices of accented beats in each simple metre (row)
-    byte accents[]; //ToDo
+    byte accents[];
 
     BeatMetre()
     {
@@ -182,6 +181,7 @@ public class GeneralProsody {
     //Складываем пробно так, чтобы можно было бипы миксовать.
     //Пока - деля пополам!
     //Первый, сильный звук - длинный!
+    ///Не используется и НЕ ИСПОЛЬЗОВАТЬ.
     public static  byte[][] agogicAccentsNormalizedWrong(byte[] longSound, byte[] shortSound,
                                                          int nOfAccents){
 

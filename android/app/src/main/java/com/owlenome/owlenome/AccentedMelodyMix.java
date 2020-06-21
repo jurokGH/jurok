@@ -120,13 +120,27 @@ class AccentedMelodyMix
                 maxSubBeatCount = beats.subBeats.get(i);
         }
 
-        //Теперь расставляем акценты.
-        //Тут живёт особая философия, и делать это можно по-разному.
-        //ToDo:   пробовать  по-разному и слушать.
-        byte accents[] = beats.accents;
-        //GeneralProsody.getAccents(beats.beatCount,false); //false - чтобы распевней
+        ///Акценты приехали  из dart.
+        byte accentsRecieved[] = beats.accents;
 
-        //Ноты. Сначала доли, потом поддоли
+        ///Считаем, что они приехали как есть: 0 - слабый.
+        byte max = Byte.MIN_VALUE; byte min=Byte.MAX_VALUE;
+        for (int i = 0; i < accentsRecieved.length; i++)  {
+            if (accentsRecieved[i] > max) max = accentsRecieved[i];
+            if (accentsRecieved[i] < min) min = accentsRecieved[i];
+            /*if ((accentsRecieved[i] < min)&&
+            (accentsRecieved[i]>=0)) //паузу -1 не считаем
+                    min = accentsRecieved[i];
+             */
+        }
+        byte accents[]=new byte[accentsRecieved.length];
+        for (int i = 0; i < accentsRecieved.length; i++){
+            //пауза - в  паузу,  остальные переворачиваем
+             accents[i]=-1;
+            if  (accentsRecieved[i]>=0)  accents[i]= (byte)(max -accentsRecieved[i]);//ToDo?
+        }
+
+        //Ноты. Сначала доли, потом поддоли//ToDo: up
         setOfNotes = new byte[musicScheme.setOfNotes.length+musicScheme.setOfSubNotes.length][];
         for(int i = 0; i<musicScheme.setOfNotes.length; i++){
             setOfNotes[i]=musicScheme.setOfNotes[i];    }
@@ -145,30 +159,41 @@ class AccentedMelodyMix
         //(totalLengthOfBeat / (beats.subBeats.get(i) * noteLength / 2)) > 1
 
 
+
+        /*
         int weakestAccent = 0;//ToDo: тут точно живёт глюк. Ну почти точно.
+        //Upd: ну конечно. Просто неверно это.
         for (int i = 0; i < accents.length; i++)
         {
             if (weakestAccent < accents[i])
                 weakestAccent = accents[i];
-        }
+        }*/
 
-        //Заплата.
-        //Делаем ноту слабейшего акцента тишиной.
-        setOfNotes[weakestAccent]=getSilence(setOfNotes[weakestAccent].length/2);
+        int weakestAccent=max-min;//ToDo up
+
+        //Заглушка. Мы хотим качественно (agogic) отличить самый слабый акцент доли. Поэтому не накладываем там первый звук (акцент).
+        //Заглушим его, сделав ноту слабейшего акцента тишиной. То же делаем, если и была тишина
+        if (min<=0) {
+            setOfNotes[weakestAccent] = getSilence(setOfNotes[weakestAccent].length / 2);
+        }
 
         BipAndPause[] _bipAndPauseMainSing = new BipAndPause[beats.beatCount];
         for (int i = 0; i < beats.beatCount; i++)
         {
-            if (musicScheme.beatAccentationType == GeneralProsody.AccentationType.Agogic &&
-                    accents[i] == weakestAccent)
+            if (musicScheme.beatAccentationType == GeneralProsody.AccentationType.Agogic//ToDo:убрать всю эту предваритеьную муть - теперь всегда так
+                    &&
+                    ((accents[i] == weakestAccent)||(accents[i] == -1))
+            )
             {
-                //самая слаба доля (максимум) пусть будет
+                //самая слабая доля (максимум) пусть будет
                 // самым сильным слабым звуком
                 symbols[i] = musicScheme.setOfNotes.length; //ToDo: тут этому не место по логике вещей
 
                  //symbols[i] = elasticSymbol; //-- так не выходит, там где-то длина ноты вычисляется по этому символу
 
                 symbols[i] = accents[i];
+
+                symbols[i] =weakestAccent; //ToDo:третий вариант)))
             }
             else
             {
@@ -186,9 +211,10 @@ class AccentedMelodyMix
         for (int i = 0; i < beats.beatCount; i++)
         {
             byte subBeatAccents[] = GeneralProsody.getAccents(beats.subBeats.get(i), false);
-            for (int j = 0; j < beats.subBeats.get(i); j++, k++)
-            {
-                symbolsDriven[k] = musicScheme.setOfNotes.length + subBeatAccents[j];
+            for (int j = 0; j < beats.subBeats.get(i); j++, k++) {
+                if (accents[i] >= 0)  //не тишина в ноте
+                    symbolsDriven[k] = musicScheme.setOfNotes.length + subBeatAccents[j]; ///ToDo:сюда тишину впихну
+                else symbolsDriven[k] = weakestAccent;//ToDo:неверно
                 int noteLength = setOfNotes[symbolsDriven[k]].length;
                 _bipAndPauseSubSing[k] = new BipAndPause(
                         noteLength / 2,
@@ -197,7 +223,7 @@ class AccentedMelodyMix
 
                 //ToDo: if symobls[i]==elasticSymbol ....  - в тишину всё
                 /*if (j == 0)
-                //Это пока не сделано нормально - при агодическом миксе становится тихим звук доли.
+                //Это пока не сделано нормально - при агогическом миксе становится тихим звук доли.
                 {//начало доли
                     symbolsDriven[k] = elasticSymbol; //Можно и иначе.//ToDo: эксперимент
                 }*/
