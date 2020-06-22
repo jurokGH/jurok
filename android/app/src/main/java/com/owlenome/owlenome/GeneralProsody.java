@@ -224,8 +224,11 @@ public class GeneralProsody {
     /**
      * на что делим, уменьшая акцент нот
      * Sibelius: 1.5; плохо выделяет
+     * 2 - тоже хиловато
+     * 2.5 слабо (3 - почти не) слышно слабый акцент в 12 долях
+     *
      */
-    final static double beatDynamic =2;
+    final static double beatDynamic =2.35;
 
     /**
      * на что делим, уменьшая акцент поднот
