@@ -143,7 +143,10 @@ class AccentBarState extends State<AccentBarWidget>
       notes.add(new BarBracketWidget(
           direction: BarBracketDirection.right,
           color: Colors.black,
-          size: rightBracketSize,
+          //size: rightBracketSize,//Не вышло - разъехались размеры...(((
+          //Поэтому при 12/16 если каждую ноту сделать с акцентом (разгруппировать)
+          //хвостик заедет в область над точками. Не очень красиво.
+          size: leftBracketSize
       ));
       return new Container(
         //color: Colors.blue,

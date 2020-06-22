@@ -146,6 +146,7 @@ final List<Rhythm> _basicRhythms = _predefinedRhythms.basicRhythms;
 /// список из базовых ритмов для каждой доли
 final Rhythm initRhythm = _basicRhythms[_initBeatCount - 1];
 
+
 ///Ритмы пользователя по числу долей (от нуля)
 List<UserRhythm> userRhythms;
 
@@ -403,16 +404,18 @@ class _HomePageState extends State<HomePage>
   Animation<Offset> _animationDown;
   int _period = 1000;
 
-  //IS: my knob constants
+  //IS: KnobTuned constants
   double _sensitivity = 2;
-  double _innerRadius = 0.15;
+  double _innerRadius =0.00000000001;
+      //0.0015*_pushDilationFactor; // СУПЕР!
+      //0.15*_pushDilationFactor;// Дрянной эффект
 
   ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
   final int _timeToDilation = 200;
 
   ///Во сколько раз увеличивается кноб
-  static double _pushFactor = 2.5;
-  double _outerRadius = _pushFactor *
+  static double _pushDilationFactor = 2.5;
+  double _outerRadius = _pushDilationFactor *
       2; //ToDo: скоординировать ли с pushFactor? Сделаю побольше, иначе кажется неприятный эффект с
   //с потерей угла
   static const double initKnobAngle = 0;
@@ -2358,12 +2361,12 @@ class _HomePageState extends State<HomePage>
     double tempoButtonDeltaX = (knobDiameter + tempoButtonsSize) / 2 * 0.95;
     double tempoButtonDeltaY = (knobDiameter - tempoButtonsSize) / 2 * 0.99;
 
-    double textOuterSizeY = knobDiameter * _pushFactor / 1.2 / 2;
-    double textOuterSizeX = knobDiameter * _pushFactor * 1.2 / 2;
-    double textOuterDY = knobDiameter * _pushFactor * 0.02;
+    double textOuterSizeY = knobDiameter * _pushDilationFactor / 1.2 / 2;
+    double textOuterSizeX = knobDiameter * _pushDilationFactor * 1.2 / 2;
+    double textOuterDY = knobDiameter * _pushDilationFactor * 0.02;
 
     double knobFontSize = 0.3 * knobDiameter;
-    double knobFontSizeBig = knobFontSize * _pushFactor;
+    double knobFontSizeBig = knobFontSize * _pushDilationFactor;
 
     Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
         ? Colors.red
@@ -2554,7 +2557,7 @@ class _HomePageState extends State<HomePage>
                 center: Offset(
                     knobCenterX,
                     knobCenterY -
-                        knobDiameter * _pushFactor / 2 -
+                        knobDiameter * _pushDilationFactor / 2 -
                         textOuterSizeY / 2),
                 width: textOuterSizeX,
                 height: textOuterSizeY),
@@ -2618,11 +2621,11 @@ class _HomePageState extends State<HomePage>
       alignment: Alignment.center,
       minWidth: knobDiameter,
       minHeight: knobDiameter,
-      maxWidth: knobDiameter * _pushFactor, //double.infinity,
-      maxHeight: knobDiameter * _pushFactor, //double.infinity,
+      maxWidth: knobDiameter * _pushDilationFactor, //double.infinity,
+      maxHeight: knobDiameter * _pushDilationFactor, //double.infinity,
       //child:Container(width: size.height/2 , height: size.height*2,decoration: decorTmp(Colors.yellow),),
       child: KnobTuned(
-        pushFactor: _pushFactor,
+        pushFactor: _pushDilationFactor,
         knobValue: _knobValue,
         minValue: minTempo.toDouble(),
         maxValue: _tempoBpmMax.toDouble(),
@@ -2838,23 +2841,27 @@ class _HomePageState extends State<HomePage>
   ///+- tempo buttons
   Widget _buildOneButton(
       String text, int delta, double sqsize, TextStyle textStyle) {
+    final String s1=(delta>0)?'plus':'minus';
+    final String s2=(delta.abs()>1)?'5':'1';
     final Widget icon = new Image.asset(
       //"images/butowl4.png",
       //"images/button.png",
-      'images/button12.png',
+      //'images/button12.png',
+      'images/'+s1+s2+'.png',
       width: sqsize,
       height: sqsize,
       fit: BoxFit.contain,
     );
 
     return InkWell(
-      child: Stack(alignment: Alignment.center, children: [
+      child: Stack(alignment: Alignment.center,//ToDo:без текста теперь Stack не нужен?
+          children: [
         icon,
-        Text(
+        /*Text(
           text,
           textScaleFactor: 1,
           style: textStyle,
-        ),
+        ),*/
       ]),
       enableFeedback: !_playing, //Регулирует писк кнопки
       customBorder: CircleBorder(

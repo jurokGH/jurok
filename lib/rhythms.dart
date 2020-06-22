@@ -87,6 +87,13 @@ class Rhythm{
   //    //https://en.wikipedia.org/wiki/Polska_(dance)
   //    //https://en.wikipedia.org/wiki/Leventikos
 
+  Rhythm.tresillo(){
+    name = "Tresillo";
+    bSubBeatDependent=true;
+    accents=[2,-1,-1,0,-1,-1,1,0];
+    subBeats=List<int>.filled(accents.length,1);
+  }
+
   Rhythm.bolero12(){
     name = "Bolero";
     bSubBeatDependent=true;
@@ -110,10 +117,11 @@ class Rhythm{
 
 
   Rhythm.tango(){ //Draft; tango; need pauses
-    name = "Soca (draft)";
+    name = "tango (draft)";
     bSubBeatDependent=true;
-    accents=[1,0,0,0,2,0,0,0];
-    subBeats=[1,1,1,2,1,1,1,2];
+    accents=[0,-1,-1,1,2,-1,0,-1];//где бы взять акценты.
+    subBeats=List<int>.filled(accents.length,1);
+    //https://composerfocus.com/how-to-write-a-tango/
   }
 
 
@@ -161,6 +169,9 @@ class FancyRhythms {
   FancyRhythms() {
     ///Добавляем подряд всё, что нам нравится
     List<Rhythm> fancy=[];
+
+    fancy.add(Rhythm.tresillo());
+
 
     //12 долей
     fancy.add(Rhythm.bolero12());

@@ -78,8 +78,13 @@ flutter:
     - images/knob3d.png
     - images/knob3d-1.png
     - images/knob3d-2.png
+    - images/knob-stump.png
     - images/button.png
     - images/button12.png
+    - images/plus1.png
+    - images/plus5.png
+    - images/minus1.png
+    - images/minus5.png
     - images/meter.png
     - images/wh22.png
     - images/wh23meter.png
