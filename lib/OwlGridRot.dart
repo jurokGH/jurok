@@ -188,7 +188,7 @@ class _OwlLayout extends MultiChildLayoutDelegate
 
 class OwlGridRot extends StatefulWidget
 {
-  final BeatMetre beat;///Final? ИШ: это я добавил. Но не увеерен в этом.
+  final BeatMetre beat;///Final - ИШ: это я добавил. Но не увеерен в этом.
   final int noteValue;
   final int activeBeat;
   final int activeSubbeat;
@@ -353,20 +353,12 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
           maxAngle: 30 / 180.0 * pi,  // in radians
             // Что, если угол  подобрать так, чтобы
             //ушки Юриных сов касались плашки?
-            //UPS: Нет, это очень плохо! Кажется, что ушко бьёт по ноте, а это не так.
+            //UPD: Нет, это очень плохо! Кажется, что ушко бьёт по ноте, а это не так.
 
           size: owlSize,
           images: widget.skin.images,//[accent ? 0 : 1]),
           headImages: widget.skin.headImages,//[accent ? 0 : 1]),
-          getImageIndex: widget.skin.getImageIndex
-            /*
-            (int accent, int currentMaxAccent, bool subbeatCount) {
-            // Need to pass currentMaxAccent onto Skin::getImageIndex//ToDo: !!!zzz
-            return widget.skin.getImageIndex(accent, currentMaxAccent, (k == widget.activeBeat),
-              //todo:test
-                widget.playing
-            );
-          }*/,
+          getImageIndex: widget.skin.getImageIndex,
           onTap: (int id, int accent) {
             //assert(id < widget.beat.subBeats.length);
             //widget.beat.subBeats[id] = subCount;

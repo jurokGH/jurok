@@ -1,12 +1,12 @@
-
+import 'package:flutter/foundation.dart';
 import 'package:owlenome/prosody.dart';
 
-class Rhythm{
 
-  static String sOnlyFist="Only first beat is strong";//ToDo
-  static String sOneStrong="Strong";//ToDo
-  static String sOneWeak="Weak";//ToDo
 
+class Rhythm {
+  static String sOnlyFist = "Only first beat is strong"; //ToDo
+  static String sOneStrong = "Strong"; //ToDo
+  static String sOneWeak = "Weak"; //ToDo
 
   //final
   String name;
@@ -16,63 +16,106 @@ class Rhythm{
   //final
   List<int> accents;
 
-
-  int get beats {return accents.length; }
+  int get beats {
+    return accents.length;
+  }
 
   ///Сигнализирует, что нужно поменять подбиты;
   ///Нужно для красивых ритмов типа Болеро
-  bool bSubBeatDependent=false;
+  bool bSubBeatDependent = false;
 
   ///Стандартный ли размер? Введено, чтобы имя было вида m/n
-  bool bStandard=false;
+  bool bStandard = false;
 
-  Rhythm({this.name="", this.subBeats, this.accents, this.bSubBeatDependent=false});
+  Rhythm(
+      {this.name = "",
+      this.subBeats,
+      this.accents,
+      this.bSubBeatDependent = false});
 
+  ///Переводим акценты в строку n1+n2+...
+  ///Не очень понятно, как отображать их силу, и корректно ли так писать для
+  ///ритма, начинающегося со слабой доли
+  ///ToDo: и ещё паузы надо проверить (см. группировку в строке акцентов)
+  Rhythm.fromAccents(List<int> accents) {
+    name = accentsToName(accents);
+    bStandard=standardBeatNth.contains(accents.length+1);
+    this.accents = accents;
+    this.subBeats = List<int>.filled(accents.length, 1);
+  }
 
-  Rhythm.fromAccents(List<int> accents)
-  {
-    ///Переводим акценты в строку n1+n2+...
-    ///Не очень понятно, как отображать их силу, и корректно ли так писать для
-    ///ритма, начинающегося со слабой доли
-    String accentsToName( ){
-      if (accents==null) return null;
-      if (accents.length==0) return "";
-      List<int> summands=[1];
-      for(int i=1; i<accents.length; i++){
-        if (accents[i]==0) summands[summands.length-1]++;
-        else summands.add(1);
+  static List<int> standardBeatNth = [2, 3, 4, 6, 9, 12];
+
+  ///  fromAccents, но со стандартными именами ритмов
+  Rhythm.fromAccentsWithStandardNames(List<int> accents) {
+    name="noname";
+    this.accents = accents;
+    this.subBeats = List<int>.filled(accents.length, 1);
+    int nOfBeats=accents.length;
+    bStandard=standardBeatNth.contains(nOfBeats);
+    if (bStandard&&
+        listEquals(Prosody.getAccents(nOfBeats, true), accents))
+        {
+      switch (nOfBeats) {
+        case 2:
+          name = "Simple Duple Time";
+          break;
+        case 3:
+          name = "Simple Triple Time";
+          break;
+        case 4:
+          name = "Simple Quadruple Time";
+          break;
+        case 6:
+          name = "Compound Duple Time";
+          break;
+        case 9:
+          name = "Compound Triple Time";
+          break;
+        case 12:
+          name = "Compound Quadruple Time";
+          break;
       }
-
-      String res=summands[0].toString();
-      for(int i=1; i<summands.length; i++){
-        res+="+"+summands[i].toString();
-      }
-      return res;
     }
-
-    name=accentsToName();
-    this.accents=accents;
-    this.subBeats=List<int>.filled(accents.length,1);
-  }
-
-  Rhythm.onlyFirst(int nOfBeats){
-    name=sOnlyFist;
-    this.subBeats=List<int>.filled(nOfBeats,1);
-    this.accents=List<int>.filled(nOfBeats,0);
-    if (nOfBeats>0) accents[0]=1;
+    else  name = accentsToName(accents);
   }
 
 
-  Rhythm.oneStrong(){
-    name=sOneStrong;
-    this.subBeats=[1];
-    this.accents=[1];
+  String accentsToName(List<int> accents) {
+    if (accents == null) return null;
+    if (accents.length == 0) return "";
+    List<int> summands = [1];
+    for (int i = 1; i < accents.length; i++) {
+      if (accents[i] == 0)
+        summands[summands.length - 1]++;
+      else
+        summands.add(1);
+    }
+    String res = summands[0].toString();
+    for (int i = 1; i < summands.length; i++) {
+      res += "+" + summands[i].toString();
+    }
+    return res;
   }
 
-  Rhythm.oneWeak(){
-    name=sOneWeak;
-    this.subBeats=[1];
-    this.accents=[0];
+
+  Rhythm.onlyFirst(int nOfBeats) {
+    name = sOnlyFist;
+    this.subBeats = List<int>.filled(nOfBeats, 1);
+    this.accents = List<int>.filled(nOfBeats, 0);
+    if (nOfBeats > 0) accents[0] = 1;
+  }
+
+  Rhythm.oneStrong() {
+    name = sOneStrong;
+    this.subBeats = [1];
+    this.accents = [1];
+  }
+
+  Rhythm.oneWeak() {
+    name = sOneWeak;
+    this.subBeats = [1];
+    this.accents = [0];
   }
 
   ///Зона модных ритмов
@@ -87,56 +130,162 @@ class Rhythm{
   //    //https://en.wikipedia.org/wiki/Polska_(dance)
   //    //https://en.wikipedia.org/wiki/Leventikos
 
-  Rhythm.tresillo(){
+  Rhythm.tresillo() {
     name = "Tresillo";
-    bSubBeatDependent=true;
-    accents=[2,-1,-1,0,-1,-1,1,0];
-    subBeats=List<int>.filled(accents.length,1);
+    bSubBeatDependent = true;
+    accents = [2, -1, -1, 0, -1, -1, 1, 0];
+    subBeats = List<int>.filled(accents.length, 1);
   }
 
-  Rhythm.bolero12(){
+  Rhythm.bolero12() {
     name = "Bolero";
-    bSubBeatDependent=true;
-    subBeats=[1,3,1,3,1,1,1,3,1,3,3,3];
-    accents=[2,0,1,0,1,0,2,0,1,0,1,0];
+    bSubBeatDependent = true;
+    subBeats = [1, 3, 1, 3, 1, 1, 1, 3, 1, 3, 3, 3];
+    accents = [2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 1, 0];
   }
 
-  Rhythm.warmGun(){ //Draft; Beatles, Happiness is a warm gun
+  Rhythm.warmGun() {
+    //Draft; Beatles, Happiness is a warm gun
     name = "Happiness is a warm gun (draft)";
-    bSubBeatDependent=true;
-    accents=[2,0,0,1,0,0,2,0,1,0];
-    subBeats=List<int>.filled(accents.length,1);
+    bSubBeatDependent = true;
+    accents = [2, 0, 0, 1, 0, 0, 2, 0, 1, 0];
+    subBeats = List<int>.filled(accents.length, 1);
   }
 
-  Rhythm.soca(){ //Draft; Soca
+  ///MUST HAVE:  https://youtu.be/SeObEEpn5zc?t=91
+  Rhythm.soca() {
+    //Draft; Soca ///ToDo: это не соха, а херня
     name = "Soca (draft)";
-    bSubBeatDependent=true;
-    accents=[0,2,0,1,0,2,0,1];
-    subBeats=[1,2,1,2,1,2,1,2];
+    bSubBeatDependent = true;
+    accents = [2, 0, 0, 1, 2, 0, 1, 0];
+    subBeats = [1, 1, 1, 1, 1, 1, 1, 1];
   }
 
+  ///Это лучше. Но не могу сместить акцент во второй доле, поэтому его нет. Не очень.
+  /// https://nicksdrumlessons.com/multimedia-archive/soca-drum-lesson-part-1/
+  Rhythm.socaPart1() {
+    //Draft; Soca
+    name = "Soca1 (draft)";
+    bSubBeatDependent = true;
+    accents = [2, 0, 1, 0];
+    subBeats = [1, 2, 1, 1];
+  }
 
-  Rhythm.tango(){ //Draft; tango; need pauses
-    name = "tango (draft)";
-    bSubBeatDependent=true;
-    accents=[0,-1,-1,1,2,-1,0,-1];//где бы взять акценты.
-    subBeats=List<int>.filled(accents.length,1);
+  ///https://cnx.org/contents/5O_NUnsW@10/Caribbean-Music-Calypso-and-Found-Percussion
+  Rhythm.calypso1() {
+    name = "calypso1 (draft)";
+    bSubBeatDependent = true;
+    accents = [2, 0, 1, 1];
+    subBeats = List<int>.filled(4, 2);
+  }
+
+  Rhythm.moneyPF() {
+    //
+    name = "guess what";
+    bSubBeatDependent = true;
+    accents = [1, 0, 0, 2, 0, 0, 0]; // TODO
+    subBeats = List<int>.filled(accents.length, 1);
+    subBeats[1] = 2; //там-татат-там-
+    // там -там-там -там Это верн
+  }
+
+  ///Отчлично слышны акценты у танго в разных видах
+  ///https://www.youtube.com/watch?v=URm5RoE2Emo
+
+  Rhythm.tangoHabanera1() {
+    //Draft; tango; need pauses? -  https://www.youtube.com/watch?v=hp-zU7nIiJ4
+    //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
+    //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
+    //https://composerfocus.com/how-to-write-a-tango/
+    name = "First habanera";
+    bSubBeatDependent = true;
+    accents = [2, 0, 0, 1, 2, 0, 1, 0]; //First habanera
+    //accents=[0,-1,-1,1,2,-1,0,-1];//Верно, но скучно
+    subBeats = List<int>.filled(accents.length, 1);
+  }
+
+  Rhythm.tangoHabanera2() {
+    //Draft; tango; need pauses https://www.youtube.com/watch?v=hp-zU7nIiJ4
+    //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
+    //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
+    ///4/4; 3+3+2; sincopa
+    name = "Second habanera (sincopa)";
+    bSubBeatDependent = true;
+    accents = [2, 1, 0, 1, 1, 0, 1, 0];
+    subBeats = List<int>.filled(accents.length, 1);
     //https://composerfocus.com/how-to-write-a-tango/
   }
 
-
-  Rhythm.twoBubBum(){ //
-    name = "crackle  (draft)";
-    bSubBeatDependent=true;
-    accents=[1,0];
-    subBeats=[8,8];
+  Rhythm.tangoHabanera2prime() {
+    //Draft; tango; need pauses https://www.youtube.com/watch?v=hp-zU7nIiJ4
+    //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
+    //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
+    ///4/4; 3+3+2; sincopa
+    name = "Second habanera (sincopa) 21001010";
+    bSubBeatDependent = true;
+    accents = [2, 1, 0, 0, 1, 0, 1, 0];
+    subBeats = List<int>.filled(accents.length, 1);
+    //https://composerfocus.com/how-to-write-a-tango/
   }
 
-  Rhythm.strangeIn3(){ //
+  ///Это просто 3+3+2; можно сделать в трёх долях, поскольку акценты не смещены
+  Rhythm.tangoHabanera3in8() {
+    //Draft; tango; need pauses https://www.youtube.com/watch?v=hp-zU7nIiJ4
+    //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
+    //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
+    ///4/4; 3+3+2; sincopa
+    name = "Third habanera"; //Good
+    bSubBeatDependent = true;
+    accents = [2, 0, 0, 1, 0, 0, 1, 0];
+    subBeats = List<int>.filled(accents.length, 1);
+    //https://composerfocus.com/how-to-write-a-tango/
+  }
+
+  ///Это просто 3+3+2; можно сделать в трёх долях, поскольку акценты не смещены
+  ///Но тогда не выделяем первую долю (механикой не предусмотрен акцент 2 в 3х долях
+  ///для простоты жизни пользователя.
+  Rhythm.tangoHabanera3in3() {
+    //Draft; tango; need pauses https://www.youtube.com/watch?v=hp-zU7nIiJ4
+    //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
+    //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
+    ///4/4; 3+3+2; sincopa
+    name = "Third habanera";
+    bSubBeatDependent = true;
+    accents = [1, 1, 1]; //Вместо 3+3+2 //Good
+    subBeats = [3, 2, 2];
+    //accents=[2,0,0,1,0,0,1,0]; //Вместо 3+3+2
+    //subBeats=List<int>.filled(beats.length,1);
+    //https://composerfocus.com/how-to-write-a-tango/
+  }
+
+  ///ToDo: crackle? drum roll? Нужно корректное музыкальное имя
+  Rhythm.roll8(int beats) {
+    //
+    if (beats < 1) {
+      name = "0 beats";
+      return;
+    }
+    name = "Roll   ($beats  beats)";
+    bSubBeatDependent = true;
+    accents = List<int>.filled(beats, 0);
+    accents[0] = 1;
+    subBeats = List<int>.filled(beats, 8);
+  }
+
+  Rhythm.twoBubBum() {
+    //
+    name = "crackle  (draft)";
+    bSubBeatDependent = true;
+    accents = [1, 0];
+    subBeats = [8, 8];
+  }
+
+  Rhythm.strangeIn3() {
+    //
     name = "crackle in 3 (draft)";
-    bSubBeatDependent=true;
-    accents=[0,1,1];
-    subBeats=[2,8,8];
+    bSubBeatDependent = true;
+    accents = [0, 1, 1];
+    subBeats = [2, 8, 8];
   }
 
 /*
@@ -148,103 +297,108 @@ class Rhythm{
   }*/
 }
 
-class UserRhythm extends Rhythm{
-  bool bDefined=false;
-  UserRhythm(List<int> subBeats,  List<int> accents):
-        bDefined=(subBeats.length>0),
+
+class UserRhythm extends Rhythm {
+  bool bDefined = false;
+  UserRhythm(List<int> subBeats, List<int> accents)
+      : bDefined = (subBeats.length > 0),
         super(
-        bSubBeatDependent:true,
-        name: "Last edited in "+subBeats.length.toString(),
-        subBeats: subBeats,
-        accents: accents,
-      );
+          bSubBeatDependent: true,
+          name: "Last edited in " + subBeats.length.toString() + "beats",
+          ///ToDo:
+          ///Это надо поменять. Решится генерацией разумного имени.
+          subBeats: subBeats,
+          accents: accents,
+        );
+
+  void _inheritName(Rhythm rhythm)
+  {
+    name= rhythm.name+' (edited)';
+  }
+
+  void inheritName()
+  {
+    name= Rhythm.fromAccentsWithStandardNames(accents).name
+        +' (edited)';
+  }
+
+
+
+  RhythmComparisonResult compare(List<Rhythm> rhythmsToCompare){
+    RhythmComparisonResult res;
+    if (rhythmsToCompare==null) return res;
+    List<Rhythm> rhythms=rhythmsToCompare.where((rhythm) => (rhythm.beats==beats)).toList();
+    if (rhythms.length==0) return res;
+
+  }
+
+
+}
+
+class RhythmComparisonResult {
+  int indOfClosest = -1;
+  bool equal = false;
+  bool equalAccents=false;
 }
 
 class FancyRhythms {
-
   ///Список по поддолям
   List<List<Rhythm>> fancyRhythms;
 
-
   FancyRhythms() {
     ///Добавляем подряд всё, что нам нравится
-    List<Rhythm> fancy=[];
+    List<Rhythm> fancy = [];
 
     fancy.add(Rhythm.tresillo());
-
 
     //12 долей
     fancy.add(Rhythm.bolero12());
 
-
     ///drafts
     //10 долей
+    for (int i = 0; i < 12; i++) fancy.add(Rhythm.roll8(i + 1));
+
     fancy.add(Rhythm.warmGun());
     fancy.add(Rhythm.soca());
-    fancy.add(Rhythm.tango());
-    fancy.add(Rhythm.twoBubBum());
+    fancy.add(Rhythm.socaPart1());
+    fancy.add(Rhythm.calypso1());
+    fancy.add(Rhythm.tangoHabanera1());
+    fancy.add(Rhythm.tangoHabanera2());
+    fancy.add(Rhythm.tangoHabanera2prime());
+    fancy.add(Rhythm.tangoHabanera3in8());
+    fancy.add(Rhythm.moneyPF());
+    //fancy.add(Rhythm.twoBubBum());
     fancy.add(Rhythm.strangeIn3());
 
-
-
-
-    fancyRhythms = List<List<Rhythm>>.generate(12,(n)=>[]);
-    for(int i=0;i<fancy.length;i++){
-      fancy[i].bSubBeatDependent=true;//на всякий случай, если забыли
+    fancyRhythms = List<List<Rhythm>>.generate(12, (n) => []);
+    for (int i = 0; i < fancy.length; i++) {
+      fancy[i].bSubBeatDependent = true; //на всякий случай, если забыли
       //сортируем по номерам
-      fancyRhythms[fancy[i].subBeats.length-1].add(fancy[i]);
+      fancyRhythms[fancy[i].subBeats.length - 1].add(fancy[i]);
     }
   }
 }
 
-
-
 ///Простая просодия - ритмы по числу долей
 class RhythmsByBeatN {
-
   ///Список по поддолям
   List<List<Rhythm>> rhythms;
 
-  /// стандартные размеры
-  static List<int> standardBeatNth=[2,3,4,6,9,12];
+
 
   RhythmsByBeatN() {
     ///Добавляем подряд всё, что нам нравится
-    List<Rhythm> simple=[];
+    List<Rhythm> simple = [];
 
     ///Ритмы из 1 бита
-    simple+=[Rhythm.oneStrong(),Rhythm.oneWeak()];
+    simple += [Rhythm.oneStrong(), Rhythm.oneWeak()];
 
     ///Остальные; если стандартное число бит - то добавляем один стандартный ритм;
     ///если нет - то пиво-водочка
-    for(int i=1; i<12; i++){
-      simple.add(Rhythm.fromAccents(Prosody.getAccents(i+1,true)));
-      if (standardBeatNth.contains(i+1))//пометим его как стандартный
-          {
-        simple.last.bStandard = true;
-        switch (i+1) {
-          case 2:             simple.last.name="Simple Duple Time";
-                break;
-
-          case 3:             simple.last.name="Simple Triple Time";
-          break;
-
-          case 4:             simple.last.name="Simple Quadruple Time";
-          break;
-
-          case 6:             simple.last.name="Compound Duple Time";
-          break;
-
-          case 9:             simple.last.name="Compound Triple Time";
-          break;
-
-          case 12:             simple.last.name="Compound Quadruple Time";
-          break;
-        }
-
-      }
-      else//нужно добавить ещё пива
-        simple.add(Rhythm.fromAccents(Prosody.getAccents(i+1,false)));
+    for (int i = 1; i < 12; i++) {
+      simple.add(Rhythm.fromAccentsWithStandardNames(Prosody.getAccents(i + 1, true)));
+      if (!simple.last.bStandard) //нужно добавить ещё пива
+        simple.add(Rhythm.fromAccents(Prosody.getAccents(i + 1, false)));
     }
 
     ///теперь добавляем разбиения нестандартных долей, не попавшее в пиво-водочку
@@ -253,50 +407,52 @@ class RhythmsByBeatN {
 
     simple.add(Rhythm.fromAccents([2, 0, 0, 1, 0, 1, 0, 0])); //8 долей
 
-
-    rhythms = List<List<Rhythm>>.generate(12,(n)=>[]);
-    for(int i=0;i<simple.length;i++){
-      simple[i].bSubBeatDependent=false;//на всякий случай, если забыли
+    rhythms = List<List<Rhythm>>.generate(12, (n) => []);
+    for (int i = 0; i < simple.length; i++) {
+      simple[i].bSubBeatDependent = false; //на всякий случай, если забыли
       //сортируем по номерам
-      rhythms[simple[i].subBeats.length-1].add(simple[i]);
+      rhythms[simple[i].subBeats.length - 1].add(simple[i]);
     }
   }
 }
 
-
-class PredefinedRhythms{
-
+class PredefinedRhythms {
   ///Список по числу долей
   List<List<Rhythm>> all;
 
   ///Это ритмы, которые предлагаются как основные для данного числа долей
   List<Rhythm> basicRhythms;
 
-  PredefinedRhythms(){
-    all= List<List<Rhythm>>(12);
-    for(int i=0; i<12; i++) {all[i]=[];}
+  PredefinedRhythms() {
+    all = List<List<Rhythm>>(12);
+    for (int i = 0; i < 12; i++) {
+      all[i] = [];
+    }
 
-
-
-
-    List<List<Rhythm>> simple=RhythmsByBeatN().rhythms;
+    List<List<Rhythm>> simple = RhythmsByBeatN().rhythms;
 
     ///Соберем все ритмы
     ///
     ///Добавляем сначала простые ритмы
-    for(int i=0; i<12; i++){      all[i]+=simple[i];    }
+    for (int i = 0; i < 12; i++) {
+      all[i] += simple[i];
+    }
 
     ///Добавляем ритмы, где только первый бит сильный
-    for(int i=3; i<12; i++){ all[i].add(Rhythm.onlyFirst(i+1));}
+    for (int i = 3; i < 12; i++) {
+      all[i].add(Rhythm.onlyFirst(i + 1));
+    }
 
     ///Добавляем модные
-    List<List<Rhythm>> fancy=FancyRhythms().fancyRhythms;
-    for(int i=0; i<12; i++){       all[i]+=fancy[i];    }
+    List<List<Rhythm>> fancy = FancyRhythms().fancyRhythms;
+    for (int i = 0; i < 12; i++) {
+      all[i] += fancy[i];
+    }
 
     ///Теперь соберем начальные
-    basicRhythms=List<Rhythm>(12);
-    for(int i=0; i<12; i++){       basicRhythms[i]=all[i][0];}
+    basicRhythms = List<Rhythm>(12);
+    for (int i = 0; i < 12; i++) {
+      basicRhythms[i] = all[i][0];
+    }
   }
-
-
 }

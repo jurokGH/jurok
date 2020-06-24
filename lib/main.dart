@@ -1,5 +1,3 @@
-import 'dart:convert' show utf16;
-
 //import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -79,11 +77,15 @@ final Color _cTempoList = Colors.white;
 /// 48 - minimum recommended target size of 7mm regardless of what screen they are displayed on
 /// ISH:  Я нашел это в этой книге по дизайну ( Revista Lennken) в главе 7 Metrics.
 ///Что такое размер плоского объекта в мм - не очень понятно.
+///Вряд ли речь про квадратный мм))) Меньшая сторона? Большая сторона?
 ///
 ///Из "официального"
 ///https://flutter.dev/docs/development/ui/layout/responsive
 ///- см. ссылки там, в частности:
-///  !!! "In responsive UI we don’t use hard-coded values for dimension and positions."  !!!
+///  "In responsive UI we don’t use hard-coded values for dimension and positions."  !!!
+///
+/// Вывод я сделал такой: нужно брать переменные значения и держать в голове наименьшую раскладку.
+/// Для неё проверяются полученные жесткие значения на предмет ограничения 7mm, чтобы оно не значило
 ///
 const double cMinTapSize = 48;
 const double cBarHeightVert = 0.28;
@@ -146,7 +148,6 @@ final List<Rhythm> _basicRhythms = _predefinedRhythms.basicRhythms;
 /// список из базовых ритмов для каждой доли
 final Rhythm initRhythm = _basicRhythms[_initBeatCount - 1];
 
-
 ///Ритмы пользователя по числу долей (от нуля)
 List<UserRhythm> userRhythms;
 
@@ -154,8 +155,17 @@ List<UserRhythm> userRhythms;
 ///Редактирование - изменение акцентов или поддолей одной из сов (//ToDo: а правильно ли это?
 ///
 /// Таким образом,  последний редактировавшийся ритм - это
-/// userRhithms[_lastEdited]
-int _lastEdited;
+/// userRhythms[_lastEditedBeatIndex]
+int _lastEditedBeatIndex;
+
+///в данном числе бит (-1) показывали ли мы пользовательский ритм?
+List<bool> _lastShownIsUsers = List<bool>.filled(12, false);
+
+/*
+///Что было показано... не додумано
+List<int> _lastShownInBeat=List<int>.filled(12,-1);
+*/
+List<int> _lastEditedInBeat = List<int>.filled(12, -1);
 
 List<Rhythm> _rhythmsToScroll = _allPredefinedRhythms[_initBeatCount - 1];
 
@@ -305,9 +315,9 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
-  ///Выделяет области контейнеров
+  ///Выделяет области контейнеров. Возможна зебра (толщина  границы - 1).
   bool bBoxContainer = false;
 
   // bool bShowBoundariesDebug=true;
@@ -402,13 +412,13 @@ class _HomePageState extends State<HomePage>
   Animation<Offset> _animationPos;
   Animation<Offset> _animationNeg;
   Animation<Offset> _animationDown;
-  int _period = 1000;
+  int _period = 1; //1000;
 
   //IS: KnobTuned constants
   double _sensitivity = 2;
-  double _innerRadius =0.00000000001;
-      //0.0015*_pushDilationFactor; // СУПЕР!
-      //0.15*_pushDilationFactor;// Дрянной эффект
+  double _innerRadius = 0.00000000001;
+  //0.0015*_pushDilationFactor; // СУПЕР!
+  //0.15*_pushDilationFactor;// Дрянной эффект
 
   ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
   final int _timeToDilation = 200;
@@ -497,7 +507,7 @@ class _HomePageState extends State<HomePage>
 
     //Пользовательские ритмы
     userRhythms = List<UserRhythm>.generate(12, (n) => UserRhythm([], []));
-    _lastEdited = -1;
+    _lastEditedBeatIndex = -1;
   }
 
   @override
@@ -634,15 +644,63 @@ class _HomePageState extends State<HomePage>
   }
 
   /// /////////////////////////////////////////////////////////////////////////
+  /// assistants for UI notification handlers
+  ///
+
+  ///Запасаем пользовательский ритм для данного числа долей.
+  ///Считаем, что пользователь сделал что-то интересное, если
+  ///он менял подбит или акцент на одной из сов (или на всех).
+  ///(у одной совы не запасаем) - глупо, но запасаем
+  void storeUserRhythm() {
+    //if (_beat.beatCount > 1) {
+    userRhythms[_beat.beatCount - 1] =
+        UserRhythm(_beat.subBeats, _beat.accents);
+    _lastEditedBeatIndex = _beat.beatCount - 1;
+    final int positionToInsert = _scrollBarPosition;
+    makeRhythmsForScroll(positionToInsert, positionToInsert);
+    _lastShownIsUsers[_lastEditedBeatIndex] = true;
+    _lastEditedInBeat[_beat.beatCount - 1] = positionToInsert;
+    /*
+      _lastShownInBeat[_beat.beatCount - 1]=positionToInsert;
+       */
+
+    /*
+      ///Теперь проверяем на совпадение. Если нашли стандартный
+      ///- даём имя. Если нашли имеющийся - выкидываем пользовательский
+      ///etc
+      RhythmComparisonResult res=
+      userRhythms[_beat.beatCount - 1].compare(_predefinedRhythms[_beat.beatCount - 1]);*/
+
+    userRhythms[_beat.beatCount - 1].inheritName();
+
+    debugPrint("new rithm stored in " + _beat.beatCount.toString());
+  }
+
+  ///Из пользовательского и предустановленных создаем то, что крутится.
+  ///insertUserAtPosition - куда положим пользовательский ритм.
+  ///scrollBarPosition - что показываем
+  void makeRhythmsForScroll(int scrollBarPosition, int insertUserAtPosition) {
+    int beat = _beat.beatCount;
+    _rhythmsToScroll = List.from(_allPredefinedRhythms[beat - 1]);
+    if (userRhythms[beat - 1].bDefined) {
+      _rhythmsToScroll.insert(insertUserAtPosition, userRhythms[beat - 1]);
+      _lastShownIsUsers[beat - 1] = (insertUserAtPosition == scrollBarPosition);
+    }
+    _scrollBarPosition = scrollBarPosition;
+  }
+
+  /// /////////////////////////////////////////////////////////////////////////
   /// UI notification handlers
   ///
 
-  ///Крутим
-  void _onScrollRhythm(int position) {
+  ///Крутим строку акцентов
+  void _onScrollRhythms(int position) {
     print('_onBeatChanged');
     if (position != _scrollBarPosition) {
       _scrollBarPosition = position;
       _beat = BeatMetre(_rhythmsToScroll[_scrollBarPosition]);
+      _lastShownIsUsers[_beat.beatCount - 1] =
+          (_scrollBarPosition == _lastEditedInBeat[_beat.beatCount - 1]);
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       Provider.of<MetronomeState>(context, listen: false).beatMetre =
@@ -661,15 +719,31 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  ///Из пользовательского и предустановленных создаем то, что крутится.
-  ///insertAtPosition - куда положим пользовательский ритм
-  void createScrollRhythms(int insertAtPosition) {
-    int beat = _beat.beatCount;
-    _rhythmsToScroll = List.from(_allPredefinedRhythms[beat - 1]);
-    if (userRhythms[beat - 1].bDefined) {
-      _rhythmsToScroll.insert(insertAtPosition, userRhythms[beat - 1]);
+  /// Из списка. Число бит; позиция в predefined, или же пользовательский
+  void onRhythmSelectedFromList(int beatIndex, int position, bool bUsers) {
+    if (!(false)) //ToDo:(проверяем, что надо менять что-то)
+    {
+      if (bUsers) {
+        _beat = BeatMetre(userRhythms[beatIndex]);
+        makeRhythmsForScroll(0, 0);
+      } else {
+        _beat = BeatMetre(_allPredefinedRhythms[beatIndex][position]);
+        makeRhythmsForScroll(position, 1);
+      }
+      Provider.of<MetronomeState>(context, listen: false).beatMetre =
+          _beat; // TODO Need???
+      _channel.setBeat(
+          _beat.beatCount,
+          _beat.subBeatCount,
+          _tempoBpm,
+          _activeSoundScheme,
+          _beat.subBeats,
+          Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
+      print('_onBeatChanged2');
+      setState(() {
+        _updateMetreBar = true;
+      });
     }
-    _scrollBarPosition = insertAtPosition;
   }
 
   ///Изменяем число нот
@@ -677,11 +751,12 @@ class _HomePageState extends State<HomePage>
     print('_onBeatChanged');
     if (_beat.beatCount != beats)
 
-    ///Проверить не так надо
+    ///Проверить не так надо? //ToDo
     {
-      if (beats - 1 == _lastEdited) {
+      if ((beats - 1 == _lastEditedBeatIndex) &&
+          _lastShownIsUsers[_lastEditedBeatIndex]) {
         ///Решается тонкий философский вопрос, результат
-        ///многочасовых рассуждений.
+        ///недельных рассуждений.
         ///
         ///Что делать, если пользователь редактировал-редактировал,
         ///а потом колесо дернул? Дернул, вернул назад - а всё пропало!
@@ -694,15 +769,21 @@ class _HomePageState extends State<HomePage>
         ///3/4, и сформировать имя "Last edited 3/4 (edited)".
         _beat = BeatMetre(userRhythms[beats - 1]);
 
-        createScrollRhythms(
-            0); //ToDo: не тут. Надо запасти, где мы их меняли последний раз
-
+        makeRhythmsForScroll(0, 0);
       } else {
         ///Второй сложный вопрос: при выборе размера, что нам делать с поддолями?
         ///Пока я их все игнорирую...//ToDo: хорошо ли это?
         _beat = BeatMetre(_basicRhythms[beats - 1]);
-        createScrollRhythms(
-            0); //ToDo: не тут. Надо запасти, где мы их меняли последний раз
+        makeRhythmsForScroll(0,
+            1); //Третий вопрос из той же серии: Встать на позицию, которую показывали последний раз?
+        //Ой ли? А пользователь с ума не сойдет?
+        //
+        //Общая проблема: Что лучше? Пользователю возвращать его выбор,
+        //или наоборот, всегда подсовывать что-то стандартное?
+        ///Видимо, лучше давать то, что он последний раз смотрел, но при этом сделать
+        ///очень простой soft reset.ToDo:
+        //
+        //Дальше, куда пользовательский вставлять? 1 - на второе место.
       }
 
       //_beat.beatCount = beats;
@@ -720,80 +801,18 @@ class _HomePageState extends State<HomePage>
       print('_onBeatChanged2');
       setState(() {
         _updateMetreBar = true;
-      }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
-    }
-  }
-
-  ///Изменяем значение ноты (знаменатель)
-  void _onNoteChanged(int noteValue) {
-    //_noteValue = noteValue;  // Does not affect sound
-    //bool changed = insertMetre(_beat.beatCount, noteValue);
-    bool changed = (_noteValue != noteValue);
-    if (changed) {
-      print('_onNoteChanged');
-      setState(() {
-        _noteValue = noteValue;
-        _updateMetreBar = changed;
-      }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
-    }
-  }
-
-  ///кажется, изменяем строку акцентов (ToDo: ?)
-  void onMetreBarChanged(int index) {
-    _activeMetre = index;
-    int beats = _metreList[index].beats;
-    if (_beat.beatCount != beats ||
-        !equalLists(_metreList[index].accents, _metreList[index].accents)) {
-      _beat.beatCount = beats;
-      //_beat.accents = _metreList[index].accents;
-      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
-      _channel.setBeat(
-          _beat.beatCount,
-          _beat.subBeatCount,
-          _tempoBpm,
-          _activeSoundScheme,
-          _beat.subBeats,
-          Prosody.reverseAccents(_metreList[index].accents, _beat.maxAccent));
-    }
-    //_noteValue = _metreList[index].note;  // Does not affect sound
-
-    print('onMetreBarChanged');
-    setState(() {
-      _updateMetre = true;
-    });
-  }
-
-  ///ToDo: эксперимент.
-  /// Устанавливаем всё.
-  void onEverythingChanged(Rhythm rhythm) {
-    if (rhythm.subBeats.length != rhythm.accents.length) return; //ToDo
-    if (!(false)) //ToDo: если ритмы разные
-    {
-      _beat = BeatMetre(rhythm);
-      bool changed = true; //ToDo?????
-
-      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
-      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
-      // TODO Need??? - кажется, да, если мы создаем новый _beat
-      _channel.setBeat(
-          _beat.beatCount,
-          _beat.subBeatCount,
-          _tempoBpm,
-          _activeSoundScheme,
-          _beat.subBeats,
-          Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
-      setState(() {
-        _updateMetre = changed;
       });
     }
   }
 
-  void onSubbeatChanged(int subbeatCount) {
+  void onAllSubbeatsChanged(int subbeatCount) {
     //TODO
     _beat.subBeatCount = subbeatCount; //nextSubbeat(_beat.subBeatCount);
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need??? - вроде нет, не пересоздавали
+
+    storeUserRhythm();
+
     _channel.setBeat(
         _beat.beatCount,
         _beat.subBeatCount,
@@ -810,7 +829,7 @@ class _HomePageState extends State<HomePage>
 
     ///ToDo: вот эту рутину ниже нужно куда-нибудь утащить...
     ///Ставить в виджет - не хочется (типа, виджет обрабатывает нам данные...)
-    ///Видимо, это надо сделать subBeats как свойство, и проверять там.
+    ///Видимо,   надо сделать subBeats как свойство, и проверять там.
     if (_beat.subBeatsEqualAndExist()) _beat.subBeatCount = _beat.subBeats[0];
 
     storeUserRhythm();
@@ -830,6 +849,8 @@ class _HomePageState extends State<HomePage>
   void onAccentChanged(int id, int accent) {
     assert(id < _beat.subBeats.length);
 
+    storeUserRhythm();
+
     //_beat.setAccent(id, accent);
     _beat.setAccent(id, accent);
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
@@ -841,24 +862,21 @@ class _HomePageState extends State<HomePage>
         _beat.subBeats,
         Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
 
-    storeUserRhythm();
-
     setState(() {});
   }
 
-  ///Запасаем пользовательский ритм для данного числа долей.
-  ///Считаем, что пользователь сделал что-то интересное, если
-  ///он менял подбит или акцент на одной из сов, остальное - не важно.
-  ///У одной совы не запасаем.
-  void storeUserRhythm() {
-    if (_beat.beatCount > 1) {
-      userRhythms[_beat.beatCount - 1] =
-          UserRhythm(_beat.subBeats, _beat.accents);
-      _lastEdited = _beat.beatCount - 1;
-
-      createScrollRhythms(_scrollBarPosition);
+  ///Изменяем значение ноты (знаменатель)
+  void _onNoteChanged(int noteValue) {
+    //_noteValue = noteValue;  // Does not affect sound
+    //bool changed = insertMetre(_beat.beatCount, noteValue);
+    bool changed = (_noteValue != noteValue);
+    if (changed) {
+      print('_onNoteChanged');
+      setState(() {
+        _noteValue = noteValue;
+        _updateMetreBar = changed;
+      });
     }
-    debugPrint("new rithm stored in " + _beat.beatCount.toString());
   }
 
   /*
@@ -886,6 +904,31 @@ class _HomePageState extends State<HomePage>
     });
   }
    */
+
+  ///(обработчик старой строки акцентов?)
+  void onMetreBarChanged(int index) {
+    _activeMetre = index;
+    int beats = _metreList[index].beats;
+    if (_beat.beatCount != beats ||
+        !equalLists(_metreList[index].accents, _metreList[index].accents)) {
+      _beat.beatCount = beats;
+      //_beat.accents = _metreList[index].accents;
+      //TODO Provider.of<MetronomeState>(context, listen: false).reset();
+      //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+      _channel.setBeat(
+          _beat.beatCount,
+          _beat.subBeatCount,
+          _tempoBpm,
+          _activeSoundScheme,
+          _beat.subBeats,
+          Prosody.reverseAccents(_metreList[index].accents, _beat.maxAccent));
+    }
+    //_noteValue = _metreList[index].note;  // Does not affect sound
+    print('onMetreBarChanged');
+    setState(() {
+      _updateMetre = true;
+    });
+  }
 
   /// /////////////////////////////////////////////////////////////////////////
   /// >>>>>>>> Widget section
@@ -1614,7 +1657,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  BoxDecoration decorTmp(Color color) {
+  BoxDecoration decorDebug(Color color) {
     return BoxDecoration(
       //style: bDecoration? BorderStyle.solid: BorderStyle.none,
       // color: color.withOpacity(0.5),
@@ -1736,7 +1779,7 @@ class _HomePageState extends State<HomePage>
         color: _textColor,
         textStyle: _textStyle,
         size: subbeatSize,
-        onChanged: onSubbeatChanged,
+        onChanged: onAllSubbeatsChanged,
       ),
     );
 
@@ -2132,7 +2175,7 @@ class _HomePageState extends State<HomePage>
     final String textout = DateTime.now().microsecondsSinceEpoch.toString();
 
     return Container(
-      decoration: decorTmp(Colors.black),
+      decoration: decorDebug(Colors.black),
       width: size.width,
       height: size.height,
       child: Align(
@@ -2351,11 +2394,12 @@ class _HomePageState extends State<HomePage>
     ///Кнопки темпа
     double tempoButtonsSize = knobDiameter / 2.5;
     double fontSizeButtons = tempoButtonsSize / 2.3;
-    TextStyle _textStyleButtons = //ToDo: fix font; fix font size
+    /*
+    TextStyle _textStyleButtons = //To Do: fix font; fix font size (obsolete)
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
             .textTheme
             .headline4
-            .copyWith(color: Colors.black, fontSize: fontSizeButtons);
+            .copyWith(color: Colors.black, fontSize: fontSizeButtons);*/
 
     ///Отсутупы от центра кноба
     double tempoButtonDeltaX = (knobDiameter + tempoButtonsSize) / 2 * 0.95;
@@ -2382,7 +2426,7 @@ class _HomePageState extends State<HomePage>
     return Container(
       width: size.width,
       height: size.height,
-      decoration: decorTmp(Colors.black),
+      decoration: decorDebug(Colors.black),
       //color: Colors.black,
       child: Stack(
         overflow: Overflow.visible,
@@ -2450,8 +2494,8 @@ class _HomePageState extends State<HomePage>
                     knobCenterY - tempoButtonDeltaY),
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
-            child:
-                _buildOneButton("-1", -1, tempoButtonsSize, _textStyleButtons),
+            child: _buildOneButton(
+                "-1", -1, tempoButtonsSize /*, _textStyleButtons*/),
           ),
           Positioned.fromRect(
             //button
@@ -2460,8 +2504,8 @@ class _HomePageState extends State<HomePage>
                     knobCenterY + tempoButtonDeltaY),
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
-            child:
-                _buildOneButton("-5", -5, tempoButtonsSize, _textStyleButtons),
+            child: _buildOneButton(
+                "-5", -5, tempoButtonsSize /*, _textStyleButtons*/),
           ),
           Positioned.fromRect(
             //button
@@ -2470,8 +2514,8 @@ class _HomePageState extends State<HomePage>
                     knobCenterY - tempoButtonDeltaY),
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
-            child:
-                _buildOneButton("+1", 1, tempoButtonsSize, _textStyleButtons),
+            child: _buildOneButton(
+                "+1", 1, tempoButtonsSize /*, _textStyleButtons*/),
           ),
           Positioned.fromRect(
             //button
@@ -2480,8 +2524,8 @@ class _HomePageState extends State<HomePage>
                     knobCenterY + tempoButtonDeltaY),
                 width: tempoButtonsSize,
                 height: tempoButtonsSize),
-            child:
-                _buildOneButton("+5", 5, tempoButtonsSize, _textStyleButtons),
+            child: _buildOneButton(
+                "+5", 5, tempoButtonsSize /*, _textStyleButtons*/),
           ),
 
           /*
@@ -2515,7 +2559,7 @@ class _HomePageState extends State<HomePage>
             child: Container(
               width: rightArea,
               height: size.height * useOfHeight,
-              decoration: decorTmp(Colors.blue),
+              decoration: decorDebug(Colors.blue),
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   //mainAxisAlignment: MainAxisAlignment.end,
@@ -2661,7 +2705,7 @@ class _HomePageState extends State<HomePage>
             flex: 7,
             child: Container(
               padding: EdgeInsets.only(right: localXPadding),
-              decoration: decorTmp(Colors.blue),
+              decoration: decorDebug(Colors.blue),
               child: _buildSoundBtnU(),
             ),
           ),
@@ -2679,7 +2723,7 @@ class _HomePageState extends State<HomePage>
                   left: localXPadding,
                   top: meterYPaddyng,
                   bottom: meterYPaddyng),
-              decoration: decorTmp(Colors.yellow),
+              decoration: decorDebug(Colors.yellow),
               child: metreBarU(), //ToDo: очень тормозит при тапе.
             ),
           ),
@@ -2711,7 +2755,7 @@ class _HomePageState extends State<HomePage>
                     //спайс
                     flex: 1,
                     child: Container(
-                      decoration: decorTmp(Colors.green),
+                      decoration: decorDebug(Colors.green),
                     ),
                   ),
                   Expanded(
@@ -2777,20 +2821,13 @@ class _HomePageState extends State<HomePage>
     return PopupMenuButton<int>(
       //ToDo: мерзейший клик
       onSelected: (value) {
+        //TODO: jumpToNextStandard
         /*//Если выбран пользовательский ритм, то запасаем, какой был последний
         // - Не, путано.
         if ((userRhythm.bDefined)&&(value==rhythms.length-1)){
           lastEdited=value;
         }
         */
-
-        if (rhythms[value].bSubBeatDependent)
-          onEverythingChanged(rhythms[value]);
-        else
-          onEverythingChanged(Rhythm(
-              name: rhythms[value].name,
-              subBeats: _beat.subBeats,
-              accents: rhythms[value].accents));
       },
       child: Container(
         width: size.width,
@@ -2832,7 +2869,7 @@ class _HomePageState extends State<HomePage>
           textStyle: textStyle,
           size: size,
           allEqual: _beat.subBeatsEqualAndExist(),
-          onChanged: onSubbeatChanged,
+          onChanged: onAllSubbeatsChanged,
         ),
       );
     });
@@ -2840,30 +2877,31 @@ class _HomePageState extends State<HomePage>
 
   ///+- tempo buttons
   Widget _buildOneButton(
-      String text, int delta, double sqsize, TextStyle textStyle) {
-    final String s1=(delta>0)?'plus':'minus';
-    final String s2=(delta.abs()>1)?'5':'1';
+      String text, int delta, double sqsize /*, TextStyle textStyle*/) {
+    final String s1 = (delta > 0) ? 'plus' : 'minus';
+    final String s2 = (delta.abs() > 1) ? '5' : '1';
     final Widget icon = new Image.asset(
       //"images/butowl4.png",
       //"images/button.png",
       //'images/button12.png',
-      'images/'+s1+s2+'.png',
+      'images/' + s1 + s2 + '.png',
       width: sqsize,
       height: sqsize,
       fit: BoxFit.contain,
     );
 
     return InkWell(
-      child: Stack(alignment: Alignment.center,//ToDo:без текста теперь Stack не нужен?
+      child: Stack(
+          alignment: Alignment.center, //ToDo:без текста теперь Stack не нужен?
           children: [
-        icon,
-        /*Text(
+            icon,
+            /*Text(
           text,
           textScaleFactor: 1,
           style: textStyle,
         ),*/
-      ]),
-      enableFeedback: !_playing, //Регулирует писк кнопки
+          ]),
+      enableFeedback: false, //!_playing,
       customBorder: CircleBorder(
           side: BorderSide(color: _ctrlColor, width: _borderWidth)), //ToDo
       onTap: () {
@@ -2940,15 +2978,11 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildPlayBtn1(double diameter) {
-    final Widget icon2 = Image.asset(
-        _playing ? 'images/icstop.png' : 'images/icplay.png',
-        height: diameter,
-        fit: BoxFit.contain);
-
     return InkWell(
       //ISH: I do not use  material button here
       //(it has some pudding requirements that I do not need)
-      child: icon2,
+      child: Image.asset(_playing ? 'images/icstop.png' : 'images/icplay.png',
+          height: diameter, fit: BoxFit.contain),
       enableFeedback: false,
       onTap: _play,
     );
@@ -2985,6 +3019,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  ///Звуковая схема
   Widget _buildSoundBtnU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -3020,7 +3055,9 @@ class _HomePageState extends State<HomePage>
         ]),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: !_playing,
+        enableFeedback:
+            false, //!_playing, //Неприятный треск. Для музыкального приложения - плохо.
+        //В хороших метрономамх не встречал.
         onPressed: () {
           if (_soundSchemes?.length > 0) {
             _activeSoundScheme =
@@ -3131,7 +3168,7 @@ class _HomePageState extends State<HomePage>
         Expanded(
           flex: padding,
           child: Container(
-            decoration: decorTmp(Colors.green),
+            decoration: decorDebug(Colors.green),
           ),
         ),
         Expanded(
@@ -3154,14 +3191,14 @@ class _HomePageState extends State<HomePage>
     TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-    Widget itemOfList(Rhythm rhythm) {
+    Widget itemOfList(Rhythm rhythm, int beat, int position) {
       return Container(
         padding: EdgeInsets.symmetric(
             vertical: totalWidth * shrinkForList / 50,
             horizontal: totalWidth * (1 - shrinkForList) / 4),
         child: GestureDetector(
           onTap: () {
-            onEverythingChanged(rhythm);
+            onRhythmSelectedFromList(beat, position, (position < 0));
             /*//ToDo: experiment
             if (rhythm.bSubBeatDependent)
               onEverythingChanged(rhythm);
@@ -3197,18 +3234,18 @@ class _HomePageState extends State<HomePage>
       );
     }
 
-    List<Widget> rhytmListW = [];
+    List<Widget> rhythmListW = [];
 
     for (int j = 0; j < maxBeatCount; j++) {
       for (int i = 0; i < _allPredefinedRhythms[j].length; i++) {
-        rhytmListW.add(itemOfList(_allPredefinedRhythms[j][i]));
+        rhythmListW.add(itemOfList(_allPredefinedRhythms[j][i], j, i));
       }
       UserRhythm userRhythm = userRhythms[j];
       if (userRhythm.bDefined) {
-        rhytmListW.add(itemOfList(userRhythm));
+        rhythmListW.add(itemOfList(userRhythm, j, -1));
       }
       if (j < maxBeatCount - 1) //падинг
-        rhytmListW.add(
+        rhythmListW.add(
           Padding(
               padding: EdgeInsets.symmetric(
             vertical: totalWidth * shrinkForList / 25,
@@ -3238,7 +3275,7 @@ class _HomePageState extends State<HomePage>
                   elevation: 10.3,
                   // title: const Text("Instruments"),
                   //children:musicListOpt,//Крякает
-                  children: rhytmListW,
+                  children: rhythmListW,
                 );
               });
         },
@@ -3246,7 +3283,8 @@ class _HomePageState extends State<HomePage>
           //То, что рисуется в строке
           alignment: Alignment.center,
           child: Text(
-            _beat.name,
+            _rhythmsToScroll[_scrollBarPosition].name,
+            //_beat.name,
             style: textStyle,
             textScaleFactor: 1,
           ),
@@ -3602,11 +3640,11 @@ class _HomePageState extends State<HomePage>
         rhythms: _rhythmsToScroll,
         size: metreBarSize,
         position: _scrollBarPosition,
-        onChanged: _onScrollRhythm,
+        onChanged: _onScrollRhythms,
         noteValue: _noteValue,
         bReactOnTap: true,
-        bForceRedraw: true, //Поменять: только если число нот поменялось.
         maxAccent: _beat.maxAccent,
+        bForceRedraw: true, //Поменять: только если число нот поменялось.
         // Да вроде и так не перерисовывается лишний раз...
       )
 
@@ -3722,7 +3760,7 @@ class _HomePageState extends State<HomePage>
       noteValue: _noteValue,
       accents: _beat.accents,
       maxAccent: _beat.maxAccent,
-      spacing: spacing,
+      //spacing: spacing,
       //padding: padding,
       padding:
           EdgeInsets.zero, //ToDo: определить сообразно общей ситуации извне

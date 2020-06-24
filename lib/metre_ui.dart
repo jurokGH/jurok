@@ -73,9 +73,9 @@ class MetreState extends State<MetreWidget>
     Metre(3, 2),
     Metre(6, 8),
   ];
-   */
   int _iMetre = 2;
   Offset _tapPosition;
+   */
 
   FixedExtentScrollController beatController;
   FixedExtentScrollController noteController;
@@ -339,10 +339,11 @@ class MetreState extends State<MetreWidget>
       );
   }
 
+  /*
   void _storePosition(TapDownDetails details)
   {
     _tapPosition = details.globalPosition;
-  }
+  }*/
 
   /* need to sync it
   void _showMenu()

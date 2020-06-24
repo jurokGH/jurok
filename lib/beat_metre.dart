@@ -18,7 +18,7 @@ class BeatMetre
   /// _beatCount == subBeats.length
   List<int> subBeats;
 
-  String name="unnamed";
+  //String name="unnamed";
 
   /// Subdivision of beat melody to simple metres (rows)
   /// notes.length - number of simple metres in metronome beat melody
@@ -43,7 +43,7 @@ class BeatMetre
 
     if (subBeatsEqualAndExist()) _subBeatCount = subBeats[0];
 
-    name=rhythm.name;
+//    name=rhythm.name;
   }
 
 
