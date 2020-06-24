@@ -17,7 +17,7 @@ typedef ImageIndexCallback2 = List<int> Function(
  */
 
 typedef ImageIndexCallback2 = List<int> Function(
-    int accent, int maxAccent, bool bActive, bool bPlaying);
+    int accent, int maxAccent, bool bActive, bool bPlaying, bool bLeft);
 
 class HeadOwlWidget extends StatefulWidget {
   final int id;
@@ -173,7 +173,12 @@ class HeadOwlState extends State<HeadOwlWidget>
         widget.maxAccent,
         (Provider.of<MetronomeState>(context, listen: false).activeBeat ==
             widget.id),
-        widget.playing);
+        widget.playing,
+                 (widget.playing
+      &&(!Provider.of<MetronomeState>(context, listen: false).beatParityRightNow())),
+        //(Provider.of<MetronomeState>(context, listen: false).getReActiveTime() < 0),
+
+    );
     final int indexImage = indices[0];
     final int indexImageHead = indices[1];
 

@@ -333,6 +333,17 @@ class MetronomeState with ChangeNotifier
     return ((totalBeatsPlayed%2==0)==_parity);
   }
 
+
+  ///Четность бита в момент времени (mcs)
+  bool beatParityRightNow(){
+
+    int timeNow=DateTime.now().microsecondsSinceEpoch;
+    double beatDuration = 60*1000*1000 / _beatsPerMinute;  // in mcseconds
+    int totalBeatsPlayed=(timeNow-_timeOrg)~/beatDuration;
+    //return (totalBeatsPlayed%2==0);//tmp
+    return ((totalBeatsPlayed%2==0)==_parity);
+  }
+
   /// Start time (in seconds) of [beat, subbeat] sound relating to begin of this beat metre
   /// bpm - tempo, beats per minute
   /// time - time from begin in seconds

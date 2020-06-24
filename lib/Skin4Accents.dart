@@ -6,7 +6,7 @@ import 'dart:async';
 ///вычислять, что делать при двух акцентах.
 ///Картинки нумеруются двумя индексами, акцент определяется вторым индексом от 0 до 3,
 ///для полузакрытых глаз
-///первый индекс 0, для открытых - 1.
+///первый индекс 0, для открытых   1 (и left).
 ///Акценты раздаются в зависимости от максимального акцента в данном ритме.
 ///0 всегда рисуется картинкой 0, наибольший - всегда картинкой 3.
 ///Если нужно рисовать акценты (0,1,2,3), то они очевидно переходят 1 в 1;
@@ -32,8 +32,8 @@ class OwlSkin4Acc {
   final String  silenceName='images/nhowl-closed.png';
 
   ///Ключевая функция-делегат, которая определит номер картинки для отрисовки в HeadOfWol
-  List<int> getImageIndex(int accent, int maxAccent, bool bActive, bool bPlaying) {
-    int indexHead=typesOfOwls*2; //глазки закрывай...
+  List<int> getImageIndex(int accent, int maxAccent, bool bActive, bool bPlaying, bool bLeft) {
+    int indexHead=typesOfOwls*3; //глазки закрывай...
     if ((accent>=0)) {//Распределим акценты
       List<int> mapAccToFile = List<int>(maxAccent + 1);
       mapAccToFile[0]=0;
@@ -41,9 +41,12 @@ class OwlSkin4Acc {
       //Теперь то, что посередке.
       if (maxAccent == 3) {        mapAccToFile[1] = 1;        mapAccToFile[2] = 2;      }
       if (maxAccent == 2) {        mapAccToFile[1] = 2; }
-      indexHead = mapAccToFile[accent] + (/*bActive &*/ bPlaying ? typesOfOwls : 0);//полуоткрыты/открыты
+      indexHead = mapAccToFile[accent] +
+          (/*bActive &*/ bPlaying ?
+          typesOfOwls*(1+(bLeft?1:0))
+          : 0);//полуоткрыты/открыты (право-лево)
       //Отзывы пользователей и прочие объективные вещи заставили меня пока сделать всех
-      //сов с открытимы глазами во время игры. Чтобы открывала глаза лишь одна
+      //сов с открытимы глазами во время игры. Чтобы открывала глаза лишь одна, выпустить bActive.
     }
     return [0,// если хотим тушки анимировать, то ставь mapToAcc[accent] (и ниже картинки закачай в loadImages)//ToDo
       indexHead];
@@ -130,13 +133,15 @@ class OwlSkin4Acc {
             gaplessPlayback: true));
 
     // TODO 205/259
-    _headImages = new List<Image>(2*typesOfOwls+1);//прикрытые, открытые и еще запасём тишину в конце
+    _headImages = new List<Image>(3*typesOfOwls+1);//прикрытые, открытые (два вида) и еще запасём тишину в конце
     Size headSize = new Size(size.width,
         size.width * _imageSizeHead0.height / _imageSizeHead0.width);
     int iImage = 0;
-    for (int i = 0; i <=1; i++) {
+    for (int i = 0; i <=2; i++) {
       for (int j = 0; j < typesOfOwls; j++, iImage++) {
-        _headImages[iImage] = new Image.asset(_fileBaseHead + '$i-$j.png',
+        int iOpen=(i<2)?i:1;
+        String sForLeft=(i==2)?"left":'';
+        _headImages[iImage] = new Image.asset(_fileBaseHead + '$iOpen-$j'+sForLeft+'.png',
             width: headSize.width,
             height: headSize.height,
             fit: BoxFit.contain,
@@ -146,7 +151,7 @@ class OwlSkin4Acc {
       }
     }
     //Закрытые глаза:
-    _headImages[2*typesOfOwls]=   new Image.asset(silenceName,
+    _headImages[3*typesOfOwls]=   new Image.asset(silenceName,
         width: headSize.width,
         height: headSize.height,
         fit: BoxFit.contain,
