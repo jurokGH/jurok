@@ -316,6 +316,7 @@ class UserRhythm extends Rhythm {
     name= rhythm.name+' (edited)';
   }
 
+  ///Модифицируем имя из стандартного для ритма, измененного пользователем
   void inheritName()
   {
     name= Rhythm.fromAccentsWithStandardNames(accents).name
@@ -323,14 +324,13 @@ class UserRhythm extends Rhythm {
   }
 
 
-
+/* Не доделано и вроде можно обойтись пока
   RhythmComparisonResult compare(List<Rhythm> rhythmsToCompare){
     RhythmComparisonResult res;
     if (rhythmsToCompare==null) return res;
     List<Rhythm> rhythms=rhythmsToCompare.where((rhythm) => (rhythm.beats==beats)).toList();
     if (rhythms.length==0) return res;
-
-  }
+  }*/
 
 
 }

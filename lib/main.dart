@@ -287,7 +287,9 @@ class _HomePageState extends State<HomePage>
   // TODO Remove?
   int _animationType = 0;
 
-  ///ISH: ToDo: Aaaa, Zebra must by quarantined!
+  ///ISH:  Zebra must by quarantined.
+  ///
+
   /// Controls border parameters
   double _borderRadius = 12;
   double _borderWidth = 3;
@@ -346,8 +348,7 @@ class _HomePageState extends State<HomePage>
 
   int _scrollBarPosition = 0;
 
-  ///TODO: MetreBar problem
-
+  ///not used in alfa-omega:
   /// Partly-sorted metre list to switch between metres
   /// Includes predefined ('standard') metres
   /// Initially filled with predefined ('standard') metres
@@ -416,8 +417,8 @@ class _HomePageState extends State<HomePage>
 
   //IS: KnobTuned constants
   double _sensitivity = 2;
-  double _innerRadius = 0.00000000001;
-  //0.0015*_pushDilationFactor; // СУПЕР!
+  double _innerRadius = 0.00000000001; //Мега-супер! //Еще лучше -  наименьшее положительное число:)
+  //0.0015*_pushDilationFactor; // Супер!
   //0.15*_pushDilationFactor;// Дрянной эффект
 
   ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
@@ -905,7 +906,7 @@ class _HomePageState extends State<HomePage>
   }
    */
 
-  ///(обработчик старой строки акцентов?)
+  ///(обработчик старой строки акцентов)
   void onMetreBarChanged(int index) {
     _activeMetre = index;
     int beats = _metreList[index].beats;
@@ -2304,7 +2305,8 @@ class _HomePageState extends State<HomePage>
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
     double shadowOffset = totalWidth * 0.03; //TODO: запасти место под тень.
-    //А то разрушится трёхмернось. Пока она едет зайцем.
+    //Пока она едет зайцем.
+    //А то разрушится трёхмернось.
 
     bool bTest = false; //tmp
     final List<Widget> metrMainAreas = <Widget>[
@@ -3527,7 +3529,7 @@ class _HomePageState extends State<HomePage>
      */
   }
 
-  ///Витин метр завернутый во внешний размер
+  ///Витины колёса метра, завернутые во внешний размер
   Widget metreU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -3541,7 +3543,7 @@ class _HomePageState extends State<HomePage>
       );
       _updateMetre = false;
       return MetreWidget(
-        update: updateMetre,
+        update:  true,// updateMetre,//ToDo: А в других вроде не нужно такой штуки....
         beats: _beat.beatCount,
         minBeats: minBeatCount,
         maxBeats: maxBeatCount,
@@ -3555,8 +3557,7 @@ class _HomePageState extends State<HomePage>
         textStyle: meterTextStyle,
         textStyleSelected: meterTextStyle.copyWith(
           fontWeight: FontWeight.w800,
-          //fontSize: _textStyle.fontSize + 2,//??
-          ///ISH:Не это ли приводит к расцентровке шрифтов?
+          //fontSize: _textStyle.fontSize + 2,
           //height: 1,
           //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
           //color: _cWhiteColor,
