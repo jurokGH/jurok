@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 //import 'package:wheel_chooser/wheel_chooser.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
+import  'package:owlenome/TwoWheels.dart';
+
 
 import 'package:owlenome/prosody.dart';
 import 'package:owlenome/rhythms.dart';
@@ -36,6 +38,8 @@ import 'settings.dart';
 import 'knob.dart';
 import 'KnobTuned.dart';
 //import 'KnobResizable.dart';
+
+
 
 import 'timer_ui.dart';
 import 'NoteTempo.dart';
@@ -177,7 +181,7 @@ const int _cMinTempo = 1;
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    15;//проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+    15; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -413,11 +417,12 @@ class _HomePageState extends State<HomePage>
   Animation<Offset> _animationPos;
   Animation<Offset> _animationNeg;
   Animation<Offset> _animationDown;
-  int _period =  1000;//ToDo: why?
+  int _period = 1000; //ToDo: why?
 
   //IS: KnobTuned constants
   double _sensitivity = 2;
-  double _innerRadius = 0.00000000001; //Мега-супер! //Еще лучше -  наименьшее положительное число:)
+  double _innerRadius =
+      0.00000000001; //Мега-супер! //Еще лучше -  наименьшее положительное число:)
   //0.0015*_pushDilationFactor; // Супер!
   //0.15*_pushDilationFactor;// Дрянной эффект
 
@@ -715,7 +720,7 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
-        _updateMetreBar = true;
+       // _updateMetreBar = true;
       }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
   }
@@ -801,7 +806,28 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
-        _updateMetreBar = true;
+       // _updateMetreBar = true;
+      });
+    }
+  }
+
+  ///Изменяем число нот, не глядя на пользовательские размеры и выбирая пертвый стандартный
+  void _onUltimateJump(int beatsToSet) {
+    print('_onJump');
+    if (_beat.beatCount != beatsToSet) {
+      _beat = BeatMetre(_basicRhythms[beatsToSet - 1]);
+      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
+      makeRhythmsForScroll(0, 1);
+      _channel.setBeat(
+          _beat.beatCount,
+          _beat.subBeatCount,
+          _tempoBpm,
+          _activeSoundScheme,
+          _beat.subBeats,
+          Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
+      print('-pmuJ');
+
+      setState(() {_updateMetreBar = true;//Todo:?
       });
     }
   }
@@ -2750,7 +2776,7 @@ class _HomePageState extends State<HomePage>
                         fit: BoxFit.fill,
                       )),
                       //decoration: decorTmp(Colors.green),
-                      child: rhythmPicker(),
+                      child: jumpToNextStandardBeat(), // rhythmPicker(),
                     ),
                   ),
                   Expanded(
@@ -2783,6 +2809,49 @@ class _HomePageState extends State<HomePage>
         ]));
   }
 
+  ///Прыгаем к следующему стандартному размеру.
+  Widget jumpToNextStandardBeat() {
+
+    int nextBeat(){
+      int lng = Prosody.standardBeatNth.length;
+      int indToJump = 0;//Ищем следующий размер
+      if              ((Prosody.standardBeatNth[0]<= _beat.beatCount)&&
+          ( _beat.beatCount<Prosody.standardBeatNth[lng-1]))
+      {
+        do {indToJump++;}
+        while  (Prosody.standardBeatNth[indToJump] <= _beat.beatCount);
+      }// не изящно получилось
+      return  Prosody.standardBeatNth[indToJump];
+    }
+
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        Size size = Size(constraints.maxWidth, constraints.maxHeight);
+        TextStyle textStyle = GoogleFonts.roboto(fontSize: size.width * 0.2);
+
+        //onChanged: onSubbeatChanged,
+
+        return Container(
+          child: GestureDetector(
+            onTap: () {
+              _onUltimateJump(nextBeat());
+            },
+            child:  Align(
+              alignment: Alignment.center,
+              child: Text('To ${nextBeat()}/${_noteValue}',
+                style: textStyle,
+                textScaleFactor: 1,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /*
+  ///Выбора списков в данном метре. Мозголомство для юзера. Запрятано. (Недосогласовано (кажется) со строкой акцентов)
   Widget rhythmPicker() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -2846,6 +2915,7 @@ class _HomePageState extends State<HomePage>
       itemBuilder: (context) => items,
     );
   }
+  */
 
   Widget btnSubBeatU() {
     return LayoutBuilder(
@@ -3175,7 +3245,7 @@ class _HomePageState extends State<HomePage>
         ),
         Expanded(
           flex: right,
-          child: rythmListW(textStyle, right / total),
+          child: rhythmListW(textStyle, right / total),
         ),
       ],
     );
@@ -3184,7 +3254,7 @@ class _HomePageState extends State<HomePage>
   ///
   /// Рисует тапабельную строку с ритмом.
   ///
-  Widget rythmListW(TextStyle textStyle, double totalWidth) {
+  Widget rhythmListW(TextStyle textStyle, double totalWidth) {
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
     double shrinkForList = 0.9;
@@ -3535,16 +3605,21 @@ class _HomePageState extends State<HomePage>
         builder: (BuildContext context, BoxConstraints constraints) {
       Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
       double itemExtent = 0.5 * meterSize.width; //44,
-      bool updateMetre = _updateMetre; //ISH: не уверен, что это
+      final bool updateMetre = _updateMetre; //ISH: не уверен, что это
+      _updateMetre = false;
 
       double meterTextSize = meterSize.height / 2.2;
       TextStyle meterTextStyle = GoogleFonts.roboto(
         fontSize: meterTextSize,
+        fontWeight: FontWeight.w800,
       );
-      _updateMetre = false;
-      return MetreWidget(
-        update:  true,// updateMetre,//ToDo: А в других вроде не нужно такой штуки....
-        beats: _beat.beatCount,
+      return TwoWheels(
+        //MetreWidget(  true,//
+        update:  updateMetre,//ToDo: А в других вроде не нужно такой штуки....
+        //beats: _beat.beatCount, //ToDo: в этом виджете почему-то не работает. В остальных - ок, а тут непонятно. ????
+        //beats:_rhythmsToScroll[_scrollBarPosition].accents.length, То же самое.
+        beats: _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
+        //когда значение меняется. Не нужно никакх update, кажется
         minBeats: minBeatCount,
         maxBeats: maxBeatCount,
         note: _noteValue,
@@ -3555,13 +3630,7 @@ class _HomePageState extends State<HomePage>
         itemExtent: itemExtent,
         color: Colors.deepPurple,
         textStyle: meterTextStyle,
-        textStyleSelected: meterTextStyle.copyWith(
-          fontWeight: FontWeight.w800,
-          //fontSize: _textStyle.fontSize + 2,
-          //height: 1,
-          //color: activeMetre.regularAccent ? _cWhiteColor : _clrIrregularMetre),
-          //color: _cWhiteColor,
-        ),
+        textStyleSelected: meterTextStyle,
         onBeatChanged: _onBeatChanged,
         onNoteChanged: _onNoteChanged,
       );

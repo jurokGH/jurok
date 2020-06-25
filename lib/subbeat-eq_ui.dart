@@ -70,7 +70,7 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
                   1
             : widget.subbeatCount;
         widget.onChanged(subbeatCount); //ToDo - up ????
-        setState(() {});
+        //setState(() {});//Why?
       },
       child: Row(children: <Widget>[
         Align(

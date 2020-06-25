@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:owlenome/prosody.dart';
 
 
-
 class Rhythm {
   static String sOnlyFist = "Only first beat is strong"; //ToDo
   static String sOneStrong = "Strong"; //ToDo
@@ -39,12 +38,12 @@ class Rhythm {
   ///ToDo: и ещё паузы надо проверить (см. группировку в строке акцентов)
   Rhythm.fromAccents(List<int> accents) {
     name = accentsToName(accents);
-    bStandard=standardBeatNth.contains(accents.length+1);
+    bStandard=Prosody.standardBeatNth.contains(accents.length+1);
     this.accents = accents;
     this.subBeats = List<int>.filled(accents.length, 1);
   }
 
-  static List<int> standardBeatNth = [2, 3, 4, 6, 9, 12];
+
 
   ///  fromAccents, но со стандартными именами ритмов
   Rhythm.fromAccentsWithStandardNames(List<int> accents) {
@@ -52,7 +51,7 @@ class Rhythm {
     this.accents = accents;
     this.subBeats = List<int>.filled(accents.length, 1);
     int nOfBeats=accents.length;
-    bStandard=standardBeatNth.contains(nOfBeats);
+    bStandard=Prosody.standardBeatNth.contains(nOfBeats);
     if (bStandard&&
         listEquals(Prosody.getAccents(nOfBeats, true), accents))
         {
@@ -276,8 +275,8 @@ class Rhythm {
     //
     name = "crackle  (draft)";
     bSubBeatDependent = true;
-    accents = [1, 0];
-    subBeats = [8, 8];
+    accents = [1, 1];
+    subBeats = [8, 4];
   }
 
   Rhythm.strangeIn3() {
@@ -356,7 +355,7 @@ class FancyRhythms {
 
     ///drafts
     //10 долей
-    for (int i = 0; i < 12; i++) fancy.add(Rhythm.roll8(i + 1));
+    for (int i = 3; i < 12; i++) fancy.add(Rhythm.roll8(i + 1));
 
     fancy.add(Rhythm.warmGun());
     fancy.add(Rhythm.soca());
@@ -367,7 +366,7 @@ class FancyRhythms {
     fancy.add(Rhythm.tangoHabanera2prime());
     fancy.add(Rhythm.tangoHabanera3in8());
     fancy.add(Rhythm.moneyPF());
-    //fancy.add(Rhythm.twoBubBum());
+    fancy.add(Rhythm.twoBubBum());
     fancy.add(Rhythm.strangeIn3());
 
     fancyRhythms = List<List<Rhythm>>.generate(12, (n) => []);

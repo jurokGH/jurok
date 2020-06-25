@@ -217,7 +217,9 @@ class AccentBarState extends State<AccentBarWidget>
     // To prevent reenter via widget.onBeat/NoteChanged::setState
     // when position is changing via jumpToItem/animateToItem
     //ISH: I do not see the problem.
-    if ((index != widget.position || widget.bForceRedraw)&& _notify)
+    if ((index != widget.position || widget.bForceRedraw)&& _notify)//mmmm....What? //ToDo
+      ///index != widget.position - чего-то я тут фигню какую-то написал бессмысленную
+      ///Это же всё просто эквивалентно  _notify
     {
       _notify = false;
       //print('Tempo:update1 $index');

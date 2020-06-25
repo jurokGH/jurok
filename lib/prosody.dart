@@ -7,6 +7,8 @@ class Subbeat
 {
   static const int maxSubbeatCount = 8;
 
+
+
   /// Loop through subdivision list: 1, 2, 4, 3
   static int next(int subBeat)
   {
@@ -36,6 +38,10 @@ class Subbeat
 
 class Prosody
 {
+
+
+  static const List<int> standardBeatNth = [2, 3, 4, 6, 9, 12];
+
   /// Ниже этой громкости звук не уменьшится
   static const double leastVolume = 0.0;
   /// на что делим, уменьшая акцент днот (Sibelius: 1.5; плохо выделяет)
