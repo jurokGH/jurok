@@ -127,8 +127,8 @@ class MetreState extends State<TwoWheels>
           Text(
             (i + widget.minBeats).toString(),
             textAlign: TextAlign.center,
-            textScaleFactor: 1,
             style: textStyle,
+            textScaleFactor: 1,
           ),
 //        ),
         )
@@ -140,20 +140,16 @@ class MetreState extends State<TwoWheels>
           return new
           RotatedBox(
             quarterTurns: 1,
-            child: Container(),
+            //child: Container(),
 //          FittedBox(
 //            fit: BoxFit.fitHeight,
-//            child:
-  /*          LimitSizeText(
-              text: noteValue.toString(),
+          child:
+         Text( noteValue.toString(),
               textAlign: TextAlign.center,
-              style: i + widget.minNoteIndex == widget.noteIndex ? textStyleHiB : textStyle,
-              // To Change color for irregular metre:
-              // style: i + widget.minNoteIndex == widget.noteIndex ? widget.textStyleSelected : widget.textStyle,
-              template: '16',
-              templateStyle: textStyleHiB,
+              style:              textStyle,
+            textScaleFactor: 1,
             ),
-*/
+
 //          ),
           );
         }

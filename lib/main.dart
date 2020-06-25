@@ -3631,8 +3631,8 @@ class _HomePageState extends State<HomePage>
         fontWeight: FontWeight.w800,
       );
       return //Container();
-          //TwoWheels(
-          MetreWidget(
+          TwoWheels(
+          //MetreWidget(
         // true,//
         update: updateMetre, //ToDo: А в других вроде не нужно такой штуки....
         //beats: _beat.beatCount, //ToDo: в этом виджете почему-то не работает. В остальных - ок, а тут непонятно. ????
@@ -3647,7 +3647,7 @@ class _HomePageState extends State<HomePage>
         maxNote: maxNoteValue,
         width: meterSize.width,
         height: meterSize.height,
-        itemExtent: itemExtent,
+        //itemExtent: itemExtent,
         color: Colors.deepPurple,
         textStyle: meterTextStyle,
         textStyleSelected: meterTextStyle,
