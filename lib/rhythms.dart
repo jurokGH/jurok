@@ -43,8 +43,6 @@ class Rhythm {
     this.subBeats = List<int>.filled(accents.length, 1);
   }
 
-
-
   ///  fromAccents, но со стандартными именами ритмов
   Rhythm.fromAccentsWithStandardNames(List<int> accents) {
     name="noname";
@@ -79,7 +77,6 @@ class Rhythm {
     else  name = accentsToName(accents);
   }
 
-
   String accentsToName(List<int> accents) {
     if (accents == null) return null;
     if (accents.length == 0) return "";
@@ -96,7 +93,6 @@ class Rhythm {
     }
     return res;
   }
-
 
   Rhythm.onlyFirst(int nOfBeats) {
     name = sOnlyFist;
@@ -310,6 +306,48 @@ class UserRhythm extends Rhythm {
           accents: accents,
         );
 
+  UserRhythm.parse(String str)
+  {
+    subBeats = new List<int>();
+    accents = new List<int>();
+
+    List<String> split = str.split(',');
+    if (split.length > 1)
+    {
+      name = split[0];
+      bSubBeatDependent = split[1] != '0';
+      int i = 2;
+      while (i + 1 < split.length) {
+        subBeats.add(int.parse(split[i++]));
+        accents.add(int.parse(split[i++]));
+      }
+
+    }
+    else
+    {
+      name = '';
+      bSubBeatDependent = false;
+    }
+    bDefined = subBeats.length > 0;
+  }
+
+  String toString()
+  {
+    String str = name;
+    str += ',';
+    str += bSubBeatDependent ? '1' : '0';
+    if (subBeats.length > 0)
+      str += ',';
+    assert(subBeats.length == accents.length);
+    for (int i = 0; i < subBeats.length; i++)
+    {
+      str += subBeats[i].toString() + ',';
+      str += accents[i].toString();
+      if (i < subBeats.length - 1)
+        str += ',';
+    }
+  }
+
   void _inheritName(Rhythm rhythm)
   {
     name= rhythm.name+' (edited)';
@@ -330,7 +368,6 @@ class UserRhythm extends Rhythm {
     List<Rhythm> rhythms=rhythmsToCompare.where((rhythm) => (rhythm.beats==beats)).toList();
     if (rhythms.length==0) return res;
   }*/
-
 
 }
 
