@@ -103,7 +103,7 @@ Prestissimo >=200
   int _index;
 
   FixedExtentScrollController controller;
-  FixedExtentScrollController controllerVert;
+  //FixedExtentScrollController controllerVert;
   final int duration = 1000;
   bool _notify = true;
 
@@ -215,7 +215,7 @@ Prestissimo >=200
   {
     final Size size = constraints.biggest;
     //Size maxTextSize = maxListItemSize();
-    double fontSize = maxFontSize(size);
+    //double fontSize = maxFontSize(size);
 
     final List<Widget> wixTempo = new List<Widget>.generate(
       tempoList.length,

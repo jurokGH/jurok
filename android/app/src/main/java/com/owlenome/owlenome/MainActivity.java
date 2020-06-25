@@ -543,12 +543,14 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     soundSсhemes = new ArrayList<MusicSchemeMix>();
     Resources res = getResources();
 
-    soundSсhemes.add(new MusicSchemeMix("Wood&Cabasa", res, R.raw.woodblocks, R.raw.cabasa,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     //ToDo: она 240, подрезать!  одна из лучших схем.
     soundSсhemes.add(new MusicSchemeMix("Triangle&Claves", res, R.raw.triangle, R.raw.claves,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+    soundSсhemes.add(new MusicSchemeMix("Wood&Cabasa", res, R.raw.woodblocks, R.raw.cabasa,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
 
     //Первый барабан слышно весьма плохо.
     //Bass(ac)&snare(el),ag

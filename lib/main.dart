@@ -10,8 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:device_preview/device_preview.dart';
 //import 'package:wheel_chooser/wheel_chooser.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
-import  'package:owlenome/TwoWheels.dart';
-
+import 'package:owlenome/TwoWheels.dart';
 
 import 'package:owlenome/prosody.dart';
 import 'package:owlenome/rhythms.dart';
@@ -38,8 +37,6 @@ import 'settings.dart';
 import 'knob.dart';
 import 'KnobTuned.dart';
 //import 'KnobResizable.dart';
-
-
 
 import 'timer_ui.dart';
 import 'NoteTempo.dart';
@@ -720,7 +717,7 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
-       // _updateMetreBar = true;
+        // _updateMetreBar = true;
       }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
     }
   }
@@ -806,7 +803,7 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
-       // _updateMetreBar = true;
+        // _updateMetreBar = true;
       });
     }
   }
@@ -827,7 +824,8 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('-pmuJ');
 
-      setState(() {_updateMetreBar = true;//Todo:?
+      setState(() {
+        _updateMetreBar = true; //Todo:?
       });
     }
   }
@@ -2192,75 +2190,92 @@ class _HomePageState extends State<HomePage>
   //TextStyle basicTextStyle; //ToDo
 
   Widget testWidget(Size size) {
-    double textSize = size.width / 30;
-    final String s1 = '\u{1d197}';
-    final String s2 = decodeUtf32([0xF0, 0x9D, 0x84, 0xA0]);
-    final String s3 = '\u{1D13C}';
-    final String s =
-        '1/2: \u{1D13C} 1/4:\u{1D13D} 1/8:\u{1D13E} 1/16:\u{1D13F} 1/32:\u{1D140} ;';
 
-    final String textout = DateTime.now().microsecondsSinceEpoch.toString();
-
+    double fontSizeTempo = size.width *
+        0.3 /
+        6; //ToDo: to make the widget more flexible,  t
+    TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
     return Container(
-      decoration: decorDebug(Colors.black),
-      width: size.width,
-      height: size.height,
-      child: Align(
-        alignment: Alignment.center,
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                TestWid(
-                  string: textout,
-                  mState: Provider.of<MetronomeState>(context, listen: true),
-                ),
-                /*Text("_parity: "+
-        Provider.of<MetronomeState>(context, listen: false).parity.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: textSize,
-                    )),
+        width: size.width / 2,
+        height: size.height,
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                //image: AssetImage('images/but-note-1.png'),
+                //image: AssetImage('images/ictempo.png'),
+                //image: AssetImage('images/wh1.jpg'),
+                image: AssetImage('images/wh22.png'),
+                fit: BoxFit.fill,
+              )),
 
-                 */
-                /*
-                Text("  Parity now: "+
-                    Provider.of<MetronomeState>(context, listen: false).beatParityNow(
-                      DateTime.now().microsecondsSinceEpoch
-                    ).toString()+"  "+
-                    DateTime.now().microsecondsSinceEpoch.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: textSize,
-                    )),
-                 */
-              ],
+        child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+          double width = constraints.maxWidth * 1;
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              //decoration: decorTmp(Colors.black),
+              width: width,
+              child: TempoListWidget(
+                //TODO Limit
+                tempo: _tempoBpm,
+                maxTempo: _tempoBpmMax,
+                width: width,
+                textStyle: textStyle,
+                onChanged: _setTempo,
+                bReactOnTap: false,
+
+                ///ВАЖНО!
+                ///Поскольку Витя считает, что перемотка по кругу - плохо,
+                ///то необходимо убрать переход по тапу.
+                ///Иначе получается очень неудобная ситуация:
+                ///с  тапом по максимальному попадаем в 1, и снова по кругу...
+                ///При втором промахивании пользователь в бешенстве и удаляет приложение.
+              ),
             ),
-          ],
-        ),
-      ),
-    );
-    /*
+          );
+        }));
 
-
-
-    double ShadowOffset = size.width * 0.03;
-    double blurRadius = ShadowOffset * 1;
     return Container(
-      child: _rowControlsArea(true, size),
-      width: size.width,
+      width: size.width / 2,
       height: size.height,
-      decoration: BoxDecoration(
-        color: Colors.orangeAccent,
-        boxShadow: [
-          BoxShadow(
-            offset: Offset(0, ShadowOffset),
-            blurRadius: blurRadius,
-            //spreadRadius: 12.0,
-          ),
-        ],
-      ),
-    );     */
+      child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+        Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
+        double itemExtent = 0.5 * meterSize.width; //44,
+        final bool updateMetre = _updateMetre; //ISH: не уверен, что это
+        _updateMetre = false;
+
+        double meterTextSize = meterSize.height / 2.8;
+        TextStyle meterTextStyle = GoogleFonts.roboto(
+          fontSize: meterTextSize,
+          fontWeight: FontWeight.w800,
+        );
+        return //Container();
+            TwoWheels(
+          //MetreWidget(
+          update: true, //   updateMetre,//
+          //update: updateMetre, //ToDo: А в других вроде не нужно такой штуки....
+          //beats: _beat.beatCount, //ToDo: в этом виджете почему-то не работает. В остальных - ок, а тут непонятно. ????
+          //beats:_rhythmsToScroll[_scrollBarPosition].accents.length, То же самое.
+          beats:
+              _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
+          //когда значение меняется. Не нужно никакх update, кажется
+          minBeats: minBeatCount,
+          maxBeats: maxBeatCount,
+          note: _noteValue,
+          minNote: minNoteValue,
+          maxNote: maxNoteValue,
+          width: meterSize.width,
+          height: meterSize.height,
+          //itemExtent: itemExtent,
+          color: Colors.deepPurple,
+          textStyle: meterTextStyle,
+          textStyleSelected: meterTextStyle,
+          onBeatChanged: _onBeatChanged,
+          onNoteChanged: _onNoteChanged,
+        );
+      }),
+    );
   }
 
   ///Скролл темпов.
@@ -2335,14 +2350,17 @@ class _HomePageState extends State<HomePage>
     //А то разрушится трёхмернось.
 
     bool bTest = false; //tmp
+    //bool bTest = false;
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
-      (true) //!bTest
+      !bTest
+          //true
           ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
           : testWidget(Size(totalWidth, totalWidth * c2)),
-      bTest //(true)
-          ? testWidget(Size(totalWidth, totalWidth * c3))
-          : _rowControlsArea(true, Size(totalWidth, totalWidth * c3)),
+      //!bTest
+      (true)
+          ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
+          : testWidget(Size(totalWidth, totalWidth * c3)),
     ];
 
     Widget metronome = Align(
@@ -2811,19 +2829,17 @@ class _HomePageState extends State<HomePage>
 
   ///Прыгаем к следующему стандартному размеру.
   Widget jumpToNextStandardBeat() {
-
-    int nextBeat(){
+    int nextBeat() {
       int lng = Prosody.standardBeatNth.length;
-      int indToJump = 0;//Ищем следующий размер
-      if              ((Prosody.standardBeatNth[0]<= _beat.beatCount)&&
-          ( _beat.beatCount<Prosody.standardBeatNth[lng-1]))
-      {
-        do {indToJump++;}
-        while  (Prosody.standardBeatNth[indToJump] <= _beat.beatCount);
-      }// не изящно получилось
-      return  Prosody.standardBeatNth[indToJump];
+      int indToJump = 0; //Ищем следующий размер
+      if ((Prosody.standardBeatNth[0] <= _beat.beatCount) &&
+          (_beat.beatCount < Prosody.standardBeatNth[lng - 1])) {
+        do {
+          indToJump++;
+        } while (Prosody.standardBeatNth[indToJump] <= _beat.beatCount);
+      } // не изящно получилось
+      return Prosody.standardBeatNth[indToJump];
     }
-
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -2837,9 +2853,10 @@ class _HomePageState extends State<HomePage>
             onTap: () {
               _onUltimateJump(nextBeat());
             },
-            child:  Align(
+            child: Align(
               alignment: Alignment.center,
-              child: Text('To ${nextBeat()}/${_noteValue}',
+              child: Text(
+                'To ${nextBeat()}/${_noteValue}',
                 style: textStyle,
                 textScaleFactor: 1,
               ),
@@ -3613,12 +3630,15 @@ class _HomePageState extends State<HomePage>
         fontSize: meterTextSize,
         fontWeight: FontWeight.w800,
       );
-      return TwoWheels(
-        //MetreWidget(  true,//
-        update:  updateMetre,//ToDo: А в других вроде не нужно такой штуки....
+      return //Container();
+          //TwoWheels(
+          MetreWidget(
+        // true,//
+        update: updateMetre, //ToDo: А в других вроде не нужно такой штуки....
         //beats: _beat.beatCount, //ToDo: в этом виджете почему-то не работает. В остальных - ок, а тут непонятно. ????
         //beats:_rhythmsToScroll[_scrollBarPosition].accents.length, То же самое.
-        beats: _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
+        beats:
+            _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
         //когда значение меняется. Не нужно никакх update, кажется
         minBeats: minBeatCount,
         maxBeats: maxBeatCount,

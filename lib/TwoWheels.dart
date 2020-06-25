@@ -1,20 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'metre.dart';
-import 'metronome_state.dart';
 import 'LimitSizeText.dart';
 import 'util.dart';
-
-typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
-
-class WheelScrollController extends FixedExtentScrollController
-{
-  @override
-  ScrollPosition createScrollPosition(ScrollPhysics physics, ScrollContext context, ScrollPosition oldPosition) {
-    // TODO: implement createScrollPosition
-    return super.createScrollPosition(physics, context, oldPosition);
-  }
-}
 
 class TwoWheels extends StatefulWidget
 {
@@ -28,7 +14,7 @@ class TwoWheels extends StatefulWidget
 
   final double width;
   final double height;
-  final double itemExtent;
+  //final double itemExtent;
   final Color color;
   final TextStyle textStyle;
   final TextStyle textStyleSelected;
@@ -46,7 +32,7 @@ class TwoWheels extends StatefulWidget
     minNote = 1, maxNote = 32,
     this.width = double.infinity,
     this.height = double.infinity,
-    this.itemExtent = 40,
+    //this.itemExtent = 40,
     this.color = Colors.white,
     @required this.textStyle,
     @required this.textStyleSelected
@@ -70,10 +56,6 @@ class MetreState extends State<TwoWheels>
 
   MetreState();
 
-  void _beatScrollListener()
-  {
-    print('_beatScrollListener');
-  }
 
   void finishUpdate(_)
   {
@@ -109,7 +91,6 @@ class MetreState extends State<TwoWheels>
       _notify = false;
       print('update1 ${widget.beats}');
       //TODO Need?
-      int beats = clampLoop(widget.beats, widget.minBeats, widget.maxBeats);
       if (true)
       {
         //beatController.jumpToItem(beats - widget.minBeats);
@@ -122,8 +103,12 @@ class MetreState extends State<TwoWheels>
     }
 
     int positionToSet = clampLoop(widget.beats, widget.minBeats, widget.maxBeats)-widget.minBeats;
+    if (!beatController.positions.isNotEmpty){
+      debugPrint("EEEMPTY");
+      //ToDo
+    }
     if (beatController.positions.isNotEmpty)//ToDo
-      if (beatController.selectedItem!=positionToSet) ///ПООБЕДА?
+     if (beatController.selectedItem!=positionToSet) ///ПООБЕДА?
         {beatController.jumpToItem(positionToSet);}
 
     positionToSet= widget.noteIndex - widget.minNoteIndex;
@@ -132,24 +117,18 @@ class MetreState extends State<TwoWheels>
           {noteController.jumpToItem(positionToSet);}
 
     final TextStyle textStyle = widget.textStyle;//.copyWith(fontSize: fontSize);
-    final TextStyle textStyleHi = widget.textStyleSelected;//.copyWith(fontSize: fontSizeHi);
-    final TextStyle textStyleHiB = textStyle.copyWith(fontWeight: FontWeight.bold);
+    //final TextStyle textStyleHi = widget.textStyleSelected;//.copyWith(fontSize: fontSizeHi);
+   //final TextStyle textStyleHiB = textStyle.copyWith(fontWeight: FontWeight.bold);
 
     final List<Widget> wixBeats = new List<Widget>.generate(widget.maxBeats - widget.minBeats + 1,
             (int i) => new RotatedBox(
           quarterTurns: 1,
           child:
-//        FittedBox(
-//          fit: BoxFit.fitHeight,
-//          child:
-
-          LimitSizeText(
-            text: (i + widget.minBeats).toString(),
+          Text(
+            (i + widget.minBeats).toString(),
             textAlign: TextAlign.center,
-            //textScaleFactor: 1.5,
-            style: i + widget.minBeats == widget.beats ? textStyleHi : textStyle,
-            template: '12',
-            templateStyle: textStyleHi,
+            textScaleFactor: 1,
+            style: textStyle,
           ),
 //        ),
         )
@@ -158,13 +137,14 @@ class MetreState extends State<TwoWheels>
     final List<Widget> wixNotes = new List<Widget>.generate(widget.maxNoteIndex - widget.minNoteIndex + 1,
             (int i) {
           int noteValue = index2noteValue(i + widget.minNoteIndex);
-          return new RotatedBox(
+          return new
+          RotatedBox(
             quarterTurns: 1,
-            child:
+            child: Container(),
 //          FittedBox(
 //            fit: BoxFit.fitHeight,
 //            child:
-            LimitSizeText(
+  /*          LimitSizeText(
               text: noteValue.toString(),
               textAlign: TextAlign.center,
               style: i + widget.minNoteIndex == widget.noteIndex ? textStyleHiB : textStyle,
@@ -173,6 +153,7 @@ class MetreState extends State<TwoWheels>
               template: '16',
               templateStyle: textStyleHiB,
             ),
+*/
 //          ),
           );
         }
@@ -205,21 +186,17 @@ class MetreState extends State<TwoWheels>
                         beatController.jumpToItem(beats - widget.minBeats);
                         //setState(() {});
                       },
-                      child: Container(
-                        //color: widget.color,
-                          width: height,//double.infinity,
-                          height: width,
-                          child:
+                      child:
                           ListWheelScrollView.useDelegate(
                             controller: beatController,
                             physics: new FixedExtentScrollPhysics(),
-                            diameterRatio: 1.0,
-                            perspective: 0.004,
-                            offAxisFraction: 0,
-                            useMagnifier: false,
-                            magnification: 1,
-                            itemExtent: widget.itemExtent,
-                            squeeze: 1.5,
+                           // diameterRatio: 3,
+                         //   perspective: 0.004,
+                          //  offAxisFraction: 0,
+                         //   useMagnifier: false,
+                          //  magnification: 1,
+                            itemExtent: widget.width,
+                         //   squeeze: 0.88,
                             onSelectedItemChanged: (int index) {
                               print('onSelectedItemChanged ${index + widget.minBeats} - $_notify');
                               //if (_notify)  // To prevent reenter via widget.onBeatChanged::setState
@@ -231,7 +208,6 @@ class MetreState extends State<TwoWheels>
                             childDelegate: ListWheelChildLoopingListDelegate(children: wixBeats),
                           )
                       )
-                  )
               ),
             ),
 
@@ -274,11 +250,11 @@ class MetreState extends State<TwoWheels>
                             offAxisFraction: 0.0,
                             useMagnifier: false,
                             magnification: 1.0,
-                            itemExtent: widget.itemExtent,
+                            itemExtent: widget.width,
                             squeeze: 1.5,
                             onSelectedItemChanged: (int index) {
                               //print(index);
-                              if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
+                            //  if (_notify)  // To prevent reenter via widget.onBNotehanged::setState
                                 widget.onNoteChanged(index2noteValue(index + widget.minNoteIndex));
                               //setState(() {});
                             },
