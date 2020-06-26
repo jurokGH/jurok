@@ -609,7 +609,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             res, R.raw.bassandtumb280, R.raw.snaredrumelectric232,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
-
+    //Ухи с замененным первым бипом
+    soundSсhemes.add(new MusicSchemeMix("Whoo-whoo", res, R.raw.oboe_a4_250, R.raw.owl_short,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     soundSсhemes.add(new MusicSchemeMix("Bass&some drum", res,   R.raw.bussdrums240, R.raw.drum_accent_mono,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));

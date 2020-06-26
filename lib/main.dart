@@ -384,7 +384,7 @@ class _HomePageState extends State<HomePage>
   int _tempoBpmMax = maxTempo;
 
   /// Shows weather to update MetreWidget (if true)
-  bool _updateMetre = false;
+  bool _updateMetreWheels = false;
 
   /// Shows weather to update MetreBarWidget (if true)
   bool _updateMetreBar = false;
@@ -744,7 +744,8 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
-        _updateMetreBar = true;
+        _updateMetreWheels = true;
+        //_updateMetreBar = true;
       });
     }
   }
@@ -825,7 +826,7 @@ class _HomePageState extends State<HomePage>
       print('-pmuJ');
 
       setState(() {
-        _updateMetreBar = true; //Todo:?
+        _updateMetreWheels = true; //Todo:?
       });
     }
   }
@@ -899,7 +900,7 @@ class _HomePageState extends State<HomePage>
       print('_onNoteChanged');
       setState(() {
         _noteValue = noteValue;
-        _updateMetreBar = changed;
+        // _updateMetreBar = changed;
       });
     }
   }
@@ -951,7 +952,7 @@ class _HomePageState extends State<HomePage>
     //_noteValue = _metreList[index].note;  // Does not affect sound
     print('onMetreBarChanged');
     setState(() {
-      _updateMetre = true;
+      _updateMetreWheels = true;
     });
   }
 
@@ -1377,8 +1378,8 @@ class _HomePageState extends State<HomePage>
       width: btnPadding,
     );
 
-    bool updateMetre = _updateMetre;
-    _updateMetre = false;
+    bool updateMetre = _updateMetreWheels;
+    _updateMetreWheels = false;
 
     final MetreWidget metre = new MetreWidget(
       update: updateMetre,
@@ -2155,8 +2156,8 @@ class _HomePageState extends State<HomePage>
 //      .copyWith(color: _cWhiteColor, fontWeight: FontWeight.bold, height: 1),//16
 //    unSelectTextStyle: Theme.of(context).textTheme.subhead
 //      .copyWith(color: Colors.white70, height: 1),//16
-    bool update = _updateMetre;
-    _updateMetre = false;
+    bool update = _updateMetreWheels;
+    _updateMetreWheels = false;
 
     print('Font ${textStyle.fontSize}');
 
@@ -2190,23 +2191,20 @@ class _HomePageState extends State<HomePage>
   //TextStyle basicTextStyle; //ToDo
 
   Widget testWidget(Size size) {
-
-    double fontSizeTempo = size.width *
-        0.3 /
-        6; //ToDo: to make the widget more flexible,  t
+    double fontSizeTempo =
+        size.width * 0.3 / 6; //ToDo: to make the widget more flexible,  t
     TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
     return Container(
         width: size.width / 2,
         height: size.height,
-          decoration: BoxDecoration(
-              image: DecorationImage(
-                //image: AssetImage('images/but-note-1.png'),
-                //image: AssetImage('images/ictempo.png'),
-                //image: AssetImage('images/wh1.jpg'),
-                image: AssetImage('images/wh22.png'),
-                fit: BoxFit.fill,
-              )),
-
+        decoration: BoxDecoration(
+            image: DecorationImage(
+          //image: AssetImage('images/but-note-1.png'),
+          //image: AssetImage('images/ictempo.png'),
+          //image: AssetImage('images/wh1.jpg'),
+          image: AssetImage('images/wh23meter.png'),
+          fit: BoxFit.fill,
+        )),
         child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
           double width = constraints.maxWidth * 1;
@@ -2235,15 +2233,15 @@ class _HomePageState extends State<HomePage>
           );
         }));
 
-    return Container(
+    /*return Container(
       width: size.width / 2,
       height: size.height,
       child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
         Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
         double itemExtent = 0.5 * meterSize.width; //44,
-        final bool updateMetre = _updateMetre; //ISH: не уверен, что это
-        _updateMetre = false;
+        final bool updateMetre = _updateMetreWheels; //ISH: не уверен, что это
+        _updateMetreWheels = false;
 
         double meterTextSize = meterSize.height / 2.8;
         TextStyle meterTextStyle = GoogleFonts.roboto(
@@ -2276,6 +2274,7 @@ class _HomePageState extends State<HomePage>
         );
       }),
     );
+    */
   }
 
   ///Скролл темпов.
@@ -2349,8 +2348,8 @@ class _HomePageState extends State<HomePage>
     //Пока она едет зайцем.
     //А то разрушится трёхмернось.
 
-    bool bTest = false; //tmp
-    //bool bTest = false;
+    bool bTest = false;
+    //bTest = true; //ToDo hide
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       !bTest
@@ -2794,7 +2793,7 @@ class _HomePageState extends State<HomePage>
                         fit: BoxFit.fill,
                       )),
                       //decoration: decorTmp(Colors.green),
-                      child: jumpToNextStandardBeat(), // rhythmPicker(),
+                      child: jumpToNextStandardBeatW(), // rhythmPicker(),
                     ),
                   ),
                   Expanded(
@@ -2828,7 +2827,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Прыгаем к следующему стандартному размеру.
-  Widget jumpToNextStandardBeat() {
+  Widget jumpToNextStandardBeatW() {
     int nextBeat() {
       int lng = Prosody.standardBeatNth.length;
       int indToJump = 0; //Ищем следующий размер
@@ -3622,21 +3621,18 @@ class _HomePageState extends State<HomePage>
         builder: (BuildContext context, BoxConstraints constraints) {
       Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
       double itemExtent = 0.5 * meterSize.width; //44,
-      final bool updateMetre = _updateMetre; //ISH: не уверен, что это
-      _updateMetre = false;
+      final bool updateMetre = _updateMetreWheels; //ISH: не уверен, что это
+      _updateMetreWheels = false;
 
-      double meterTextSize = meterSize.height / 2.2;
+      double meterTextSize = meterSize.height / 2.6;
       TextStyle meterTextStyle = GoogleFonts.roboto(
         fontSize: meterTextSize,
         fontWeight: FontWeight.w800,
       );
       return //Container();
-          TwoWheels(
+        TwoWheels(
           //MetreWidget(
-        // true,//
         update: updateMetre, //ToDo: А в других вроде не нужно такой штуки....
-        //beats: _beat.beatCount, //ToDo: в этом виджете почему-то не работает. В остальных - ок, а тут непонятно. ????
-        //beats:_rhythmsToScroll[_scrollBarPosition].accents.length, То же самое.
         beats:
             _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
         //когда значение меняется. Не нужно никакх update, кажется
@@ -3647,10 +3643,10 @@ class _HomePageState extends State<HomePage>
         maxNote: maxNoteValue,
         width: meterSize.width,
         height: meterSize.height,
-        //itemExtent: itemExtent,
+        itemExtent: itemExtent,
         color: Colors.deepPurple,
         textStyle: meterTextStyle,
-        textStyleSelected: meterTextStyle,
+        //textStyleSelected: meterTextStyle,
         onBeatChanged: _onBeatChanged,
         onNoteChanged: _onNoteChanged,
       );
