@@ -93,7 +93,10 @@ class AccentBarState extends State<AccentBarWidget>
         final bool rests=((accents1.length>0)&&(accents1[0]==-1));
 
         double restsFactor= 1.5;
-        if (beats<=2)restsFactor/=2;///Почему? Никто не знает...
+        if (beats==1)restsFactor/=4;///Почему? Никто не знает...
+         if  (beats==2) restsFactor/=2.5;
+        if  (beats==3) restsFactor/=1.8;
+        if  (beats>=4) restsFactor/=1.5;
         if (beats>6)restsFactor*=1.5;///вообще непонятно...
         if (beats>10)restsFactor*=1.5;///очень странно... //ToDo
 

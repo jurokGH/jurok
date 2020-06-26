@@ -12,6 +12,7 @@ import 'package:device_preview/device_preview.dart';
 //import 'package:wheel_chooser/wheel_chooser.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 import 'package:owlenome/TwoWheels.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:owlenome/prosody.dart';
 import 'package:owlenome/rhythms.dart';
@@ -2815,7 +2816,7 @@ class _HomePageState extends State<HomePage>
                   top: meterYPaddyng,
                   bottom: meterYPaddyng),
               decoration: decorDebug(Colors.yellow),
-              child: metreBarU(), //ToDo: очень тормозит при тапе.
+              child: metreBarU(),
             ),
           ),
           //Spacer(flex:1),

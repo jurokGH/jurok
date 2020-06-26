@@ -345,17 +345,17 @@ class NotePainter extends CustomPainter {
   String exponentToRests() {
     //toDo: как-то это можно умнее сделать, но не умею
     //записать переменную под \u
-    switch (_noteExponent) {
-      case 1:
+    switch (denominator) {
+      case 2:
         return '\u{1D13C}';
         break;
-      case 2:
+      case 4:
         return '\u{1D13D}'; //четвертинка
         break;
-      case 3:
+      case 8:
         return '\u{1D13E}';
         break;
-      case 4:
+      case 16:
         return '\u{1D13F}';
         break;
       default:

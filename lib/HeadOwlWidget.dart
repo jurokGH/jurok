@@ -416,7 +416,7 @@ class HeadOwlState extends State<HeadOwlWidget>
           if (step != 0) {
             _dragStartY = details.localPosition.dy;
             final int accent =
-                clamp(widget.nAccent + step, 0, widget.maxAccent);
+                clamp(widget.nAccent + step, -1, widget.maxAccent);
             setState(() {
               widget.nAccent = accent;
             });
