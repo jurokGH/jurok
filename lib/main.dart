@@ -160,7 +160,7 @@ List<UserRhythm> userRhythms;
 /// userRhythms[_lastEditedBeatIndex]
 int _lastEditedBeatIndex;
 
-///в данном числе бит (-1) показывали ли мы пользовательский ритм?
+///в данном числе бит (-1) показывали ли мык пользовательский ритм?
 List<bool> _lastShownIsUsers = List<bool>.filled(12, false);
 
 /*
@@ -877,11 +877,14 @@ class _HomePageState extends State<HomePage>
   void onAccentChanged(int id, int accent) {
     assert(id < _beat.subBeats.length);
 
-    storeUserRhythm();
+
 
     //_beat.setAccent(id, accent);
     _beat.setAccent(id, accent);
     //Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;  // TODO Need???
+
+    storeUserRhythm();
+
     _channel.setBeat(
         _beat.beatCount,
         _beat.subBeatCount,
