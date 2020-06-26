@@ -80,6 +80,7 @@ class Rhythm {
   }
 
 
+  ///Не очень понятно, как писать паузы. Этого я не знаю.
   String accentsToName(List<int> accents) {
     if (accents == null) return null;
     if (accents.length == 0) return "";
@@ -90,6 +91,16 @@ class Rhythm {
       else
         summands.add(1);
     }
+    ///Для пауз можно попробовать что-то такое... Но не очень понятно, верно ли это будет.
+    /// (-1,0,0) - это какая строка? (-)-2? Или что?
+    ///
+    /*
+    String summandToString(int summand){
+      if (summand>0) return summand.toString();
+      if (summand==-1) return '(-)';
+      return "?";
+    }
+     */
     String res = summands[0].toString();
     for (int i = 1; i < summands.length; i++) {
       res += "+" + summands[i].toString();
@@ -208,7 +219,7 @@ class Rhythm {
     //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
     //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
     ///4/4; 3+3+2; sincopa
-    name = "Second habanera (sincopa)";
+    name = "Second habanera (a)"; //(sincopa)
     bSubBeatDependent = true;
     accents = [2, 1, 0, 1, 1, 0, 1, 0];
     subBeats = List<int>.filled(accents.length, 1);
@@ -220,7 +231,7 @@ class Rhythm {
     //https://www.youtube.com/watch?v=zNow1XilN0I - вот отсюда взять.
     //3 habaneras: https://african-americanandlatinamericanstylesofmusic.weebly.com/habanera-rhythm.html
     ///4/4; 3+3+2; sincopa
-    name = "Second habanera (sincopa) 21001010";
+    name = "Second habanera  (b)"; //(sincopa)
     bSubBeatDependent = true;
     accents = [2, 1, 0, 0, 1, 0, 1, 0];
     subBeats = List<int>.filled(accents.length, 1);
@@ -357,7 +368,7 @@ class FancyRhythms {
     //10 долей
     for (int i = 3; i < 12; i++) fancy.add(Rhythm.roll8(i + 1));
 
-    fancy.add(Rhythm.warmGun());
+    //fancy.add(Rhythm.warmGun());
     fancy.add(Rhythm.soca());
     fancy.add(Rhythm.socaPart1());
     fancy.add(Rhythm.calypso1());

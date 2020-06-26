@@ -3329,7 +3329,7 @@ class _HomePageState extends State<HomePage>
       return Container(
         padding: EdgeInsets.symmetric(
             vertical: totalWidth * shrinkForList / 50,
-            horizontal: totalWidth * (1 - shrinkForList) / 4),
+            horizontal: totalWidth * (1 - shrinkForList) / 3),
         child: GestureDetector(
           onTap: () {
             onRhythmSelectedFromList(beatIndex, position, (position < 0));
@@ -3356,6 +3356,7 @@ class _HomePageState extends State<HomePage>
               alignment: Alignment.center,
               child: Text(
                 rhythm.name,
+                style:  listTextStyle,
                 /*
                 style: //ToDo
                     ? listTextStyleBold
@@ -3382,7 +3383,7 @@ class _HomePageState extends State<HomePage>
         rhythmListW.add(
           Padding(
               padding: EdgeInsets.symmetric(
-            vertical: totalWidth * shrinkForList / 25,
+            vertical: totalWidth * shrinkForList / 5,
           )),
         );
     }
