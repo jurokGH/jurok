@@ -20,6 +20,7 @@ class AccentBarWidget extends StatefulWidget
   final int noteValue;
   final bool bForceRedraw;
   final int maxAccent;
+  final FixedExtentScrollController scrollController;
 
   AccentBarWidget({
     this.rhythms,
@@ -30,6 +31,7 @@ class AccentBarWidget extends StatefulWidget
     this.bForceRedraw,
     this.bReactOnTap=true,
     this.maxAccent,
+    @required this.scrollController,
   });
 
   @override
@@ -41,27 +43,8 @@ class AccentBarState extends State<AccentBarWidget>
 {
 
 
-  FixedExtentScrollController controller;
-  //FixedExtentScrollController controllerVert;
-  final int duration = 1000;
-  bool _notify = true;
-
   AccentBarState();
 
-
-  void finishUpdate(_)
-  {
-    _notify = true;
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-
-    controller = new FixedExtentScrollController(initialItem: widget.position);
-    //controller.addListener(scrollListener);
-  }
 
 
 
@@ -69,14 +52,12 @@ class AccentBarState extends State<AccentBarWidget>
   Widget _builder(BuildContext context, BoxConstraints constraints)
   {
 
-
     Widget rhythmDrawW(Size size, Rhythm rhythm, int  noteValue)
     {
-      //final MetreBar metreBar = widget.metres[widget.activeMetre];
       final int beats = rhythm.beats;
-      // Simple metre array
+      /// Simple metre array
       final List<int> subMetres = Prosody.groupNotes(rhythm.accents);
-      //Prosody.getSimpleMetres(beats, false);
+      ///Prosody.getSimpleMetres(beats, false);
       final List<int> accents = rhythm.accents;
 
 
@@ -174,17 +155,22 @@ class AccentBarState extends State<AccentBarWidget>
       GestureDetector(
         onTap: ()
         {
-          if (!widget.bReactOnTap) return; //ISH: Is it a correct way? //ToDo
-          int index = (widget.position  >= userRhythms.length)? widget.position :
-          widget.position+1;
+          if (!widget.bReactOnTap) return;
+          int index = (widget.position  >= userRhythms.length)? 0 :
+            widget.position+1;
           //if (index >= tempoList.length || tempoList[index].minTempo > widget.maxTempo)
             //index = 0;
-          controller.jumpToItem(index);
+          widget.scrollController.jumpToItem(widget.position+1);
+          ///это может вынести мозги, когда анимация идет не в ту сторону
+          /*widget.scrollController.animateToItem(widget.position+1,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeOut,
+          );*/
         },
 
-        child:
-        ListWheelScrollView.useDelegate(
-          controller: controller,
+        child:        ListWheelScrollView.useDelegate(
+          controller: widget.scrollController,
+          //physics: new FixedExtentScrollPhysics(),
           physics: new FixedExtentScrollPhysics(),
           diameterRatio: 1000.0,
           perspective: 0.000001,
@@ -194,12 +180,12 @@ class AccentBarState extends State<AccentBarWidget>
           itemExtent: widget.size.width,
           squeeze: 0.88,
           onSelectedItemChanged: (int index) {
-              if (_notify)//ISH: не понимаю это, пробую наобум
+            //  if (_notify)//ISH: не понимаю это, пробую наобум
                 widget.onChanged(index);//Новый индекс?
           },
           clipToSize: true,
           renderChildrenOutsideViewport: false,
-          childDelegate: ListWheelChildListDelegate(children: wixRhythmsDraw),
+          childDelegate: ListWheelChildLoopingListDelegate(children: wixRhythmsDraw),
         ),
       ),
     );
@@ -217,11 +203,12 @@ class AccentBarState extends State<AccentBarWidget>
     // To prevent reenter via widget.onBeat/NoteChanged::setState
     // when position is changing via jumpToItem/animateToItem
     //ISH: I do not see the problem.
-    if ((index != widget.position || widget.bForceRedraw)&& _notify)//mmmm....What? //ToDo
+//    if ((index != widget.position || widget.bForceRedraw)&& _notify)//mmmm....What? //ToDo
       ///index != widget.position - чего-то я тут фигню какую-то написал бессмысленную
       ///Это же всё просто эквивалентно  _notify
+    /*
     {
-      _notify = false;
+    //  _notify = false;
       //print('Tempo:update1 $index');
       //TODO Need?
       if (true)
@@ -239,7 +226,7 @@ class AccentBarState extends State<AccentBarWidget>
       }
       //print('Tempo:update2');
     }
-
+      */
     return LayoutBuilder(
         builder: _builder
     );

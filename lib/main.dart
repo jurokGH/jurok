@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:owlenome/GoAroundWheel.dart';
 import 'package:owlenome/MetreBar_ui.dart';
 import 'package:owlenome/Skin4Accents.dart';
 import 'package:owlenome/subbeat-eq_ui.dart';
@@ -347,7 +348,8 @@ class _HomePageState extends State<HomePage>
 
   int _noteValue = _cIniNoteValue;
 
-  int _scrollBarPosition = 0;
+  static final  int  _initScrollBarPosition=0;
+  int _scrollBarPosition = _initScrollBarPosition;
 
   ///not used in alfa-omega:
   /// Partly-sorted metre list to switch between metres
@@ -651,8 +653,6 @@ class _HomePageState extends State<HomePage>
   ///
 
   ///Запасаем пользовательский ритм для данного числа долей.
-  ///Считаем, что пользователь сделал что-то интересное, если
-  ///он менял подбит или акцент на одной из сов (или на всех).
   ///(у одной совы не запасаем) - глупо, но запасаем
   void storeUserRhythm() {
     //if (_beat.beatCount > 1) {
@@ -660,6 +660,10 @@ class _HomePageState extends State<HomePage>
         UserRhythm(_beat.subBeats, _beat.accents);
     _lastEditedBeatIndex = _beat.beatCount - 1;
     final int positionToInsert = _scrollBarPosition;
+
+    userRhythms[_beat.beatCount - 1].inheritName();
+
+
     makeRhythmsForScroll(positionToInsert, positionToInsert);
     _lastShownIsUsers[_lastEditedBeatIndex] = true;
     _lastEditedInBeat[_beat.beatCount - 1] = positionToInsert;
@@ -674,9 +678,7 @@ class _HomePageState extends State<HomePage>
       RhythmComparisonResult res=
       userRhythms[_beat.beatCount - 1].compare(_predefinedRhythms[_beat.beatCount - 1]);*/
 
-    userRhythms[_beat.beatCount - 1].inheritName();
-
-    debugPrint("new rithm stored in " + _beat.beatCount.toString());
+    debugPrint("new rhythm was stored in " + _beat.beatCount.toString());
   }
 
   ///Из пользовательского и предустановленных создаем то, что крутится.
@@ -722,7 +724,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  /// Из списка. Число бит; позиция в predefined, или же пользовательский
+  /// Из списка. Число бит (-1); позиция в predefined, или же пользовательский
   void onRhythmSelectedFromList(int beatIndex, int position, bool bUsers) {
     if (!(false)) //ToDo:(проверяем, что надо менять что-то)
     {
@@ -826,7 +828,7 @@ class _HomePageState extends State<HomePage>
       print('-pmuJ');
 
       setState(() {
-        _updateMetreWheels = true; //Todo:?
+       _updateMetreWheels = true; //Todo:?
       });
     }
   }
@@ -2188,50 +2190,89 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
-  //TextStyle basicTextStyle; //ToDo
+
+
+///ToDo: убрать
+  static final  int _initTest=3;
+  int _tmpTest = _initTest;
+  final List<int> testList = List<int>.generate(10, (int x) => x * 10);
+  final  FixedExtentScrollController  tempController1=FixedExtentScrollController(initialItem: _initTest);
+  final  FixedExtentScrollController  tempController2=FixedExtentScrollController(initialItem: _initTest);
 
   Widget testWidget(Size size) {
     double fontSizeTempo =
-        size.width * 0.3 / 6; //ToDo: to make the widget more flexible,  t
+        size.width * 1 / 10;
     TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
-    return Container(
-        width: size.width / 2,
-        height: size.height,
-        decoration: BoxDecoration(
-            image: DecorationImage(
-          //image: AssetImage('images/but-note-1.png'),
-          //image: AssetImage('images/ictempo.png'),
-          //image: AssetImage('images/wh1.jpg'),
-          image: AssetImage('images/wh23meter.png'),
-          fit: BoxFit.fill,
-        )),
-        child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-          double width = constraints.maxWidth * 1;
-          return Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              //decoration: decorTmp(Colors.black),
-              width: width,
-              child: TempoListWidget(
-                //TODO Limit
-                tempo: _tempoBpm,
-                maxTempo: _tempoBpmMax,
-                width: width,
-                textStyle: textStyle,
-                onChanged: _setTempo,
-                bReactOnTap: false,
-
-                ///ВАЖНО!
-                ///Поскольку Витя считает, что перемотка по кругу - плохо,
-                ///то необходимо убрать переход по тапу.
-                ///Иначе получается очень неудобная ситуация:
-                ///с  тапом по максимальному попадаем в 1, и снова по кругу...
-                ///При втором промахивании пользователь в бешенстве и удаляет приложение.
-              ),
-            ),
-          );
-        }));
+    return Row(
+      children: <Widget>[
+        Container(
+            width: size.width / 2,
+            height: size.height,
+            decoration: BoxDecoration(
+                image: DecorationImage(
+              image: AssetImage('images/wh23meter.png'),
+              fit: BoxFit.fill,
+            )),
+            child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+              double width = constraints.maxWidth * 1;
+              return Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: width,
+                  child: GoAroundWheelW(
+                    list: testList,
+                    position: _tmpTest,
+                    width: width,
+                    textStyle: textStyle,
+                    bReactOnTap: true,
+                    onChanged: (int newVal) {
+                      setState(() {
+                        _tmpTest = newVal;
+                        //tempController2.jumpToItem(newVal);
+                        tempController2.animateToItem(newVal,
+                        duration: Duration(milliseconds:  150),
+                        curve: Curves.linear,);
+                      });
+                    },
+                    controller: tempController1,
+                  ),
+                ),
+              );
+            })),
+        Container(
+            width: size.width / 2,
+            height: size.height,
+            decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('images/wh23meter.png'),
+                  fit: BoxFit.fill,
+                )),
+            child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  double width = constraints.maxWidth * 1;
+                  return Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: width,
+                      child: GoAroundWheelW(
+                        list: testList,
+                        position: _tmpTest,
+                        width: width,
+                        textStyle: textStyle,
+                        bReactOnTap: true,
+                        onChanged: (int newVal) {
+                          setState(() {
+                            _tmpTest = newVal;
+                          });
+                        },
+                        controller: tempController2,
+                      ),
+                    ),
+                  );
+                })),
+      ],
+    );
 
     /*return Container(
       width: size.width / 2,
@@ -2349,7 +2390,7 @@ class _HomePageState extends State<HomePage>
     //А то разрушится трёхмернось.
 
     bool bTest = false;
-    //bTest = true; //ToDo hide
+  //    bTest = true; //ToDo hide
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       !bTest
@@ -3261,7 +3302,7 @@ class _HomePageState extends State<HomePage>
         ),
         Expanded(
           flex: right,
-          child: rhythmListW(textStyle, right / total),
+          child: rhythmNameW(textStyle, right / total),
         ),
       ],
     );
@@ -3270,7 +3311,7 @@ class _HomePageState extends State<HomePage>
   ///
   /// Рисует тапабельную строку с ритмом.
   ///
-  Widget rhythmListW(TextStyle textStyle, double totalWidth) {
+  Widget rhythmNameW(TextStyle textStyle, double totalWidth) {
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
     double shrinkForList = 0.9;
@@ -3279,14 +3320,14 @@ class _HomePageState extends State<HomePage>
     TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-    Widget itemOfList(Rhythm rhythm, int beat, int position) {
+    Widget itemOfList(Rhythm rhythm, int beatIndex, int position) {
       return Container(
         padding: EdgeInsets.symmetric(
             vertical: totalWidth * shrinkForList / 50,
             horizontal: totalWidth * (1 - shrinkForList) / 4),
         child: GestureDetector(
           onTap: () {
-            onRhythmSelectedFromList(beat, position, (position < 0));
+            onRhythmSelectedFromList(beatIndex, position, (position < 0));
             /*//ToDo: experiment
             if (rhythm.bSubBeatDependent)
               onEverythingChanged(rhythm);
@@ -3615,6 +3656,7 @@ class _HomePageState extends State<HomePage>
      */
   }
 
+
   ///Витины колёса метра, завернутые во внешний размер
   Widget metreU() {
     return LayoutBuilder(
@@ -3630,12 +3672,12 @@ class _HomePageState extends State<HomePage>
         fontWeight: FontWeight.w800,
       );
       return //Container();
-        TwoWheels(
-          //MetreWidget(
+          TwoWheels(
+        //MetreWidget(
         update: updateMetre, //ToDo: А в других вроде не нужно такой штуки....
         beats:
             _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
-        //когда значение меняется. Не нужно никакх update, кажется
+        //когда значение меняется. Не нужно никаких update, кажется
         minBeats: minBeatCount,
         maxBeats: maxBeatCount,
         note: _noteValue,
@@ -3643,7 +3685,7 @@ class _HomePageState extends State<HomePage>
         maxNote: maxNoteValue,
         width: meterSize.width,
         height: meterSize.height,
-        itemExtent: itemExtent,
+        //itemExtent: itemExtent,
         color: Colors.deepPurple,
         textStyle: meterTextStyle,
         //textStyleSelected: meterTextStyle,
@@ -3718,6 +3760,11 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+
+  final FixedExtentScrollController _scrollBarController= FixedExtentScrollController(
+      initialItem: _initScrollBarPosition
+  );
+
   Widget metreBarU() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
@@ -3731,38 +3778,8 @@ class _HomePageState extends State<HomePage>
         bReactOnTap: true,
         maxAccent: _beat.maxAccent,
         bForceRedraw: true, //Поменять: только если число нот поменялось.
-        // Да вроде и так не перерисовывается лишний раз...
-      )
-
-          /*
-
-          bool updateMetreBar = _updateMetreBar; //ISH: не уверен, что это
-          _updateMetreBar = false;
-
-    return  MetreBarWidget(
-        update: updateMetreBar,
-        metres: _metreList,
-        activeMetre: _activeMetre,
-        size: metreBarSize,
-        color: _clrRegularBar,
-        colorIrregular: _clrIrregularBar, // Currently switched off
-        noteColor: Colors.black,
-        onSelectedChanged: onMetreBarChanged,
-        onOptionChanged: (bool pivoVodochka) {
-          //_beat.setAccentOption(pivoVodochka);
-          if (activeMetre.setAccentOption(pivoVodochka ? 0 : 1)) {
-            setState(() {});
-          }
-        },
-        onResetMetre: () {
-          activeMetre.setRegularAccent();
-          //_beat.setRegularAccent();
-          setState(() {
-            _updateMetreBar = true;
-          });
-        },
-      )*/
-          ;
+        scrollController: _scrollBarController,
+      );
     });
   }
 

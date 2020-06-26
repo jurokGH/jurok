@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
 import 'util.dart';
 
-typedef ValueChanged2<T1, T2> = void Function(T1 value1, T2 value2);
-
-class WheelScrollController extends FixedExtentScrollController {
-  @override
-  ScrollPosition createScrollPosition(ScrollPhysics physics,
-      ScrollContext context, ScrollPosition oldPosition) {
-    // TODO: implement createScrollPosition
-    return super.createScrollPosition(physics, context, oldPosition);
-  }
-}
 
 class TwoWheels extends StatefulWidget {
   final bool update;
@@ -33,20 +23,20 @@ class TwoWheels extends StatefulWidget {
 
   TwoWheels(
       {this.update = false,
-      @required this.beats,
-      @required note,
-      @required this.onBeatChanged,
-      @required this.onNoteChanged,
-      this.minBeats = 1,
-      this.maxBeats = 32,
-      minNote = 1,
-      maxNote = 32,
-      this.width = double.infinity,
-      this.height = double.infinity,
-      this.itemExtent = 40,
-      this.color = Colors.white,
-      @required this.textStyle,
-      //@required this.textStyleSelected,
+        @required this.beats,
+        @required note,
+        @required this.onBeatChanged,
+        @required this.onNoteChanged,
+        this.minBeats = 1,
+        this.maxBeats = 32,
+        minNote = 1,
+        maxNote = 32,
+        this.width = double.infinity,
+        this.height = double.infinity,
+        this.itemExtent = 40,
+        this.color = Colors.white,
+        @required this.textStyle,
+        //@required this.textStyleSelected,
       })
       : noteIndex = noteValue2index(note),
         minNoteIndex = noteValue2index(minNote),
@@ -106,12 +96,12 @@ class TwoWheelsState extends State<TwoWheels> {
         //TODO Both run => when finishUpdate?
         beatController
             .animateToItem(beats - widget.minBeats,
-                duration: Duration(milliseconds: duration), curve: Curves.ease)
+            duration: Duration(milliseconds: duration), curve: Curves.ease)
             .catchError(finishUpdate)
             .then<void>(finishUpdate);
         noteController
             .animateToItem(widget.noteIndex - widget.minNoteIndex,
-                duration: Duration(milliseconds: duration), curve: Curves.ease)
+            duration: Duration(milliseconds: duration), curve: Curves.ease)
             .catchError(finishUpdate)
             .then<void>(finishUpdate);
       }
@@ -124,15 +114,15 @@ class TwoWheelsState extends State<TwoWheels> {
 
     final List<Widget> wixBeats = new List<Widget>.generate(
         widget.maxBeats - widget.minBeats + 1,
-        (int i) => new RotatedBox(
-              quarterTurns: 1,
-              child: Text(
-                (i + widget.minBeats).toString(),
-                textAlign: TextAlign.center,
-                style: textStyle,
-                textScaleFactor: 1,
-              ),
-            ));
+            (int i) => new RotatedBox(
+          quarterTurns: 1,
+          child: Text(
+            (i + widget.minBeats).toString(),
+            textAlign: TextAlign.center,
+            style: textStyle,
+            textScaleFactor: 1,
+          ),
+        ));
 
     final List<Widget> wixNotes = new List<Widget>.generate(
         widget.maxNoteIndex - widget.minNoteIndex + 1, (int i) {
@@ -181,7 +171,7 @@ class TwoWheelsState extends State<TwoWheels> {
                       //setState(() {});
                     },
                     child: Container(
-                        //color: widget.color,
+                      //color: widget.color,
                         width: height, //double.infinity,
                         height: width,
                         child: ListWheelScrollView.useDelegate(
@@ -231,7 +221,7 @@ class TwoWheelsState extends State<TwoWheels> {
                       //setState(() {});
                     },
                     child: Container(
-                        //color: widget.color,
+                      //color: widget.color,
                         width: height, //double.infinity,
                         height: width,
                         child: ListWheelScrollView.useDelegate(

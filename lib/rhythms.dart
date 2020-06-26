@@ -367,7 +367,7 @@ class FancyRhythms {
     fancy.add(Rhythm.tangoHabanera3in8());
     fancy.add(Rhythm.moneyPF());
     fancy.add(Rhythm.twoBubBum());
-    fancy.add(Rhythm.strangeIn3());
+//    fancy.add(Rhythm.strangeIn3());
 
     fancyRhythms = List<List<Rhythm>>.generate(12, (n) => []);
     for (int i = 0; i < fancy.length; i++) {
