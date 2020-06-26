@@ -179,7 +179,7 @@ const int _cMinTempo = 1;
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    15; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+    30; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -2220,7 +2220,7 @@ class _HomePageState extends State<HomePage>
                 alignment: Alignment.bottomCenter,
                 child: Container(
                   width: width,
-                  child: GoAroundWheelW(
+                  /*child: GoAroundWheelW(
                     list: testList,
                     position: _tmpTest,
                     width: width,
@@ -2237,6 +2237,8 @@ class _HomePageState extends State<HomePage>
                     },
                     controller: tempController1,
                   ),
+
+                   */
                 ),
               );
             })),
@@ -2255,7 +2257,7 @@ class _HomePageState extends State<HomePage>
                     alignment: Alignment.bottomCenter,
                     child: Container(
                       width: width,
-                      child: GoAroundWheelW(
+                      /*child: GoAroundWheelW(
                         list: testList,
                         position: _tmpTest,
                         width: width,
@@ -2267,7 +2269,7 @@ class _HomePageState extends State<HomePage>
                           });
                         },
                         controller: tempController2,
-                      ),
+                      ),*/
                     ),
                   );
                 })),
