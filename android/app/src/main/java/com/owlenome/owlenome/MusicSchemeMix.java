@@ -127,7 +127,7 @@ class MusicSchemeMix
                         absoluteMaxOfNoteAccents, GeneralProsody.beatDynamic);
                 break;
 
-            case Agogic:
+            case Agogic://ToDo: тут ничего не нормализуется. Название - старый рудимент. И просодия - динамическая.
                 setOfNotes = GeneralProsody.agogicAccentsNormalizedTmp(beatSound, subBeatSound,
                         absoluteMaxOfNoteAccents);
                 break;

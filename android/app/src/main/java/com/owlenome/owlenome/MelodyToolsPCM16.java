@@ -300,8 +300,6 @@ public class MelodyToolsPCM16
       res=newSample;
     }
 
-
-
     //Пробуем срастить начало с initValueApprox. Experiment; НЕ РАБОТАЕТ - щелкает
     /*
     if (!bConnect) return  res;
@@ -317,6 +315,25 @@ public class MelodyToolsPCM16
       samples1[2 * i + 1] = (byte)((newSample & 0xff00) >>> 8);
     }*/
     return res;
+  }
+
+
+
+  /**
+   *     Проверка микса без биттовой арифметики. Не использовать в мирных целях
+   */
+  public static void mixNormalizedTestViaDoubleTEST(byte[] samples1, byte[] samples2) {
+
+    double[] longSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples1);// Чтобы по битам не разбирать
+    double[] shortSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples2);//
+    double[] resD=new double[longSndD.length];
+    for(int i=0; i<longSndD.length; i++){
+      double d=(i<shortSndD.length)?shortSndD[i]:0;
+      resD[i]=(d+longSndD[i])*0.5;
+    }
+    byte[] resB=MelodyToolsPCM16.doubleTo16BitPCM(resD);
+    for(int i=0;i<resB.length;i++){
+      samples1[i]=resB[i];    }
   }
 
 

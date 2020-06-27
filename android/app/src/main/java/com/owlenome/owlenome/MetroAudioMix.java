@@ -630,6 +630,12 @@ public class MetroAudioMix
              buffer.array(),bufferDriven.array(), lastSample, samplesForClickReduction,
                     bConnectSounds
               );
+            /*
+             MelodyToolsPCM16.mixNormalizedTestViaDoubleTEST(
+                    buffer.array(),bufferDriven.array()
+            );*/
+
+
             bConnectSounds=false;
 
 

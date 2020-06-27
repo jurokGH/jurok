@@ -175,14 +175,6 @@ class Rhythm {
     subBeats = List<int>.filled(accents.length, 1);
   }
 
-  ///MUST HAVE:  https://youtu.be/SeObEEpn5zc?t=91
-  Rhythm.soca() {
-    //Draft; Soca ///ToDo: это не соха, а херня
-    name = "Soca-draft";
-    bSubBeatDependent = true;
-    accents = [2, 0, 0, 1, 2, 0, 1, 0];
-    subBeats = [1, 1, 1, 1, 1, 1, 1, 1];
-  }
 
   ///Это лучше. Но не могу сместить акцент во второй доле, поэтому его нет. Не очень.
   /// https://nicksdrumlessons.com/multimedia-archive/soca-drum-lesson-part-1/
@@ -226,6 +218,18 @@ class Rhythm {
     //accents=[0,-1,-1,1,2,-1,0,-1];//Верно, но скучно
     subBeats = List<int>.filled(accents.length, 1);
   }
+
+
+  ///MUST HAVE:  https://youtu.be/SeObEEpn5zc?t=91
+  Rhythm.soca() {
+    //Draft; Soca ///ToDo: это не соха, а херня
+    //Дубликат tangoHabanera1.
+    name = "Soca-draft";
+    bSubBeatDependent = true;
+    accents = [2, 0, 0, 1, 2, 0, 1, 0];
+    subBeats = [1, 1, 1, 1, 1, 1, 1, 1];
+  }
+
 
   Rhythm.tangoHabanera2() {
     //Draft; tango; need pauses https://www.youtube.com/watch?v=hp-zU7nIiJ4
@@ -382,9 +386,9 @@ class FancyRhythms {
     for (int i = 3; i < 12; i++) fancy.add(Rhythm.roll8(i + 1));
 
     //fancy.add(Rhythm.warmGun());
-    fancy.add(Rhythm.soca());
     //fancy.add(Rhythm.socaPart1());
     fancy.add(Rhythm.calypso1());
+    //fancy.add(Rhythm.soca());
     fancy.add(Rhythm.tangoHabanera1());
     fancy.add(Rhythm.tangoHabanera2());
     fancy.add(Rhythm.tangoHabanera2prime());
