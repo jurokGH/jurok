@@ -823,7 +823,6 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
-
         _scrollBarController.jumpToItem(_scrollBarPosition);
         ///Если раскрутить эти колёса одновременно, можно уронить
         ///приложение.
@@ -3804,11 +3803,10 @@ class _HomePageState extends State<HomePage>
         position: _scrollBarPosition,
         onChanged: _onScrollRhythms,
         noteValue: _noteValue,
-        bReactOnTap: false,
-        //Эта херь перестаёт иногда работать. См.
+        bReactOnTap: true,
+        //Тап перестаёт иногда работать. Мой косяк? Или же
         // https://github.com/flutter/flutter/issues/38803//ToDo
         maxAccent: _beat.maxAccent,
-        bForceRedraw: true, //Поменять: только если число нот поменялось.
         scrollController: _scrollBarController,
       );
     });

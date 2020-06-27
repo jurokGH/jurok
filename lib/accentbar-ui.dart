@@ -18,7 +18,6 @@ class AccentBarWidget extends StatefulWidget
   final int position;//Позиция в списке
   final Size size;
   final int noteValue;
-  final bool bForceRedraw;
   final int maxAccent;
   final FixedExtentScrollController scrollController;
 
@@ -28,7 +27,6 @@ class AccentBarWidget extends StatefulWidget
     this.position,
     this.onChanged,
     this.noteValue,
-    this.bForceRedraw,
     this.bReactOnTap=false,
     this.maxAccent,
     @required this.scrollController,
@@ -158,11 +156,14 @@ class AccentBarState extends State<AccentBarWidget>
       GestureDetector(
         onTap: ()
         {
+
+          debugPrint('hey, stop tapping  this accents!');
           if (!widget.bReactOnTap) return;
-          //if (index >= tempoList.length || tempoList[index].minTempo > widget.maxTempo)
-            //index = 0;
-          widget.scrollController.jumpToItem((widget.position+1)%widget.rhythms.length);
-          ///это может вынести мозги, когда анимация идет не в ту сторону
+          int newPos=(widget.position+1)%widget.rhythms.length;
+          widget.scrollController.jumpToItem(newPos);
+          widget.onChanged(newPos);//ToDo? Why?
+
+          ///это может вынести мозги, когда анимация идет не в ту сторону:
           /*widget.scrollController.animateToItem(widget.position+1,
             duration: Duration(milliseconds: 500),
             curve: Curves.easeOut,
@@ -171,7 +172,6 @@ class AccentBarState extends State<AccentBarWidget>
 
         child:        ListWheelScrollView.useDelegate(
           controller: widget.scrollController,
-          //physics: new FixedExtentScrollPhysics(),
           physics: new FixedExtentScrollPhysics(),
           diameterRatio: 1000.0,
           perspective: 0.000001,
@@ -181,8 +181,7 @@ class AccentBarState extends State<AccentBarWidget>
           itemExtent: widget.size.width,
           squeeze: 0.88,
           onSelectedItemChanged: (int index) {
-            //  if (_notify)//ISH: не понимаю это, пробую наобум
-                widget.onChanged(index);//Новый индекс?
+                widget.onChanged(index);
           },
           clipToSize: true,
           renderChildrenOutsideViewport: false,
