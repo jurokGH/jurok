@@ -1,6 +1,6 @@
 //import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'  as serv;
+import 'package:flutter/services.dart' as serv;
 import 'package:flutter/widgets.dart';
 //import 'package:owlenome/GoAroundWheel.dart';
 import 'package:owlenome/MetreBar_ui.dart';
@@ -13,7 +13,6 @@ import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 import 'package:owlenome/TwoWheels.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 import 'package:owlenome/prosody.dart';
 import 'package:owlenome/rhythms.dart';
@@ -161,15 +160,15 @@ List<UserRhythm> userRhythms;
 /// Таким образом,  последний редактировавшийся ритм - это
 /// userRhythms[_lastEditedBeatIndex]
 int _lastEditedBeatIndex;
+//List<int> _lastEditedInBeat = List<int>.filled(12, -1);
+int _lastEditedInThisBeat = -1;
 
-///в данном числе бит (-1) показывали ли мык пользовательский ритм?
-List<bool> _lastShownIsUsers = List<bool>.filled(12, false);
+///это непонятно. В какой системе координат?
+//List<int> _lastShownInBeat=List<int>.filled(12,-1);
 
-/*
-///Что было показано... не додумано
-List<int> _lastShownInBeat=List<int>.filled(12,-1);
-*/
-List<int> _lastEditedInBeat = List<int>.filled(12, -1);
+///Когда последний раз мы показывали данное число бит   (-1),
+///был ли ритм пользовательским?
+List<bool> _lastShownWasUsers = List<bool>.filled(12, false);
 
 List<Rhythm> _rhythmsToScroll = _allPredefinedRhythms[_initBeatCount - 1];
 
@@ -195,7 +194,6 @@ final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
 void main() {
-
   /* //ToDo: что-то такое надо сделать с лицензией. Гугл, и фонты для ПАУЗ
   LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');
@@ -203,30 +201,26 @@ void main() {
   });
   */
 
-  WidgetsFlutterBinding.ensureInitialized();//ToDo: залочил портрет пока
-  serv.SystemChrome.setPreferredOrientations([serv.DeviceOrientation.portraitUp])
-      .then((_){
-
-  if (_debugDevices) {
-    return runApp(
-      DevicePreview(
-          builder: (context) =>
-              ChangeNotifierProvider(
+  WidgetsFlutterBinding.ensureInitialized(); //ToDo: залочил портрет пока
+  serv.SystemChrome.setPreferredOrientations(
+      [serv.DeviceOrientation.portraitUp]).then((_) {
+    if (_debugDevices) {
+      return runApp(
+        DevicePreview(
+            builder: (context) => ChangeNotifierProvider(
                 //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
-                  create: (_) => new MetronomeState(initRhythm),
-                  child: App())
-        //new App()
-      ),
-      //..devices.addAll();
-    );
-  }
+                create: (_) => new MetronomeState(initRhythm),
+                child: App())
+            //new App()
+            ),
+        //..devices.addAll();
+      );
+    }
 
-  return runApp(ChangeNotifierProvider(
-      //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
-      create: (_) => new MetronomeState(initRhythm),
-      child: App()));
-
-
+    return runApp(ChangeNotifierProvider(
+        //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
+        create: (_) => new MetronomeState(initRhythm),
+        child: App()));
   });
 }
 
@@ -366,7 +360,7 @@ class _HomePageState extends State<HomePage>
 
   int _noteValue = _cIniNoteValue;
 
-  static final  int  _initScrollBarPosition=0;
+  static final int _initScrollBarPosition = 0;
   int _scrollBarPosition = _initScrollBarPosition;
 
   ///not used in alfa-omega:
@@ -671,55 +665,50 @@ class _HomePageState extends State<HomePage>
   ///
 
   ///Запасаем пользовательский ритм для данного числа долей.
-  ///(у одной совы не запасаем) - глупо, но запасаем
+  ///Послее этого помещаем его в общий список
   void storeUserRhythm() {
-    //if (_beat.beatCount > 1) {
     userRhythms[_beat.beatCount - 1] =
         UserRhythm(_beat.subBeats, _beat.accents);
     _lastEditedBeatIndex = _beat.beatCount - 1;
-    final int positionToInsert = _scrollBarPosition;
-
+    int positionToInsert = _scrollBarPosition;
 
     ///EXPERIMENT, todo
-    int pos= userRhythms[_beat.beatCount - 1].isInTheList(_allPredefinedRhythms[_beat.beatCount - 1]);
-    if (pos>=0) {//Нашли и фактически удаляем из списка
-      userRhythms[_beat.beatCount - 1].bDefined=false;
-      _lastShownIsUsers[_beat.beatCount - 1]=false;
-      _lastEditedInBeat[_beat.beatCount - 1] = -1;
-    }
-    else{
+    int pos = userRhythms[_beat.beatCount - 1]
+        .isInTheList(_allPredefinedRhythms[_beat.beatCount - 1]);
+    if (pos >= 0) {
+      //Нашли и фактически удаляем из списка
+      userRhythms[_beat.beatCount - 1].bDefined = false;
+      //_lastShownWasUsers[_beat.beatCount - 1]=false; это в Make
+      _lastEditedInThisBeat = -1; //потеряли? насовсем?//pos;
+      positionToInsert = pos;
+    } else {
       userRhythms[_beat.beatCount - 1].inheritName();
-      _lastShownIsUsers[_lastEditedBeatIndex] = true;///ToDo: пролиферация;
-      ///мы это делаем в makeRhythmsForScroll
-      _lastEditedInBeat[_beat.beatCount - 1] = positionToInsert;
+      _lastEditedInThisBeat = positionToInsert;
     }
     makeRhythmsForScroll(positionToInsert, positionToInsert);
-    //_lastShownIsUsers[_lastEditedBeatIndex] = true;
-
-    /*
-      _lastShownInBeat[_beat.beatCount - 1]=positionToInsert;
-       */
-
-    /*
-      ///Теперь проверяем на совпадение. Если нашли стандартный
-      ///- даём имя. Если нашли имеющийся - выкидываем пользовательский
-      ///etc
-      RhythmComparisonResult res=
-      userRhythms[_beat.beatCount - 1].compare(_predefinedRhythms[_beat.beatCount - 1]);*/
-
     debugPrint("new rhythm was stored in " + _beat.beatCount.toString());
   }
 
   ///Из пользовательского и предустановленных создаем то, что крутится.
+  ///Вызывается  при любом изменении ритма, который мы рисуем и играем
+  ///scrollBarPosition - что показываем в строке акцентов
   ///insertUserAtPosition - куда положим пользовательский ритм.
-  ///scrollBarPosition - что показываем
+  ///
+  /// ToDo: всегда сопровождается созданием beat (e.g. beat = BeatMetre(userRhythms[beatIndex]);)
+  /// отправкой его в состояние метронома,  отправкой его в яву
+  /// и заканчивается setState. Надо причесывать...
+  /// АККУРАТНО! storeUserRhythm собирает ритм из beat, эта же процедура задаёт
+  /// beat. Всё это надо аккуратно оформить.
+  ///
   void makeRhythmsForScroll(int scrollBarPosition, int insertUserAtPosition) {
     int beat = _beat.beatCount;
-    _rhythmsToScroll = List.from(_allPredefinedRhythms[beat - 1]);
-    if (userRhythms[beat - 1].bDefined) {
+    _rhythmsToScroll = List.from(_allPredefinedRhythms[beat - 1], growable: true);
+    //int length=_rhythmsToScroll.length;
+    if (userRhythms[beat - 1].bDefined)
       _rhythmsToScroll.insert(insertUserAtPosition, userRhythms[beat - 1]);
-      _lastShownIsUsers[beat - 1] = (insertUserAtPosition == scrollBarPosition);
-    }
+    _lastShownWasUsers[beat - 1] =
+        (insertUserAtPosition == scrollBarPosition) &&
+            (userRhythms[beat - 1].bDefined);
     _scrollBarPosition = scrollBarPosition;
   }
 
@@ -729,12 +718,11 @@ class _HomePageState extends State<HomePage>
 
   ///Крутим строку акцентов
   void _onScrollRhythms(int position) {
-    print('_onBeatChanged');
     if (position != _scrollBarPosition) {
       _scrollBarPosition = position;
       _beat = BeatMetre(_rhythmsToScroll[_scrollBarPosition]);
-      _lastShownIsUsers[_beat.beatCount - 1] =
-          (_scrollBarPosition == _lastEditedInBeat[_beat.beatCount - 1]);
+      _lastShownWasUsers[_beat.beatCount - 1] =
+          (_scrollBarPosition == _lastEditedInThisBeat);
 
       //TODO Provider.of<MetronomeState>(context, listen: false).reset();
       Provider.of<MetronomeState>(context, listen: false).beatMetre =
@@ -746,7 +734,7 @@ class _HomePageState extends State<HomePage>
           _activeSoundScheme,
           _beat.subBeats,
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
-      print('_onBeatChanged2');
+      debugPrint('onScroll');
       setState(() {
         // _updateMetreBar = true;
       }); //TODO ListWheelScrollView redraws 1 excess time after wheeling
@@ -757,13 +745,15 @@ class _HomePageState extends State<HomePage>
   void onRhythmSelectedFromList(int beatIndex, int position, bool bUsers) {
     if (!(false)) //ToDo:(проверяем, что надо менять что-то)
     {
+        int oldBeat = _beat.beatCount;
       if (bUsers) {
         _beat = BeatMetre(userRhythms[beatIndex]);
         makeRhythmsForScroll(0, 0);
       } else {
         _beat = BeatMetre(_allPredefinedRhythms[beatIndex][position]);
-        makeRhythmsForScroll(position, 1);
+        makeRhythmsForScroll(position, position + 1); //пользовательский - следующим
       }
+      if (oldBeat != _beat.beatCount) _lastEditedInThisBeat = -1;
       Provider.of<MetronomeState>(context, listen: false).beatMetre =
           _beat; // TODO Need???
       _channel.setBeat(
@@ -788,8 +778,9 @@ class _HomePageState extends State<HomePage>
 
     ///Проверить не так надо? //ToDo
     {
+      _lastEditedInThisBeat = -1;
       if ((beats - 1 == _lastEditedBeatIndex) &&
-          _lastShownIsUsers[_lastEditedBeatIndex]) {
+          _lastShownWasUsers[_lastEditedBeatIndex]) {
         ///Решается тонкий философский вопрос, результат
         ///недельных рассуждений.
         ///
@@ -799,9 +790,6 @@ class _HomePageState extends State<HomePage>
         ///Чтобы его не расстраивать, мы ему возвращаем его последнюю редакцию -
         ///она важнее стандартных размеров. Но чтобы не было путаницы.
         ///мы напишем в строке названий ритмов, что это редактированный.
-        ///
-        ///ToDo: распознать оп пользовательскому размеру, что он, к примеру
-        ///3/4, и сформировать имя "Last edited 3/4 (edited)".
         _beat = BeatMetre(userRhythms[beats - 1]);
 
         makeRhythmsForScroll(0, 0);
@@ -809,8 +797,8 @@ class _HomePageState extends State<HomePage>
         ///Второй сложный вопрос: при выборе размера, что нам делать с поддолями?
         ///Пока я их все игнорирую...//ToDo: хорошо ли это?
         _beat = BeatMetre(_basicRhythms[beats - 1]);
-        makeRhythmsForScroll(0,
-            1); //Третий вопрос из той же серии: Встать на позицию, которую показывали последний раз?
+        makeRhythmsForScroll(0, 1);
+        //Третий вопрос из той же серии: Встать на позицию, которую показывали последний раз?
         //Ой ли? А пользователь с ума не сойдет?
         //
         //Общая проблема: Что лучше? Пользователю возвращать его выбор,
@@ -835,31 +823,37 @@ class _HomePageState extends State<HomePage>
           Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
       print('_onBeatChanged2');
       setState(() {
+
+        _scrollBarController.jumpToItem(_scrollBarPosition);
+        ///Если раскрутить эти колёса одновременно, можно уронить
+        ///приложение.
+
+
         // _updateMetreBar = true;
       });
     }
   }
 
-  ///Изменяем число нот, не глядя на пользовательские размеры и выбирая пертвый стандартный
+  ///Изменяем число нот, не глядя на пользовательские ритмы и
+  ///выбирая первый базовый
   void _onUltimateJump(int beatsToSet) {
+    _lastEditedInThisBeat = -1;
     print('_onJump');
-    if (_beat.beatCount != beatsToSet) {
-      _beat = BeatMetre(_basicRhythms[beatsToSet - 1]);
-      Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
-      makeRhythmsForScroll(0, 1);
-      _channel.setBeat(
-          _beat.beatCount,
-          _beat.subBeatCount,
-          _tempoBpm,
-          _activeSoundScheme,
-          _beat.subBeats,
-          Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
-      print('-pmuJ');
+    _beat = BeatMetre(_basicRhythms[beatsToSet - 1]);
+    Provider.of<MetronomeState>(context, listen: false).beatMetre = _beat;
+    makeRhythmsForScroll(0, 1); //пользовательский - сразу за стандартным
+    _channel.setBeat(
+        _beat.beatCount,
+        _beat.subBeatCount,
+        _tempoBpm,
+        _activeSoundScheme,
+        _beat.subBeats,
+        Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
+    print('-pmuJ');
 
-      setState(() {
-       _updateMetreWheels = true; //Todo:?
-      });
-    }
+    setState(() {
+      _updateMetreWheels = true; //Todo:?
+    });
   }
 
   void onAllSubbeatsChanged(int subbeatCount) {
@@ -905,8 +899,6 @@ class _HomePageState extends State<HomePage>
 
   void onAccentChanged(int id, int accent) {
     assert(id < _beat.subBeats.length);
-
-
 
     //_beat.setAccent(id, accent);
     _beat.setAccent(id, accent);
@@ -1086,7 +1078,7 @@ class _HomePageState extends State<HomePage>
     final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
 
     // Vertical/portrait
-    if (true/*portrait todo*/) {
+    if (true /*portrait todo*/) {
       return PortraitU(ourAreaSize);
 
       /// Owl square and controls
@@ -2222,18 +2214,17 @@ class _HomePageState extends State<HomePage>
   //
   // ISH: виджеты без hard-coded values
 
-
-
-///ToDo: убрать
-  static final  int _initTest=3;
+  ///ToDo: убрать
+  static final int _initTest = 3;
   int _tmpTest = _initTest;
   final List<int> testList = List<int>.generate(10, (int x) => x * 10);
-  final  FixedExtentScrollController  tempController1=FixedExtentScrollController(initialItem: _initTest);
-  final  FixedExtentScrollController  tempController2=FixedExtentScrollController(initialItem: _initTest);
+  final FixedExtentScrollController tempController1 =
+      FixedExtentScrollController(initialItem: _initTest);
+  final FixedExtentScrollController tempController2 =
+      FixedExtentScrollController(initialItem: _initTest);
 
   Widget testWidget(Size size) {
-    double fontSizeTempo =
-        size.width * 1 / 10;
+    double fontSizeTempo = size.width * 1 / 10;
     TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
     return Row(
       children: <Widget>[
@@ -2279,17 +2270,17 @@ class _HomePageState extends State<HomePage>
             height: size.height,
             decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('images/wh23meter.png'),
-                  fit: BoxFit.fill,
-                )),
+              image: AssetImage('images/wh23meter.png'),
+              fit: BoxFit.fill,
+            )),
             child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-                  double width = constraints.maxWidth * 1;
-                  return Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: width,
-                      /*child: GoAroundWheelW(
+              double width = constraints.maxWidth * 1;
+              return Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: width,
+                  /*child: GoAroundWheelW(
                         list: testList,
                         position: _tmpTest,
                         width: width,
@@ -2302,9 +2293,9 @@ class _HomePageState extends State<HomePage>
                         },
                         controller: tempController2,
                       ),*/
-                    ),
-                  );
-                })),
+                ),
+              );
+            })),
       ],
     );
 
@@ -2424,7 +2415,7 @@ class _HomePageState extends State<HomePage>
     //А то разрушится трёхмернось.
 
     bool bTest = false;
-  //    bTest = true; //ToDo hide
+    //    bTest = true; //ToDo hide
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       !bTest
@@ -3336,7 +3327,7 @@ class _HomePageState extends State<HomePage>
         ),
         Expanded(
           flex: right,
-          child: rhythmNameW(textStyle, totalWidth* right / total),
+          child: rhythmNameW(textStyle, totalWidth * right / total),
         ),
       ],
     );
@@ -3385,7 +3376,7 @@ class _HomePageState extends State<HomePage>
               alignment: Alignment.center,
               child: Text(
                 rhythm.name,
-                style:  listTextStyle,
+                style: listTextStyle,
                 /*
                 style: //ToDo
                     ? listTextStyleBold
@@ -3402,8 +3393,10 @@ class _HomePageState extends State<HomePage>
 
     for (int j = 0; j < maxBeatCount; j++) {
       rhythmListW.add(
-        Text('In ${j+1} beat'+((j==0)?'':'s')+':',
-        style: textStyle,),
+        Text(
+          'In ${j + 1} beat' + ((j == 0) ? '' : 's') + ':',
+          style: textStyle,
+        ),
       );
       for (int i = 0; i < _allPredefinedRhythms[j].length; i++) {
         rhythmListW.add(itemOfList(_allPredefinedRhythms[j][i], j, i));
@@ -3412,11 +3405,11 @@ class _HomePageState extends State<HomePage>
       if (userRhythm.bDefined) {
         rhythmListW.add(itemOfList(userRhythm, j, -1));
       }
-      if (j < maxBeatCount - 1) //падинг//ToDo: не работает?
+      if (j < maxBeatCount - 1)
         rhythmListW.add(
           Padding(
               padding: EdgeInsets.symmetric(
-            vertical: totalWidth * shrinkForList/50,
+            vertical: totalWidth * shrinkForList / 50,
           )),
         );
     }
@@ -3695,7 +3688,6 @@ class _HomePageState extends State<HomePage>
      */
   }
 
-
   ///Витины колёса метра, завернутые во внешний размер
   Widget metreU() {
     return LayoutBuilder(
@@ -3799,10 +3791,8 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-
-  final FixedExtentScrollController _scrollBarController= FixedExtentScrollController(
-      initialItem: _initScrollBarPosition
-  );
+  final FixedExtentScrollController _scrollBarController =
+      FixedExtentScrollController(initialItem: _initScrollBarPosition);
 
   Widget metreBarU() {
     return LayoutBuilder(
@@ -3814,7 +3804,9 @@ class _HomePageState extends State<HomePage>
         position: _scrollBarPosition,
         onChanged: _onScrollRhythms,
         noteValue: _noteValue,
-        bReactOnTap: true,
+        bReactOnTap: false,
+        //Эта херь перестаёт иногда работать. См.
+        // https://github.com/flutter/flutter/issues/38803//ToDo
         maxAccent: _beat.maxAccent,
         bForceRedraw: true, //Поменять: только если число нот поменялось.
         scrollController: _scrollBarController,

@@ -603,6 +603,11 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     int oldLength=soundSсhemes.size();
 
+
+    soundSсhemes.add(new MusicSchemeMix("Bass&some drum", res,   R.raw.bussdrums240, R.raw.drum_accent_mono,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
     //Странноватый эффект от тамбурина. Вверх? Увы, скорость маловата.
     soundSсhemes.add(new MusicSchemeMix("Bass+Tumb&snare",
             /*Bassandtumb&snare(el),ag - старое название*/
@@ -611,9 +616,6 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     //Ухи с замененным первым бипом
     soundSсhemes.add(new MusicSchemeMix("Whoo-whoo", res, R.raw.oboe_a4_250, R.raw.owl_short,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Bass&some drum", res,   R.raw.bussdrums240, R.raw.drum_accent_mono,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     ///unsorted

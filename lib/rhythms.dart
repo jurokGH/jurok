@@ -154,7 +154,7 @@ class Rhythm {
   //    //https://en.wikipedia.org/wiki/Leventikos
 
   Rhythm.tresillo() {
-    name = "Tresillo";
+    name = "Tresillo"; //Нет.
     bSubBeatDependent = true;
     accents = [2, -1, -1, 0, -1, -1, 1, 0];
     subBeats = List<int>.filled(accents.length, 1);
@@ -343,7 +343,7 @@ class UserRhythm extends Rhythm {
   void inheritName()
   {
     name= Rhythm.fromAccentsWithStandardNames(accents).name
-        +' (edited)';
+        +' (User\'s)';
   }
 
 
@@ -372,7 +372,7 @@ class FancyRhythms {
     ///Добавляем подряд всё, что нам нравится
     List<Rhythm> fancy = [];
 
-    fancy.add(Rhythm.tresillo());
+    //fancy.add(Rhythm.tresillo());
 
     //12 долей
     fancy.add(Rhythm.bolero12());
@@ -383,7 +383,7 @@ class FancyRhythms {
 
     //fancy.add(Rhythm.warmGun());
     fancy.add(Rhythm.soca());
-    fancy.add(Rhythm.socaPart1());
+    //fancy.add(Rhythm.socaPart1());
     fancy.add(Rhythm.calypso1());
     fancy.add(Rhythm.tangoHabanera1());
     fancy.add(Rhythm.tangoHabanera2());

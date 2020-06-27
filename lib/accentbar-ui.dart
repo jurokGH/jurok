@@ -29,7 +29,7 @@ class AccentBarWidget extends StatefulWidget
     this.onChanged,
     this.noteValue,
     this.bForceRedraw,
-    this.bReactOnTap=true,
+    this.bReactOnTap=false,
     this.maxAccent,
     @required this.scrollController,
   });
@@ -159,11 +159,9 @@ class AccentBarState extends State<AccentBarWidget>
         onTap: ()
         {
           if (!widget.bReactOnTap) return;
-          int index = (widget.position  >= userRhythms.length)? 0 :
-            widget.position+1;
           //if (index >= tempoList.length || tempoList[index].minTempo > widget.maxTempo)
             //index = 0;
-          widget.scrollController.jumpToItem(widget.position+1);
+          widget.scrollController.jumpToItem((widget.position+1)%widget.rhythms.length);
           ///это может вынести мозги, когда анимация идет не в ту сторону
           /*widget.scrollController.animateToItem(widget.position+1,
             duration: Duration(milliseconds: 500),
