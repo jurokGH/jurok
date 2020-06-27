@@ -1,6 +1,6 @@
 //import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'  as serv;
 import 'package:flutter/widgets.dart';
 //import 'package:owlenome/GoAroundWheel.dart';
 import 'package:owlenome/MetreBar_ui.dart';
@@ -13,6 +13,7 @@ import 'package:device_preview/device_preview.dart';
 //import 'package:flutter_xlider/flutter_xlider.dart';
 import 'package:owlenome/TwoWheels.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 
 import 'package:owlenome/prosody.dart';
 import 'package:owlenome/rhythms.dart';
@@ -194,15 +195,28 @@ final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
 void main() {
+
+  /* //ToDo: что-то такое надо сделать с лицензией. Гугл, и фонты для ПАУЗ
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString('google_fonts/OFL.txt');
+    yield LicenseEntryWithLineBreaks(['google_fonts'], license);
+  });
+  */
+
+  WidgetsFlutterBinding.ensureInitialized();//ToDo: залочил портрет пока
+  serv.SystemChrome.setPreferredOrientations([serv.DeviceOrientation.portraitUp])
+      .then((_){
+
   if (_debugDevices) {
     return runApp(
       DevicePreview(
-          builder: (context) => ChangeNotifierProvider(
-              //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
-              create: (_) => new MetronomeState(initRhythm),
-              child: App())
-          //new App()
-          ),
+          builder: (context) =>
+              ChangeNotifierProvider(
+                //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
+                  create: (_) => new MetronomeState(initRhythm),
+                  child: App())
+        //new App()
+      ),
       //..devices.addAll();
     );
   }
@@ -211,6 +225,9 @@ void main() {
       //create: (_) => new MetronomeState(_cIniSubBeats, _cIniAccents),
       create: (_) => new MetronomeState(initRhythm),
       child: App()));
+
+
+  });
 }
 
 class App extends StatelessWidget {
@@ -1069,7 +1086,7 @@ class _HomePageState extends State<HomePage>
     final Size metreBarSize = new Size(_sizeCtrls.width, _barHeight);
 
     // Vertical/portrait
-    if (portrait) {
+    if (true/*portrait todo*/) {
       return PortraitU(ourAreaSize);
 
       /// Owl square and controls
