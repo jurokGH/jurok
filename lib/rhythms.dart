@@ -105,9 +105,22 @@ class Rhythm {
     for (int i = 1; i < summands.length; i++) {
       res += "+" + summands[i].toString();
     }
+    if (summands.length==1) res+= ' beats ';
     return res;
   }
 
+
+  ///Есль ли ритм среди списка (в точности совпадающий)
+  int isInTheList(List<Rhythm> rhythms){
+    if (rhythms==null) return -1;
+    for (int i=0; i<rhythms.length; i++){
+      Rhythm r=rhythms[i];
+      if (listEquals(accents, r.accents))
+        if (listEquals(subBeats, r.subBeats))
+          return i;
+        }
+      return -1;
+  }
 
   Rhythm.onlyFirst(int nOfBeats) {
     name = sOnlyFist;
@@ -156,7 +169,7 @@ class Rhythm {
 
   Rhythm.warmGun() {
     //Draft; Beatles, Happiness is a warm gun
-    name = "Happiness is a warm gun (draft)";
+    name = "Happiness is a warm gun [draft]";
     bSubBeatDependent = true;
     accents = [2, 0, 0, 1, 0, 0, 2, 0, 1, 0];
     subBeats = List<int>.filled(accents.length, 1);
@@ -165,7 +178,7 @@ class Rhythm {
   ///MUST HAVE:  https://youtu.be/SeObEEpn5zc?t=91
   Rhythm.soca() {
     //Draft; Soca ///ToDo: это не соха, а херня
-    name = "Soca (draft)";
+    name = "Soca-draft";
     bSubBeatDependent = true;
     accents = [2, 0, 0, 1, 2, 0, 1, 0];
     subBeats = [1, 1, 1, 1, 1, 1, 1, 1];
@@ -175,7 +188,7 @@ class Rhythm {
   /// https://nicksdrumlessons.com/multimedia-archive/soca-drum-lesson-part-1/
   Rhythm.socaPart1() {
     //Draft; Soca
-    name = "Soca1 (draft)";
+    name = "Soca1-draft";
     bSubBeatDependent = true;
     accents = [2, 0, 1, 0];
     subBeats = [1, 2, 1, 1];
@@ -183,7 +196,7 @@ class Rhythm {
 
   ///https://cnx.org/contents/5O_NUnsW@10/Caribbean-Music-Calypso-and-Found-Percussion
   Rhythm.calypso1() {
-    name = "calypso1 (draft)";
+    name = "calypso1-draft";
     bSubBeatDependent = true;
     accents = [2, 0, 1, 1];
     subBeats = List<int>.filled(4, 2);
@@ -275,16 +288,16 @@ class Rhythm {
       name = "0 beats";
       return;
     }
-    name = "Roll   ($beats  beats)";
+    name = "Roll in $beats  beats";
     bSubBeatDependent = true;
-    accents = List<int>.filled(beats, 0);
-    accents[0] = 1;
+    accents = List<int>.filled(beats, 1);
+    //accents[0] = 1;
     subBeats = List<int>.filled(beats, 8);
   }
 
   Rhythm.twoBubBum() {
     //
-    name = "crackle  (draft)";
+    name = "Some crackle";
     bSubBeatDependent = true;
     accents = [1, 1];
     subBeats = [8, 4];
@@ -292,7 +305,7 @@ class Rhythm {
 
   Rhythm.strangeIn3() {
     //
-    name = "crackle in 3 (draft)";
+    name = "crackle in 3 beats";
     bSubBeatDependent = true;
     accents = [0, 1, 1];
     subBeats = [2, 8, 8];
@@ -323,7 +336,7 @@ class UserRhythm extends Rhythm {
 
   void _inheritName(Rhythm rhythm)
   {
-    name= rhythm.name+' (edited)';
+    name= rhythm.name+' (users)';
   }
 
   ///Модифицируем имя из стандартного для ритма, измененного пользователем
@@ -378,7 +391,7 @@ class FancyRhythms {
     fancy.add(Rhythm.tangoHabanera3in8());
     fancy.add(Rhythm.moneyPF());
     fancy.add(Rhythm.twoBubBum());
-//    fancy.add(Rhythm.strangeIn3());
+    fancy.add(Rhythm.strangeIn3());
 
     fancyRhythms = List<List<Rhythm>>.generate(12, (n) => []);
     for (int i = 0; i < fancy.length; i++) {

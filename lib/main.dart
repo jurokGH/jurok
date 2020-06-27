@@ -662,12 +662,23 @@ class _HomePageState extends State<HomePage>
     _lastEditedBeatIndex = _beat.beatCount - 1;
     final int positionToInsert = _scrollBarPosition;
 
-    userRhythms[_beat.beatCount - 1].inheritName();
 
-
+    ///EXPERIMENT, todo
+    int pos= userRhythms[_beat.beatCount - 1].isInTheList(_allPredefinedRhythms[_beat.beatCount - 1]);
+    if (pos>=0) {//Нашли и фактически удаляем из списка
+      userRhythms[_beat.beatCount - 1].bDefined=false;
+      _lastShownIsUsers[_beat.beatCount - 1]=false;
+      _lastEditedInBeat[_beat.beatCount - 1] = -1;
+    }
+    else{
+      userRhythms[_beat.beatCount - 1].inheritName();
+      _lastShownIsUsers[_lastEditedBeatIndex] = true;///ToDo: пролиферация;
+      ///мы это делаем в makeRhythmsForScroll
+      _lastEditedInBeat[_beat.beatCount - 1] = positionToInsert;
+    }
     makeRhythmsForScroll(positionToInsert, positionToInsert);
-    _lastShownIsUsers[_lastEditedBeatIndex] = true;
-    _lastEditedInBeat[_beat.beatCount - 1] = positionToInsert;
+    //_lastShownIsUsers[_lastEditedBeatIndex] = true;
+
     /*
       _lastShownInBeat[_beat.beatCount - 1]=positionToInsert;
        */
