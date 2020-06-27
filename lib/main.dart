@@ -3319,7 +3319,7 @@ class _HomePageState extends State<HomePage>
         ),
         Expanded(
           flex: right,
-          child: rhythmNameW(textStyle, right / total),
+          child: rhythmNameW(textStyle, totalWidth* right / total),
         ),
       ],
     );
@@ -3340,7 +3340,7 @@ class _HomePageState extends State<HomePage>
     Widget itemOfList(Rhythm rhythm, int beatIndex, int position) {
       return Container(
         padding: EdgeInsets.symmetric(
-            vertical: totalWidth * shrinkForList / 50,
+            vertical: totalWidth * shrinkForList / 150,
             horizontal: totalWidth * (1 - shrinkForList) / 3),
         child: GestureDetector(
           onTap: () {
@@ -3384,6 +3384,10 @@ class _HomePageState extends State<HomePage>
     List<Widget> rhythmListW = [];
 
     for (int j = 0; j < maxBeatCount; j++) {
+      rhythmListW.add(
+        Text('In ${j+1} beat'+((j==0)?'':'s')+':',
+        style: textStyle,),
+      );
       for (int i = 0; i < _allPredefinedRhythms[j].length; i++) {
         rhythmListW.add(itemOfList(_allPredefinedRhythms[j][i], j, i));
       }
@@ -3391,11 +3395,11 @@ class _HomePageState extends State<HomePage>
       if (userRhythm.bDefined) {
         rhythmListW.add(itemOfList(userRhythm, j, -1));
       }
-      if (j < maxBeatCount - 1) //падинг
+      if (j < maxBeatCount - 1) //падинг//ToDo: не работает?
         rhythmListW.add(
           Padding(
               padding: EdgeInsets.symmetric(
-            vertical: totalWidth * shrinkForList / 5,
+            vertical: totalWidth * shrinkForList/50,
           )),
         );
     }

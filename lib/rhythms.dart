@@ -4,8 +4,8 @@ import 'package:owlenome/prosody.dart';
 
 class Rhythm {
   static String sOnlyFist = "Only first beat is strong"; //ToDo
-  static String sOneStrong = "Strong"; //ToDo
-  static String sOneWeak = "Weak"; //ToDo
+  static String sOneStrong = "One strong"; //ToDo
+  static String sOneWeak = "One weak"; //ToDo
 
   //final
   String name;
