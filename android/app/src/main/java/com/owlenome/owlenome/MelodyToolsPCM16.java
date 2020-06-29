@@ -320,9 +320,9 @@ public class MelodyToolsPCM16
 
 
   /**
-   *     Проверка микса без биттовой арифметики. Не использовать в мирных целях
+   *     Проверка микса без биттовой арифметики. Не использовать в мирных целях. Tested.
    */
-  public static void mixNormalizedTestViaDoubleTEST(byte[] samples1, byte[] samples2) {
+  public static void mixNormalizedViaDoubleTEST(byte[] samples1, byte[] samples2) {
 
     double[] longSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples1);// Чтобы по битам не разбирать
     double[] shortSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples2);//
@@ -330,6 +330,49 @@ public class MelodyToolsPCM16
     for(int i=0; i<longSndD.length; i++){
       double d=(i<shortSndD.length)?shortSndD[i]:0;
       resD[i]=(d+longSndD[i])*0.5;
+    }
+    byte[] resB=MelodyToolsPCM16.doubleTo16BitPCM(resD);
+    for(int i=0;i<resB.length;i++){
+      samples1[i]=resB[i];    }
+  }
+
+  public interface NormOperator {
+    double operator(double d1, double d2);
+  }
+
+  public static class HalfSum implements  NormOperator {
+    public double operator(double d1, double d2){
+     return (d1+d2)*0.5;}
+  };
+
+  public static class NormHyperbolicTangent implements  NormOperator {
+    public double operator(double d1, double d2){
+      return Math.tanh(d1+d2);}
+  };
+
+  public static class NormTest implements  NormOperator {
+    public double operator(double d1, double d2){
+      return Math.tanh(d1+d2);}
+  };
+
+  /**
+   *     Микс разными способами. Даблы, интерфейсы какие-то...
+   *     Сколько будет жрать ресурсов - никто не знает.
+   *     Не использовать в мирных целях.
+   */
+  public static void mixViaDoubleNormOpTEST(byte[] samples1, byte[] samples2,
+                                            NormOperator norm
+                                      ) {
+
+    double[] longSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples1);// Чтобы по битам не разбирать
+    double[] shortSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples2);//
+    double[] resD=new double[longSndD.length];
+    for(int i=0; i<longSndD.length; i++){
+      double d=(i<shortSndD.length)?shortSndD[i]:0;
+
+   //   resD[i]=(d+longSndD[i])*0.5;
+      resD[i]=norm.operator(longSndD[i],d);
+
     }
     byte[] resB=MelodyToolsPCM16.doubleTo16BitPCM(resD);
     for(int i=0;i<resB.length;i++){

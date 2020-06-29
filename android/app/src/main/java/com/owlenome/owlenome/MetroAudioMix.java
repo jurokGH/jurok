@@ -622,18 +622,28 @@ public class MetroAudioMix
             int toWrite= copy2bufferAux(melody.cycle,buffer);
             copy2bufferAux(melody.cycleDriven, bufferDriven);
 
-            long samplesForClickReduction=
+            long samplesForClickReduction=//ToDo: mcs?
                     nanoSec2samples((int)(timeToClickReductionMs*1000000))+1;
 
-            //MIX //ToDo:             mixNOTNormalized
-            lastSample=MelodyToolsPCM16.mixNormalized(
-             buffer.array(),bufferDriven.array(), lastSample, samplesForClickReduction,
+            //MIX //ToDo:
+            ///Рабочий примитивный вариант с полусуммой. samplesForClickReduction - это
+            ///рудимент недоделанной задачи про погашиние кликов
+            /* lastSample=MelodyToolsPCM16.mixNormalized(
+            buffer.array(),bufferDriven.array(), lastSample, samplesForClickReduction,
                     bConnectSounds
-              );
-            /*
-             MelodyToolsPCM16.mixNormalizedTestViaDoubleTEST(
-                    buffer.array(),bufferDriven.array()
-            );*/
+              ); */
+
+            ///test
+            // MelodyToolsPCM16.mixNormalizedViaDoubleTEST(buffer.array(),bufferDriven.array());
+            //MelodyToolsPCM16.mixViaDoubleTEST( buffer.array(),bufferDriven.array(),
+              //       new MelodyToolsPCM16.HalfSum());
+
+             MelodyToolsPCM16.NormOperator normTest;//ToDo: final?
+            //normTest= new MelodyToolsPCM16.HalfSum();
+            normTest= new MelodyToolsPCM16.NormHyperbolicTangent();
+            MelodyToolsPCM16.mixViaDoubleNormOpTEST( buffer.array(),bufferDriven.array(),
+                    normTest);
+
 
 
             bConnectSounds=false;

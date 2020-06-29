@@ -297,6 +297,7 @@ class Rhythm {
     accents = List<int>.filled(beats, 1);
     //accents[0] = 1;
     subBeats = List<int>.filled(beats, 8);
+    subBeats.last=2;
   }
 
   Rhythm.twoBubBum() {

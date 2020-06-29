@@ -180,7 +180,7 @@ const int _cMinTempo = 1;
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    30; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+    60; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -428,7 +428,7 @@ class _HomePageState extends State<HomePage>
   Animation<Offset> _animationPos;
   Animation<Offset> _animationNeg;
   Animation<Offset> _animationDown;
-  int _period = 1000; //ToDo: why?
+  int _period =10;// 1000; //ToDo: why?
 
   //IS: KnobTuned constants
   double _sensitivity = 2;
