@@ -350,9 +350,23 @@ public class MelodyToolsPCM16
       return Math.tanh(d1+d2);}
   };
 
-  public static class NormTest implements  NormOperator {
+
+  public static class NormHyperbolicTangentAmp implements  NormOperator {
+    public double amplifier= 2;///Если мы сделаем угол наклона в 0
+    //у гиперболического тангенса побольше?
+    //10 - искажение.
+    //0.01 - тишина
     public double operator(double d1, double d2){
-      return Math.tanh(d1+d2);}
+      return Math.tanh(amplifier *(d1+d2));}
+  };
+
+  public static class NormTest implements  NormOperator {
+    public double amplifier= 2;///Если мы сделаем угол наклона в 0
+    //у гиперболического тангенса побольше?
+    //10 - искажение.
+    //0.01 - тишина
+    public double operator(double d1, double d2){
+      return Math.tanh(amplifier *(d1+d2));}
   };
 
   /**

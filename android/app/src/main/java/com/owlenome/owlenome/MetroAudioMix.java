@@ -639,8 +639,10 @@ public class MetroAudioMix
               //       new MelodyToolsPCM16.HalfSum());
 
              MelodyToolsPCM16.NormOperator normTest;//ToDo: final?
-            //normTest= new MelodyToolsPCM16.HalfSum();
+            normTest= new MelodyToolsPCM16.HalfSum();
             normTest= new MelodyToolsPCM16.NormHyperbolicTangent();
+            normTest= new MelodyToolsPCM16.NormTest();
+            normTest= new MelodyToolsPCM16.NormHyperbolicTangentAmp();
             MelodyToolsPCM16.mixViaDoubleNormOpTEST( buffer.array(),bufferDriven.array(),
                     normTest);
 
