@@ -336,6 +336,23 @@ public class MelodyToolsPCM16
       samples1[i]=resB[i];    }
   }
 
+  /**
+   *  Область миксования.
+   *
+   * https://stackoverflow.com/questions/376036/algorithm-to-mix-sound
+   * https://dsp.stackexchange.com/questions/3581/algorithms-to-mix-audio-signals-without-clipping
+   *
+   *
+   * Check: где-то мелькал принцип миксования  для аудасити //ToDo
+   * https://www.audacityteam.org/community/developers/#git
+   *
+   * Так не делать, это объяснили во многих местах:
+   * WRONG
+   * http://atastypixel.com/blog/how-to-mix-audio-samples-properly-on-ios/comment-page-1/#comment-6310
+   * http://www.vttoth.com/CMS/index.php/technical-notes/68
+   *
+   */
+
   public interface NormOperator {
     double operator(double d1, double d2);
   }
@@ -349,6 +366,16 @@ public class MelodyToolsPCM16
     public double operator(double d1, double d2){
       return Math.tanh(d1+d2);}
   };
+//ToDo: Нужен микс, при котором простое сложение до определенного уровня,  а если
+// приближаемся к границе, то тогда нормализуем через tanh
+
+//ToDo:   Гиперболический тангенс используется в миксовании. Однако
+// не является ли этот выбор произвольным - просто удобная функция R->(-1,1).
+
+//Что такое функция миксования?
+//f - непрерывная R->(-1,1),
+//Близка к x=y 'внутри' [-1,1], чтобы не терять в громкости. Что за нутрь - непонятно.
+// дифференцируемая (?)
 
 
   public static class NormHyperbolicTangentAmp implements  NormOperator {
@@ -360,13 +387,17 @@ public class MelodyToolsPCM16
       return Math.tanh(amplifier *(d1+d2));}
   };
 
+
+
   public static class NormTest implements  NormOperator {
-    public double amplifier= 2;///Если мы сделаем угол наклона в 0
+    public double amplifier= 1.5;///Если мы сделаем угол наклона в 0
+    public double strongWeight= 0.7;///Если мы сделаем угол наклона в 0
     //у гиперболического тангенса побольше?
-    //10 - искажение.
+    //10 - искажение. Кажется, 2 уже искажение? (какие-то барабаны. надо слушать
+    //на железе)
     //0.01 - тишина
     public double operator(double d1, double d2){
-      return Math.tanh(amplifier *(d1+d2));}
+      return Math.tanh(amplifier *(d1*strongWeight+d2*(1-strongWeight)));}
   };
 
   /**
@@ -374,8 +405,8 @@ public class MelodyToolsPCM16
    *     Сколько будет жрать ресурсов - никто не знает.
    *     Не использовать в мирных целях.
    */
-  public static void mixViaDoubleNormOpTEST(byte[] samples1, byte[] samples2,
-                                            NormOperator norm
+  public static void mixViaDoubleNormOperator(byte[] samples1, byte[] samples2,
+                                              NormOperator norm
                                       ) {
 
     double[] longSndD=MelodyToolsPCM16.doubleFrom16BitPCM(samples1);// Чтобы по битам не разбирать

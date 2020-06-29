@@ -35,7 +35,8 @@ import 'Metre_ui.dart';
 import 'Subbeat_ui.dart';
 import 'TempoList_ui.dart';
 import 'volume_ui.dart';
-import 'settings.dart';
+//import 'settings.dart';
+import 'settings_plywood.dart';
 import 'knob.dart';
 import 'KnobTuned.dart';
 //import 'KnobResizable.dart';
@@ -109,7 +110,7 @@ const int _cIniNoteValue = 4;
 /// Initial metre (beat, note) index from _metreList
 /// !!!ATTENTION!!! Make it compatible with next subbeat/accent lists
 ///
-/// ISH: я упихал всю ритмовую механику в отдельных класс с предустановлеными
+/// ISH: я упихал всю ритмовую механику в отдельный класс с предустановлеными
 /// ритмами - см. rhythms.dart
 ///
 /// Теперь начальный ритм выбирается через initRhythm
@@ -301,6 +302,8 @@ class _HomePageState extends State<HomePage>
   // TODO Remove?
   int _animationType = 0;
 
+  int _mixingType=_initMixType;
+
   ///ISH:  Zebra must by quarantined.
   ///
 
@@ -428,7 +431,7 @@ class _HomePageState extends State<HomePage>
   Animation<Offset> _animationPos;
   Animation<Offset> _animationNeg;
   Animation<Offset> _animationDown;
-  int _period =10;// 1000; //ToDo: why?
+  int _period = 10; // 1000; //ToDo: why?
 
   //IS: KnobTuned constants
   double _sensitivity = 2;
@@ -447,6 +450,9 @@ class _HomePageState extends State<HomePage>
   //с потерей угла
   static const double initKnobAngle = 0;
   KnobValue _knobValue;
+
+  ///Установка микса. Todo
+  static const int _initMixType = 2;
 
   /// /////////////////////////////////////////////////////////////////////////
 
@@ -473,6 +479,15 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme = -1;
       else if (_activeSoundScheme == -1)
         _activeSoundScheme = 0; // Set default 0 scheme
+    });
+
+    _channel.setMix(_initMixType).then((int result) {
+      if (result >= 0)
+        _mixingType = _initMixType;
+      else {
+        //todo:
+        _mixingType = _initMixType;
+      }
     });
 
     //_skin = new OwlSkinRot(_animationType);
@@ -702,7 +717,8 @@ class _HomePageState extends State<HomePage>
   ///
   void makeRhythmsForScroll(int scrollBarPosition, int insertUserAtPosition) {
     int beat = _beat.beatCount;
-    _rhythmsToScroll = List.from(_allPredefinedRhythms[beat - 1], growable: true);
+    _rhythmsToScroll =
+        List.from(_allPredefinedRhythms[beat - 1], growable: true);
     //int length=_rhythmsToScroll.length;
     if (userRhythms[beat - 1].bDefined)
       _rhythmsToScroll.insert(insertUserAtPosition, userRhythms[beat - 1]);
@@ -745,13 +761,14 @@ class _HomePageState extends State<HomePage>
   void onRhythmSelectedFromList(int beatIndex, int position, bool bUsers) {
     if (!(false)) //ToDo:(проверяем, что надо менять что-то)
     {
-        int oldBeat = _beat.beatCount;
+      int oldBeat = _beat.beatCount;
       if (bUsers) {
         _beat = BeatMetre(userRhythms[beatIndex]);
         makeRhythmsForScroll(0, 0);
       } else {
         _beat = BeatMetre(_allPredefinedRhythms[beatIndex][position]);
-        makeRhythmsForScroll(position, position + 1); //пользовательский - следующим
+        makeRhythmsForScroll(
+            position, position + 1); //пользовательский - следующим
       }
       if (oldBeat != _beat.beatCount) _lastEditedInThisBeat = -1;
       Provider.of<MetronomeState>(context, listen: false).beatMetre =
@@ -824,9 +841,9 @@ class _HomePageState extends State<HomePage>
       print('_onBeatChanged2');
       setState(() {
         _scrollBarController.jumpToItem(_scrollBarPosition);
+
         ///Если раскрутить эти колёса одновременно, можно уронить
         ///приложение.
-
 
         // _updateMetreBar = true;
       });
@@ -2110,10 +2127,11 @@ class _HomePageState extends State<HomePage>
   /// Show settings
   void _showSettings(BuildContext context) async {
     final Settings settings = new Settings(
-      animationType: _animationType,
+      //animationType: _animationType,
+      mixingType: _mixingType,
       activeScheme: _activeSoundScheme,
       soundSchemes: _soundSchemes,
-      useKnob: _useNewKnob,
+      //useKnob: _useNewKnob,
     );
 
     final Settings res = await Navigator.push(
@@ -2130,11 +2148,19 @@ class _HomePageState extends State<HomePage>
         _channel.setSoundScheme(_activeSoundScheme).then((int result) {
           setState(() {});
         });
+        }
+      if (res.mixingType != _mixingType) {
+        _channel.setMix(res.mixingType).then((int result) {
+          if (result >= 0) _mixingType = res.mixingType;
+          debugPrint('_mixingType: ${_mixingType}');
+          setState(() {});
+        });
       }
       setState(() {
-        _animationType = res.animationType;
+        //ToDo: не два ли раза?
+        //_animationType = res.animationType;
         //_skin.animationType = _animationType;
-        _useNewKnob = res.useKnob;
+        //_useNewKnob = res.useKnob;
       });
     }
     /*

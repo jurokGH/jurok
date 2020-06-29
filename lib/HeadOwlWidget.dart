@@ -24,7 +24,7 @@ class HeadOwlWidget extends StatefulWidget {
   final bool accent;
   int nAccent; //TODO
   final int maxAccent;
-  final bool active;
+  final bool active;//ToDo: не работает? Не final? пока смотрю через beatstate
   final int activeSubbeat;
   int subbeatCount;
   final int denominator;
@@ -205,7 +205,7 @@ class HeadOwlState extends State<HeadOwlWidget>
     final NoteWidget noteWidget = new NoteWidget(
       subDiv: widget.subbeatCount,
       denominator: widget.denominator * widget.subbeatCount,
-      active: active ? activeSubbeat : -1,
+      active: active&&(widget.playing) ? activeSubbeat : -1, //ToDo: active does not seem to work
       activeNoteType: ActiveNoteType.stemFixed,
       coverWidth: true,
       showTuplet: tupletsInts.contains(widget.subbeatCount),
@@ -326,7 +326,7 @@ class HeadOwlState extends State<HeadOwlWidget>
       ///ISH: Витя, active из виджета почему-то всегда неактивен...
       final bool bActive =
           (Provider.of<MetronomeState>(context, listen: false).activeBeat ==
-              widget.id);
+              widget.id)&&widget.playing;
 
       ///ISH:
       ///ToDo: Юра

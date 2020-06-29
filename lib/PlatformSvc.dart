@@ -23,6 +23,7 @@ class PlatformSvc
   final ValueChanged<int> onStart;
   final ValueChanged3<int, int, int> onSync;
   final ValueChanged<int> onLimitTempo;
+
   String _infoMsg = "";
 
   PlatformSvc(this.onStart, this.onSync, this.onLimitTempo)
@@ -250,6 +251,31 @@ class PlatformSvc
     }
     return new Future.value(res);
   }
+
+
+  /// Send mix type number to Java sound player
+  Future<int> setMix(int mixNumber) async
+  {
+    debugPrint("setMix");
+    int res = -1;
+    try
+    {
+      final int mixSendingResult = await _channel.invokeMethod('setMix', {'mix': mixNumber});
+      if (mixSendingResult <0) {
+        _infoMsg = 'Failed setting mix, пщщщхщщщхззз кликклик...';
+        debugPrint(_infoMsg);
+      }
+      else
+      {
+        debugPrint('mixIsSet');//ToDo: get names
+      }
+      res=mixSendingResult;
+    } on PlatformException {
+      _infoMsg = 'Exception: Failed setting  mixing type';
+    }
+    return new Future.value(res);
+  }
+
 
   /// Send sound scheme number to Java sound player
   Future<int> setSoundScheme(int musicScheme) async

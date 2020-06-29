@@ -36,10 +36,6 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 
 
 
-
-
-
-
 public class MainActivity extends FlutterActivity implements MethodChannel.MethodCallHandler
 {
   private static final String SOUND_CHANNEL = "samples.flutter.io/owlenome";
@@ -67,7 +63,12 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
   MusicSchemeMix musicSсhemeTunable;
   int currentMusicScheme = 0;
 
+
+
   BeatMetre beatRecieved=null;
+
+  ///ToDo: мы проверяли, я забыл, кто первый запускается, onCreate или init в дарт?
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -440,6 +441,16 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
       //if (names.size() > 0)
       result.success(names);
       //channel.invokeMethod("foo", args, new MethodChannel.Result(){
+    }
+    else if(methodCall.method.equals("setMix")) {
+      int mixIndex = methodCall.argument("mix");
+      if (mixIndex < metroAudio._mixTypes.length) {
+        metroAudio.setMixType(mixIndex);
+        result.success(mixIndex);
+      }
+      else {
+        result.success(-1);
+      }
     }
     else
     {

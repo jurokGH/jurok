@@ -38,6 +38,7 @@ public class MetroAudioMix
     private final static int cMinTempoBpm = 1;//20;
 
 
+
     /**
      * Частота, с которой работает audioTrack.
      * Для эффективной работы этот параметр (переданый в конструктор при создании)
@@ -192,6 +193,37 @@ public class MetroAudioMix
 
      //   return melody != null ? (int) melody.getMaxTempo() : 0;
     }
+
+
+    ///Типы миксования
+    final static int MIX_HALF_SUM = 0;
+    final static int MIX_HYPERBOLIC_TANGENT = 1;
+    final static int MIX_HYPERBOLIC_TANGENTAMP1 = 2;
+    final static int MIX_EXPERIMENTAL = 3;
+    final static int[] _mixTypes=new int[]{MIX_HALF_SUM, MIX_HYPERBOLIC_TANGENT, MIX_HYPERBOLIC_TANGENTAMP1, MIX_EXPERIMENTAL};
+
+
+    private int typeOfMix=0;
+    private MelodyToolsPCM16.NormOperator normOperator;
+
+
+
+    public void  setMixType(int newMix)
+    {
+        typeOfMix=newMix;
+        if (typeOfMix!=MIX_HALF_SUM)
+            /**
+             *  Нужно определить оператор нормализации
+                */
+        {
+            if(typeOfMix==MIX_HYPERBOLIC_TANGENT)
+                {normOperator = new MelodyToolsPCM16.NormHyperbolicTangent();}
+            else if (typeOfMix==MIX_HYPERBOLIC_TANGENTAMP1)
+                {normOperator = new MelodyToolsPCM16.NormHyperbolicTangentAmp();}
+            else {normOperator = new MelodyToolsPCM16.NormTest();}
+        }
+    }
+
 
     // volume = [0..100]
     public void setVolume(int volume)
@@ -638,16 +670,32 @@ public class MetroAudioMix
             //MelodyToolsPCM16.mixViaDoubleTEST( buffer.array(),bufferDriven.array(),
               //       new MelodyToolsPCM16.HalfSum());
 
-             MelodyToolsPCM16.NormOperator normTest;//ToDo: final?
-            normTest= new MelodyToolsPCM16.HalfSum();
-            normTest= new MelodyToolsPCM16.NormHyperbolicTangent();
-            normTest= new MelodyToolsPCM16.NormTest();
-            normTest= new MelodyToolsPCM16.NormHyperbolicTangentAmp();
-            MelodyToolsPCM16.mixViaDoubleNormOpTEST( buffer.array(),bufferDriven.array(),
-                    normTest);
 
-
-
+            if (typeOfMix==MIX_HALF_SUM)
+            {
+                /**
+                        Быстрое деление пополам без перехода в double.
+                        Старое, доброе, проверенное, с потерей в звуке.
+                 */
+                lastSample=MelodyToolsPCM16.mixNormalized(
+                        buffer.array(),bufferDriven.array(), lastSample, samplesForClickReduction,
+                        bConnectSounds
+                );
+            }
+            else {
+                /**
+                    *Этот микс переводит всё в double и миксует 'по умному', типа - см. normOperator.
+                     * Tested.
+                     *
+                    * Что он делает с процессором и каков memoryleak - НЕИЗВЕСТНО UNTESTED TODO
+                 *
+                 * Если идти по этому пути, то видимо нужно выносить эту процедуру в
+                 * установку темпа.
+                 *
+                 */
+                MelodyToolsPCM16.mixViaDoubleNormOperator(buffer.array(), bufferDriven.array(),
+                    normOperator);
+            }
             bConnectSounds=false;
 
 
