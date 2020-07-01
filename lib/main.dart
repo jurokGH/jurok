@@ -181,7 +181,7 @@ const int _cMinTempo = 1;
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    60; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+    180; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -302,7 +302,7 @@ class _HomePageState extends State<HomePage>
   // TODO Remove?
   int _animationType = 0;
 
-  int _mixingType=_initMixType;
+
 
   ///ISH:  Zebra must by quarantined.
   ///
@@ -452,7 +452,9 @@ class _HomePageState extends State<HomePage>
   KnobValue _knobValue;
 
   ///Установка микса. Todo
-  static const int _initMixType = 2;
+  static const int _initMixType = 1;
+
+  int _mixingType=_initMixType;
 
   /// /////////////////////////////////////////////////////////////////////////
 
@@ -680,7 +682,7 @@ class _HomePageState extends State<HomePage>
   ///
 
   ///Запасаем пользовательский ритм для данного числа долей.
-  ///Послее этого помещаем его в общий список
+  ///После этого помещаем его в общий список
   void storeUserRhythm() {
     userRhythms[_beat.beatCount - 1] =
         UserRhythm(_beat.subBeats, _beat.accents);
@@ -869,6 +871,10 @@ class _HomePageState extends State<HomePage>
 
     setState(() {
       _updateMetreWheels = true; //Todo:?
+      ///Это нужно, если остаётся старая механика, где
+      ///FixedExtentScrollController пересоздаётся внутри state.
+      ///Другое решение - сделать их внешними. Кажется,
+      ///это решение может быть более надежно.
     });
   }
 
@@ -3392,6 +3398,7 @@ class _HomePageState extends State<HomePage>
           },
           child: Container(
             width: shrinkForList * totalWidth,
+            height: shrinkForList * totalWidth/7,
             decoration: BoxDecoration(
                 image: DecorationImage(
               image: AssetImage('images/but1452long.png'),
@@ -3418,9 +3425,12 @@ class _HomePageState extends State<HomePage>
 
     for (int j = 0; j < maxBeatCount; j++) {
       rhythmListW.add(
-        Text(
-          'In ${j + 1} beat' + ((j == 0) ? '' : 's') + ':',
-          style: textStyle,
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Text(
+            'In ${j + 1} beat' + ((j == 0) ? '' : 's') + ':',
+            style: textStyle,
+          ),
         ),
       );
       for (int i = 0; i < _allPredefinedRhythms[j].length; i++) {
@@ -3503,18 +3513,19 @@ class _HomePageState extends State<HomePage>
         Container(
           //decoration: decorTmp(Colors.yellow),
           padding: EdgeInsets.symmetric(
-              vertical: totalWidth * shrinkForList / 50,
+              vertical: 2*totalWidth * shrinkForList / 50,
               horizontal: totalWidth * (1 - shrinkForList) / 4),
           child: GestureDetector(
             onTap: () {
               _activeSoundScheme = i;
               _channel.setSoundScheme(_activeSoundScheme).then((int result) {
-                setState(() {}); //ToDo: Why?
+                setState(() {}); //ToDo: Why? Double Check
                 Navigator.of(context).pop();
               });
             },
             child: Container(
               width: shrinkForList * totalWidth,
+              height: shrinkForList * totalWidth,
               decoration: BoxDecoration(
                   image: DecorationImage(
                 image: AssetImage('images/but1452long.png'),

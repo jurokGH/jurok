@@ -390,9 +390,8 @@ public class MelodyToolsPCM16
 
 
   public static class NormTest implements  NormOperator {
-    public double amplifier= 1.5;///Если мы сделаем угол наклона в 0
-    public double strongWeight= 0.7;///Если мы сделаем угол наклона в 0
-    //у гиперболического тангенса побольше?
+    public double amplifier= 2*1.5;
+    public double strongWeight= 0.7;
     //10 - искажение. Кажется, 2 уже искажение? (какие-то барабаны. надо слушать
     //на железе)
     //0.01 - тишина
@@ -402,7 +401,7 @@ public class MelodyToolsPCM16
 
   /**
    *     Микс разными способами. Даблы, интерфейсы какие-то...
-   *     Сколько будет жрать ресурсов - никто не знает.
+   *     Сколько будет жрать ресурсов - никто не знает. (J1: 5-7 % Moto: не видать)
    *     Не использовать в мирных целях.
    */
   public static void mixViaDoubleNormOperator(byte[] samples1, byte[] samples2,
@@ -415,7 +414,6 @@ public class MelodyToolsPCM16
     for(int i=0; i<longSndD.length; i++){
       double d=(i<shortSndD.length)?shortSndD[i]:0;
 
-   //   resD[i]=(d+longSndD[i])*0.5;
       resD[i]=norm.operator(longSndD[i],d);
 
     }
