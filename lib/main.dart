@@ -3125,7 +3125,7 @@ class _HomePageState extends State<HomePage>
         //mainAxisAlignment: MainAxisAlignment.
         //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Container(width: noteSize.width * 1.2),
+          Container(width: noteSize.width * 0.5),
           Container(
               height: noteSize.height,
               width: noteSize.width,
@@ -3178,15 +3178,24 @@ class _HomePageState extends State<HomePage>
       //decoration: decorTmp(Colors.yellow),
       child: Row(
         children: [
+          Expanded(flex:7,
+             child: Container(
+               /*decoration:
+                */
+             ),
+          ),
           Expanded(
-            flex: 55,
+            flex: 12,
             child: Container(
-              //decoration: decorTmp(Colors.cyan),
+              decoration:       BoxDecoration(
+                border:  Border.all(
+                  color: Colors.black,
+                ), ),
               child: noteAndTempo(_textStyleTempoRow),
             ),
           ),
           Expanded(
-              flex: 160,
+              flex: 37,
               child: Container(
                 decoration: BoxDecoration(
                     image: DecorationImage(
