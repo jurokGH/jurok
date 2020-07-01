@@ -3347,10 +3347,10 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
-    int left = 14;
-    int padding = 1;
-    int right = 100;
-    int total = left + padding + right;
+    final int left = 14;
+    final int padding = 1;
+    final int right = 100;
+    final int total = left + padding + right;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -3622,7 +3622,11 @@ class _HomePageState extends State<HomePage>
                 return SimpleDialog(
                   backgroundColor: Colors.amber[50],
                   elevation: 10.3,
-                  // title: const Text("Instruments"),
+                  title:  Align(
+                    alignment:  Alignment.bottomCenter,
+                    child: Text("Instruments", style:  textStyle,
+                    ),
+                  ),
                   //children:musicListOpt,//Крякает
                   children: musicList,
                 );

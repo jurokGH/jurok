@@ -335,7 +335,7 @@ class HeadOwlState extends State<HeadOwlWidget>
 
       ///shadow
       final Color shadCol = Color.fromRGBO(42, 0, 49,
-          bActive ? 0.9 : 0.5); //0.9 и 0.5 тут - это прозрачности тени в
+          bActive ? 0.0 : 0.0); //0.9 и 0.5 тут - это прозрачности тени в
       //зависимости от активности доли
       final double shadX = 0 * hOfBar / 57; //4
       final double shadY = 4 * hOfBar / 57;

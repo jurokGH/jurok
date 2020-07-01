@@ -591,10 +591,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
 
-    soundSсhemes.add(new MusicSchemeMix("Sinewave",
-            880, 30, 440, 30,
+    soundSсhemes.add(new MusicSchemeMix("SinewaveBAAAAD",
+            880, 15, 440, 15,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
 
 
     initSoundSchemesDrafts();
