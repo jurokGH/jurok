@@ -163,8 +163,8 @@ class MusicSchemeMix
         int lengthStrong = (int) Utility.nanoSec2samples(nativeSampleRate, beatDuration * 1000000);
 
 
-        beatSound = melodyTools.getFreq(beatFreq, lengthWeak, 1, 3);//TODO BAD 3
-        subBeatSound = melodyTools.getFreq(subBeatFreq, lengthStrong, 1, 2);//TODO BAD 2
+        beatSound = melodyTools.getFreq(beatFreq, lengthWeak, 3, 2);//
+        subBeatSound = melodyTools.getFreq(subBeatFreq, lengthStrong, 1, 3);//TODO BAD 2
     }
 
     //Из ресурсов. ДОЛГАЯ! Линейна по длительности звуков, с большими коэффициентами (даблы, чтение из файлов, жуть)

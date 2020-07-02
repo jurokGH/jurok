@@ -3904,13 +3904,13 @@ class _HomePageState extends State<HomePage>
           ? constraints.maxHeight
           : constraints.maxWidth;
 
-      return new InkWell(
-        child: Icon(Icons.volume_up, size: diam),
-        //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: !_playing,
-        onTap: () {
-          ///_showSettings(context); --- VOLUME
-        },
+      return RawMaterialButton(
+          enableFeedback: false,
+          onPressed: (){
+            _setVolume(_mute?100:0); },
+            child: _mute?Icon(Icons.volume_off, size: diam)
+                :Icon(Icons.volume_up, size: diam),
+          //tooltip: _soundSchemes[_activeSoundScheme],
       );
     });
   }
