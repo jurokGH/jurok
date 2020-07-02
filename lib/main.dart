@@ -332,7 +332,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров. Возможна зебра (толщина  границы - 1).
   bool bBoxContainer = false;
@@ -2419,6 +2419,9 @@ class _HomePageState extends State<HomePage>
 
     double knobDiameter = size.height * useOfHeight;
 
+    ///Временное решение - куда запихнуть подбиты? Чтобы вернуть по центру старт, сделать 0
+    final double deltaYtmp = size.width * 2.25 / 16;
+
     ///Центр старта
     double startDiameter = size.height * useOfHeight * 0.8;
     double statrCenterX = size.width * 2.25 / 16;
@@ -2792,6 +2795,8 @@ class _HomePageState extends State<HomePage>
                       decoration: BoxDecoration(
                           image: DecorationImage(
                         image: AssetImage('images/but-rhythms.png'),
+                            //ToDo: Юрик,
+                            //одень это по-человечески (это прыг на стандартный размер)
                         //image: AssetImage('images/but123short.png'),
                         //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
@@ -2801,7 +2806,7 @@ class _HomePageState extends State<HomePage>
                       child: jumpToNextStandardBeatW(), // rhythmPicker(),
                     ),
                   ),
-                  Expanded(
+              /*Expanded(
                     //спайс
                     flex: 1,
                     child: Container(
@@ -2824,6 +2829,7 @@ class _HomePageState extends State<HomePage>
                       child: btnSubBeatU(),
                     ),
                   ),
+                  */
                 ],
               ),
             ),
@@ -2860,8 +2866,9 @@ class _HomePageState extends State<HomePage>
             child: Align(
               alignment: Alignment.center,
               child: Text(
-                'To ${nextBeat()}/${_noteValue}',
+                'Go to\n ${nextBeat()}/${_noteValue}',
                 style: textStyle,
+                maxLines: 2,
                 textScaleFactor: 1,
               ),
             ),
@@ -3267,7 +3274,8 @@ class _HomePageState extends State<HomePage>
       children: <Widget>[
         Expanded(
           flex: left,
-          child: musicSchemeListW(textStyle, totalWidth * left / total,  0.85*totalWidth),
+          child: musicSchemeListW(
+              textStyle, totalWidth * left / total, 0.85 * totalWidth),
         ),
         Expanded(
           flex: padding,
@@ -3368,10 +3376,11 @@ class _HomePageState extends State<HomePage>
         );
     }
 
-    final  Scrollbar listInScroll=Scrollbar(
+    final Scrollbar listInScroll = Scrollbar(
       child: ListView(
         children: rhythmListW,
-      ),);
+      ),
+    );
 
     return Container(
       width: totalWidth,
@@ -3396,23 +3405,26 @@ class _HomePageState extends State<HomePage>
                   child: Container(
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                          image: AssetImage('images/back-v4.jpg'),//ToDo Юрик, тут подложка для списка ритмов
-                          fit: BoxFit.cover,
-                        )),
+                      image: AssetImage(
+                          'images/back-v4.jpg'), //ToDo Юрик, тут подложка для списка ритмов
+                      fit: BoxFit.cover,
+                    )),
                     child: Column(
                       children: <Widget>[
                         Padding(
-                          padding:EdgeInsets.symmetric(vertical: totalWidth * shrinkForList / 25),
+                          padding: EdgeInsets.symmetric(
+                              vertical: totalWidth * shrinkForList / 25),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Text(
                               "Rhythms",
-                              style: textStyle.copyWith(fontSize: textStyle.fontSize*1.1),
+                              style: textStyle.copyWith(
+                                  fontSize: textStyle.fontSize * 1.1),
                             ),
                           ),
                         ),
                         Expanded(
-                          child:listInScroll,
+                          child: listInScroll,
                           /*child: Scrollbar(
                             child: ListView(
                               children: musicList,
@@ -3422,8 +3434,6 @@ class _HomePageState extends State<HomePage>
                       ],
                     ),
                   ),
-
-
                 );
               });
         },
@@ -3465,7 +3475,7 @@ class _HomePageState extends State<HomePage>
         Container(
           //decoration: decorTmp(Colors.yellow),
           padding: EdgeInsets.symmetric(
-              vertical:  listWidth * shrinkForList / 100,
+              vertical: listWidth * shrinkForList / 100,
               horizontal: listWidth * (1 - shrinkForList) / 4),
           child: GestureDetector(
             onTap: () {
@@ -3477,7 +3487,7 @@ class _HomePageState extends State<HomePage>
             },
             child: Container(
               width: shrinkForList * listWidth,
-              height: shrinkForList * listWidth/7,
+              height: shrinkForList * listWidth / 7,
               decoration: BoxDecoration(
                   image: DecorationImage(
                 image: AssetImage('images/but1452long.png'),
@@ -3501,12 +3511,13 @@ class _HomePageState extends State<HomePage>
       );
     }
 
-    final  Scrollbar listInScroll=Scrollbar(
-        child: ListView(
+    final Scrollbar listInScroll = Scrollbar(
+      child: ListView(
         children: musicList,
-    ),);
+      ),
+    );
 
-     //ToDo: Jump to item
+    //ToDo: Jump to item
 
     return Container(
       width: totalWidth,
@@ -3529,23 +3540,26 @@ class _HomePageState extends State<HomePage>
                   child: Container(
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                      image: AssetImage('images/back-v4.jpg'), //ToDo Юрик, тут подложка для списка муз. схем
+                      image: AssetImage(
+                          'images/back-v4.jpg'), //ToDo Юрик, тут подложка для списка муз. схем
                       fit: BoxFit.cover,
                     )),
                     child: Column(
                       children: <Widget>[
                         Padding(
-                          padding:EdgeInsets.symmetric(vertical: totalWidth*shrinkForList*0.1),
+                          padding: EdgeInsets.symmetric(
+                              vertical: totalWidth * shrinkForList * 0.1),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Text(
                               "Pairs of sounds:",
-                              style: textStyle.copyWith(fontSize: textStyle.fontSize*1.3),
+                              style: textStyle.copyWith(
+                                  fontSize: textStyle.fontSize * 1.3),
                             ),
                           ),
                         ),
                         Expanded(
-                          child:listInScroll,
+                          child: listInScroll,
                           /*child: Scrollbar(
                             child: ListView(
                               children: musicList,
@@ -3872,19 +3886,90 @@ class _HomePageState extends State<HomePage>
       maxAccent: _beat.maxAccent,
       //spacing: spacing,
       //padding: padding,
-      padding:
-          EdgeInsets.zero, //ToDo: определить сообразно общей ситуации извне
+      padding: // EdgeInsets.symmetric(horizontal: size.width*0.15),
+          EdgeInsets.only(
+              bottom: size.height * 0.10, top: size.height * 0.005), //ToDo:
+      //Совы разложено учень неэкономно. Нужно править.
+      //EdgeInsets.zero, //ToDo: определить сообразно общей ситуации извне
       skin: _skin,
       size: size,
       onChanged: onOwlSubbeatsChanged,
       onAccentChanged: onAccentChanged,
     );
 
-    return Container(
-        width: size.width,
-        height: size.height,
-        //decoration:  decorTmp(Colors.black),
-        child: wixOwls);
+    Widget btnSubBeatU() {
+      return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+        Size size = Size(constraints.maxWidth, constraints.maxHeight);
+
+        TextStyle textStyle = GoogleFonts.roboto();
+
+        //onChanged: onSubbeatChanged,
+
+        return Container(
+          child: SubbeatEqWidget(
+            subbeatCount: _beat.subBeatCount,
+            subbeatCountMax: 4,
+            noteValue: _noteValue,
+            noteColor: Colors.black,
+            textStyle: textStyle,
+            size: size,
+            allEqual: _beat.subBeatsEqualAndExist(),
+            onChanged: onAllSubbeatsChanged,
+          ),
+        );
+      });
+    }
+
+    final sizeOfSubbeatNm = Size(size.width * 0.28, size.height * 0.10);
+    return Stack(
+      // fit: StackFit.expand,
+      children: [
+        Container(
+            width: size.width,
+            height: size.height,
+            //decoration:  decorTmp(Colors.black),
+            child: wixOwls),
+        Positioned.fromRect(
+          /*rect: Rect.fromPoints(
+             Offset(size.width, size.height),
+             Offset(size.width-sizeOfSubbeatNm.width, size.height-sizeOfSubbeatNm.height),
+           ), */
+          rect: Rect.fromCenter(
+            center: Offset(
+              size.width / 2,
+              size.height -
+                  sizeOfSubbeatNm.height / 2 -
+                  sizeOfSubbeatNm.height * 0.2,
+            ),
+            width: sizeOfSubbeatNm.width,
+            height: sizeOfSubbeatNm.height,
+          ),
+          child: _beat.beatCount>1?
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                //image:   AssetImage('images/but-note-2.png'),
+                //image:     AssetImage('images/but-note-1.png'),
+                image: AssetImage('images/but123short.png'),//ToDo: Юрик,
+                //одень это по-человечески (это регулятор подбит)
+                fit: BoxFit.fill,
+              ),
+            ),
+            child: SubbeatEqWidget(
+              subbeatCount: _beat.subBeatCount,
+              subbeatCountMax: 4,
+              noteValue: _noteValue,
+              noteColor: Colors.black,
+              textStyle: GoogleFonts.roboto(),
+              size: sizeOfSubbeatNm,
+              allEqual: _beat.subBeatsEqualAndExist(),
+              onChanged: onAllSubbeatsChanged,
+            ),
+          ):Container(),
+        ),
+      ],
+    );
   }
 }
 

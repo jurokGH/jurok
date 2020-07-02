@@ -84,8 +84,10 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
         ),
         Align(
             alignment: Alignment.center,
-            child: widget.allEqual? Text(" =", style: textStyle, textScaleFactor: 1,)
-            : Opacity(opacity: 0.3, child: Text(" =", style: textStyle, textScaleFactor: 1,)
+            child: widget.allEqual? Text(" ~", style: textStyle, textScaleFactor: 1,)
+            : Opacity(opacity: 0.3, child: Text(" ~", style: textStyle, textScaleFactor: 1,)
+                ///ToDo: а что мне помешало поставить условие на opacity?
+              ///А, может, текст должен зависеть тоже от этого... кто знает.
             ),
         ),
         Align(
