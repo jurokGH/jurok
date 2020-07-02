@@ -302,8 +302,6 @@ class _HomePageState extends State<HomePage>
   // TODO Remove?
   int _animationType = 0;
 
-
-
   ///ISH:  Zebra must by quarantined.
   ///
 
@@ -334,7 +332,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров. Возможна зебра (толщина  границы - 1).
   bool bBoxContainer = false;
@@ -454,7 +452,7 @@ class _HomePageState extends State<HomePage>
   ///Установка микса. Todo
   static const int _initMixType = 1;
 
-  int _mixingType=_initMixType;
+  int _mixingType = _initMixType;
 
   /// /////////////////////////////////////////////////////////////////////////
 
@@ -2154,7 +2152,7 @@ class _HomePageState extends State<HomePage>
         _channel.setSoundScheme(_activeSoundScheme).then((int result) {
           setState(() {});
         });
-        }
+      }
       if (res.mixingType != _mixingType) {
         _channel.setMix(res.mixingType).then((int result) {
           if (result >= 0) _mixingType = res.mixingType;
@@ -2257,121 +2255,31 @@ class _HomePageState extends State<HomePage>
   Widget testWidget(Size size) {
     double fontSizeTempo = size.width * 1 / 10;
     TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
-    return Row(
-      children: <Widget>[
-        Container(
-            width: size.width / 2,
-            height: size.height,
-            decoration: BoxDecoration(
-                image: DecorationImage(
-              image: AssetImage('images/wh23meter.png'),
-              fit: BoxFit.fill,
-            )),
-            child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-              double width = constraints.maxWidth * 1;
-              return Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: width,
-                  /*child: GoAroundWheelW(
-                    list: testList,
-                    position: _tmpTest,
-                    width: width,
-                    textStyle: textStyle,
-                    bReactOnTap: true,
-                    onChanged: (int newVal) {
-                      setState(() {
-                        _tmpTest = newVal;
-                        //tempController2.jumpToItem(newVal);
-                        tempController2.animateToItem(newVal,
-                        duration: Duration(milliseconds:  150),
-                        curve: Curves.linear,);
-                      });
-                    },
-                    controller: tempController1,
-                  ),
-
-                   */
-                ),
-              );
-            })),
-        Container(
-            width: size.width / 2,
-            height: size.height,
-            decoration: BoxDecoration(
-                image: DecorationImage(
-              image: AssetImage('images/wh23meter.png'),
-              fit: BoxFit.fill,
-            )),
-            child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-              double width = constraints.maxWidth * 1;
-              return Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: width,
-                  /*child: GoAroundWheelW(
-                        list: testList,
-                        position: _tmpTest,
-                        width: width,
-                        textStyle: textStyle,
-                        bReactOnTap: true,
-                        onChanged: (int newVal) {
-                          setState(() {
-                            _tmpTest = newVal;
-                          });
-                        },
-                        controller: tempController2,
-                      ),*/
-                ),
-              );
-            })),
-      ],
-    );
-
-    /*return Container(
-      width: size.width / 2,
-      height: size.height,
-      child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-        Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
-        double itemExtent = 0.5 * meterSize.width; //44,
-        final bool updateMetre = _updateMetreWheels; //ISH: не уверен, что это
-        _updateMetreWheels = false;
-
-        double meterTextSize = meterSize.height / 2.8;
-        TextStyle meterTextStyle = GoogleFonts.roboto(
-          fontSize: meterTextSize,
-          fontWeight: FontWeight.w800,
-        );
-        return //Container();
-            TwoWheels(
-          //MetreWidget(
-          update: true, //   updateMetre,//
-          //update: updateMetre, //ToDo: А в других вроде не нужно такой штуки....
-          //beats: _beat.beatCount, //ToDo: в этом виджете почему-то не работает. В остальных - ок, а тут непонятно. ????
-          //beats:_rhythmsToScroll[_scrollBarPosition].accents.length, То же самое.
-          beats:
-              _beat.beatCount, //А, разобрался. Надо было всегда перерисовывать,
-          //когда значение меняется. Не нужно никакх update, кажется
-          minBeats: minBeatCount,
-          maxBeats: maxBeatCount,
-          note: _noteValue,
-          minNote: minNoteValue,
-          maxNote: maxNoteValue,
-          width: meterSize.width,
-          height: meterSize.height,
-          //itemExtent: itemExtent,
-          color: Colors.deepPurple,
-          textStyle: meterTextStyle,
-          textStyleSelected: meterTextStyle,
-          onBeatChanged: _onBeatChanged,
-          onNoteChanged: _onNoteChanged,
-        );
-      }),
-    );
-    */
+    return Container(
+        width: size.width / 2,
+        height: size.height,
+        decoration: BoxDecoration(
+            image: DecorationImage(
+          image: AssetImage('images/wh23meter.png'),
+          fit: BoxFit.fill,
+        )),
+        child: RawMaterialButton(
+          child: Text("Press", style: textStyle),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) => Dialog(
+                  child: Stack(
+                children: <Widget>[
+                  Text("ZZs", style: textStyle),
+                  Text("PrAAs", style: textStyle),
+                ],
+                //...bottom card part,
+                //...top circlular image part,
+              )),
+            );
+          },
+        ));
   }
 
   ///Скролл темпов.
@@ -2446,15 +2354,15 @@ class _HomePageState extends State<HomePage>
     //А то разрушится трёхмернось.
 
     bool bTest = false;
-    //    bTest = true; //ToDo hide
+    //bTest = true; //ToDo hide
     final List<Widget> metrMainAreas = <Widget>[
       _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
-      !bTest
-          //true
+      //!bTest
+      true
           ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
           : testWidget(Size(totalWidth, totalWidth * c2)),
-      //!bTest
-      (true)
+      !bTest
+          // (true)
           ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
           : testWidget(Size(totalWidth, totalWidth * c3)),
     ];
@@ -3178,19 +3086,21 @@ class _HomePageState extends State<HomePage>
       //decoration: decorTmp(Colors.yellow),
       child: Row(
         children: [
-          Expanded(flex:7,
-             child: Container(
-               /*decoration:
+          Expanded(
+            flex: 7,
+            child: Container(
+                /*decoration:
                 */
-             ),
+                ),
           ),
           Expanded(
             flex: 12,
             child: Container(
-              decoration:       BoxDecoration(
-                border:  Border.all(
+              decoration: BoxDecoration(
+                border: Border.all(
                   color: Colors.black,
-                ), ),
+                ),
+              ),
               child: noteAndTempo(_textStyleTempoRow),
             ),
           ),
@@ -3357,7 +3267,7 @@ class _HomePageState extends State<HomePage>
       children: <Widget>[
         Expanded(
           flex: left,
-          child: musicSchemeListW(textStyle, totalWidth * left / total),
+          child: musicSchemeListW(textStyle, totalWidth * left / total,  0.85*totalWidth),
         ),
         Expanded(
           flex: padding,
@@ -3407,7 +3317,7 @@ class _HomePageState extends State<HomePage>
           },
           child: Container(
             width: shrinkForList * totalWidth,
-            height: shrinkForList * totalWidth/7,
+            height: shrinkForList * totalWidth / 7,
             decoration: BoxDecoration(
                 image: DecorationImage(
               image: AssetImage('images/but1452long.png'),
@@ -3458,6 +3368,11 @@ class _HomePageState extends State<HomePage>
         );
     }
 
+    final  Scrollbar listInScroll=Scrollbar(
+      child: ListView(
+        children: rhythmListW,
+      ),);
+
     return Container(
       width: totalWidth,
       //decoration: decorTmp(Colors.yellow),
@@ -3475,12 +3390,40 @@ class _HomePageState extends State<HomePage>
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return SimpleDialog(
+                return Dialog(
                   backgroundColor: Colors.amber[50],
                   elevation: 10.3,
-                  // title: const Text("Instruments"),
-                  //children:musicListOpt,//Крякает
-                  children: rhythmListW,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('images/back-v4.jpg'),//ToDo Юрик, тут подложка для списка ритмов
+                          fit: BoxFit.cover,
+                        )),
+                    child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding:EdgeInsets.symmetric(vertical: totalWidth * shrinkForList / 25),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Text(
+                              "Rhythms",
+                              style: textStyle.copyWith(fontSize: textStyle.fontSize*1.1),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child:listInScroll,
+                          /*child: Scrollbar(
+                            child: ListView(
+                              children: musicList,
+                            ),
+                          ),*/
+                        ),
+                      ],
+                    ),
+                  ),
+
+
                 );
               });
         },
@@ -3501,7 +3444,7 @@ class _HomePageState extends State<HomePage>
   ///
   /// Рисует тапабельную строку с музыкальной схемой. По тапу выдаётся диалог
   ///
-  Widget musicSchemeListW(TextStyle textStyle, double totalWidth) {
+  Widget musicSchemeListW(TextStyle textStyle, double totalWidth, listWidth) {
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
     double shrinkForList = 0.9;
@@ -3522,8 +3465,8 @@ class _HomePageState extends State<HomePage>
         Container(
           //decoration: decorTmp(Colors.yellow),
           padding: EdgeInsets.symmetric(
-              vertical: 2*totalWidth * shrinkForList / 50,
-              horizontal: totalWidth * (1 - shrinkForList) / 4),
+              vertical:  listWidth * shrinkForList / 100,
+              horizontal: listWidth * (1 - shrinkForList) / 4),
           child: GestureDetector(
             onTap: () {
               _activeSoundScheme = i;
@@ -3533,8 +3476,8 @@ class _HomePageState extends State<HomePage>
               });
             },
             child: Container(
-              width: shrinkForList * totalWidth,
-              height: shrinkForList * totalWidth,
+              width: shrinkForList * listWidth,
+              height: shrinkForList * listWidth/7,
               decoration: BoxDecoration(
                   image: DecorationImage(
                 image: AssetImage('images/but1452long.png'),
@@ -3558,49 +3501,12 @@ class _HomePageState extends State<HomePage>
       );
     }
 
-    //Ещё один вариант диалога, через SimpleDialogOption
-    //Прост по синтаксису, но крякает и как отключить звук - непонятно.
-    List<SimpleDialogOption> musicListOpt = [];
-    for (int i = 0; i < _soundSchemes.length; i++) {
-      musicListOpt.add(
-        SimpleDialogOption(
-          onPressed: () {
-            _activeSoundScheme = i;
-            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
-              setState(() {}); //ToDo: Why?
-              Navigator.of(context).pop();
-            });
-          },
-          child: Container(
-            //decoration: decorTmp(Colors.yellow),
-            padding: EdgeInsets.symmetric(
-                vertical: totalWidth * shrinkForList / 50,
-                horizontal: totalWidth * (1 - shrinkForList) / 4),
+    final  Scrollbar listInScroll=Scrollbar(
+        child: ListView(
+        children: musicList,
+    ),);
 
-            child: Container(
-              width: shrinkForList * totalWidth,
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                image: AssetImage('images/but1452long.png'),
-                //image: AssetImage('images/but-note-1.png'),
-                //image: AssetImage('images/ictempo.png'),
-                fit: BoxFit.fill,
-              )),
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  _soundSchemes[i],
-                  style: (i == _activeSoundScheme)
-                      ? listTextStyleBold
-                      : listTextStyle,
-                  textScaleFactor: 1,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+     //ToDo: Jump to item
 
     return Container(
       width: totalWidth,
@@ -3608,8 +3514,6 @@ class _HomePageState extends State<HomePage>
       decoration: BoxDecoration(
           image: DecorationImage(
         image: AssetImage('images/but1452long.png'),
-        //image: AssetImage('images/but-note-1.png'),
-        //image: AssetImage('images/ictempo.png'),
         fit: BoxFit.fill,
       )),
       child: RawMaterialButton(
@@ -3619,16 +3523,38 @@ class _HomePageState extends State<HomePage>
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return SimpleDialog(
+                return Dialog(
                   backgroundColor: Colors.amber[50],
                   elevation: 10.3,
-                  title:  Align(
-                    alignment:  Alignment.bottomCenter,
-                    child: Text("Instruments", style:  textStyle,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                      image: AssetImage('images/back-v4.jpg'), //ToDo Юрик, тут подложка для списка муз. схем
+                      fit: BoxFit.cover,
+                    )),
+                    child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding:EdgeInsets.symmetric(vertical: totalWidth*shrinkForList*0.1),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Text(
+                              "Pairs of sounds:",
+                              style: textStyle.copyWith(fontSize: textStyle.fontSize*1.3),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child:listInScroll,
+                          /*child: Scrollbar(
+                            child: ListView(
+                              children: musicList,
+                            ),
+                          ),*/
+                        ),
+                      ],
                     ),
                   ),
-                  //children:musicListOpt,//Крякает
-                  children: musicList,
                 );
               });
         },
@@ -3905,12 +3831,14 @@ class _HomePageState extends State<HomePage>
           : constraints.maxWidth;
 
       return RawMaterialButton(
-          enableFeedback: false,
-          onPressed: (){
-            _setVolume(_mute?100:0); },
-            child: _mute?Icon(Icons.volume_off, size: diam)
-                :Icon(Icons.volume_up, size: diam),
-          //tooltip: _soundSchemes[_activeSoundScheme],
+        enableFeedback: false,
+        onPressed: () {
+          _setVolume(_mute ? 100 : 0);
+        },
+        child: _mute
+            ? Icon(Icons.volume_off, size: diam)
+            : Icon(Icons.volume_up, size: diam),
+        //tooltip: _soundSchemes[_activeSoundScheme],
       );
     });
   }

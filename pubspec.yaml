@@ -219,12 +219,12 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
   fonts:
-     - family: Symbola
-       fonts:
-         - asset: fonts/Symbola.ttf
-     - family: SymbolaH
-       fonts:
-         - asset: fonts/Symbola-hint.ttf
+ #    - family: Symbola
+ #      fonts:
+ #        - asset: fonts/Symbola.ttf
+ #    - family: SymbolaH
+ #      fonts:
+ #        - asset: fonts/Symbola-hint.ttf
      - family: Bravura
        fonts:
          - asset: fonts/Bravura.ttf
