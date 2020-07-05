@@ -3,8 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 //import 'dart:ui' as ui;
 
+///Сколько значений темпа меняется при изменении угла при sensitivity=1
+const double sensitivityToAngle=60/pi;
+
 ///Рисуем радиусы.
 const bool showRadii = false;
+
+
+
 
 class KnobValue {
   ///угол между пальцем и отрисованным изображением в момент нажатия
@@ -73,8 +79,13 @@ class KnobTuned extends StatefulWidget {
   final ValueChanged<KnobValue> onChanged;
   final TextStyle textStyle;
 
+
+  ///Чувствительность. Чем больше, тем лучше разрешение, то есть проще выставлять точный темп.
+  /// см. sensitivityToAngle
   final double sensitivity; //size/2*pi;
 
+
+  ///Увеличение размера при нажатии
   final double pushFactor;
 
   final bool showText;
@@ -128,11 +139,20 @@ class KnobTunedState extends State<KnobTuned> {
   Size _imageSize = Size.zero;
 
   double getValueUncut(double absAngle, double ang0, double val0) {
-    double size = widget.diameter != null
+    /*    double size = widget.diameter != null
         ? widget.diameter
         : MediaQuery.of(context).size.shortestSide; //ToDo:???
 
-    return val0 + (absAngle - ang0) / (2 * pi) * size / widget.sensitivity;
+
+     ///вроде рабочий вариант, но почему размер должен влиять на чувствительность?
+     //На moto отлично при чувствительности 2 - это 30 значений на \pi.
+    return val0 + (absAngle - ang0) / (2 * pi)
+        * size / widget.sensitivity;
+     */
+
+
+    ///угловая чувствительность. при единице - 60 значений темпа на полоборота
+    return val0 + (absAngle - ang0) *sensitivityToAngle / widget.sensitivity;
   }
 
   double getValue(double absAngle, double ang0, double val0) {
@@ -164,7 +184,8 @@ class KnobTunedState extends State<KnobTuned> {
 
   @override
   Widget build(BuildContext context) {
-    //print('Knob::build');
+    debugPrint('Knob::build');
+
     double size = widget.diameter != null
         ? widget.diameter
         : MediaQuery.of(context).size.shortestSide; //TODO
@@ -284,10 +305,10 @@ class KnobTunedState extends State<KnobTuned> {
                 tapAngleCorrected = angleNow;
                 absoluteAngleAtTapCorrected = absoluteAngleNow;
 
-                print('corrections');
-                print(
+                debugPrint('corrections');
+                debugPrint(
                     'AbsAngle at tap: ${absoluteAngleAtTapCorrected.toStringAsFixed(4)}');
-                print(
+                debugPrint(
                     'AbsAngle OF tap: ${tapAngleCorrected.toStringAsFixed(4)}');
               }
 

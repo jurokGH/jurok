@@ -343,8 +343,6 @@ class NotePainter extends CustomPainter {
 
   ///Символ паузы
   String exponentToRests() {
-    //toDo: как-то это можно умнее сделать, но не умею
-    //записать переменную под \u
     switch (denominator) {
       case 2:
         return '\u{1D13C}';

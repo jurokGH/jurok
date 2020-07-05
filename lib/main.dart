@@ -438,7 +438,7 @@ class _HomePageState extends State<HomePage>
   //0.0015*_pushDilationFactor; // Супер!
   //0.15*_pushDilationFactor;// Дрянной эффект
 
-  ///Время на растягивание кноба, мс; пока сделано криво (ножно нормальную анимацию).
+  ///Время на растягивание кноба, мс; пока сделано криво (нужно нормальную анимацию).
   final int _timeToDilation = 200;
 
   ///Во сколько раз увеличивается кноб
@@ -2731,7 +2731,7 @@ class _HomePageState extends State<HomePage>
         innerRadius: _innerRadius,
         outerRadius: _outerRadius,
         textStyle: knobTextStyle,
-        timeToDilation: _timeToDilation, //TODO: UNTESTED
+        timeToDilation: _timeToDilation, //TODO: UNTESTED//Сделано предварительно
         showText: true,
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
@@ -2739,7 +2739,7 @@ class _HomePageState extends State<HomePage>
           //_tempoBpm = newVal.value.round();
           //if (_playing)
           //_setTempo(_tempoBpm);
-          setState(() {});
+          setState(() {});//ToDo: ???? DC
         },
       ),
     );
@@ -3010,7 +3010,16 @@ class _HomePageState extends State<HomePage>
         ///ToDo: Untested
         if (newTempo < minTempo) newTempo = minTempo;
         if (newTempo > _tempoBpmMax) newTempo = _tempoBpmMax;
-        _setTempo(newTempo);
+
+        ///ToDo:
+        ///- нажатие на кнопку должны останавливать вращение "grave ..."; аналогично -
+        ///нужно проверить остальные сочетания.
+        ///- нужно проверить билды у кноба и остальных темпо-виджетов
+        ///- setState в них и в setTempo кажутся излишними
+        _knobValue.absoluteAngle+=(newTempo-_tempoBpm)*_sensitivity/sensitivityToAngle;
+
+
+        _setTempo(newTempo);///ToDo: DC
         /*
         if (_playing)
           _setTempo(
