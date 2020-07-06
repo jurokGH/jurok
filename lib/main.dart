@@ -493,6 +493,53 @@ class _HomePageState extends State<HomePage>
     //_skin = new OwlSkinRot(_animationType);
     _skin = new OwlSkin4Acc();
     _skin.init().then((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {///Hint//ToDo: тут этому вообще место?
+        await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            final double wd = _screenSize.width * 0.8;
+            final TextStyle textStyle =
+                TextStyle(fontSize: wd / 18, color: Colors.black);
+            //GoogleFonts.roboto(fontSize: wd / 18, color: Colors.black);//ToDo:
+            //Кажется, шрифты не прогружаются на этом этапе. По крайней мере,
+            //установив первый раз на "чистый" телефон, я получил пустой диалог.
+            final TextStyle textStyleEmph = textStyle.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: textStyle.fontSize * 1.2);
+            final Widget message = GestureDetector(
+              onTap: () {
+                setState(() {}); //ToDo: Why?
+                Navigator.of(context).pop();
+              },
+              child: RichText(
+                textAlign: TextAlign.left,
+                textScaleFactor: 1,
+                text: TextSpan(
+                  style: textStyle,
+                  children: [
+                    TextSpan(
+                        text:
+                            'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                    TextSpan(
+                        text:
+                            'This is the best way to see what this app can do.'),
+                  ],
+                ),
+              ),
+            );
+            return AlertDialog(
+              backgroundColor: Colors.amber[50].withOpacity(0.75),
+              elevation: 10.3,
+              title: Text(
+                "Hint 1 of 1:",
+                style: textStyleEmph.copyWith(color: Colors.indigo),
+                textScaleFactor: 1,
+              ),
+              content: message,
+            );
+          },
+        );
+      });
       setState(() {});
     });
 
@@ -542,45 +589,49 @@ class _HomePageState extends State<HomePage>
     _lastEditedBeatIndex = -1;
 
     ///ToDo: приветственная речь. Видимо, нужно только самый первый раз показывать.
-    WidgetsBinding.instance.addPostFrameCallback((_) => showDialog(
-      context: context,
-      builder: (BuildContext context) {
 
-        final double wd =_screenSize.width*0.8;
-        final TextStyle textStyle =TextStyle(fontSize: wd / 18, color: Colors.black);
-        //GoogleFonts.roboto(fontSize: wd / 18, color: Colors.black);//ToDo:
-        //Кажется, шрифты не прогружаются на этом этапе. По крайней мере,
-        //установив первый раз на "чистый" телефон, я получил пустой диалог.
-        final TextStyle textStyleEmph = textStyle.copyWith(
-            fontWeight: FontWeight.w600, fontSize: textStyle.fontSize * 1.2);
-        final Widget message = RichText(
-          textAlign: TextAlign.left,
-          textScaleFactor: 1,
-          text: TextSpan(
-            style: textStyle,
-            children: [
-              TextSpan(
-                  text:
-                  'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
-              TextSpan(
-                  text:
-                  'This is the best way to see what this app can do.'),
-            ],
-          ),
-        );
-        return AlertDialog(
-          backgroundColor: Colors.amber[50].withOpacity(0.75),
-          elevation: 10.3,
-          title: Text(
-            "Hint 1 of 1:",
-            style: textStyleEmph.copyWith(color: Colors.indigo),
+    /*
+    /// не прорисовываются совы еще в этот момент
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          setState(() {          });//ToDo:
+          final double wd = _screenSize.width * 0.8;
+          final TextStyle textStyle =
+              TextStyle(fontSize: wd / 18, color: Colors.black);
+          //GoogleFonts.roboto(fontSize: wd / 18, color: Colors.black);//ToDo:
+          //Кажется, шрифты не прогружаются на этом этапе. По крайней мере,
+          //установив первый раз на "чистый" телефон, я получил пустой диалог.
+          final TextStyle textStyleEmph = textStyle.copyWith(
+              fontWeight: FontWeight.w600, fontSize: textStyle.fontSize * 1.2);
+          final Widget message = RichText(
+            textAlign: TextAlign.left,
             textScaleFactor: 1,
-          ),
-          content: message,
-        );
-      },
-        )
-    );
+            text: TextSpan(
+              style: textStyle,
+              children: [
+                TextSpan(
+                    text:
+                        'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                TextSpan(
+                    text: 'This is the best way to see what this app can do.'),
+              ],
+            ),
+          );
+          return AlertDialog(
+            backgroundColor: Colors.amber[50].withOpacity(0.75),
+            elevation: 10.3,
+            title: Text(
+              "Hint 1 of 1:",
+              style: textStyleEmph.copyWith(color: Colors.indigo),
+              textScaleFactor: 1,
+            ),
+            content: message,
+          );
+        },
+      );
+    });*/
   }
 
   @override
@@ -2298,7 +2349,7 @@ class _HomePageState extends State<HomePage>
     //TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
 
     //final double wd = _screenSize.width * 0.95;
-    final double wd =size.width*0.8;
+    final double wd = size.width * 0.8;
     final double ht = wd;
     final TextStyle textStyle =
         GoogleFonts.roboto(fontSize: wd / 18, color: Colors.black);
@@ -2374,26 +2425,29 @@ class _HomePageState extends State<HomePage>
     //return message;
 
     return RawMaterialButton(
-      child: Text("TEST MESSAGE", style: textStyle.copyWith(color: Colors.blue),),
+      child: Text(
+        "TEST MESSAGE",
+        style: textStyle.copyWith(color: Colors.blue),
+      ),
       onPressed: () {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             var message = RichText(
-                textAlign: TextAlign.left,
-                textScaleFactor: 1,
-                text: TextSpan(
-                  style: textStyle,
-                  children: [
-                    TextSpan(
-                        text:
-                            'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
-                    TextSpan(
-                        text:
-                            'This is the best way to see what this app can do.'),
-                  ],
-                ),
-              );
+              textAlign: TextAlign.left,
+              textScaleFactor: 1,
+              text: TextSpan(
+                style: textStyle,
+                children: [
+                  TextSpan(
+                      text:
+                          'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                  TextSpan(
+                      text:
+                          'This is the best way to see what this app can do.'),
+                ],
+              ),
+            );
             return AlertDialog(
               backgroundColor: Colors.amber[50].withOpacity(0.75),
               elevation: 10.3,
