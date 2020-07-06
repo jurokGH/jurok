@@ -494,6 +494,7 @@ class _HomePageState extends State<HomePage>
     _skin = new OwlSkin4Acc();
     _skin.init().then((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {///Hint//ToDo: тут этому вообще место?
+        ///см. https://stackoverflow.com/questions/49466556/flutter-run-method-on-widget-build-complete/54553143#54553143
         await showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -508,26 +509,29 @@ class _HomePageState extends State<HomePage>
                 fontSize: textStyle.fontSize * 1.2);
             final Widget message = GestureDetector(
               onTap: () {
-                setState(() {}); //ToDo: Why?
+                //setState(() {}); //ToDo: Why?
                 Navigator.of(context).pop();
               },
-              child: RichText(
-                textAlign: TextAlign.left,
-                textScaleFactor: 1,
-                text: TextSpan(
-                  style: textStyle,
-                  children: [
-                    TextSpan(
-                        text:
-                            'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
-                    TextSpan(
-                        text:
-                            'This is the best way to see what this app can do.'),
-                  ],
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: wd*0.05,),
+                child: RichText(
+                  textAlign: TextAlign.left,
+                  textScaleFactor: 1,
+                  text: TextSpan(
+                    style: textStyle,
+                    children: [
+                      TextSpan(
+                          text:
+                              'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                      TextSpan(
+                          text:
+                              'This is the best way to see what this app can do.'),
+                    ],
+                  ),
                 ),
               ),
             );
-            return AlertDialog(
+            return SimpleDialog(
               backgroundColor: Colors.amber[50].withOpacity(0.75),
               elevation: 10.3,
               title: Text(
@@ -535,7 +539,8 @@ class _HomePageState extends State<HomePage>
                 style: textStyleEmph.copyWith(color: Colors.indigo),
                 textScaleFactor: 1,
               ),
-              content: message,
+              children: <Widget>[message],
+              //content: message,
             );
           },
         );
