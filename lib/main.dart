@@ -528,7 +528,7 @@ class _HomePageState extends State<HomePage>
                     children: [
                       TextSpan(
                           text:
-                              'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                              'Tap the play button first.\nThen tap/swipe/rotate anything.\n\n'),
                       TextSpan(
                           text:
                               'This is the best way to see what this app can do.'),
