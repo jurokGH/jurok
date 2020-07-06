@@ -2981,7 +2981,12 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget signatureRaw(double totalWidht) {
+  Widget signatureRaw(TextStyle textStyle, double totalWidht) {
+    final int leftFlex=7;
+    final int meterWheelsFlex=12;
+    final int meterFlex=25;
+    final int rightFlex =12;
+    final int total=leftFlex+meterWheelsFlex+meterFlex+rightFlex;
     double globalYPadding = totalWidht * 0.005;
     double localXPadding = totalWidht * 0.01;
     double meterYPaddyng = totalWidht * 0.007;
@@ -2991,21 +2996,21 @@ class _HomePageState extends State<HomePage>
         child: Row(children: [
           Expanded(
             //Звуковая схема
-            flex: 7,
+            flex: leftFlex,
             child: Container(
               padding: EdgeInsets.only(right: localXPadding),
               decoration: decorDebug(Colors.blue),
-              child: wSchemeBn(),
+              child: wSchemeBn(textStyle,totalWidht/*totalWidht*leftFlex/total*/),
             ),
           ),
           Expanded(
             //Колонка колёс метра
-            flex: 12,
+            flex: meterWheelsFlex,
             child: Container(child: wMetreWheels()),
           ),
           Expanded(
             //Строка акцентов
-            flex: 25,
+            flex: meterFlex,
             child: Container(
               padding: EdgeInsets.only(
                   right: localXPadding,
@@ -3019,7 +3024,7 @@ class _HomePageState extends State<HomePage>
           //Spacer(flex:1),
           Expanded(
             //Колонка справа (ритмы и регулятор-сова)
-            flex: 12,
+            flex: rightFlex,
             child: Container(
               child: Column(
                 //crossAxisAlignment: CrossAxisAlignment.center,
@@ -3377,57 +3382,165 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Звуковая схема
-  Widget wSchemeBn() {
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      Size sizzze = Size(constraints.maxWidth, constraints.maxHeight);
-      int soundScheme = _activeSoundScheme;
-      final int imageIndex = soundScheme < 3 ? soundScheme : 3;
-      final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
+  Widget wSchemeBn(TextStyle textStyle, /*double totalWidth,*/ listWidth) {
+    ///Полный бардак с listWidth и вокруг. Сделано на ходу. //ToDo
+    double shrinkForList = 0.9;
+    TextStyle listTextStyle =
+    textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
+    TextStyle listTextStyleBold =
+    listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
-      final String strScheme = (soundScheme + 1).toString();
-      final double sizeButton = sizzze.width;
-
-      final Widget icon = new Image.asset(
-        schemeName,
-        width: sizeButton,
-        height: sizeButton,
-        fit: BoxFit.contain,
-      );
-
-      return new RawMaterialButton(
-        child: Stack(alignment: Alignment.center, children: [
-          //decoration: decorTmp(Colors.green),
-          icon,
-          imageIndex == 3
-              ? Text(
-                  strScheme,
-                  style: Theme.of(context).textTheme.headline5.copyWith(
-                      fontSize: 0.4 * sizzze.width,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
+    //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
+    //само диалоговое окно не обновляется.
+    //Чтобы диалог обновлялся сам при выборе нового item, необходимо оформить виджеты-элементы как класс и
+    //завернуть выбор в  StatefulBuilder.
+    List<Widget> musicList = [];
+    for (int j = 0; j < _soundSchemes.length; j++) {
+      int i = j %
+          _soundSchemes.length; //Отладочное, чтобы проверить на многих списках
+      musicList.add(
+        Container(
+          //decoration: decorTmp(Colors.yellow),
+          padding: EdgeInsets.symmetric(
+              vertical: listWidth * shrinkForList / 100,
+              horizontal: listWidth * (1 - shrinkForList) / 4),
+          child: GestureDetector(
+            onTap: () {
+              _activeSoundScheme = i;
+              _channel.setSoundScheme(_activeSoundScheme).then((int result) {
+                setState(() {}); //ToDo: Why? Double Check
+                Navigator.of(context).pop();
+              });
+            },
+            child: Container(
+              width: shrinkForList * listWidth,
+              height: shrinkForList * listWidth / 7,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('images/but123short.png'),
+                    //ToDo: Юрик, кажется but123short тут смотрится сморчково. Или строчково. Ты посмотри.
+                    //image: AssetImage('images/but-note-1.png'),
+                    //image: AssetImage('images/ictempo.png'),
+                    fit: BoxFit.fill,
+                  )),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  _soundSchemes[i],
+                  style: (i == _activeSoundScheme)
+                      ? listTextStyleBold
+                      : listTextStyle,
                   textScaleFactor: 1,
-                )
-              : Container(),
-        ]),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback:
-            false, //!_playing, //Неприятный треск. Для музыкального приложения - плохо.
-        //В хороших метрономамх не встречал.
-        onPressed: () {
-          if (_soundSchemes?.length > 0) {
-            _activeSoundScheme =
-                (_activeSoundScheme + 1) % _soundSchemes.length;
-            // setState() is called in onLimitTempo() call
-            _channel.setSoundScheme(_activeSoundScheme).then((int result) {
-              setState(() {});
-            });
-          }
-        },
+                ),
+              ),
+            ),
+          ),
+        ),
       );
-    });
+    }
+    final Scrollbar listInScroll = Scrollbar(
+      child: ListView(
+        children: musicList,
+      ),
+    );
+
+
+    int soundScheme = _activeSoundScheme;
+    final int imageIndex = soundScheme < 4 ? soundScheme : 4;
+    final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
+
+    final String strScheme = (soundScheme + 1).toString();
+
+    final Widget icon = new Image.asset(
+      schemeName,
+      //width: sizeButton,
+     // height: sizeButton,
+      fit: BoxFit.contain,
+    );
+
+
+
+    return Container(
+      //width: totalWidth,
+      //decoration: decorTmp(Colors.yellow),
+      decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/but1452long.png'),
+            fit: BoxFit.fill,
+          )),
+      child: RawMaterialButton(
+        enableFeedback: false, //!_playing,
+        onPressed: () {
+          //По тапу вытаскиваем список для выбора схемы
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Dialog(
+                  backgroundColor: Colors.amber[50],
+                  elevation: 10.3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                              'images/back-v4.jpg'),
+                          //ToDo Юрик, тут подложка для списка муз. схем
+                          fit: BoxFit.cover,
+                        )),
+                    child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                          //    vertical: totalWidth * shrinkForList * 0.1
+                              vertical: listWidth* 0.1
+                          ),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Text(
+                              "Pairs of sounds:",
+                              style: textStyle.copyWith(
+                                  fontSize: textStyle.fontSize * 1.3),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: listInScroll,
+                          /*child: Scrollbar(
+                            child: ListView(
+                              children: musicList,
+                            ),
+                          ),*/
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              });
+        },
+        child: Align(
+          //То, что рисуется в строке
+          alignment: Alignment.center,
+          child: Stack(alignment: Alignment.center, children: [
+            //decoration: decorTmp(Colors.green),
+            icon,
+            imageIndex == 4
+                ? Text(
+              strScheme,
+              /*
+              style: Theme.of(context).textTheme.headline5.copyWith(
+                  fontSize: 0.4 * totalWidth,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),*/
+              style: textStyle,
+              textScaleFactor: 1,
+            )
+                : Container(),
+          ]),
+        ),
+      ),
+    );
   }
+
+
 
   Widget _rowControlsArea(bool portrait, Size size) {
     double fontSizeTempo = size.width *
@@ -3439,6 +3552,8 @@ class _HomePageState extends State<HomePage>
 
     TextStyle _textStyleSchemeRow =
         GoogleFonts.roboto(fontSize: fontSizeMusicScheme * 0.7);
+
+
 
     ///Паддинг большой плашки контролов относительно краев экраан
 
@@ -3495,7 +3610,7 @@ class _HomePageState extends State<HomePage>
             Flexible(
               flex: 20,
               fit: FlexFit.tight,
-              child: signatureRaw(size.width),
+              child: signatureRaw(_textStyleSchemeRow, size.width),
             ),
             Flexible(
               flex: 7,
@@ -4075,7 +4190,7 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
-        enableFeedback: !_playing,
+        enableFeedback: false,//!_playing,
         onTap: () {
           _showHelp(context);
         },
@@ -4093,7 +4208,7 @@ class _HomePageState extends State<HomePage>
       return new InkWell(
         child: Icon(Icons.settings, size: size),
         //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: !_playing,
+        enableFeedback: false,// !_playing,
         onTap: () {
           _showSettings(context);
         },
