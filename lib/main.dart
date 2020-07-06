@@ -181,7 +181,7 @@ const int _cMinTempo = 1;
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    180; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+    120; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -385,7 +385,7 @@ class _HomePageState extends State<HomePage>
   int _activeMetre = _cIniActiveMetre;
 
   /// Index of current user defined metre
-  /// -1 - if there are not user metre
+  /// -1 - if there are no  user metre
   int _userMetre = -1;
 
   ///TODO: MetreBar problem
@@ -540,6 +540,47 @@ class _HomePageState extends State<HomePage>
     //Пользовательские ритмы
     userRhythms = List<UserRhythm>.generate(12, (n) => UserRhythm([], []));
     _lastEditedBeatIndex = -1;
+
+    ///ToDo: приветственная речь. Видимо, нужно только самый первый раз показывать.
+    WidgetsBinding.instance.addPostFrameCallback((_) => showDialog(
+      context: context,
+      builder: (BuildContext context) {
+
+        final double wd =_screenSize.width*0.8;
+        final TextStyle textStyle =TextStyle(fontSize: wd / 18, color: Colors.black);
+        //GoogleFonts.roboto(fontSize: wd / 18, color: Colors.black);//ToDo:
+        //Кажется, шрифты не прогружаются на этом этапе. По крайней мере,
+        //установив первый раз на "чистый" телефон, я получил пустой диалог.
+        final TextStyle textStyleEmph = textStyle.copyWith(
+            fontWeight: FontWeight.w600, fontSize: textStyle.fontSize * 1.2);
+        final Widget message = RichText(
+          textAlign: TextAlign.left,
+          textScaleFactor: 1,
+          text: TextSpan(
+            style: textStyle,
+            children: [
+              TextSpan(
+                  text:
+                  'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+              TextSpan(
+                  text:
+                  'This is the best way to see what this app can do.'),
+            ],
+          ),
+        );
+        return AlertDialog(
+          backgroundColor: Colors.amber[50].withOpacity(0.75),
+          elevation: 10.3,
+          title: Text(
+            "Hint 1 of 1:",
+            style: textStyleEmph.copyWith(color: Colors.indigo),
+            textScaleFactor: 1,
+          ),
+          content: message,
+        );
+      },
+        )
+    );
   }
 
   @override
@@ -2253,8 +2294,122 @@ class _HomePageState extends State<HomePage>
       FixedExtentScrollController(initialItem: _initTest);
 
   Widget testWidget(Size size) {
-    double fontSizeTempo = size.width * 1 / 10;
-    TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
+    //double fontSizeTempo = size.width * 1 / 10;
+    //TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
+
+    //final double wd = _screenSize.width * 0.95;
+    final double wd =size.width*0.8;
+    final double ht = wd;
+    final TextStyle textStyle =
+        GoogleFonts.roboto(fontSize: wd / 18, color: Colors.black);
+    final TextStyle textStyleEmph = textStyle.copyWith(
+        fontWeight: FontWeight.w600, fontSize: textStyle.fontSize * 1.2);
+
+    final Widget messageUgly = Flexible(
+        fit: FlexFit.tight,
+        // width: wd,
+        //height: ht,
+        //color: Colors.amber[50].withOpacity(0.90),
+        /*decoration: BoxDecoration(
+         // color: Colors.amber[50],
+          //color: Colors.amber[50].withOpacity(0.90),
+        ),*/
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: wd * 0.05,
+            horizontal: wd * 0.01,
+          ),
+          child: RichText(
+              textAlign: TextAlign.left,
+              textScaleFactor: 1,
+              text: TextSpan(
+                style: textStyle,
+                children: [
+                  TextSpan(text: "Hint 1 of 1:\n\n", style: textStyleEmph),
+                  TextSpan(
+                      text:
+                          'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                  TextSpan(
+                      text:
+                          'This is the best way to see what this app can do.'),
+
+                  /*
+
+                    TextSpan(
+                      text: "Dear very-very first user!\n\n",
+                    ),
+                    TextSpan(text: 'This is a metronome for kids.\n\n'),
+                    TextSpan(
+                        text:
+                            'It visualizes rhythms with owls, because owls are awesome and we hope that kids will like them. \n\n'),
+                    TextSpan(text: 'To see what this app does, just tap the '),
+                    TextSpan(
+                      text: 'play ',
+                      style: textStyleEmph,
+                    ),
+                    TextSpan(text: 'button and then tap/swipe '),
+                    TextSpan(text: 'anything else', style: textStyleEmph),
+                    TextSpan(text: ':  you will hear (and see) the result.\n\n'),
+                    TextSpan(
+                        text: 'In our team we have an artist, a programmer, and a mathematician... but we are not musicians. ' +
+                            'We would be really happy to hear what you think about our experiment, especially about ' +
+                            'its \'musical\'  components '
+                                'like the quality of sound ' +
+                            'or correctness of note grouping.\n\n'),
+                    TextSpan(
+                        text:
+                            'And of course, we are worried how clear and easy to use these owls are. '+
+                                 'What do you think?'+
+                                '\n\n'),
+                    TextSpan(
+                        text:
+                            'Well, any of your comment would be of paramount importance for us!\n\n' +
+                                '- OwlTeam'),
+
+                     */
+                ],
+              )),
+        ));
+
+    //return message;
+
+    return RawMaterialButton(
+      child: Text("TEST MESSAGE", style: textStyle.copyWith(color: Colors.blue),),
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            var message = RichText(
+                textAlign: TextAlign.left,
+                textScaleFactor: 1,
+                text: TextSpan(
+                  style: textStyle,
+                  children: [
+                    TextSpan(
+                        text:
+                            'Tap the the play button first.\nThen tap/swipe/rotate anything.\n\n'),
+                    TextSpan(
+                        text:
+                            'This is the best way to see what this app can do.'),
+                  ],
+                ),
+              );
+            return AlertDialog(
+              backgroundColor: Colors.amber[50].withOpacity(0.75),
+              elevation: 10.3,
+              title: Text(
+                "Hint 1 of 1:",
+                style: textStyleEmph.copyWith(color: Colors.indigo),
+                textScaleFactor: 1,
+              ),
+              content: message,
+            );
+          },
+        );
+      },
+    );
+
+/*
     return Container(
         width: size.width / 2,
         height: size.height,
@@ -2280,6 +2435,7 @@ class _HomePageState extends State<HomePage>
             );
           },
         ));
+    */
   }
 
   ///Скролл темпов.
@@ -2731,7 +2887,8 @@ class _HomePageState extends State<HomePage>
         innerRadius: _innerRadius,
         outerRadius: _outerRadius,
         textStyle: knobTextStyle,
-        timeToDilation: _timeToDilation, //TODO: UNTESTED//Сделано предварительно
+        timeToDilation:
+            _timeToDilation, //TODO: UNTESTED//Сделано предварительно
         showText: true,
         onChanged: (KnobValue newVal) {
           _knobValue = newVal;
@@ -2739,7 +2896,7 @@ class _HomePageState extends State<HomePage>
           //_tempoBpm = newVal.value.round();
           //if (_playing)
           //_setTempo(_tempoBpm);
-          setState(() {});//ToDo: ???? DC
+          setState(() {}); //ToDo: ???? DC
         },
       ),
     );
@@ -2795,8 +2952,8 @@ class _HomePageState extends State<HomePage>
                       decoration: BoxDecoration(
                           image: DecorationImage(
                         image: AssetImage('images/but-rhythms.png'),
-                            //ToDo: Юрик,
-                            //одень это по-человечески (это прыг на стандартный размер)
+                        //ToDo: Юрик,
+                        //одень это по-человечески (это прыг на стандартный размер)
                         //image: AssetImage('images/but123short.png'),
                         //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
@@ -2806,7 +2963,7 @@ class _HomePageState extends State<HomePage>
                       child: jumpToNextStandardBeatW(), // rhythmPicker(),
                     ),
                   ),
-              /*Expanded(
+                  /*Expanded(
                     //спайс
                     flex: 1,
                     child: Container(
@@ -3016,10 +3173,12 @@ class _HomePageState extends State<HomePage>
         ///нужно проверить остальные сочетания.
         ///- нужно проверить билды у кноба и остальных темпо-виджетов
         ///- setState в них и в setTempo кажутся излишними
-        _knobValue.absoluteAngle+=(newTempo-_tempoBpm)*_sensitivity/sensitivityToAngle;
+        _knobValue.absoluteAngle +=
+            (newTempo - _tempoBpm) * _sensitivity / sensitivityToAngle;
 
+        _setTempo(newTempo);
 
-        _setTempo(newTempo);///ToDo: DC
+        ///ToDo: DC
         /*
         if (_playing)
           _setTempo(
@@ -3954,28 +4113,29 @@ class _HomePageState extends State<HomePage>
             width: sizeOfSubbeatNm.width,
             height: sizeOfSubbeatNm.height,
           ),
-          child: _beat.beatCount>1?
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                //image:   AssetImage('images/but-note-2.png'),
-                //image:     AssetImage('images/but-note-1.png'),
-                image: AssetImage('images/but123short.png'),//ToDo: Юрик,
-                //одень это по-человечески (это регулятор подбит)
-                fit: BoxFit.fill,
-              ),
-            ),
-            child: SubbeatEqWidget(
-              subbeatCount: _beat.subBeatCount,
-              subbeatCountMax: 4,
-              noteValue: _noteValue,
-              noteColor: Colors.black,
-              textStyle: GoogleFonts.roboto(),
-              size: sizeOfSubbeatNm,
-              allEqual: _beat.subBeatsEqualAndExist(),
-              onChanged: onAllSubbeatsChanged,
-            ),
-          ):Container(),
+          child: _beat.beatCount > 1
+              ? Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      //image:   AssetImage('images/but-note-2.png'),
+                      //image:     AssetImage('images/but-note-1.png'),
+                      image: AssetImage('images/but123short.png'), //ToDo: Юрик,
+                      //одень это по-человечески (это регулятор подбит)
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: SubbeatEqWidget(
+                    subbeatCount: _beat.subBeatCount,
+                    subbeatCountMax: 4,
+                    noteValue: _noteValue,
+                    noteColor: Colors.black,
+                    textStyle: GoogleFonts.roboto(),
+                    size: sizeOfSubbeatNm,
+                    allEqual: _beat.subBeatsEqualAndExist(),
+                    onChanged: onAllSubbeatsChanged,
+                  ),
+                )
+              : Container(),
         ),
       ],
     );
