@@ -47,6 +47,8 @@ import 'NoteWidget.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
+//ToDo: DC means Double Check
+
 ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /// UI Сontrol widgets can be found by comment tag: ///widget
 ///
@@ -181,7 +183,7 @@ const int _cMinTempo = 1;
 const int _cMaxTempo = 999; //500-5000
 /// Initial tempo
 const int _cIniTempo =
-    120; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
+    90; //проверка латенси//120; //121 - идеально для долгого теста, показывает, правильно ли ловит микросекунды
 const int _cTempoKnobTurns = 2;
 const double _cTempoKnobAngle = 160;
 const double _cTempoKnobSweepAngle = 3 * 360.0 + 2 * _cTempoKnobAngle;
@@ -332,7 +334,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.
-  bool bOuterSpaceScrollDebug = false;
+  bool bOuterSpaceScrollDebug = true;
 
   ///Выделяет области контейнеров. Возможна зебра (толщина  границы - 1).
   bool bBoxContainer = false;
@@ -493,7 +495,9 @@ class _HomePageState extends State<HomePage>
     //_skin = new OwlSkinRot(_animationType);
     _skin = new OwlSkin4Acc();
     _skin.init().then((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {///Hint//ToDo: тут этому вообще место?
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        ///Hint//ToDo: тут этому вообще место?
+        ///Не прорисовывалось при первом запуске (на чистый телефон) при AlertDialog (?!) //ToDo
         ///см. https://stackoverflow.com/questions/49466556/flutter-run-method-on-widget-build-complete/54553143#54553143
         await showDialog(
           context: context,
@@ -513,7 +517,9 @@ class _HomePageState extends State<HomePage>
                 Navigator.of(context).pop();
               },
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: wd*0.05,),
+                padding: EdgeInsets.symmetric(
+                  horizontal: wd * 0.05,
+                ),
                 child: RichText(
                   textAlign: TextAlign.left,
                   textScaleFactor: 1,
@@ -2564,8 +2570,8 @@ class _HomePageState extends State<HomePage>
     /*final int nOfSpacec=5;
     final double spaceC=max(0,totalHeight/totalWidth-1)/nOfSpacec;*/
 
-    double shadowOffset = totalWidth * 0.03; //TODO: запасти место под тень.
-    //Пока она едет зайцем.
+    double shadowOffset = totalWidth * 0.03; //TODO: запасти место под тень
+    //(пока она едет зайцем).
     //А то разрушится трёхмернось.
 
     bool bTest = false;
@@ -2630,38 +2636,35 @@ class _HomePageState extends State<HomePage>
 
   ///widget Metre-bar section
   Widget _knobAndStartArea(bool portrait, Size size) {
-    double useOfHeight = 0.95;
+    final double useOfHeight = 0.95;
 
-    double knobDiameter = size.height * useOfHeight;
-
-    ///Временное решение - куда запихнуть подбиты? Чтобы вернуть по центру старт, сделать 0
-    final double deltaYtmp = size.width * 2.25 / 16;
+    final double knobDiameter = size.height * useOfHeight;
 
     ///Центр старта
-    double startDiameter = size.height * useOfHeight * 0.8;
-    double statrCenterX = size.width * 2.25 / 16;
-    double statrCenterY = size.height * useOfHeight / 2;
+    final double startDiameter = size.height * useOfHeight * 0.8 * 0.85;
+    final double statrCenterX = size.width * 2.25 / 16 * 0.85;
+    final double statrCenterY = size.height * useOfHeight / 2;
 
     ///Область служебных кнопок
-    double rightArea = 0.15 * size.width;
-    double inkWellBetweenPaddingFact = 0.1;
-    double h = size.height *
+    double rightArea = 0.08 * size.width;
+    final double inkWellBetweenPaddingFact = 0.1;
+    final double h = size.height *
         useOfHeight; //возмодно, нужно подровняь: size.height*useOfHeight
     ///Нужно, чтобы поместилось 3 кнопки и два паддинга:
-    double d = h / (3 + 2 * inkWellBetweenPaddingFact);
+    final double d = h / (3 + 2 * inkWellBetweenPaddingFact);
     if (rightArea > d) rightArea = d;
-    double inkWellBetweenPadding = inkWellBetweenPaddingFact * h;
+    //double inkWellBetweenPadding = inkWellBetweenPaddingFact * h;
 
     ///Центр кноба
-    double knobCenterX = 2 * statrCenterX +
-        (size.width - statrCenterX - startDiameter - rightArea) / 2;
-    double knobCenterY = knobDiameter /
-        2; //Фактически, выравниванием сверху - хотим быть поближе к совам
+    final double knobCenterX = 2 * statrCenterX +
+        ((size.width - statrCenterX - startDiameter - rightArea) / 2) * 0.92;
+    final double knobCenterY = statrCenterY;
+    //knobDiameter /        2; //Фактически, выравниванием сверху - хотим быть поближе к совам
     //и подальше от остальных контролов
 
     ///Кнопки темпа
-    double tempoButtonsSize = knobDiameter / 2.5;
-    double fontSizeButtons = tempoButtonsSize / 2.3;
+    final double tempoButtonsSize = knobDiameter / 2.5;
+    //double fontSizeButtons = tempoButtonsSize / 2.3;
     /*
     TextStyle _textStyleButtons = //To Do: fix font; fix font size (obsolete)
         Theme.of(context) //ISH: Не знаю, зачем это. Следую Витиной практике
@@ -2670,22 +2673,30 @@ class _HomePageState extends State<HomePage>
             .copyWith(color: Colors.black, fontSize: fontSizeButtons);*/
 
     ///Отсутупы от центра кноба
-    double tempoButtonDeltaX = (knobDiameter + tempoButtonsSize) / 2 * 0.95;
-    double tempoButtonDeltaY = (knobDiameter - tempoButtonsSize) / 2 * 0.99;
+    final double tempoButtonDeltaX =
+        (knobDiameter + tempoButtonsSize) / 2 * 0.95 * 1.1;
+    final double tempoButtonDeltaY =
+        (knobDiameter - tempoButtonsSize) / 2 * 0.99;
 
-    double textOuterSizeY = knobDiameter * _pushDilationFactor / 1.2 / 2;
-    double textOuterSizeX = knobDiameter * _pushDilationFactor * 1.2 / 2;
-    double textOuterDY = knobDiameter * _pushDilationFactor * 0.02;
+    final double textOuterSizeY = knobDiameter * _pushDilationFactor / 1.2 / 2;
+    final double textOuterSizeX = knobDiameter * _pushDilationFactor * 1.2 / 2;
+    final double textOuterDY = knobDiameter * _pushDilationFactor * 0.02;
 
-    double knobFontSize = 0.3 * knobDiameter;
-    double knobFontSizeBig = knobFontSize * _pushDilationFactor;
+    final double knobFontSize = 0.3 * knobDiameter;
+    final double knobFontSizeBig = knobFontSize * _pushDilationFactor;
 
-    Color tempoColor = (_tempoBpm <= minTempo || _tempoBpm >= _tempoBpmMax)
+    ///Кнопка хелп:
+    final double helpCenterX = size.width * 0.88;
+    final double helpCenterY = statrCenterY;
+    final double helpDiam = (startDiameter + tempoButtonsSize) / 2;
+
+    final Color tempoColor = (_tempoBpm <= minTempo ||
+            _tempoBpm >= _tempoBpmMax)
         ? Colors.red
         : Colors
             .black; //Todo - В коробке с текстом над кнобом. И проверить там арифметику (она работает, но не доказывалась)
 
-    TextStyle knobTextStyle = GoogleFonts.roboto(
+    final TextStyle knobTextStyle = GoogleFonts.roboto(
       fontSize: knobFontSize,
       color: tempoColor,
       //fontStyle: FontStyle.italic,
@@ -2795,6 +2806,15 @@ class _HomePageState extends State<HomePage>
             child: _buildOneButton(
                 "+5", 5, tempoButtonsSize /*, _textStyleButtons*/),
           ),
+          Positioned.fromRect(
+            ///Help
+            //button
+            rect: Rect.fromCenter(
+                center: Offset(helpCenterX, helpCenterY),
+                width: helpDiam,
+                height: helpDiam),
+            child: _buildHelpBtnU(),
+          ),
 
           /*
           //Очередная неудачная попытка примотать Витину кнопку звука в данном месте
@@ -2839,16 +2859,16 @@ class _HomePageState extends State<HomePage>
                       //decoration: decorTmp(Colors.green),
                     ),
                     Container(
+                      // child: _buildHelpBtnU(),
+                      width: rightArea, height: rightArea,
+                      //padding: EdgeInsets.only(top: inkWellBetweenPadding),
+                      //decoration: decorTmp(Colors.white),
+                    ),
+                    Container(
                       child: _buildSettingsBtnU(),
                       width: rightArea, height: rightArea,
                       //padding: EdgeInsets.only(bottom: inkWellBetweenPadding),
                       //decoration: decorTmp(Colors.blue),
-                    ),
-                    Container(
-                      child: _buildHelpBtnU(),
-                      width: rightArea, height: rightArea,
-                      //padding: EdgeInsets.only(top: inkWellBetweenPadding),
-                      //decoration: decorTmp(Colors.white),
                     ),
                   ]),
             ),
@@ -2881,7 +2901,7 @@ class _HomePageState extends State<HomePage>
                       width: textOuterSizeX,
                       height: textOuterSizeY,
                       decoration: new BoxDecoration(
-                        color: Colors.blue.withOpacity(0.75),
+                        color: Colors.amber[50].withOpacity(0.75),
                         borderRadius: new BorderRadius.all(
                             Radius.elliptical(textOuterSizeX, textOuterSizeY)),
                       ),
@@ -2975,13 +2995,13 @@ class _HomePageState extends State<HomePage>
             child: Container(
               padding: EdgeInsets.only(right: localXPadding),
               decoration: decorDebug(Colors.blue),
-              child: _buildSoundBtnU(),
+              child: wSchemeBn(),
             ),
           ),
           Expanded(
             //Колонка колёс метра
             flex: 12,
-            child: Container(child: metreU()),
+            child: Container(child: wMetreWheels()),
           ),
           Expanded(
             //Строка акцентов
@@ -2993,7 +3013,7 @@ class _HomePageState extends State<HomePage>
                   top: meterYPaddyng,
                   bottom: meterYPaddyng),
               decoration: decorDebug(Colors.yellow),
-              child: metreBarU(),
+              child: wMetreBar(),
             ),
           ),
           //Spacer(flex:1),
@@ -3010,16 +3030,16 @@ class _HomePageState extends State<HomePage>
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                        image: AssetImage('images/but-rhythms.png'),
+                        //image: AssetImage('images/but-rhythms.png'),
                         //ToDo: Юрик,
                         //одень это по-человечески (это прыг на стандартный размер)
-                        //image: AssetImage('images/but123short.png'),
+                        image: AssetImage('images/but123short.png'),
                         //image: AssetImage('images/but-note-1.png'),
                         //image: AssetImage('images/ictempo.png'),
                         fit: BoxFit.fill,
                       )),
                       //decoration: decorTmp(Colors.green),
-                      child: jumpToNextStandardBeatW(), // rhythmPicker(),
+                      child: wJumpToNextStandardBeat(), // rhythmPicker(),
                     ),
                   ),
                   /*Expanded(
@@ -3054,7 +3074,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Прыгаем к следующему стандартному размеру.
-  Widget jumpToNextStandardBeatW() {
+  Widget wJumpToNextStandardBeat() {
     int nextBeat() {
       int lng = Prosody.standardBeatNth.length;
       int indToJump = 0; //Ищем следующий размер
@@ -3070,7 +3090,8 @@ class _HomePageState extends State<HomePage>
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         Size size = Size(constraints.maxWidth, constraints.maxHeight);
-        TextStyle textStyle = GoogleFonts.roboto(fontSize: size.width * 0.2);
+        TextStyle textStyle = GoogleFonts.roboto(
+            fontSize: size.width * 0.2, fontWeight: FontWeight.bold);
 
         //onChanged: onSubbeatChanged,
 
@@ -3218,8 +3239,6 @@ class _HomePageState extends State<HomePage>
         ),*/
           ]),
       enableFeedback: false, //!_playing,
-      customBorder: CircleBorder(
-          side: BorderSide(color: _ctrlColor, width: _borderWidth)), //ToDo
       onTap: () {
         int newTempo = _tempoBpm + delta;
 
@@ -3295,7 +3314,7 @@ class _HomePageState extends State<HomePage>
               alignment: Alignment.center,
               child: Text(
                 "= " + _tempoBpm.toString(),
-                style: textStyle,
+                style: textStyle.copyWith(fontWeight: FontWeight.w800),
                 textScaleFactor: 1,
               )),
           //Размер хвостика нотки не должен цеплять равенство
@@ -3331,10 +3350,10 @@ class _HomePageState extends State<HomePage>
             flex: 12,
             child: Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black,
-                ),
-              ),
+                  image: DecorationImage(
+                image: AssetImage('images/noteravno.png'),
+                fit: BoxFit.fill,
+              )),
               child: noteAndTempo(_textStyleTempoRow),
             ),
           ),
@@ -3358,7 +3377,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Звуковая схема
-  Widget _buildSoundBtnU() {
+  Widget wSchemeBn() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size sizzze = Size(constraints.maxWidth, constraints.maxHeight);
@@ -3494,12 +3513,12 @@ class _HomePageState extends State<HomePage>
     final int left = 14;
     final int padding = 1;
     final int right = 100;
-    final int total = left + padding + right;
-
+    //final int total = left + padding + right;
+    final int total =right;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        Expanded(
+        /*Expanded(
           flex: left,
           child: musicSchemeListW(
               textStyle, totalWidth * left / total, 0.85 * totalWidth),
@@ -3509,7 +3528,7 @@ class _HomePageState extends State<HomePage>
           child: Container(
             decoration: decorDebug(Colors.green),
           ),
-        ),
+        ),*/
         Expanded(
           flex: right,
           child: rhythmNameW(textStyle, totalWidth * right / total),
@@ -3525,8 +3544,8 @@ class _HomePageState extends State<HomePage>
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
     double shrinkForList = 0.9;
-    TextStyle listTextStyle =
-        textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
+    TextStyle listTextStyle = textStyle.copyWith(
+        fontSize: textStyle.fontSize * shrinkForList * 0.9 /*ToDo*/);
     TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
@@ -3552,7 +3571,7 @@ class _HomePageState extends State<HomePage>
           },
           child: Container(
             width: shrinkForList * totalWidth,
-            height: shrinkForList * totalWidth / 7,
+            height: shrinkForList * totalWidth / 8,
             decoration: BoxDecoration(
                 image: DecorationImage(
               image: AssetImage('images/but1452long.png'),
@@ -3905,7 +3924,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Витины колёса метра, завернутые во внешний размер
-  Widget metreU() {
+  Widget wMetreWheels() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
@@ -4010,7 +4029,7 @@ class _HomePageState extends State<HomePage>
   final FixedExtentScrollController _scrollBarController =
       FixedExtentScrollController(initialItem: _initScrollBarPosition);
 
-  Widget metreBarU() {
+  Widget wMetreBar() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size metreBarSize = Size(constraints.maxWidth, constraints.maxHeight);
@@ -4036,8 +4055,26 @@ class _HomePageState extends State<HomePage>
       double size = constraints.maxHeight < constraints.maxWidth
           ? constraints.maxHeight
           : constraints.maxWidth;
-      return new InkWell(
-        child: Icon(Icons.help_outline, size: size),
+      return InkWell(
+        //child: Icon(Icons.help_outline, size: size),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              "images/round-btn.png",
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+            ),
+            Text(
+              '?',
+              textScaleFactor: 1,
+              style:
+                  GoogleFonts.roboto(fontSize:  0.6 * size, color: Colors.black,
+                  fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
         enableFeedback: !_playing,
         onTap: () {
           _showHelp(context);
@@ -4124,38 +4161,14 @@ class _HomePageState extends State<HomePage>
       onAccentChanged: onAccentChanged,
     );
 
-    Widget btnSubBeatU() {
-      return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-        Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
-        TextStyle textStyle = GoogleFonts.roboto();
-
-        //onChanged: onSubbeatChanged,
-
-        return Container(
-          child: SubbeatEqWidget(
-            subbeatCount: _beat.subBeatCount,
-            subbeatCountMax: 4,
-            noteValue: _noteValue,
-            noteColor: Colors.black,
-            textStyle: textStyle,
-            size: size,
-            allEqual: _beat.subBeatsEqualAndExist(),
-            onChanged: onAllSubbeatsChanged,
-          ),
-        );
-      });
-    }
-
-    final sizeOfSubbeatNm = Size(size.width * 0.28, size.height * 0.10);
+    final sizeOfSubbeatNm = Size(size.width * 0.4, size.height * 0.10);
     return Stack(
       // fit: StackFit.expand,
       children: [
         Container(
             width: size.width,
             height: size.height,
-            //decoration:  decorTmp(Colors.black),
             child: wixOwls),
         Positioned.fromRect(
           /*rect: Rect.fromPoints(
@@ -4174,7 +4187,7 @@ class _HomePageState extends State<HomePage>
           ),
           child: _beat.beatCount > 1
               ? Container(
-                  decoration: BoxDecoration(
+                  /*decoration: BoxDecoration(
                     image: DecorationImage(
                       //image:   AssetImage('images/but-note-2.png'),
                       //image:     AssetImage('images/but-note-1.png'),
@@ -4182,7 +4195,7 @@ class _HomePageState extends State<HomePage>
                       //одень это по-человечески (это регулятор подбит)
                       fit: BoxFit.fill,
                     ),
-                  ),
+                  ),*/
                   child: SubbeatEqWidget(
                     subbeatCount: _beat.subBeatCount,
                     subbeatCountMax: 4,
@@ -4197,34 +4210,6 @@ class _HomePageState extends State<HomePage>
               : Container(),
         ),
       ],
-    );
-  }
-}
-
-///Ниже - всякая фигня.
-class TestWid extends StatefulWidget {
-  final String string;
-  final MetronomeState mState;
-
-  TestWid({
-    this.string,
-    this.mState,
-  });
-  @override
-  TestWState createState() => TestWState(string, mState);
-}
-
-class TestWState extends State<TestWid> {
-  final String string;
-  final MetronomeState mState;
-  TestWState(this.string, this.mState);
-  @override
-  Widget build(BuildContext context) {
-    final String s = ((mState != null) && (mState.parity != null))
-        ? mState.parity.toString()
-        : "null";
-    return Text(
-      string + "  " + s,
     );
   }
 }

@@ -20,7 +20,7 @@ class SubbeatEqWidget extends StatefulWidget {
       this.noteColor = Colors.black,
       this.size = Size.zero,
       this.allEqual = false,
-        this.subbeatCountMax=4,
+      this.subbeatCountMax = 4,
       @required this.textStyle});
 
   @override
@@ -59,15 +59,51 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
           size: noteSize,
         ));
 
-    TextStyle textStyle= widget.textStyle.copyWith(
-        color: Colors.black, fontSize: widget.size.width / 5);
+    ///Нота на плашке
+    Widget notePlashka(double hOfBar) {
+      ///shadow
+      final Color shadCol = Color.fromRGBO(
+          42, 0, 49, 0.9);
+      final double shadX = 0 * hOfBar / 57; //4
+      final double shadY = 4 * hOfBar / 57;
+      final double shadRad = 6 * hOfBar / 57;
+
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: noteSize.width*1.6,
+            height: hOfBar,
+            //Image.asset('images/but-note-1.png', fit: BoxFit.fitHeight,),
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: shadCol,
+                  offset: Offset(shadX, shadY),
+                  blurRadius: shadRad,
+                ),
+              ],
+              image: DecorationImage(
+                image: // AssetImage('images/but-note-2.png'),
+                    AssetImage('images/but-note-1.png'),
+                fit: BoxFit.fill,
+              ),
+            ),
+          ),
+          noteWidget,
+        ],
+      );
+    }
+
+    TextStyle textStyle = widget.textStyle
+        .copyWith(color: Colors.black, fontSize: widget.size.width / 5);
 
     return GestureDetector(
       onTap: () {
-        int subbeatCount =  widget.allEqual
-            ? (widget.subbeatCount<=widget.subbeatCountMax)?
-                  (widget.subbeatCount % widget.subbeatCountMax)+1:
-                  1
+        int subbeatCount = widget.allEqual
+            ? (widget.subbeatCount <= widget.subbeatCountMax)
+                ? (widget.subbeatCount % widget.subbeatCountMax) + 1
+                : 1
             : widget.subbeatCount;
         widget.onChanged(subbeatCount); //ToDo - up ????
         //setState(() {});//Why?
@@ -76,25 +112,38 @@ class SubbeatEqState extends State<SubbeatEqWidget> {
         Align(
           alignment: Alignment.centerRight,
           child: Container(
-            padding: EdgeInsets.all( widget.size.width*0.01),
-            width: widget.size.width / 3.4,
+           /* padding: EdgeInsets.only(left: widget.size.width * 0.01, top: widget.size.width * 0.01,
+                bottom: widget.size.width * 0.01),*/
+            width: widget.size.width / 4,
             //color: Colors.black,
             child: Image.asset('images/owl-sub.png', fit: BoxFit.contain),
           ),
         ),
         Align(
-            alignment: Alignment.center,
-            child: widget.allEqual? Text(" ~", style: textStyle, textScaleFactor: 1,)
-            : Opacity(opacity: 0.3, child: Text(" ~", style: textStyle, textScaleFactor: 1,)
-                ///ToDo: а что мне помешало поставить условие на opacity?
-              ///А, может, текст должен зависеть тоже от этого... кто знает.
-            ),
+          alignment: Alignment.center,
+          child: widget.allEqual
+              ? Text(
+                  " ~ ",
+                  style: textStyle,
+                  textScaleFactor: 1,
+                )
+              : Opacity(
+                  opacity: 0.3,
+                  child: Text(
+                    " ~ ",
+                    style: textStyle,
+                    textScaleFactor: 1,
+                  )
+
+                  ///ToDo: а что мне помешало поставить условие на opacity?
+                  ///А, может, текст должен зависеть тоже от этого... кто знает.
+                  ),
         ),
         Align(
           alignment: Alignment.centerLeft,
           child: widget.allEqual
-              ? noteWidget
-              : Opacity(opacity: 0.3, child: noteWidget),
+              ? notePlashka(noteH)
+              : Opacity(opacity: 0.3, child: notePlashka(noteH)),
         ),
       ]),
     );
