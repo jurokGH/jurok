@@ -73,8 +73,8 @@ public class MetroAudioMix
      */
     private AudioTrack audioTrack;
 
-    private float _minVolume;
-    private float _maxVolume;
+    private float _minVolume = 0.0f;
+    private float _maxVolume = 1.0f;
     private float _volume = 1.0f;
     //private final float initVolume=(float) 0.5;
 
@@ -123,7 +123,7 @@ public class MetroAudioMix
     /**
      * Всего потеряно
      */
-    long totalLostFrames;
+    volatile long totalLostFrames;
 
     /**
      * Сколько мы хотим писать за один раз. Разумным представляется писать за раз половину большого
@@ -135,22 +135,22 @@ public class MetroAudioMix
     MelodyBuffer melodyBuffer;
 
     AccentedMelodyMix melody=null;
-    AccentedMelodyMix melodyToSet;
+    volatile AccentedMelodyMix melodyToSet;
     //BeatMetre beatsToSet;
     //BipAndPause _bipAndPauseSing;
-    boolean newMelody = false;
-    boolean bNewBeats = false;
+    volatile boolean newMelody = false;
+    volatile boolean bNewBeats = false;
 
     //ToDo: TEST
-    private boolean bNewTempo = false;
+    private volatile boolean bNewTempo = false;
 
     private boolean bConnectSounds = false;
     int lastSample;
 
     //private Tempo _tempo;
-    private int _BPMtoSet;//ToDo: убрать?
+    private volatile int _BPMtoSet;//ToDo: убрать?
 
-    boolean doPlay; //ToDo: логика состояния
+    volatile boolean doPlay; //ToDo: логика состояния
 
     // Sound writer task
     MetroRunnable _task = null;
@@ -341,9 +341,9 @@ public class MetroAudioMix
     long staticLatencyInMcs;
 
     long timeOfStableStampDetected = 0;
-    long timeOfVeryFirstBipMcs =(2<<53);
-    long timeOfSomeFirstBipMcs;
-    long timeOfLastSampleToPlay;//test
+    volatile long timeOfVeryFirstBipMcs =(2<<53);
+    volatile long timeOfSomeFirstBipMcs;
+    volatile long timeOfLastSampleToPlay;//test
     long timeNowMcs;//test
     // long timeSync = 0;
     // int cycleSync = 0;
@@ -351,7 +351,7 @@ public class MetroAudioMix
     /**
      * Состояние: STATE_READY, STATE_STARTING, STATE_PLAYING,   STATE_STOPPING
      */
-    int state;
+    volatile int state;
     Message msg;
 
     void setState(int newState)

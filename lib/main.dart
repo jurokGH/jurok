@@ -41,7 +41,9 @@ import 'knob.dart';
 import 'KnobTuned.dart';
 //import 'KnobResizable.dart';
 
-import 'timer_ui.dart';
+
+
+import 'UserPrefs.dart';
 import 'NoteTempo.dart';
 import 'NoteWidget.dart';
 
@@ -414,6 +416,7 @@ class _HomePageState extends State<HomePage>
 
   //OwlSkinRot _skin;
   OwlSkin4Acc _skin;
+  UserPrefs _userPrefs = new UserPrefs();
 
   /// Пение рокочущих сов
   /// ToDo: Сколько всего их, какие у них имена, иконки и может что еще
@@ -473,6 +476,7 @@ class _HomePageState extends State<HomePage>
     });
 
     /// Get sound schemes (async) and set active scheme
+/*
     _channel
         .getSoundSchemes(_activeSoundScheme)
         .then((List<String> soundSchemes) {
@@ -482,6 +486,7 @@ class _HomePageState extends State<HomePage>
       else if (_activeSoundScheme == -1)
         _activeSoundScheme = 0; // Set default 0 scheme
     });
+*/
 
     _channel.setMix(_initMixType).then((int result) {
       if (result >= 0)
@@ -587,6 +592,7 @@ class _HomePageState extends State<HomePage>
     _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
     //TODO insertMetre(_beat.beatCount, _cIniNoteValue);
 
+/*
     _channel.setBeat(
         _beat.beatCount,
         _beat.subBeatCount,
@@ -594,6 +600,7 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme,
         _beat.subBeats,
         Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
+*/
 
     //Пользовательские ритмы
     userRhythms = List<UserRhythm>.generate(12, (n) => UserRhythm([], []));
@@ -647,47 +654,45 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
+    _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
     _controller.dispose();
     super.dispose();
   }
 
   /// /////////////////////////////////////////////////////////////////////////
 
-  /*
-  /// (Re)Insert metre (beast, note) into _sorted_ metre list
-  bool insertMetre(int beats, int note) {
-    bool activeChanged = true;
-    print('insertMetre - $beats - $note');
-    int index = metreIndex(_metreList, beats, note);
-    if (index < _metreList.length &&
-        beats == _metreList[index].beats &&
-        note == _metreList[index].note) {
-      if (index == _activeMetre) activeChanged = false;
-      _activeMetre = index;
-      print('insertMetre_= - $index');
-    } else {
-      if (index == _userMetre) {
-        print('insertMetre_user - $index');
-        _metreList[_userMetre] = MetreBar(beats, note);
-      } else {
-        print('insertMetre_insert - $index');
-        // Insert shifts right all elements including [index]
-        _metreList.insert(index, MetreBar(beats, note));
-        // Remove previous User Metre if existed
-        if (_userMetre != -1) {
-          print(
-              'insertMetre_remove - $index - ${_userMetre + (_userMetre >= index ? 1 : 0)}');
-          _metreList.removeAt(_userMetre + (_userMetre >= index ? 1 : 0));
-          // Correct new index after removing
-          if (_userMetre < index) index--;
-        }
-      }
-      _activeMetre = _userMetre = index;
-    }
-    print('insertMetre - $_activeMetre');
-    return activeChanged;
+  void initUserPrefs(bool b)
+  {
+    onMetreBarChanged(_userPrefs.activeMetre);
+    _setVolume(_userPrefs.volume);
+    _activeSoundScheme = _userPrefs.activeSoundScheme;
+
+    /// Get sound schemes (async) and set active scheme
+    _channel.getSoundSchemes(_activeSoundScheme).then((List<String> soundSchemes) {
+      _soundSchemes = soundSchemes;
+      if (_soundSchemes.isEmpty)
+        _activeSoundScheme = -1;
+      else if (_activeSoundScheme == -1)
+        _activeSoundScheme = 0;  // Set default 0 scheme
+    });
+
+    _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
+    _beat.subBeatCount = _userPrefs.subbeats;
+
+    _channel.setBeat(
+        _beat.beatCount,
+        _beat.subBeatCount,
+        _tempoBpm,
+        _activeSoundScheme,
+        _beat.subBeats,
+        Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
+
+    //Пользовательские ритмы
+    userRhythms = _userPrefs.userRhythms == null || _userPrefs.userRhythms.length == 0 ? List<UserRhythm>.generate(12, (n) => UserRhythm([], [])) : _userPrefs.userRhythms;
+    //_lastEditedBeatIndex = -1;
+
+    setState(() {});
   }
-   */
 
   /// /////////////////////////////////////////////////////////////////////////
   /// Platform sound code handlers
@@ -755,6 +760,7 @@ class _HomePageState extends State<HomePage>
       _tempoBpm = tempo;
       if (_playing) _channel.setTempo(_tempoBpm);
       setState(() {}); //ToDo: в такой последовательности?
+      _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
     }
   }
 
@@ -889,6 +895,7 @@ class _HomePageState extends State<HomePage>
         //_updateMetreBar = true;
       });
     }
+    _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
   }
 
   ///Изменяем число нот
