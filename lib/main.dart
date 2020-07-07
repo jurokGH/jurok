@@ -500,6 +500,7 @@ class _HomePageState extends State<HomePage>
     //_skin = new OwlSkinRot(_animationType);
     _skin = new OwlSkin4Acc();
     _skin.init().then((_) {
+      /*
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         ///Hint//ToDo: тут этому вообще место?
         ///Не прорисовывалось при первом запуске (на чистый телефон) при AlertDialog (?!) //ToDo
@@ -556,6 +557,7 @@ class _HomePageState extends State<HomePage>
           },
         );
       });
+      */
       setState(() {});
     });
 
