@@ -606,7 +606,7 @@ class _HomePageState extends State<HomePage>
 
     ///ToDo: приветственная речь. Видимо, нужно только самый первый раз показывать.
     ///Выясним, была ли уже подсказка
-    _loadHintStat();
+    _loadHintStatus();
 
     /*
     /// не прорисовываются совы еще в этот момент
@@ -653,28 +653,26 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Флаги для подсказки
+
+  /*
   ///Юзер умеет менять виджеты на ходу
-  bool bUserIsBrave = false;
+  bool _bUserIsBrave = false;*/
 
-  int stopPressedCount = 0;
+  int _stopPressedCount = 0;
 
-  ///Подсказака была показана когда-то
-  bool _bHintWasAlreadyShown = false;
+  ///Подсказака была показана когда-то, или не нужна
+  bool _bHintWasAlreadyShownOrUserIsBrave = false;
 
   final String hintFieldName = 'hintFlag';
-  _loadHintStat() async {
+  _loadHintStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _bHintWasAlreadyShown = (prefs.getBool(hintFieldName) ?? false);
-    /* В примере из https://flutter.dev/docs/cookbook/persistence/key-value
-    рекомендован setState: //ToDo DC
-    setState(() {
-      _counter = (prefs.getInt('counter') ?? 0);
-    });*/
+    _bHintWasAlreadyShownOrUserIsBrave = (prefs.getBool(hintFieldName) ?? false);
   }
 
-  _setHintStat() async {
+  _setHintStatusToTrue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool(hintFieldName, true);
+    _bHintWasAlreadyShownOrUserIsBrave=true;
   }
 
   @override
@@ -839,10 +837,11 @@ class _HomePageState extends State<HomePage>
       _playing = false;
       if (hideCtrls) _controller.reverse();
 
-      stopPressedCount++;
-      if ((stopPressedCount == 2) && !_bHintWasAlreadyShown) ///Если дважды останавливал,
-        ///то будет подсказка
+      _stopPressedCount++;
+      if ((_stopPressedCount == 2) && !_bHintWasAlreadyShownOrUserIsBrave) {
+        _userIsBrave();
         _hintDialog();
+      }
 
       setState(() {}); // Stops OwlGridState::AnimationController
     }
@@ -932,8 +931,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void _userIsBrave() {
-    bUserIsBrave = true;
-    if (!_bHintWasAlreadyShown) _setHintStat();
+    //_bUserIsBrave = true;
+    if (!_bHintWasAlreadyShownOrUserIsBrave) _setHintStatusToTrue();
   }
 
   /// /////////////////////////////////////////////////////////////////////////
