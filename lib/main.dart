@@ -476,7 +476,6 @@ class _HomePageState extends State<HomePage>
     });
 
     /// Get sound schemes (async) and set active scheme
-/*
     _channel
         .getSoundSchemes(_activeSoundScheme)
         .then((List<String> soundSchemes) {
@@ -486,7 +485,6 @@ class _HomePageState extends State<HomePage>
       else if (_activeSoundScheme == -1)
         _activeSoundScheme = 0; // Set default 0 scheme
     });
-*/
 
     _channel.setMix(_initMixType).then((int result) {
       if (result >= 0)
@@ -499,6 +497,7 @@ class _HomePageState extends State<HomePage>
 
     //_skin = new OwlSkinRot(_animationType);
     _skin = new OwlSkin4Acc();
+    /*
     _skin.init().then((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         ///Hint//ToDo: тут этому вообще место?
@@ -558,7 +557,7 @@ class _HomePageState extends State<HomePage>
       });
       setState(() {});
     });
-
+    */
     /// Init animation
     _controller = new AnimationController(
       vsync: this,
@@ -592,7 +591,6 @@ class _HomePageState extends State<HomePage>
     _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
     //TODO insertMetre(_beat.beatCount, _cIniNoteValue);
 
-/*
     _channel.setBeat(
         _beat.beatCount,
         _beat.subBeatCount,
@@ -600,7 +598,6 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme,
         _beat.subBeats,
         Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
-*/
 
     //Пользовательские ритмы
     userRhythms = List<UserRhythm>.generate(12, (n) => UserRhythm([], []));
@@ -608,7 +605,6 @@ class _HomePageState extends State<HomePage>
 
     ///ToDo: приветственная речь. Видимо, нужно только самый первый раз показывать.
 
-    /*
     /// не прорисовываются совы еще в этот момент
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await showDialog(
@@ -649,7 +645,9 @@ class _HomePageState extends State<HomePage>
           );
         },
       );
-    });*/
+    });
+
+    //_userPrefs.load().then(initUserPrefs);
   }
 
   @override
@@ -1932,6 +1930,7 @@ class _HomePageState extends State<HomePage>
 
     _knobValue.value = _tempoBpm.toDouble();
     Widget knobTempoNew = KnobTuned(
+      pushFactor: _pushDilationFactor,
       knobValue: _knobValue,
       minValue: minTempo.toDouble(),
       maxValue: _tempoBpmMax.toDouble(),
