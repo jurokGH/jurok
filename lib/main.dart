@@ -334,7 +334,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров. Возможна зебра (толщина  границы - 1).
   bool bBoxContainer = false;
