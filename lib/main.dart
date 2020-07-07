@@ -336,7 +336,7 @@ class _HomePageState extends State<HomePage>
   ///dynamically changing reservedHeightBottom.
   /// One can use it to get an impression of how everything looks on other phones,
   /// or to chase theoretical zebras, or try to tap small controls.
-  bool bOuterSpaceScrollDebug = true;
+  bool bOuterSpaceScrollDebug = false;
 
   ///Выделяет области контейнеров. Возможна зебра (толщина  границы - 1).
   bool bBoxContainer = false;
@@ -476,7 +476,6 @@ class _HomePageState extends State<HomePage>
     });
 
     /// Get sound schemes (async) and set active scheme
-/*
     _channel
         .getSoundSchemes(_activeSoundScheme)
         .then((List<String> soundSchemes) {
@@ -486,7 +485,6 @@ class _HomePageState extends State<HomePage>
       else if (_activeSoundScheme == -1)
         _activeSoundScheme = 0; // Set default 0 scheme
     });
-*/
 
     _channel.setMix(_initMixType).then((int result) {
       if (result >= 0)
@@ -502,7 +500,8 @@ class _HomePageState extends State<HomePage>
     _skin.init().then((_) {
       /*
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        ///Hint//ToDo: тут этому вообще место?
+        //
+        ///Hint//ToDo: тут этому вообще место? - UPD: Тут тоже не прокатило. Убрал.
         ///Не прорисовывалось при первом запуске (на чистый телефон) при AlertDialog (?!) //ToDo
         ///см. https://stackoverflow.com/questions/49466556/flutter-run-method-on-widget-build-complete/54553143#54553143
         await showDialog(
@@ -556,8 +555,7 @@ class _HomePageState extends State<HomePage>
             );
           },
         );
-      });
-      */
+      });*/
       setState(() {});
     });
 
@@ -594,7 +592,6 @@ class _HomePageState extends State<HomePage>
     _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
     //TODO insertMetre(_beat.beatCount, _cIniNoteValue);
 
-/*
     _channel.setBeat(
         _beat.beatCount,
         _beat.subBeatCount,
@@ -602,13 +599,14 @@ class _HomePageState extends State<HomePage>
         _activeSoundScheme,
         _beat.subBeats,
         Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
-*/
 
     //Пользовательские ритмы
     userRhythms = List<UserRhythm>.generate(12, (n) => UserRhythm([], []));
     _lastEditedBeatIndex = -1;
 
     ///ToDo: приветственная речь. Видимо, нужно только самый первый раз показывать.
+    ///Выясним, была ли уже подсказка
+    _loadHintStatus();
 
     /*
     /// не прорисовываются совы еще в этот момент
@@ -652,6 +650,29 @@ class _HomePageState extends State<HomePage>
         },
       );
     });*/
+  }
+
+  ///Флаги для подсказки
+
+  /*
+  ///Юзер умеет менять виджеты на ходу
+  bool _bUserIsBrave = false;*/
+
+  int _stopPressedCount = 0;
+
+  ///Подсказака была показана когда-то, или не нужна
+  bool _bHintWasAlreadyShownOrUserIsBrave = false;
+
+  final String hintFieldName = 'hintFlag';
+  _loadHintStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _bHintWasAlreadyShownOrUserIsBrave = (prefs.getBool(hintFieldName) ?? false);
+  }
+
+  _setHintStatusToTrue() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool(hintFieldName, true);
+    _bHintWasAlreadyShownOrUserIsBrave=true;
   }
 
   @override
@@ -730,6 +751,70 @@ class _HomePageState extends State<HomePage>
       });
   }
 
+  void _hintDialog() => showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final double wd = _screenSize.width * 0.8;
+          final TextStyle textStyle =
+              //TextStyle(fontSize: wd / 18, color: Colors.black);
+          GoogleFonts.roboto(fontSize: wd / 19, color: Colors.black);
+          final TextStyle textStyleEmph = textStyle.copyWith(
+              fontWeight: FontWeight.w600, fontSize: textStyle.fontSize * 1.2);
+          final Widget message = GestureDetector(
+            onTap: () {
+              //setState(() {}); //ToDo: Why?
+              Navigator.of(context).pop();
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: wd * 0.05,
+              ),
+              child: RichText(
+                textAlign: TextAlign.left,
+                textScaleFactor: 1,
+                text: TextSpan(
+                  style: textStyle,
+                  children: [
+                    TextSpan(
+                        text:
+                            'Try to tap, swipe, or rotate everything while the metronome is playing.\n\n'),
+                    TextSpan(
+                        text:
+                            'This is the best way to see (and to hear) how everything works.'),
+                  ],
+                ),
+              ),
+            ),
+          );
+          return AlertDialog(
+            backgroundColor: Colors.amber[50].withOpacity(0.75),
+            elevation: 10.3,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Flexible(
+                  flex: 5,
+                  child: Image.asset('images/owl3-3-3.png', fit: BoxFit.fill),
+                ),
+                Flexible(
+                  flex: 20,
+                  child: Text(
+                    //"Hint 1 of 1:",
+                    "Only one hint:",
+                    style: textStyleEmph.copyWith(color: Colors.indigo),
+                    textScaleFactor: 1,
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ],
+            ),
+            //children: <Widget>[message],
+            content: message,
+          );
+        },
+      );
+
   /// Start/Stop play handler
   void _play() {
     //_subbeatWidth = _subbeatWidth == 0 ? 60 : 0;
@@ -751,6 +836,13 @@ class _HomePageState extends State<HomePage>
     if (_playing) {
       _playing = false;
       if (hideCtrls) _controller.reverse();
+
+      _stopPressedCount++;
+      if ((_stopPressedCount == 2) && !_bHintWasAlreadyShownOrUserIsBrave) {
+        _userIsBrave();
+        _hintDialog();
+      }
+
       setState(() {}); // Stops OwlGridState::AnimationController
     }
     //TODO setState(() {});
@@ -839,12 +931,19 @@ class _HomePageState extends State<HomePage>
     _scrollBarPosition = scrollBarPosition;
   }
 
+  void _userIsBrave() {
+    //_bUserIsBrave = true;
+    if (!_bHintWasAlreadyShownOrUserIsBrave) _setHintStatusToTrue();
+  }
+
   /// /////////////////////////////////////////////////////////////////////////
   /// UI notification handlers
   ///
 
   ///Крутим строку акцентов
   void _onScrollRhythms(int position) {
+    if (_playing) _userIsBrave();
+
     if (position != _scrollBarPosition) {
       _scrollBarPosition = position;
       _beat = BeatMetre(_rhythmsToScroll[_scrollBarPosition]);
@@ -870,6 +969,8 @@ class _HomePageState extends State<HomePage>
 
   /// Из списка. Число бит (-1); позиция в predefined, или же пользовательский
   void onRhythmSelectedFromList(int beatIndex, int position, bool bUsers) {
+    if (_playing) _userIsBrave();
+
     if (!(false)) //ToDo:(проверяем, что надо менять что-то)
     {
       int oldBeat = _beat.beatCount;
@@ -902,6 +1003,8 @@ class _HomePageState extends State<HomePage>
 
   ///Изменяем число нот
   void _onBeatChanged(int beats) {
+    if (_playing) _userIsBrave();
+
     print('_onBeatChanged');
     if (_beat.beatCount != beats)
 
@@ -965,6 +1068,8 @@ class _HomePageState extends State<HomePage>
   ///Изменяем число нот, не глядя на пользовательские ритмы и
   ///выбирая первый базовый
   void _onUltimateJump(int beatsToSet) {
+    if (_playing) _userIsBrave();
+
     _lastEditedInThisBeat = -1;
     print('_onJump');
     _beat = BeatMetre(_basicRhythms[beatsToSet - 1]);
@@ -989,6 +1094,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void onAllSubbeatsChanged(int subbeatCount) {
+    if (_playing) _userIsBrave();
+
     //TODO
     _beat.subBeatCount = subbeatCount; //nextSubbeat(_beat.subBeatCount);
     //TODO Provider.of<MetronomeState>(context, listen: false).reset();
@@ -1007,6 +1114,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void onOwlSubbeatsChanged(int id, int subCount) {
+    if (_playing) _userIsBrave();
+
     assert(id < _beat.subBeats.length);
     _beat.subBeats[id] = subCount;
 
@@ -1030,6 +1139,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void onAccentChanged(int id, int accent) {
+    if (_playing) _userIsBrave();
+
     assert(id < _beat.subBeats.length);
 
     //_beat.setAccent(id, accent);
@@ -2991,11 +3102,11 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget signatureRaw(TextStyle textStyle, double totalWidht) {
-    final int leftFlex=7;
-    final int meterWheelsFlex=12;
-    final int meterFlex=25;
-    final int rightFlex =12;
-    final int total=leftFlex+meterWheelsFlex+meterFlex+rightFlex;
+    final int leftFlex = 7;
+    final int meterWheelsFlex = 12;
+    final int meterFlex = 25;
+    final int rightFlex = 12;
+    final int total = leftFlex + meterWheelsFlex + meterFlex + rightFlex;
     double globalYPadding = totalWidht * 0.005;
     double localXPadding = totalWidht * 0.01;
     double meterYPaddyng = totalWidht * 0.007;
@@ -3009,7 +3120,8 @@ class _HomePageState extends State<HomePage>
             child: Container(
               padding: EdgeInsets.only(right: localXPadding),
               decoration: decorDebug(Colors.blue),
-              child: wSchemeBn(textStyle,totalWidht/*totalWidht*leftFlex/total*/),
+              child: wSchemeBn(
+                  textStyle, totalWidht /*totalWidht*leftFlex/total*/),
             ),
           ),
           Expanded(
@@ -3291,8 +3403,10 @@ class _HomePageState extends State<HomePage>
   Widget noteAndTempo(TextStyle textStyle) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      double noteH = constraints.maxHeight;
-      Size noteSize = Size(noteH * 0.3, noteH);
+      final double noteH = constraints.maxHeight;
+      final Size noteSize = Size(noteH * 0.3, noteH);
+      final Color col = Colors.white;
+
       //Отрисовка ноты отпределяется её высотой, привязываемся к ней
       return Align(
           //Чтобы можно было сделать меньше, чем доступная область, заворачиваем в Align (см. документацию)
@@ -3314,10 +3428,10 @@ class _HomePageState extends State<HomePage>
                   showAccent: false,
                   showTuplet: false,
                   coverWidth: true,
-                  colorPast: Colors.black,
-                  colorNow: Colors.black,
-                  colorFuture: Colors.black,
-                  colorInner: Colors.black,
+                  colorPast: col,
+                  colorNow: col,
+                  colorFuture: col,
+                  colorInner: col,
                 ),
               )),
           Container(
@@ -3328,7 +3442,8 @@ class _HomePageState extends State<HomePage>
               alignment: Alignment.center,
               child: Text(
                 "= " + _tempoBpm.toString(),
-                style: textStyle.copyWith(fontWeight: FontWeight.w800),
+                style: textStyle.copyWith(
+                    /*fontWeight: FontWeight.w800,*/ color: col),
                 textScaleFactor: 1,
               )),
           //Размер хвостика нотки не должен цеплять равенство
@@ -3356,9 +3471,12 @@ class _HomePageState extends State<HomePage>
           Expanded(
             flex: 7,
             child: Container(
-                /*decoration:
-                */
-                ),
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                image: AssetImage('images/noteravno1.png'),
+                fit: BoxFit.fill,
+              )),
+            ),
           ),
           Expanded(
             flex: 12,
@@ -3395,9 +3513,9 @@ class _HomePageState extends State<HomePage>
     ///Полный бардак с listWidth и вокруг. Сделано на ходу. //ToDo
     double shrinkForList = 0.9;
     TextStyle listTextStyle =
-    textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
+        textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
     TextStyle listTextStyleBold =
-    listTextStyle.copyWith(fontWeight: FontWeight.bold);
+        listTextStyle.copyWith(fontWeight: FontWeight.bold);
 
     //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
     //само диалоговое окно не обновляется.
@@ -3426,12 +3544,12 @@ class _HomePageState extends State<HomePage>
               height: shrinkForList * listWidth / 7,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('images/but123short.png'),
-                    //ToDo: Юрик, кажется but123short тут смотрится сморчково. Или строчково. Ты посмотри.
-                    //image: AssetImage('images/but-note-1.png'),
-                    //image: AssetImage('images/ictempo.png'),
-                    fit: BoxFit.fill,
-                  )),
+                image: AssetImage('images/but123short.png'),
+                //ToDo: Юрик, кажется but123short тут смотрится сморчково. Или строчково. Ты посмотри.
+                //image: AssetImage('images/but-note-1.png'),
+                //image: AssetImage('images/ictempo.png'),
+                fit: BoxFit.fill,
+              )),
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -3453,7 +3571,6 @@ class _HomePageState extends State<HomePage>
       ),
     );
 
-
     int soundScheme = _activeSoundScheme;
     final int imageIndex = soundScheme < 4 ? soundScheme : 4;
     final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
@@ -3463,20 +3580,18 @@ class _HomePageState extends State<HomePage>
     final Widget icon = new Image.asset(
       schemeName,
       //width: sizeButton,
-     // height: sizeButton,
+      // height: sizeButton,
       fit: BoxFit.contain,
     );
-
-
 
     return Container(
       //width: totalWidth,
       //decoration: decorTmp(Colors.yellow),
       decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/but1452long.png'),
-            fit: BoxFit.fill,
-          )),
+        image: AssetImage('images/but1452long.png'),
+        fit: BoxFit.fill,
+      )),
       child: RawMaterialButton(
         enableFeedback: false, //!_playing,
         onPressed: () {
@@ -3490,18 +3605,16 @@ class _HomePageState extends State<HomePage>
                   child: Container(
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                          image: AssetImage(
-                              'images/back-v4.jpg'),
-                          //ToDo Юрик, тут подложка для списка муз. схем
-                          fit: BoxFit.cover,
-                        )),
+                      image: AssetImage('images/back-v4.jpg'),
+                      //ToDo Юрик, тут подложка для списка муз. схем
+                      fit: BoxFit.cover,
+                    )),
                     child: Column(
                       children: <Widget>[
                         Padding(
                           padding: EdgeInsets.symmetric(
-                          //    vertical: totalWidth * shrinkForList * 0.1
-                              vertical: listWidth* 0.1
-                          ),
+                              //    vertical: totalWidth * shrinkForList * 0.1
+                              vertical: listWidth * 0.1),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Text(
@@ -3533,23 +3646,21 @@ class _HomePageState extends State<HomePage>
             icon,
             imageIndex == 4
                 ? Text(
-              strScheme,
-              /*
+                    strScheme,
+                    /*
               style: Theme.of(context).textTheme.headline5.copyWith(
                   fontSize: 0.4 * totalWidth,
                   fontWeight: FontWeight.bold,
                   color: Colors.black),*/
-              style: textStyle,
-              textScaleFactor: 1,
-            )
+                    style: textStyle,
+                    textScaleFactor: 1,
+                  )
                 : Container(),
           ]),
         ),
       ),
     );
   }
-
-
 
   Widget _rowControlsArea(bool portrait, Size size) {
     double fontSizeTempo = size.width *
@@ -3561,8 +3672,6 @@ class _HomePageState extends State<HomePage>
 
     TextStyle _textStyleSchemeRow =
         GoogleFonts.roboto(fontSize: fontSizeMusicScheme * 0.7);
-
-
 
     ///Паддинг большой плашки контролов относительно краев экраан
 
@@ -3638,7 +3747,7 @@ class _HomePageState extends State<HomePage>
     final int padding = 1;
     final int right = 100;
     //final int total = left + padding + right;
-    final int total =right;
+    final int total = right;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
@@ -4193,13 +4302,14 @@ class _HomePageState extends State<HomePage>
             Text(
               '?',
               textScaleFactor: 1,
-              style:
-                  GoogleFonts.roboto(fontSize:  0.6 * size, color: Colors.black,
+              style: GoogleFonts.roboto(
+                  fontSize: 0.6 * size,
+                  color: Colors.black,
                   fontWeight: FontWeight.w600),
             ),
           ],
         ),
-        enableFeedback: false,//!_playing,
+        enableFeedback: false, //!_playing,
         onTap: () {
           _showHelp(context);
         },
@@ -4217,7 +4327,7 @@ class _HomePageState extends State<HomePage>
       return new InkWell(
         child: Icon(Icons.settings, size: size),
         //tooltip: _soundSchemes[_activeSoundScheme],
-        enableFeedback: false,// !_playing,
+        enableFeedback: false, // !_playing,
         onTap: () {
           _showSettings(context);
         },
@@ -4285,15 +4395,11 @@ class _HomePageState extends State<HomePage>
       onAccentChanged: onAccentChanged,
     );
 
-
     final sizeOfSubbeatNm = Size(size.width * 0.4, size.height * 0.10);
     return Stack(
       // fit: StackFit.expand,
       children: [
-        Container(
-            width: size.width,
-            height: size.height,
-            child: wixOwls),
+        Container(width: size.width, height: size.height, child: wixOwls),
         Positioned.fromRect(
           /*rect: Rect.fromPoints(
              Offset(size.width, size.height),
