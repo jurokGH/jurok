@@ -251,8 +251,9 @@ class OwlGridRotState extends State<OwlGridRot> with SingleTickerProviderStateMi
       if (!_controller.isAnimating) {
         debugPrint(' -- repeatOrCancel');
         _controller
-            .repeat()
-            .orCancel;
+            .repeat();//ToDo !!!!
+            //.orCancel;///Закрыл этот cancel, поскольку он давал exception.
+        //Правильно ли это?
       }
     }
     else

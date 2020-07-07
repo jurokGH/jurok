@@ -82,6 +82,7 @@ flutter:
     - images/knob3d-1.png
     - images/knob3d-2.png
     - images/knob-stump.png
+    - images/knobToRotate.png
     - images/button.png
     - images/button12.png
     - images/plus1.png
@@ -193,6 +194,7 @@ flutter:
     - images/help.png
     - images/Ad-1.png
     - images/noteravno.png
+    - images/noteravno1.png
     - images/round-btn.png
 
 
