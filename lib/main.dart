@@ -681,7 +681,9 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
-    _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
+    //_userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
+    //ToDo: пока убрал -  Failed to send request: {"jsonrpc":"2.0","id":"3979","method":"getMemoryUsage","params":{"isolateId":"isolates/3936973363009903"}}
+    //(но может потому, что тел отключился)
     _controller.dispose();
     super.dispose();
   }
@@ -864,7 +866,8 @@ class _HomePageState extends State<HomePage>
       _tempoBpm = tempo;
       if (_playing) _channel.setTempo(_tempoBpm);
       setState(() {}); //ToDo: в такой последовательности?
-      _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
+      //_userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
+      //ToDo: пока убрал
     }
   }
 
@@ -1008,7 +1011,8 @@ class _HomePageState extends State<HomePage>
         //_updateMetreBar = true;
       });
     }
-    _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
+    //ToDo: _userPrefs.store(_beat.subBeatCount, _tempoBpm, _activeMetre, _activeSoundScheme, _volume, userRhythms);
+    //пока убрал
   }
 
   ///Изменяем число нот
