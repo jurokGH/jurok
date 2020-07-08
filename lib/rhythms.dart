@@ -421,8 +421,6 @@ class FancyRhythms {
 
     //fancy.add(Rhythm.tresillo());
 
-    //12 долей
-    fancy.add(Rhythm.bolero12());
 
     ///drafts
     //10 долей
@@ -439,6 +437,9 @@ class FancyRhythms {
     fancy.add(Rhythm.moneyPF());
     fancy.add(Rhythm.twoBubBum());
     fancy.add(Rhythm.strangeIn3());
+
+    //12 долей
+    fancy.add(Rhythm.bolero12());
 
     fancyRhythms = List<List<Rhythm>>.generate(12, (n) => []);
     for (int i = 0; i < fancy.length; i++) {

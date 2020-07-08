@@ -573,27 +573,19 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
         GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
     //Celesta,ag
-    soundSсhemes.add(new MusicSchemeMix("Celesta", res, R.raw.celesta880, R.raw.celesta440,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-    soundSсhemes.add(new MusicSchemeMix("Xylo-marimba", res, R.raw.xylomarimba880, R.raw.xylomarimba440,
-      GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-
-
-
-    soundSсhemes.add(new MusicSchemeMix("Wood(short)&Cabasa",
-            res, R.raw.woodblock_short1, R.raw.cabasa,
+    soundSсhemes.add(new MusicSchemeMix("Trianlge&Celesta", res, R.raw.triangle, R.raw.celesta440,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
 
-    soundSсhemes.add(new MusicSchemeMix("Cowbell&Cabasa", res, R.raw.cowbell, R.raw.cabasa,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
 
 
     soundSсhemes.add(new MusicSchemeMix("Sinewave",
             880, 30, 440, 30,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+
+
     /*
     soundSсhemes.add(new MusicSchemeMix("SinewaveBAAAAD",
             880, 15, 440, 15,
@@ -618,19 +610,44 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     int oldLength=soundSсhemes.size();
 
 
-    soundSсhemes.add(new MusicSchemeMix("Bass&some drum", res,   R.raw.bussdrums240, R.raw.drum_accent_mono,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
-
-    //Странноватый эффект от тамбурина. Вверх? Увы, скорость маловата.
-    soundSсhemes.add(new MusicSchemeMix("Bass+Tumb&snare",
-            /*Bassandtumb&snare(el),ag - старое название*/
-            res, R.raw.bassandtumb280, R.raw.snaredrumelectric232,
-            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
-
     //Ухи с замененным первым бипом
     soundSсhemes.add(new MusicSchemeMix("Whoo-whoo", res, R.raw.oboe_a4_250, R.raw.owl_short,
             GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+
+    soundSсhemes.add(new MusicSchemeMix("Bass&unknown drum", res,   R.raw.bussdrums240, R.raw.drum_accent_mono,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+    //Celesta,ag
+    soundSсhemes.add(new MusicSchemeMix("Celesta", res, R.raw.celesta880, R.raw.celesta440,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+    soundSсhemes.add(new MusicSchemeMix("Xylo-marimba", res, R.raw.xylomarimba880, R.raw.xylomarimba440,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+    soundSсhemes.add(new MusicSchemeMix("Wood(short)&Cabasa",
+            res, R.raw.woodblock_short1, R.raw.cabasa,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+
+
+    /* плохой колокольчик
+    soundSсhemes.add(new MusicSchemeMix("Cowbell&Cabasa", res, R.raw.cowbell, R.raw.cabasa,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+*/
+
+
+
+    /*
+    //Странноватый эффект от тамбурина. Вверх? Увы, скорость маловата.
+    soundSсhemes.add(new MusicSchemeMix("Bass+Tumb&snare",
+            //Bassandtumb&snare(el),ag - старое название
+            res, R.raw.bassandtumb280, R.raw.snaredrumelectric232,
+            GeneralProsody.AccentationType.Agogic, GeneralProsody.AccentationType.Dynamic));
+     */
 
     ///unsorted
     //Педаль не годится для короткого звука. Но надо попробовать для сильного.

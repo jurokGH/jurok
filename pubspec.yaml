@@ -64,9 +64,9 @@ flutter:
     # Portrait background
     - images/backg.png
     - images/bigplashka.png
-    - images/BackgV.jpg
+    #- images/BackgV.jpg
     - images/back-v4.jpg
-    - images/BackgPlyV.jpg
+    #- images/BackgPlyV.jpg
     - images/icplay.png
     - images/icstop.png
     - images/but-note-1.png
@@ -78,10 +78,10 @@ flutter:
     - images/ic3.png
     - images/ic4.png
     - images/ictempo.png
-    - images/knob3d.png
-    - images/knob3d-1.png
-    - images/knob3d-2.png
-    - images/knob-stump.png
+    #- images/knob3d.png
+    #- images/knob3d-1.png
+    #- images/knob3d-2.png
+    #- images/knob-stump.png
     - images/knobToRotate.png
     - images/button.png
     - images/button12.png
@@ -100,19 +100,19 @@ flutter:
     #- images/wh3.png
     # Landscape background
     - images/butowl4.png
-    - images/knob4.png
-    - images/BackgH.jpg
-    - images/Backg-Up-1.jpg
-    - images/Backg-Dn-1.jpg
-    - images/Backg-Up-1.png
-    - images/Backg-Dn-1.png
-    - images/TempoKnob.png
-    - images/TempoKnobT.png
+    #- images/knob4.png
+    #- images/BackgH.jpg
+    #- images/Backg-Up-1.jpg
+    #- images/Backg-Dn-1.jpg
+    #- images/Backg-Up-1.png
+    #- images/Backg-Dn-1.png
+    #- images/TempoKnob.png
+    #- images/TempoKnobT.png
     - images/owl-sub.png
-    - images/owl-btn.png
-   # - images/Metre.png
+    #- images/owl-btn.png
+    #- images/Metre.png
 
-    - images/owl3-0-0.png
+    #- images/owl3-0-0.png
     - images/owl3-0-1.png
     - images/owl3-1-0.png
     - images/owl3-1-1.png
@@ -135,8 +135,8 @@ flutter:
     - images/owl3-4-3.png
     - images/owl3-4-4.png
 
-    - images/owl5-0-0.png
-    - images/owl5-0-1.png
+    #- images/owl5-0-0.png
+    #- images/owl5-0-1.png
     - images/owl5-1-0.png
     - images/owl5-1-1.png
     - images/owl5-1-2.png
@@ -186,11 +186,11 @@ flutter:
 
 
 
-    - images/sound0.png
-    - images/sound1.png
-    - images/sound2.png
-    - images/sound3.png
-    - images/helpB.jpg
+    #- images/sound0.png
+    #- images/sound1.png
+    #- images/sound2.png
+    #- images/sound3.png
+    #- images/helpB.jpg
     - images/help.png
     - images/Ad-1.png
     - images/noteravno.png

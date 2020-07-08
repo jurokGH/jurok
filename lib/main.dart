@@ -45,8 +45,6 @@ import 'knob.dart';
 import 'KnobTuned.dart';
 //import 'KnobResizable.dart';
 
-
-
 import 'UserPrefs.dart';
 import 'NoteTempo.dart';
 import 'NoteWidget.dart';
@@ -670,13 +668,14 @@ class _HomePageState extends State<HomePage>
   final String hintFieldName = 'hintFlag';
   _loadHintStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _bHintWasAlreadyShownOrUserIsBrave = (prefs.getBool(hintFieldName) ?? false);
+    _bHintWasAlreadyShownOrUserIsBrave =
+        (prefs.getBool(hintFieldName) ?? false);
   }
 
   _setHintStatusToTrue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool(hintFieldName, true);
-    _bHintWasAlreadyShownOrUserIsBrave=true;
+    _bHintWasAlreadyShownOrUserIsBrave = true;
   }
 
   @override
@@ -690,19 +689,20 @@ class _HomePageState extends State<HomePage>
 
   /// /////////////////////////////////////////////////////////////////////////
 
-  void initUserPrefs(bool b)
-  {
+  void initUserPrefs(bool b) {
     onMetreBarChanged(_userPrefs.activeMetre);
     _setVolume(_userPrefs.volume);
     _activeSoundScheme = _userPrefs.activeSoundScheme;
 
     /// Get sound schemes (async) and set active scheme
-    _channel.getSoundSchemes(_activeSoundScheme).then((List<String> soundSchemes) {
+    _channel
+        .getSoundSchemes(_activeSoundScheme)
+        .then((List<String> soundSchemes) {
       _soundSchemes = soundSchemes;
       if (_soundSchemes.isEmpty)
         _activeSoundScheme = -1;
       else if (_activeSoundScheme == -1)
-        _activeSoundScheme = 0;  // Set default 0 scheme
+        _activeSoundScheme = 0; // Set default 0 scheme
     });
 
     _beat = Provider.of<MetronomeState>(context, listen: false).beatMetre;
@@ -717,7 +717,10 @@ class _HomePageState extends State<HomePage>
         Prosody.reverseAccents(_beat.accents, _beat.maxAccent));
 
     //Пользовательские ритмы
-    userRhythms = _userPrefs.userRhythms == null || _userPrefs.userRhythms.length == 0 ? List<UserRhythm>.generate(12, (n) => UserRhythm([], [])) : _userPrefs.userRhythms;
+    userRhythms =
+        _userPrefs.userRhythms == null || _userPrefs.userRhythms.length == 0
+            ? List<UserRhythm>.generate(12, (n) => UserRhythm([], []))
+            : _userPrefs.userRhythms;
     //_lastEditedBeatIndex = -1;
 
     setState(() {});
@@ -763,7 +766,7 @@ class _HomePageState extends State<HomePage>
           final double wd = _screenSize.width * 0.8;
           final TextStyle textStyle =
               //TextStyle(fontSize: wd / 18, color: Colors.black);
-          GoogleFonts.roboto(fontSize: wd / 19, color: Colors.black);
+              GoogleFonts.roboto(fontSize: wd / 19, color: Colors.black);
           final TextStyle textStyleEmph = textStyle.copyWith(
               fontWeight: FontWeight.w600, fontSize: textStyle.fontSize * 1.2);
           final Widget message = GestureDetector(
@@ -3525,11 +3528,42 @@ class _HomePageState extends State<HomePage>
   ///Звуковая схема
   Widget wSchemeBn(TextStyle textStyle, /*double totalWidth,*/ listWidth) {
     ///Полный бардак с listWidth и вокруг. Сделано на ходу. //ToDo
-    double shrinkForList = 0.9;
-    TextStyle listTextStyle =
+    final double shrinkForList = 0.9;
+    final TextStyle listTextStyle =
         textStyle.copyWith(fontSize: textStyle.fontSize * shrinkForList);
-    TextStyle listTextStyleBold =
+    final TextStyle listTextStyleBold =
         listTextStyle.copyWith(fontWeight: FontWeight.bold);
+
+
+
+    Stack stackedIcon(int soundScheme) {
+      final int imageIndex = soundScheme < 4 ? soundScheme : 4;
+      final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
+      final String strScheme = (soundScheme + 1).toString();
+      final     Widget icon =Image.asset(
+        schemeName,
+        //width: sizeButton,
+        // height: sizeButton,
+        fit: BoxFit.contain,
+      );
+      return Stack(alignment: Alignment.center, children: [
+        //decoration: decorTmp(Colors.green),
+        icon,
+        imageIndex == 4
+            ? Text(
+          strScheme,
+          /*
+              style: Theme.of(context).textTheme.headline5.copyWith(
+                  fontSize: 0.4 * totalWidth,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),*/
+          style: textStyle,
+          textScaleFactor: 1,
+        )
+            : Container(),
+      ]);
+    }
+
 
     //Базовый рабочий вариант для диалога. Однако он позволяет выбраь item лишь один раз и закрыть диалоговое окно -
     //само диалоговое окно не обновляется.
@@ -3539,6 +3573,23 @@ class _HomePageState extends State<HomePage>
     for (int j = 0; j < _soundSchemes.length; j++) {
       int i = j %
           _soundSchemes.length; //Отладочное, чтобы проверить на многих списках
+      if (i==6) //TODO : заплатка в спешке
+        musicList.add(Padding(
+        padding: EdgeInsets.only(
+          //    vertical: totalWidth * shrinkForList * 0.1
+            top: listWidth * 0.03,
+          bottom: listWidth * 0.01,
+        ),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Text(
+            "Experimental:",
+            style: textStyle.copyWith(
+                fontSize: textStyle.fontSize * 1.1),
+          ),
+        ),
+      ),);
+
       musicList.add(
         Container(
           //decoration: decorTmp(Colors.yellow),
@@ -3566,12 +3617,17 @@ class _HomePageState extends State<HomePage>
               )),
               child: Align(
                 alignment: Alignment.center,
-                child: Text(
-                  _soundSchemes[i],
-                  style: (i == _activeSoundScheme)
-                      ? listTextStyleBold
-                      : listTextStyle,
-                  textScaleFactor: 1,
+                child: Row(
+                  children: <Widget>[
+                    stackedIcon(i),
+                    Text(
+                      _soundSchemes[i],
+                      style: (i == _activeSoundScheme)
+                          ? listTextStyleBold
+                          : listTextStyle,
+                      textScaleFactor: 1,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -3585,18 +3641,8 @@ class _HomePageState extends State<HomePage>
       ),
     );
 
-    int soundScheme = _activeSoundScheme;
-    final int imageIndex = soundScheme < 4 ? soundScheme : 4;
-    final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
 
-    final String strScheme = (soundScheme + 1).toString();
 
-    final Widget icon = new Image.asset(
-      schemeName,
-      //width: sizeButton,
-      // height: sizeButton,
-      fit: BoxFit.contain,
-    );
 
     return Container(
       //width: totalWidth,
@@ -3655,22 +3701,7 @@ class _HomePageState extends State<HomePage>
         child: Align(
           //То, что рисуется в строке
           alignment: Alignment.center,
-          child: Stack(alignment: Alignment.center, children: [
-            //decoration: decorTmp(Colors.green),
-            icon,
-            imageIndex == 4
-                ? Text(
-                    strScheme,
-                    /*
-              style: Theme.of(context).textTheme.headline5.copyWith(
-                  fontSize: 0.4 * totalWidth,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),*/
-                    style: textStyle,
-                    textScaleFactor: 1,
-                  )
-                : Container(),
-          ]),
+          child:  stackedIcon(_activeSoundScheme),
         ),
       ),
     );
@@ -3685,7 +3716,7 @@ class _HomePageState extends State<HomePage>
     TextStyle _textStyleTempoRow = GoogleFonts.roboto(fontSize: fontSizeTempo);
 
     TextStyle _textStyleSchemeRow =
-        GoogleFonts.roboto(fontSize: fontSizeMusicScheme * 0.7);
+        GoogleFonts.roboto(fontSize: fontSizeMusicScheme * 0.68);
 
     ///Паддинг большой плашки контролов относительно краев экраан
 
