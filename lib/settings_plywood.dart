@@ -24,10 +24,10 @@ class SettingsWidget extends StatelessWidget
   ];*/
 
   final List<String> mixingTypes = [
-    'Half sum (energy saving)',
+    'Half sum\n   quieter, energy saving',
     'Hyperbolic Tangent',
-    'Hyperbolic Tangent with amplifier  (louder)',
-    'Experimental',
+    'Hyperbolic Tangent with amplifier\n  louder, but with some more sound distortion',
+    'Experimental\n well, who knows what is it?',
   ];
 
   SettingsWidget({
