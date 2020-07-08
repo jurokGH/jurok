@@ -203,7 +203,7 @@ final String _cAppName = "Owlenome";
 final String _cAppTitle = "Owlenome";
 
 void main() {
-  /* //ToDo: что-то такое надо сделать с лицензией. Гугл, и фонты для ПАУЗ
+  /* //ToDo: что-то такое надо сделать с лицензией. Гугл, и фонта для ПАУЗ
   LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');
     yield LicenseEntryWithLineBreaks(['google_fonts'], license);
@@ -793,25 +793,31 @@ class _HomePageState extends State<HomePage>
           return AlertDialog(
             backgroundColor: Colors.amber[50].withOpacity(0.75),
             elevation: 10.3,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Flexible(
-                  flex: 5,
-                  child: Image.asset('images/owl3-3-3.png', fit: BoxFit.fill),
-                ),
-                Flexible(
-                  flex: 20,
-                  child: Text(
-                    //"Hint 1 of 1:",
-                    "Only one hint:",
-                    style: textStyleEmph.copyWith(color: Colors.indigo),
-                    textScaleFactor: 1,
-                    textAlign: TextAlign.left,
+            title: GestureDetector(
+              onTap: () {
+                //setState(() {}); //ToDo: Why?
+                Navigator.of(context).pop();
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Flexible(
+                    flex: 5,
+                    child: Image.asset('images/owl3-3-3.png', fit: BoxFit.fill),
                   ),
-                ),
-              ],
+                  Flexible(
+                    flex: 20,
+                    child: Text(
+                      //"Hint 1 of 1:",
+                      "Only one hint:",
+                      style: textStyleEmph.copyWith(color: Colors.indigo),
+                      textScaleFactor: 1,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ],
+              ),
             ),
             //children: <Widget>[message],
             content: message,
