@@ -212,15 +212,13 @@ public class MetroAudioMix
     {
         typeOfMix=newMix;
         if (typeOfMix!=MIX_HALF_SUM)
-            /**
-             *  Нужно определить оператор нормализации
-                */
+            //  определим оператор нормализации:
         {
             if(typeOfMix==MIX_HYPERBOLIC_TANGENT)
                 {normOperator = new MelodyToolsPCM16.NormHyperbolicTangent();}
             else if (typeOfMix==MIX_HYPERBOLIC_TANGENTAMP1)
                 {normOperator = new MelodyToolsPCM16.NormHyperbolicTangentAmp();}
-            else {normOperator = new MelodyToolsPCM16.NormTest();}
+            else {normOperator = new MelodyToolsPCM16.NormExperiment();}
         }
     }
 

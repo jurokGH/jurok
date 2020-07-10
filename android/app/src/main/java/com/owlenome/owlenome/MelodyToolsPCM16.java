@@ -379,24 +379,29 @@ public class MelodyToolsPCM16
 
 
   public static class NormHyperbolicTangentAmp implements  NormOperator {
-    public double amplifier= 2;///Если мы сделаем угол наклона в 0
     //у гиперболического тангенса побольше?
     //10 - искажение.
     //0.01 - тишина
     public double operator(double d1, double d2){
+      ///Если мы сделаем угол наклона в 0
+      double amplifier = 2;
       return Math.tanh(amplifier *(d1+d2));}
   };
 
 
 
-  public static class NormTest implements  NormOperator {
-    public double amplifier= 2*1.5;
-    public double strongWeight= 0.7;
+  public static class NormExperiment implements  NormOperator {
+    //public double amplifier= 2*1.5;
+    //public double strongWeight= 0.7;
     //10 - искажение. Кажется, 2 уже искажение? (какие-то барабаны. надо слушать
     //на железе)
     //0.01 - тишина
     public double operator(double d1, double d2){
-      return Math.tanh(amplifier *(d1*strongWeight+d2*(1-strongWeight)));}
+      double attenuator=0.7;//Ослабляем слабый звук.
+      ///Общее усиление:
+      double amplifier = 2.0/(attenuator+1); ///1.0/(attenuator+0.5) - это 'как бы' без искажений, сумма - до двух
+      //При маленьком attenuator, amplifier даст плохой эффект: акценты перестанут различаться между собой
+      return Math.tanh((d1+(d2*attenuator)));}
   };
 
   /**
