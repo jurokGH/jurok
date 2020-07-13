@@ -420,7 +420,6 @@ class _HomePageState extends State<HomePage>
   /// Keep screen on while playing (if true)
   bool _screenOn = true;
 
-  //OwlSkinRot _skin;
   OwlSkin4Acc _skin;
   UserPrefs _userPrefs = new UserPrefs();
 
@@ -1343,7 +1342,7 @@ class _HomePageState extends State<HomePage>
 
     // Vertical/portrait
     if (true /*portrait todo*/) {
-      return PortraitU(ourAreaSize);
+      return _wPortrait(ourAreaSize);
 
       /// Owl square and controls
       final List<Widget> innerUI = <Widget>[
@@ -1454,7 +1453,7 @@ class _HomePageState extends State<HomePage>
   ///This consists of the metronome itself, plus any other stuff (perhaps something else, if we need it once ); it is only
   ///our area, in particular the app bar is not here.
   ///If bOuterSpaceScrollDebug, the area of metronome will be controlled by a scroll.
-  Widget PortraitU(Size ourAreaSize) {
+  Widget _wPortrait(Size ourAreaSize) {
     ///Резервируем снизу место, units; например,  для рекламы, или любых иных целей.
     final double bottomReserved = bOuterSpaceScrollDebug
         ? reservedHeightBottom * 0.01 * ourAreaSize.height
@@ -1469,7 +1468,7 @@ class _HomePageState extends State<HomePage>
       )),
       child: Stack(
         children: <Widget>[
-          MetronomeArea(
+          _wMetronomeArea(
               Size(ourAreaSize.width, ourAreaSize.height - bottomReserved)),
           /*   Positioned(
               //ToDo: MOVE
@@ -1502,14 +1501,6 @@ class _HomePageState extends State<HomePage>
               ? Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
-                      //padding: EdgeInsets.all(_heightAds[0] * 0.1),
-                      /*
-                      decoration: BoxDecoration(
-                        //color: Colors.grey.withOpacity(0.5),
-                        border: Border.all(
-                          color: Colors.green, //
-                        ),
-                      ),*/
                       height: _heightAds[0] / 2,
                       width: ourAreaSize.width,
                       child: Row(
@@ -1932,6 +1923,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  /*
   Widget borderedContainer(Size size) {
     return Container(
       width: size.width,
@@ -1943,7 +1935,7 @@ class _HomePageState extends State<HomePage>
         ),
       ),
     );
-  }
+  }*/
 
   Widget _buildControls(bool portrait, double barHeight) {
     // Fill up the remaining screen as the last widget in column/row
@@ -2496,7 +2488,7 @@ class _HomePageState extends State<HomePage>
   final FixedExtentScrollController tempController2 =
       FixedExtentScrollController(initialItem: _initTest);
 
-  Widget testWidget(Size size) {
+  Widget _wTest(Size size) {
     //double fontSizeTempo = size.width * 1 / 10;
     //TextStyle textStyle = GoogleFonts.roboto(fontSize: fontSizeTempo);
 
@@ -2648,7 +2640,7 @@ class _HomePageState extends State<HomePage>
   ///
   ///Витин скролл темпов, завернутый в LayoutBuilder, чтобы знать собственную ширину,
   ///и чуть ужатый по горизонтали, чтобы текст попадал в область, определенную Юриной картинкой
-  Widget _tempoListFinallyGotLaid(TextStyle textStyle, double horShrink) {
+  Widget _wTempoListFinallyGotLaid(TextStyle textStyle, double horShrink) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       double width = constraints.maxWidth * horShrink;
@@ -2679,7 +2671,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Область метронома: совы и контролы
-  Widget MetronomeArea(Size allowedSize) {
+  Widget _wMetronomeArea(Size allowedSize) {
     //Область нашего метронома, всего вместе
     double totalWidth = allowedSize.width;
     double totalHeight = allowedSize.height;
@@ -2718,18 +2710,18 @@ class _HomePageState extends State<HomePage>
     bool bTest = false;
     //bTest = true; //ToDo hide
     final List<Widget> metrMainAreas = <Widget>[
-      _AreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
+      _wAreaOfOwls(true, Size(totalWidth * c1, totalWidth * c1)),
       //!bTest
       true
-          ? _knobAndStartArea(true, Size(totalWidth, totalWidth * c2))
-          : testWidget(Size(totalWidth, totalWidth * c2)),
+          ? _wKnobAndStartArea(true, Size(totalWidth, totalWidth * c2))
+          : _wTest(Size(totalWidth, totalWidth * c2)),
       !bTest
           // (true)
-          ? _rowControlsArea(true, Size(totalWidth, totalWidth * c3))
-          : testWidget(Size(totalWidth, totalWidth * c3)),
+          ? _wRowControlsArea(true, Size(totalWidth, totalWidth * c3))
+          : _wTest(Size(totalWidth, totalWidth * c3)),
     ];
 
-    Widget metronome = Align(
+    return Align(
         alignment: Alignment.topCenter,
         child: SizedBox(
             width: totalWidth,
@@ -2772,11 +2764,10 @@ class _HomePageState extends State<HomePage>
                 */
               ],
             )));
-    return metronome;
   }
 
   ///widget Metre-bar section
-  Widget _knobAndStartArea(bool portrait, Size size) {
+  Widget _wKnobAndStartArea(bool portrait, Size size) {
     final double useOfHeight = 0.95;
 
     final double knobDiameter = size.height * useOfHeight;
@@ -3122,15 +3113,15 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget signatureRaw(TextStyle textStyle, double totalWidht) {
+  Widget _wSignatureRaw(TextStyle textStyle, double totalWidht) {
     final int leftFlex = 7;
-    final int meterWheelsFlex = 12;
+    final int wMeterWheelsFlex = 12;
     final int meterFlex = 25;
     final int rightFlex = 12;
-    final int total = leftFlex + meterWheelsFlex + meterFlex + rightFlex;
-    double globalYPadding = totalWidht * 0.005;
-    double localXPadding = totalWidht * 0.01;
-    double meterYPaddyng = totalWidht * 0.007;
+    final int total = leftFlex + wMeterWheelsFlex + meterFlex + rightFlex;
+    final double globalYPadding = totalWidht * 0.005;
+    final double localXPadding = totalWidht * 0.01;
+    final double meterYPaddyng = totalWidht * 0.007;
     return Container(
         padding: EdgeInsets.symmetric(vertical: globalYPadding),
         // decoration: decorTmp(Colors.blue),
@@ -3141,14 +3132,14 @@ class _HomePageState extends State<HomePage>
             child: Container(
               padding: EdgeInsets.only(right: localXPadding),
               decoration: decorDebug(Colors.blue),
-              child: wSchemeBn(
+              child: _wSchemeBn(
                   textStyle, totalWidht /*totalWidht*leftFlex/total*/),
             ),
           ),
           Expanded(
             //Колонка колёс метра
-            flex: meterWheelsFlex,
-            child: Container(child: wMetreWheels()),
+            flex: wMeterWheelsFlex,
+            child: Container(child: _wMetreWheels()),
           ),
           Expanded(
             //Строка акцентов
@@ -3160,7 +3151,7 @@ class _HomePageState extends State<HomePage>
                   top: meterYPaddyng,
                   bottom: meterYPaddyng),
               decoration: decorDebug(Colors.yellow),
-              child: wMetreBar(),
+              child: _wMetreBar(),
             ),
           ),
           //Spacer(flex:1),
@@ -3186,7 +3177,7 @@ class _HomePageState extends State<HomePage>
                         fit: BoxFit.fill,
                       )),
                       //decoration: decorTmp(Colors.green),
-                      child: wJumpToNextStandardBeat(), // rhythmPicker(),
+                      child: _wJumpToNextStandardBeat(), // rhythmPicker(),
                     ),
                   ),
                   /*Expanded(
@@ -3221,7 +3212,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Прыгаем к следующему стандартному размеру.
-  Widget wJumpToNextStandardBeat() {
+  Widget _wJumpToNextStandardBeat() {
     int nextBeat() {
       int lng = Prosody.standardBeatNth.length;
       int indToJump = 0; //Ищем следующий размер
@@ -3421,7 +3412,7 @@ class _HomePageState extends State<HomePage>
   ///
   /// Чтобы этот виджет отцентрировать (если вдруг захотим), нужно будет померять реальное отношение отрисованного к высоте
   /// (но длина текста может меняться в зависимости от значения темпа, так что надо аккуратно)
-  Widget noteAndTempo(TextStyle textStyle) {
+  Widget _wNoteAndTempo(TextStyle textStyle) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       final double noteH = constraints.maxHeight;
@@ -3484,7 +3475,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget tempoRow(TextStyle _textStyleTempoRow) {
+  Widget _wTempoRow(TextStyle _textStyleTempoRow) {
     return Container(
       //decoration: decorTmp(Colors.yellow),
       child: Row(
@@ -3507,7 +3498,7 @@ class _HomePageState extends State<HomePage>
                 image: AssetImage('images/noteravno.png'),
                 fit: BoxFit.fill,
               )),
-              child: noteAndTempo(_textStyleTempoRow),
+              child: _wNoteAndTempo(_textStyleTempoRow),
             ),
           ),
           Expanded(
@@ -3522,7 +3513,7 @@ class _HomePageState extends State<HomePage>
                   fit: BoxFit.fill,
                 )),
                 //decoration: decorTmp(Colors.green),
-                child: _tempoListFinallyGotLaid(_textStyleTempoRow, 0.705),
+                child: _wTempoListFinallyGotLaid(_textStyleTempoRow, 0.705),
               ))
         ],
       ),
@@ -3530,7 +3521,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Звуковая схема
-  Widget wSchemeBn(TextStyle textStyle, /*double totalWidth,*/ listWidth) {
+  Widget _wSchemeBn(TextStyle textStyle, /*double totalWidth,*/ listWidth) {
     ///Полный бардак с listWidth и вокруг. Сделано на ходу. //ToDo
     final double shrinkForList = 0.9;
     final TextStyle listTextStyle =
@@ -3541,7 +3532,8 @@ class _HomePageState extends State<HomePage>
 
 
     Stack stackedIcon(int soundScheme) {
-      final int imageIndex = soundScheme < 4 ? soundScheme : 4;
+      final int picturesCount=6;//ToDo
+      final int imageIndex = soundScheme < picturesCount ? soundScheme : picturesCount;
       final String schemeName = 'images/ic' + imageIndex.toString() + '.png';
       final String strScheme = (soundScheme + 1).toString();
       final     Widget icon =Image.asset(
@@ -3553,7 +3545,7 @@ class _HomePageState extends State<HomePage>
       return Stack(alignment: Alignment.center, children: [
         //decoration: decorTmp(Colors.green),
         icon,
-        imageIndex == 4
+        imageIndex == picturesCount
             ? Text(
           strScheme,
           /*
@@ -3711,7 +3703,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _rowControlsArea(bool portrait, Size size) {
+  Widget _wRowControlsArea(bool portrait, Size size) {
     double fontSizeTempo = size.width *
         0.3 /
         6; //ToDo: to make the widget more flexible,  the constant should be one of c_i-s constatns
@@ -3772,17 +3764,17 @@ class _HomePageState extends State<HomePage>
             Flexible(
               flex: 10,
               fit: FlexFit.tight,
-              child: tempoRow(_textStyleTempoRow),
+              child: _wTempoRow(_textStyleTempoRow),
             ),
             Flexible(
               flex: 20,
               fit: FlexFit.tight,
-              child: signatureRaw(_textStyleSchemeRow, size.width),
+              child: _wSignatureRaw(_textStyleSchemeRow, size.width),
             ),
             Flexible(
               flex: 7,
               fit: FlexFit.tight,
-              child: musicSchemeRaw(_textStyleSchemeRow, size.width),
+              child: _wMusicSchemeRaw(_textStyleSchemeRow, size.width),
             ),
             //auxRaw//ToDo: добавим в конец схем
           ],
@@ -3791,7 +3783,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget musicSchemeRaw(TextStyle textStyle, double totalWidth) {
+  Widget _wMusicSchemeRaw(TextStyle textStyle, double totalWidth) {
     final int left = 14;
     final int padding = 1;
     final int right = 100;
@@ -3813,7 +3805,7 @@ class _HomePageState extends State<HomePage>
         ),*/
         Expanded(
           flex: right,
-          child: rhythmNameW(textStyle, totalWidth * right / total),
+          child: _wRhythmName(textStyle, totalWidth * right / total),
         ),
       ],
     );
@@ -3822,7 +3814,7 @@ class _HomePageState extends State<HomePage>
   ///
   /// Рисует тапабельную строку с ритмом.
   ///
-  Widget rhythmNameW(TextStyle textStyle, double totalWidth) {
+  Widget _wRhythmName(TextStyle textStyle, double totalWidth) {
     //double inkWellBetweenPadding = totalWidth * 0.01;
 
     double shrinkForList = 0.9;
@@ -4206,7 +4198,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///Витины колёса метра, завернутые во внешний размер
-  Widget wMetreWheels() {
+  Widget _wMetreWheels() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size meterSize = Size(constraints.maxWidth, constraints.maxHeight);
@@ -4311,7 +4303,7 @@ class _HomePageState extends State<HomePage>
   final FixedExtentScrollController _scrollBarController =
       FixedExtentScrollController(initialItem: _initScrollBarPosition);
 
-  Widget wMetreBar() {
+  Widget _wMetreBar() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       Size metreBarSize = Size(constraints.maxWidth, constraints.maxHeight);
@@ -4405,7 +4397,7 @@ class _HomePageState extends State<HomePage>
   }
 
   ///widget Square section with metronome itself. ToDo
-  Widget _AreaOfOwls(bool portrait, Size size) {
+  Widget _wAreaOfOwls(bool portrait, Size size) {
     //return BorderedContainer(size);
 
     if (!_skin.isInit || size.isEmpty)
