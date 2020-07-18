@@ -3241,7 +3241,7 @@ class _HomePageState extends State<HomePage>
             child: Align(
               alignment: Alignment.center,
               child: Text(
-                'Go to\n ${nextBeat()}/${_noteValue}',
+                'GO TO\n ${nextBeat()}/${_noteValue}',
                 style: textStyle,
                 maxLines: 2,
                 textScaleFactor: 1,
@@ -3605,7 +3605,7 @@ class _HomePageState extends State<HomePage>
               height: shrinkForList * listWidth / 7,
               decoration: BoxDecoration(
                   image: DecorationImage(
-                image: AssetImage('images/but123short.png'),
+                image: AssetImage('images/but1452long.png'),
                 //ToDo: Юрик, кажется but123short тут смотрится сморчково. Или строчково. Ты посмотри.
                 //image: AssetImage('images/but-note-1.png'),
                 //image: AssetImage('images/ictempo.png'),
@@ -3645,7 +3645,8 @@ class _HomePageState extends State<HomePage>
       //decoration: decorTmp(Colors.yellow),
       decoration: BoxDecoration(
           image: DecorationImage(
-        image: AssetImage('images/but1452long.png'),
+        image: AssetImage('images/but123short.png'),
+            //image: AssetImage('images/plashka1s.png'),
         fit: BoxFit.fill,
       )),
       child: RawMaterialButton(
