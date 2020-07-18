@@ -3229,7 +3229,7 @@ class _HomePageState extends State<HomePage>
       builder: (BuildContext context, BoxConstraints constraints) {
         Size size = Size(constraints.maxWidth, constraints.maxHeight);
         TextStyle textStyle = GoogleFonts.roboto(
-            fontSize: size.width * 0.2, fontWeight: FontWeight.bold);
+            fontSize: size.width * 0.19, fontWeight: FontWeight.bold);
 
         //onChanged: onSubbeatChanged,
 
@@ -3242,6 +3242,7 @@ class _HomePageState extends State<HomePage>
               alignment: Alignment.center,
               child: Text(
                 'GO TO\n ${nextBeat()}/${_noteValue}',
+                  textAlign:TextAlign.center,
                 style: textStyle,
                 maxLines: 2,
                 textScaleFactor: 1,
