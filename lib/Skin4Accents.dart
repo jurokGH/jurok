@@ -78,7 +78,7 @@ class OwlSkin4Acc {
     Future<ui.Image> futImage = _loadImage(_fileBase + '1.png');
     Future<ui.Image> futImageHead = _loadImage(_fileBaseHead + '0-0.png');
     // Get original image dimensions
-    Future.wait([
+    return Future.wait([
       futImage.then((ui.Image image) {
         _imageSize0 = new Size(image.width.toDouble(), image.height.toDouble());
         print('_imageSize0 $_imageSize0');
@@ -87,9 +87,9 @@ class OwlSkin4Acc {
       new Size(image.width.toDouble(), image.height.toDouble()))
     ]).then((_) {
       _isInit = true;
-      return new Future.value(true);
+      return true;
     }).catchError((Object err) {
-      return new Future.value(false);
+      return false;
     });
   }
 
